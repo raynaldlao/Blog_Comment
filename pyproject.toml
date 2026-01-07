@@ -13,7 +13,8 @@ dependencies = [
     "flask-wtf (>=1.2.2,<2.0.0)",
     "flask-login (>=0.6.3,<0.7.0)",
     "flask-uploads (>=0.2.1,<0.3.0)",
-    "pillow (>=12.0.0,<13.0.0)"
+    "pillow (>=12.0.0,<13.0.0)",
+    "psycopg2-binary (>=2.9.11,<3.0.0)"
 ]
 
 
