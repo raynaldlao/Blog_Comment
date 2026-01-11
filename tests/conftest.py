@@ -1,10 +1,5 @@
 import os
 
-# ❌ Erreurs de lint ajoutées : imports inutilisés
-import json
-import math
-import datetime
-
 import pytest
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
