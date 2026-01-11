@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from dotenv import dotenv_values
 from sqlalchemy import create_engine
@@ -5,9 +7,17 @@ from sqlalchemy.orm import sessionmaker
 
 from app.models import Base
 
-env = dotenv_values(".env.test")
-DATABASE_URL = env["TEST_DATABASE_URL"]
-engine = create_engine(DATABASE_URL)
+file_env = dotenv_values(".env.test")
+
+# Database selection logic:
+# 1. Local environment: use TEST_DATABASE_URL from .env.test
+# 2. Optional override: use TEST_DATABASE_URL from os.environ if provided
+database_url = (
+    file_env.get("TEST_DATABASE_URL")
+    or os.getenv("TEST_DATABASE_URL")
+)
+
+engine = create_engine(database_url)
 SessionLocal = sessionmaker(bind=engine)
 
 @pytest.fixture(scope="session", autouse=True)
