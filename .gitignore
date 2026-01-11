@@ -1,10 +1,19 @@
-# Python environment
-.venv/
+# 🐍 Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
 
-# Ruff cache
+# 🔐 Secrets
+.env
+.env.*
+
+# 🧪 Tests
+.pytest_cache/
+
+# 🧹 Ruff
 .ruff_cache/
 
-# Environment secrets
-.env
+# 🧠 Éditeurs & OS
+.vscode/
+.idea/
+.DS_Store
