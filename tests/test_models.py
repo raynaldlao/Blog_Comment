@@ -2,7 +2,7 @@ from app.models import Account, Article, Feedback
 
 
 def test_create_account(db_session):
-    account = Account(username="pytest_user_account", email="test_account@example.com", role="user")
+    account = Account(username="pytest_user_account_OK", email="test_account@example.com", role="user")
     db_session.add(account)
     db_session.commit()
     result = db_session.query(Account).filter_by(username="pytest_user_account").first()
@@ -10,7 +10,7 @@ def test_create_account(db_session):
     assert result.role == "user"
 
 def test_create_article(db_session):
-    author = Account(username="pytest_author_article", email="author_article@test.com", role="author")
+    author = Account(username="pytest_author_article_6", email="author_article@test.com", role="author")
     db_session.add(author)
     db_session.commit()
     article = Article(writer_id=author.account_id, title="Titre article", content="Contenu article")
@@ -22,7 +22,7 @@ def test_create_article(db_session):
 
 def test_create_feedback(db_session):
     author = Account(username="pytest_author_feedback", email="author_feedback@test.com", role="author")
-    user = Account(username="pytest_user_feedback", email="user_feedback@test.com", role="user")
+    user = Account(username="pytest_user_feedback_7", email="user_feedback@test.com", role="user")
     db_session.add_all([author, user])
     db_session.commit()
     article = Article(writer_id=author.account_id, title="Titre feedback", content="Contenu feedback")
