@@ -9,7 +9,7 @@ class Account(Base):
     account_id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(Text, unique=True, nullable=False)
     email = Column(Text)
-    role = Column(Text, nullable=False)
+    account_role = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP)
 
     articles = relationship("Article", back_populates="writer", cascade="all, delete-orphan")
