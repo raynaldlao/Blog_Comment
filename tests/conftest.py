@@ -1,8 +1,10 @@
 import os
+
 import pytest
+from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from dotenv import dotenv_values
+
 from app.models import Base
 
 file_env = dotenv_values(".env.test")

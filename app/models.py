@@ -11,7 +11,7 @@ class Account(Base):
     email = Column("email", Text)
     account_role = Column("account_role", Text, nullable=False)
     created_at = Column("created_at", TIMESTAMP)
-    
+
     articles = relationship("Article", back_populates="writer", cascade="all, delete-orphan")
     feedbacks = relationship("Feedback", back_populates="commenter", cascade="all, delete-orphan")
 
