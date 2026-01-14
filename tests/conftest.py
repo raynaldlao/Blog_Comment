@@ -2,7 +2,7 @@ import os
 
 import pytest
 from dotenv import dotenv_values
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.models import Base
@@ -20,16 +20,19 @@ database_url = (
 engine = create_engine(database_url)
 SessionLocal = sessionmaker(bind=engine)
 
-@pytest.fixture(scope="session", autouse=True)
-def setup_database():
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
-    yield
+def truncate_all_tables(connection):
+    tables = Base.metadata.sorted_tables
+    table_names = ", ".join(f'"{t.name}"' for t in tables)
+    connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
 
 @pytest.fixture(scope="function")
 def db_session():
-    session = SessionLocal()
+    connection = engine.connect()
+    truncate_all_tables(connection)
+    session = SessionLocal(bind=connection)
+
     try:
         yield session
     finally:
         session.close()
+        connection.close()
