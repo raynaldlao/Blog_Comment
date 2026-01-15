@@ -1,41 +1,41 @@
-from app.models import Account, Article, Feedback
+from app.models import Account, Article, Comment
 
 
 def test_create_account(db_session):
-    account = Account(username="pytest_user_account", account_password="123456789", email="test_account@example.com", account_role="user")
+    account = Account(account_username="pytest_user_account", account_password="123456789", account_email="test_account@example.com", account_role="user")
     db_session.add(account)
     db_session.commit()
-    result = db_session.query(Account).filter_by(username="pytest_user_account").first()
+    result = db_session.query(Account).filter_by(account_username="pytest_user_account").first()
     assert result is not None
     assert result.account_password is not None
     assert result.account_role == "user"
 
 def test_create_article(db_session):
-    author = Account(username="pytest_author_article", account_password="123456789", email="author_article@test.com", account_role="author")
+    author = Account(account_username="pytest_author_article", account_password="123456789", account_email="author_article@test.com", account_role="author")
     db_session.add(author)
     db_session.commit()
-    article = Article(writer_id=author.account_id, title="Titre article", content="Contenu article")
+    article = Article(article_author_id=author.account_id, article_title="Titre article", article_content="Contenu article")
     db_session.add(article)
     db_session.commit()
-    result = db_session.query(Article).filter_by(title="Titre article").first()
+    result = db_session.query(Article).filter_by(article_title="Titre article").first()
     assert result is not None
-    assert result.writer.username == "pytest_author_article"
-    assert result.writer.account_password is not None
+    assert result.article_author.account_username == "pytest_author_article"
+    assert result.article_author.account_password is not None
 
-def test_create_feedback(db_session):
-    author = Account(username="pytest_author_feedback", account_password="123456789", email="author_feedback@test.com", account_role="author")
-    user = Account(username="pytest_user_feedback", account_password="123456789", email="user_feedback@test.com", account_role="user")
+def test_create_comment(db_session):
+    author = Account(account_username="pytest_author_comment", account_password="123456789", account_email="author_comment@test.com", account_role="author")
+    user = Account(account_username="pytest_user_comment", account_password="123456789", account_email="user_comment@test.com", account_role="user")
     db_session.add_all([author, user])
     db_session.commit()
-    article = Article(writer_id=author.account_id, title="Titre feedback", content="Contenu feedback")
+    article = Article(article_author_id=author.account_id, article_title="Titre comment", article_content="Contenu comment")
     db_session.add(article)
     db_session.commit()
-    feedback = Feedback(article_ref=article.article_id, commenter_id=user.account_id, message="Bravo !")
-    db_session.add(feedback)
+    comment = Comment(comment_article_id=article.article_id, comment_written_account_id=user.account_id, comment_content="Bravo !")
+    db_session.add(comment)
     db_session.commit()
-    result = db_session.query(Feedback).filter_by(message="Bravo !").first()
+    result = db_session.query(Comment).filter_by(comment_content="Bravo !").first()
     assert result is not None
-    assert result.commenter.username == "pytest_user_feedback"
-    assert result.commenter.account_password is not None
-    assert result.article.title == "Titre feedback"
-    assert result.article.writer.account_password is not None
+    assert result.comment_author.account_username == "pytest_user_comment"
+    assert result.comment_author.account_password is not None
+    assert result.comment_article.article_title == "Titre comment"
+    assert result.comment_article.article_author.account_password is not None
