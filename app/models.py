@@ -8,6 +8,7 @@ class Account(Base):
 
     account_id = Column("account_id", Integer, primary_key=True, autoincrement=True)
     username = Column("username", Text, unique=True, nullable=False)
+    account_password = Column("account_password", Text, nullable=False)
     email = Column("email", Text)
     account_role = Column("account_role", Text, nullable=False)
     created_at = Column("created_at", TIMESTAMP)

@@ -27,12 +27,11 @@ def truncate_all_tables(connection):
 
 @pytest.fixture(scope="function")
 def db_session():
-    connection = engine.connect()
-    truncate_all_tables(connection)
-    session = SessionLocal(bind=connection)
+    with engine.begin() as connection:
+        truncate_all_tables(connection)
+        session = SessionLocal(bind=connection)
 
-    try:
-        yield session
-    finally:
-        session.close()
-        connection.close()
+        try:
+            yield session
+        finally:
+            session.close()
