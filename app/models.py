@@ -14,7 +14,7 @@ class Account(Base):
     account_password = Column("account_password", Text, nullable=False)
     account_email = Column("account_email", Text)
     account_role = Column("account_role", Text, nullable=False)
-    account_created_at = Column("account_created_at", TIMESTAMP, server_default=func.now(), nullable=False)
+    account_created_at = Column("account_created_at", TIMESTAMP, server_default=func.now())
 
     articles = relationship("Article", back_populates="article_author", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")
@@ -27,7 +27,7 @@ class Article(Base):
     article_author_id = Column("article_author_id", Integer, ForeignKey("accounts.account_id", ondelete="CASCADE"), nullable=False)
     article_title = Column("article_title", Text, nullable=False)
     article_content = Column("article_content", Text, nullable=False)
-    article_published_at = Column("article_published_at", TIMESTAMP, server_default=func.now(), nullable=False)
+    article_published_at = Column("article_published_at", TIMESTAMP, server_default=func.now())
 
     article_author = relationship("Account", back_populates="articles")
     article_comments = relationship("Comment", back_populates="comment_article", cascade="all, delete-orphan")
@@ -41,7 +41,7 @@ class Comment(Base):
     comment_written_account_id = Column("comment_written_account_id", Integer, ForeignKey("accounts.account_id", ondelete="CASCADE"), nullable=False)
     comment_reply_to = Column("comment_reply_to", Integer, ForeignKey("comments.comment_id"), nullable=True)
     comment_content = Column("comment_content", Text, nullable=False)
-    comment_posted_at = Column("comment_posted_at", TIMESTAMP, server_default=func.now(), nullable=False)
+    comment_posted_at = Column("comment_posted_at", TIMESTAMP, server_default=func.now())
 
     comment_article = relationship("Article", back_populates="article_comments")
     comment_author = relationship("Account", back_populates="comments")
