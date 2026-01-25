@@ -8,15 +8,10 @@ from sqlalchemy.orm import sessionmaker
 from app.models import Account, Article, Base, Comment
 
 file_env = dotenv_values(".env.test")
-
-# Database selection logic:
-# 1. Local environment: use TEST_DATABASE_URL from .env.test
-# 2. Optional override: use TEST_DATABASE_URL from os.environ if provided
-database_url = (
-    file_env.get("TEST_DATABASE_URL")
-    or os.getenv("TEST_DATABASE_URL")
-)
-
+# CI (GitHub Actions) provides TEST_DATABASE_URL via environment variables.
+# Locally, we fall back to .env.test for a dedicated test database.
+# This keeps the test configuration consistent across environments without changing the code.
+database_url = file_env.get("TEST_DATABASE_URL") or os.getenv("TEST_DATABASE_URL")
 engine = create_engine(database_url)
 SessionLocal = sessionmaker()
 
