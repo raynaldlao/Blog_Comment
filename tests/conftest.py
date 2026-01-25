@@ -39,7 +39,6 @@ def db_session():
     with engine.begin() as connection:
         truncate_all_tables(connection)
         session = SessionLocal(bind=connection)
-
         try:
             yield session
         finally:
