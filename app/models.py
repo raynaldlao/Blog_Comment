@@ -43,6 +43,16 @@ class Comment(Base):
     comment_content = Column("comment_content", Text, nullable=False)
     comment_posted_at = Column("comment_posted_at", TIMESTAMP, server_default=func.now())
 
-    comment_article = relationship("Article", back_populates="article_comments")
-    comment_author = relationship("Account", back_populates="comments")
-    replies = relationship("Comment", backref="parent", remote_side=[comment_id])
+    comment_article = relationship(argument="Article", back_populates="article_comments")
+    comment_author = relationship(argument="Account", back_populates="comments")
+    reply_to_comment = relationship(
+        argument="Comment",
+        remote_side=[comment_id],
+        back_populates="comment_replies",
+        uselist=False,
+    )
+    comment_replies = relationship(
+        argument="Comment",
+        back_populates="reply_to_comment",
+        cascade="all, delete-orphan",
+    )
