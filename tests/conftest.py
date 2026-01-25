@@ -5,7 +5,7 @@ from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base
+from app.models import Account, Article, Base, Comment
 
 file_env = dotenv_values(".env.test")
 
@@ -19,6 +19,15 @@ database_url = (
 
 engine = create_engine(database_url)
 SessionLocal = sessionmaker()
+
+def account_model():
+    return Account
+
+def article_model():
+    return Article
+
+def comment_model():
+    return Comment
 
 def truncate_all_tables(connection):
     tables = Base.metadata.sorted_tables
