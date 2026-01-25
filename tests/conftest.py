@@ -18,7 +18,7 @@ database_url = (
 )
 
 engine = create_engine(database_url)
-SessionLocal = sessionmaker(bind=engine)
+SessionLocal = sessionmaker()
 
 def truncate_all_tables(connection):
     tables = Base.metadata.sorted_tables
