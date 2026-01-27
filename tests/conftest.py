@@ -5,20 +5,24 @@ from dotenv import dotenv_values
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Base
+from app.models import Account, Article, Base, Comment
 
 file_env = dotenv_values(".env.test")
-
-# Database selection logic:
-# 1. Local environment: use TEST_DATABASE_URL from .env.test
-# 2. Optional override: use TEST_DATABASE_URL from os.environ if provided
-database_url = (
-    file_env.get("TEST_DATABASE_URL")
-    or os.getenv("TEST_DATABASE_URL")
-)
-
+# CI (GitHub Actions) provides TEST_DATABASE_URL via environment variables.
+# Locally, we fall back to .env.test for a dedicated test database.
+# This keeps the test configuration consistent across environments without changing the code.
+database_url = file_env.get("TEST_DATABASE_URL") or os.getenv("TEST_DATABASE_URL")
 engine = create_engine(database_url)
-SessionLocal = sessionmaker(bind=engine)
+SessionLocal = sessionmaker()
+
+def account_model():
+    return Account
+
+def article_model():
+    return Article
+
+def comment_model():
+    return Comment
 
 def truncate_all_tables(connection):
     tables = Base.metadata.sorted_tables
@@ -30,7 +34,6 @@ def db_session():
     with engine.begin() as connection:
         truncate_all_tables(connection)
         session = SessionLocal(bind=connection)
-
         try:
             yield session
         finally:
