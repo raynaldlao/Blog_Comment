@@ -1,6 +1,9 @@
 import os
+
 from flask import Flask
+
 from app.controllers.auth import auth_bp
+
 
 def create_app():
     app = Flask(__name__)
