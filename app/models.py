@@ -7,9 +7,9 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 
-Base = declarative_base()
+from app.database import Base
 
 
 class Account(Base):

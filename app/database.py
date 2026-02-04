@@ -1,8 +1,7 @@
-import os
-
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base
 
-# This variable must be added to the .env file for it to work
-load_dotenv()
-engine = create_engine(os.getenv("DATABASE_URL"))
+from app.configuration_variables import ConfigurationVariables
+
+database_engine  = create_engine(ConfigurationVariables.DATABASE_URL)
+Base = declarative_base()
