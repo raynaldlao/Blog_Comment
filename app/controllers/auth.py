@@ -2,38 +2,46 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.database import engine
+from app.database import database_engine
 from app.models import Account
 
 auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/")
-def login_page():
+def render_login_page():
     return render_template("login.html")
 
+
 @auth_bp.route("/login", methods=["POST"])
-def login_handler():
+def login_authentication():
     username = request.form.get("username")
     password = request.form.get("password")
 
-    with Session(engine) as db_session:
-        stmt = select(Account).where(Account.account_username == username)
-        user = db_session.execute(stmt).scalar_one_or_none()
+    with Session(database_engine) as db_session:
+        query = select(Account).where(Account.account_username == username)
+        user = db_session.execute(query).scalar_one_or_none()
 
         if user and user.account_password == password:
             session["user_id"] = user.account_id
             session["username"] = user.account_username
             return redirect(url_for("auth.dashboard"))
 
-        flash("Identifiants incorrects")
-        return redirect(url_for("auth.login_page"))
+        flash("Incorrect username or password.")
+        return redirect(url_for("auth.render_login_page"))
+
 
 @auth_bp.route("/dashboard")
 def dashboard():
-    if "user_id" not in session: return redirect(url_for("auth.login_page"))
-    return f"<h1>Bienvenue {session['username']}</h1><a href='/logout'>Déconnexion</a>"
+    if "user_id" not in session:
+        return redirect(url_for("auth.render_login_page"))
+
+    return (
+        f"<h1>Welcome {session['username']}</h1>"
+        "<a href='/logout'>Logout</a>"
+    )
+
 
 @auth_bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("auth.login_page"))
+    return redirect(url_for("auth.render_login_page"))
