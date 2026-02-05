@@ -1,11 +1,11 @@
 from flask import Flask
 
 from app.configuration_variables import ConfigurationVariables
-from app.controllers.auth import auth_bp
+from app.controllers.login import login_bp
 
 
 def initialize_flask_application():
     app = Flask(__name__)
     app.secret_key = ConfigurationVariables.SECRET_KEY
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(login_bp)
     return app

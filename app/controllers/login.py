@@ -5,14 +5,14 @@ from sqlalchemy.orm import Session
 from app.database import database_engine
 from app.models import Account
 
-auth_bp = Blueprint("auth", __name__)
+login_bp = Blueprint("auth", __name__)
 
-@auth_bp.route("/")
+@login_bp.route("/")
 def render_login_page():
     return render_template("login.html")
 
 
-@auth_bp.route("/login", methods=["POST"])
+@login_bp.route("/login", methods=["POST"])
 def login_authentication():
     username = request.form.get("username")
     password = request.form.get("password")
@@ -30,7 +30,7 @@ def login_authentication():
         return redirect(url_for("auth.render_login_page"))
 
 
-@auth_bp.route("/dashboard")
+@login_bp.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
         return redirect(url_for("auth.render_login_page"))
@@ -41,7 +41,7 @@ def dashboard():
     )
 
 
-@auth_bp.route("/logout")
+@login_bp.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("auth.render_login_page"))
