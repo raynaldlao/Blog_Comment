@@ -19,11 +19,11 @@ def get_required_env_test(value, name):
 
 class ConfigurationVariablesTest:
     DATABASE_URL = get_required_env_test(
-        file_env.get("TEST_DATABASE_URL") or os.getenv("TEST_DATABASE_URL"), 
+        file_env.get("TEST_DATABASE_URL") or os.getenv("TEST_DATABASE_URL"),
         "TEST_DATABASE_URL"
     )
     SECRET_KEY = get_required_env_test(
-        file_env.get("TEST_SECRET_KEY") or os.getenv("TEST_SECRET_KEY"), 
+        file_env.get("TEST_SECRET_KEY") or os.getenv("TEST_SECRET_KEY"),
         "TEST_SECRET_KEY"
     )
 
