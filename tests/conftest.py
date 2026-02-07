@@ -1,19 +1,13 @@
-import os
-
 import pytest
-from dotenv import dotenv_values
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from app.models import Account, Article, Base, Comment
+from app import initialize_flask_application
+from app.models import Account, Article, Comment
+from configurations.configuration_variables import env_vars
+from database.database_setup import Base, database_engine
 
-file_env = dotenv_values(".env.test")
-# CI (GitHub Actions) provides TEST_DATABASE_URL via environment variables.
-# Locally, we fall back to .env.test for a dedicated test database.
-# This keeps the test configuration consistent across environments without changing the code.
-database_url = file_env.get("TEST_DATABASE_URL") or os.getenv("TEST_DATABASE_URL")
-engine = create_engine(database_url)
-SessionLocal = sessionmaker()
+SessionLocal = sessionmaker(bind=database_engine)
 
 def account_model():
     return Account
@@ -27,14 +21,30 @@ def comment_model():
 def truncate_all_tables(connection):
     tables = Base.metadata.sorted_tables
     table_names = ", ".join(f'"{t.name}"' for t in tables)
-    connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
+    if table_names:
+        connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
+
+@pytest.fixture(scope="function")
+def app():
+    flask_app = initialize_flask_application()
+    flask_app.config.update({
+        "TESTING": True,
+        "SECRET_KEY": env_vars.test_secret_key
+    })
+    return flask_app
+
+@pytest.fixture(scope="function")
+def client(app):
+    return app.test_client()
 
 @pytest.fixture(scope="function")
 def db_session():
-    with engine.begin() as connection:
+    with database_engine.connect() as connection:
         truncate_all_tables(connection)
-        session = SessionLocal(bind=connection)
-        try:
-            yield session
-        finally:
-            session.close()
+        connection.commit()
+
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
