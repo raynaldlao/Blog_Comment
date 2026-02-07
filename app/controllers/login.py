@@ -2,8 +2,8 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.database import database_engine
 from app.models import Account
+from database.database_setup import database_engine
 
 login_bp = Blueprint("auth", __name__)
 
