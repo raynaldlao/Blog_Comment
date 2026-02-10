@@ -6,6 +6,7 @@ from sqlalchemy import (
     Integer,
     Text,
     func,
+    select,
 )
 from sqlalchemy.orm import relationship
 
@@ -35,6 +36,15 @@ class Account(Base):
     comments = relationship(
         argument="Comment", back_populates="comment_author", cascade="all, delete-orphan"
     )
+
+    @classmethod
+    def authenticate_username_password(cls, db_session, username, password):
+        query = select(cls).where(cls.account_username == username)
+        user = db_session.execute(query).scalar_one_or_none()
+
+        if user and user.account_password == password:
+            return user
+        return None
 
 
 class Article(Base):

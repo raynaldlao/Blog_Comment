@@ -1,5 +1,4 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import Account
@@ -18,10 +17,8 @@ def login_authentication():
     password = request.form.get("password")
 
     with Session(database_engine) as db_session:
-        query = select(Account).where(Account.account_username == username)
-        user = db_session.execute(query).scalar_one_or_none()
-
-        if user and user.account_password == password:
+        user = Account.authenticate_username_password(db_session, username, password)
+        if user:
             session["user_id"] = user.account_id
             session["username"] = user.account_username
             return redirect(url_for("auth.dashboard"))

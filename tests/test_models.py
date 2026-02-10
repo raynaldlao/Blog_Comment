@@ -4,6 +4,7 @@ import sqlalchemy
 from tests.conftest import account_model, article_model, comment_model
 from tests.factories import make_account, make_article, make_comment
 
+# --- Basic CRUD and Relationship Tests ---
 
 def test_create_account(db_session):
     account = make_account()
@@ -106,6 +107,46 @@ def test_create_comment_reply_to(db_session):
     assert result.comment_reply_to == 1
     assert result.reply_to_comment.comment_id == 1
     assert result.comment_content == "Thank you !"
+
+
+# --- Business Logic Tests ---
+
+def test_account_authenticate_success(db_session):
+    account = make_account()
+    db_session.add(account)
+    db_session.commit()
+    Account = account_model()
+    result = Account.authenticate_username_password(db_session, account.account_username, account.account_password)
+    assert result is not None
+    assert result.account_id == account.account_id
+    assert result.account_username == account.account_username
+    assert result.account_password == account.account_password
+
+def test_account_authenticate_wrong_username(db_session):
+    account = make_account(account_username="GoodUser")
+    db_session.add(account)
+    db_session.commit()
+    Account = account_model()
+    result = Account.authenticate_username_password(db_session, "UnknownUser", account.account_password)
+    assert result is None
+
+def test_account_authenticate_wrong_password(db_session):
+    account = make_account(account_password="GoodPassword")
+    db_session.add(account)
+    db_session.commit()
+    Account = account_model()
+    result = Account.authenticate_username_password(db_session, account.account_username, "WrongPassword")
+    assert result is None
+
+def test_account_authenticate_username_password_non_existent_user(db_session):
+    Account = account_model()
+    unknown_username = "ghost"
+    unknown_password = "any_password"
+    result = Account.authenticate_username_password(db_session, unknown_username, unknown_password)
+    assert result is None
+
+
+# --- Database Constraints ---
 
 def test_account_username_unique(db_session):
     first = make_account()
