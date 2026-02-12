@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head><title>Accueil Blog</title></head>
+<body>
+    <nav style="background: #f4f4f4; padding: 10px;">
+        <a href="{{ url_for('article.list_articles') }}">Accueil</a> | 
+        {% if session['user_id'] %}
+            Connecté : <strong>{{ session['username'] }}</strong> ({{ session['role'] }}) |
+            {% if session['role'] in ['admin', 'author'] %}
+                <a href="{{ url_for('article.create_article') }}">Écrire un article</a> |
+            {% endif %}
+            <a href="{{ url_for('auth.logout') }}">Déconnexion</a>
+        {% else %}
+            <a href="{{ url_for('auth.render_login_page') }}">🔑 Connexion</a>
+        {% endif %}
+    </nav>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}{% for m in messages %}<p style="color:red">{{m}}</p>{% endfor %}{% endif %}
+    {% endwith %}
+    <h1>Derniers Articles</h1>
+    {% for article in articles %}
+        <div style="border-bottom: 1px solid #ccc; margin-bottom: 20px;">
+            <h3>{{ article.article_title }}</h3>
+            <p><small>Par {{ article.article_author.account_username }}</small></p>
+            <a href="{{ url_for('article.view_article', article_id=article.article_id) }}">Lire l'article</a>
+            {% if session['role'] == 'admin' or session['user_id'] == article.article_author_id %}
+                | <a href="{{ url_for('article.delete_article', article_id=article.article_id) }}" style="color:red" onclick="return confirm('Supprimer cet article ?')">Supprimer</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</body>
+</html>
