@@ -6,10 +6,9 @@ from database.database_setup import database_engine
 
 login_bp = Blueprint("auth", __name__)
 
-@login_bp.route("/")
+@login_bp.route("/login-page")
 def render_login_page():
     return render_template("login.html")
-
 
 @login_bp.route("/login", methods=["POST"])
 def login_authentication():
@@ -21,24 +20,13 @@ def login_authentication():
         if user:
             session["user_id"] = user.account_id
             session["username"] = user.account_username
-            return redirect(url_for("auth.dashboard"))
+            session["role"] = user.account_role
+            return redirect(url_for("article.list_articles"))
 
         flash("Incorrect username or password.")
         return redirect(url_for("auth.render_login_page"))
 
-
-@login_bp.route("/dashboard")
-def dashboard():
-    if "user_id" not in session:
-        return redirect(url_for("auth.render_login_page"))
-
-    return (
-        f"<h1>Welcome {session['username']}</h1>"
-        "<a href='/logout'>Logout</a>"
-    )
-
-
 @login_bp.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("auth.render_login_page"))
+    return redirect(url_for("article.list_articles"))
