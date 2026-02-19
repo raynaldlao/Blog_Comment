@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html>
-<head><title>{{ "Modifier" if article else "Nouveau" }}</title></head>
+<head>
+    <title>{{ "Modifier l'article" if article else "Nouvel article" }}</title>
+</head>
 <body>
-    <h1>{{ "Modifier mon article" if article else "Rédiger un nouvel article" }}</h1>
+    <h1>{{ "Modifier l'article" if article else "Écrire un nouvel article" }}</h1>
+    
     <form method="post">
-        <p>Titre :<br><input type="text" name="title" style="width:400px;" required value="{{ article.article_title if article else '' }}"></p>
-        <p>Contenu :<br><textarea name="content" style="width:400px; height:200px;" required>{{ article.article_content if article else '' }}</textarea></p>
+        <p>
+            Titre :<br>
+            <input type="text" name="title" style="width:400px;" required 
+                   value="{{ article.article_title if article else '' }}">
+        </p>
+        <p>
+            Contenu :<br>
+            <textarea name="content" style="width:400px; height:200px;" required>{{ article.article_content if article else '' }}</textarea>
+        </p>
         <button type="submit">{{ "Mettre à jour" if article else "Publier" }}</button>
     </form>
+    
     <br>
     <a href="{{ url_for('article.list_articles') }}">Annuler</a>
 </body>
