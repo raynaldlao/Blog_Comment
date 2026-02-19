@@ -68,6 +68,43 @@ class Article(Base):
         argument="Comment", back_populates="comment_article", cascade="all, delete-orphan"
     )
 
+    @classmethod
+    def get_all_ordered_by_date(cls, db_session):
+        """Récupère tous les articles du plus récent au plus ancien."""
+        query = select(cls).order_by(cls.article_published_at.desc())
+        return db_session.execute(query).scalars().all()
+
+    @classmethod
+    def get_by_id(cls, db_session, article_id):
+        """Récupère un article par son ID."""
+        return db_session.get(cls, article_id)
+
+    @classmethod
+    def create_article(cls, db_session, title, content, author_id):
+        """Crée et enregistre un nouvel article."""
+        new_article = cls(
+            article_title=title,
+            article_content=content,
+            article_author_id=author_id
+        )
+        db_session.add(new_article)
+        db_session.commit()
+        return new_article
+
+    def update_article(self, db_session, title, content):
+        """Met à jour l'article courant."""
+        self.article_title = title
+        self.article_content = content
+        db_session.commit()
+
+    def delete_article(self, db_session):
+        """Supprime l'article courant."""
+        db_session.delete(self)
+        db_session.commit()
+
+    def is_editable_by(self, user_id, role):
+        """Vérifie si un utilisateur a le droit de modifier/supprimer cet article."""
+        return role == "admin" or self.article_author_id == user_id
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -109,3 +146,46 @@ class Comment(Base):
         back_populates="reply_to_comment",
         cascade="all, delete-orphan",
     )
+    @classmethod
+    def create_comment(cls, db_session, article_id, user_id, content):
+        """Crée un commentaire racine."""
+        new_comment = cls(
+            comment_article_id=article_id,
+            comment_written_account_id=user_id,
+            comment_content=content,
+            comment_reply_to=None
+        )
+        db_session.add(new_comment)
+        db_session.commit()
+        return new_comment
+
+    @classmethod
+    def create_reply(cls, db_session, parent_comment_id, user_id, content):
+        """
+        Crée une réponse. 
+        Retourne la nouvelle réponse OU None si le parent n'existe pas.
+        """
+        parent = db_session.get(cls, parent_comment_id)
+        if not parent:
+            return None
+        
+        new_reply = cls(
+            comment_article_id=parent.comment_article_id, 
+            comment_written_account_id=user_id,
+            comment_content=content,
+            comment_reply_to=parent_comment_id
+        )
+        db_session.add(new_reply)
+        db_session.commit()
+        return new_reply
+
+    @classmethod
+    def get_by_id(cls, db_session, comment_id):
+        """Récupère un commentaire par son ID."""
+        return db_session.get(cls, comment_id)
+
+    def delete_comment(self, db_session):
+        """Supprime le commentaire courant."""
+        db_session.delete(self)
+        db_session.commit()
+
