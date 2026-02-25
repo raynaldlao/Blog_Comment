@@ -1,4 +1,12 @@
-from sqlalchemy import TIMESTAMP, CheckConstraint, Column, ForeignKey, Integer, Text, func
+from sqlalchemy import (
+    TIMESTAMP,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    Integer,
+    Text,
+    func,
+)
 from sqlalchemy.orm import relationship
 
 from database.database_setup import Base
@@ -44,5 +52,14 @@ class Comment(Base):
 
     comment_article = relationship(argument="Article", back_populates="article_comments")
     comment_author = relationship(argument="Account", back_populates="comments")
-    reply_to_comment = relationship(argument="Comment", remote_side=[comment_id], back_populates="comment_replies", uselist=False)
-    comment_replies = relationship(argument="Comment", back_populates="reply_to_comment", cascade="all, delete-orphan")
+    reply_to_comment = relationship(
+        argument="Comment",
+        remote_side=[comment_id],
+        back_populates="comment_replies",
+        uselist=False,
+    )
+    comment_replies = relationship(
+        argument="Comment",
+        back_populates="reply_to_comment",
+        cascade="all, delete-orphan",
+    )
