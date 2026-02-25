@@ -1,48 +1,48 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.models import Article, Comment
-from database.database_setup import database_engine
+from database.database_setup import db_session
 
 
 class CommentService:
     @staticmethod
     def get_by_id(comment_id):
-        with Session(database_engine) as db_session:
-            query = select(Comment).options(joinedload(Comment.comment_author), selectinload(Comment.comment_replies).options(joinedload(Comment.comment_author))).where(Comment.comment_id == comment_id)
-            return db_session.execute(query).unique().scalar_one_or_none()
+        query = select(Comment).options(joinedload(Comment.comment_author), selectinload(Comment.comment_replies).options(joinedload(Comment.comment_author))).where(Comment.comment_id == comment_id)
+        return db_session.execute(query).unique().scalar_one_or_none()
 
     @staticmethod
     def create_comment(article_id, user_id, content):
-        with Session(database_engine) as db_session:
-            article = db_session.get(Article, article_id)
-            if not article:
-                return False
-            new_comment = Comment(comment_article_id=article_id, comment_written_account_id=user_id, comment_content=content)
-            db_session.add(new_comment)
-            db_session.commit()
-            return True
+        article = db_session.get(Article, article_id)
+        if not article:
+            return False
+
+        new_comment = Comment(comment_article_id=article_id, comment_written_account_id=user_id, comment_content=content)
+        db_session.add(new_comment)
+        db_session.commit()
+        return True
 
     @staticmethod
     def create_reply(parent_comment_id, user_id, content):
-        with Session(database_engine) as db_session:
-            parent = db_session.get(Comment, parent_comment_id)
-            if not parent:
-                return None
-            new_reply = Comment(comment_article_id=parent.comment_article_id, comment_written_account_id=user_id, comment_content=content, comment_reply_to=parent_comment_id)
-            db_session.add(new_reply)
-            db_session.commit()
-            return parent.comment_article_id
+        parent = db_session.get(Comment, parent_comment_id)
+        if not parent:
+            return None
+
+        new_reply = Comment(comment_article_id=parent.comment_article_id, comment_written_account_id=user_id, comment_content=content, comment_reply_to=parent_comment_id)
+        db_session.add(new_reply)
+        db_session.commit()
+        return parent.comment_article_id
 
     @staticmethod
     def delete_comment(comment_id, role):
         if role != "admin":
             return False
-        with Session(database_engine) as db_session:
-            comment = db_session.get(Comment, comment_id)
-            if not comment:
-                return False
-            article_id = comment.comment_article_id
-            db_session.delete(comment)
-            db_session.commit()
-            return article_id
+
+        comment = db_session.get(Comment, comment_id)
+        if not comment:
+            return False
+
+        article_id = comment.comment_article_id
+        db_session.delete(comment)
+        db_session.commit()
+        return article_id

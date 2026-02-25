@@ -7,6 +7,11 @@ from app.controllers.article import article_bp
 from app.controllers.comment import comment_bp
 from app.controllers.login import login_bp
 from configurations.configuration_variables import env_vars
+from database.database_setup import db_session
+
+
+def shutdown_session(exception=None):
+    db_session.remove()
 
 
 def initialize_flask_application():
@@ -15,7 +20,9 @@ def initialize_flask_application():
         app.secret_key = env_vars.test_secret_key
     else:
         app.secret_key = env_vars.secret_key
+
     app.register_blueprint(login_bp)
     app.register_blueprint(article_bp)
     app.register_blueprint(comment_bp)
+    app.teardown_appcontext(shutdown_session)
     return app
