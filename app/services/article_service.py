@@ -1,7 +1,7 @@
 from sqlalchemy import select
-from sqlalchemy.orm import defer, joinedload, selectinload
+from sqlalchemy.orm import defer, joinedload
 
-from app.models import Article, Comment
+from app.models import Article
 from database.database_setup import db_session
 
 
@@ -20,14 +20,7 @@ class ArticleService:
 
     @staticmethod
     def get_by_id(article_id):
-        query = (
-            select(Article)
-            .where(Article.article_id == article_id)
-            .options(
-                joinedload(Article.article_author),
-                selectinload(Article.article_comments).options(joinedload(Comment.comment_author), selectinload(Comment.comment_replies).options(joinedload(Comment.comment_author))),
-            )
-        )
+        query = select(Article).where(Article.article_id == article_id).options(joinedload(Article.article_author))
         return db_session.execute(query).unique().scalar_one_or_none()
 
     @staticmethod

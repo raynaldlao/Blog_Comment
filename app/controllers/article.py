@@ -1,6 +1,7 @@
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.services.article_service import ArticleService
+from app.services.comment_service import CommentService
 
 article_bp = Blueprint("article", __name__)
 
@@ -17,7 +18,9 @@ def view_article(article_id):
     if not article:
         flash("Article not found.")
         return redirect(url_for("article.list_articles"))
-    return render_template("article_detail.html", article=article)
+
+    comments = CommentService.get_tree_by_article_id(article_id)
+    return render_template("article_detail.html", article=article, comments=comments)
 
 
 @article_bp.route("/article/new", methods=["GET", "POST"])
