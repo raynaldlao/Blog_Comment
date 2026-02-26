@@ -47,20 +47,23 @@ def create_article():
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
 def edit_article(article_id):
     if request.method == "POST":
-        success = ArticleService.update_article(
+        article = ArticleService.update_article(
             article_id,
             session.get("user_id"),
             session.get("role"),
             request.form.get("title"),
             request.form.get("content")
         )
-        if success:
+        if article:
             db_session.commit()
             flash("Article updated!")
             return redirect(url_for("article.view_article", article_id=article_id))
         flash("Update failed: Unauthorized or not found.")
         return redirect(url_for("article.list_articles"))
     article = ArticleService.get_by_id(article_id)
+    if not article:
+        flash("Article not found.")
+        return redirect(url_for("article.list_articles"))
     return render_template("article_form.html", article=article)
 
 

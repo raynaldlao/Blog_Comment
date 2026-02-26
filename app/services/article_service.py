@@ -32,13 +32,13 @@ class ArticleService:
 
     @staticmethod
     def update_article(article_id, user_id, role, title, content):
-        article = db_session.get(Article, article_id)
+        article = ArticleService.get_by_id(article_id)
         if not article or (role != "admin" and article.article_author_id != user_id):
-            return False
+            return None
 
         article.article_title = title
         article.article_content = content
-        return True
+        return article
 
     @staticmethod
     def delete_article(article_id, user_id, role):
