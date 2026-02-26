@@ -1,7 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
-from app.models import Article, Comment
+from app.models.article_model import Article
+from app.models.comment_model import Comment
 from database.database_setup import db_session
 
 

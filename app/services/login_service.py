@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from app.models import Account
+from app.models.account_model import Account
 from database.database_setup import db_session
 
 

@@ -1,7 +1,8 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import defer, joinedload
 
-from app.models import Account, Article
+from app.models.account_model import Account
+from app.models.article_model import Article
 from database.database_setup import db_session
 
 

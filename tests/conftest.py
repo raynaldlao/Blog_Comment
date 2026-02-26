@@ -3,7 +3,9 @@ from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from app import initialize_flask_application
-from app.models import Account, Article, Comment
+from app.models.account_model import Account
+from app.models.article_model import Article
+from app.models.comment_model import Comment
 from configurations.configuration_variables import env_vars
 from database.database_setup import Base, database_engine
 
