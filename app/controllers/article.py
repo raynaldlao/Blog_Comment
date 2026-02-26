@@ -1,3 +1,5 @@
+import math
+
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from app.services.article_service import ArticleService
@@ -8,8 +10,13 @@ article_bp = Blueprint("article", __name__)
 
 @article_bp.route("/")
 def list_articles():
-    articles = ArticleService.get_all_ordered_by_date()
-    return render_template("index.html", articles=articles)
+    current_page_number = 1
+    page_number = request.args.get("page", current_page_number, type=int)
+    articles_per_page = 10
+    articles = ArticleService.get_paginated_articles(page_number, articles_per_page)
+    total_articles = ArticleService.get_total_count()
+    total_pages = math.ceil(total_articles / articles_per_page)
+    return render_template("index.html", articles=articles, page_number=page_number, total_pages=total_pages)
 
 
 @article_bp.route("/article/<int:article_id>")

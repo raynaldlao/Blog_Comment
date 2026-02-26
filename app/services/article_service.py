@@ -1,7 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import defer, joinedload
 
-from app.models import Article
+from app.models import Account, Article
 from database.database_setup import db_session
 
 
@@ -50,3 +50,25 @@ class ArticleService:
         db_session.delete(article)
         db_session.commit()
         return True
+
+    @staticmethod
+    def get_paginated_articles(page, per_page):
+        query = (
+            select(
+                Article.article_id,
+                Article.article_title,
+                Article.article_published_at,
+                Article.article_author_id,
+                Account.account_username
+            )
+            .join(Account, Article.article_author_id == Account.account_id)
+            .order_by(Article.article_published_at.desc())
+            .limit(per_page)
+            .offset((page - 1) * per_page)
+        )
+        return db_session.execute(query).all()
+
+    @staticmethod
+    def get_total_count():
+        query = select(func.count(Article.article_id))
+        return db_session.execute(query).scalar()
