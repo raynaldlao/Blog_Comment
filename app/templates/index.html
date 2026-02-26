@@ -13,9 +13,9 @@
             {% if session.get('role') in ['admin', 'author'] %}
                 <a href="{{ url_for('article.create_article') }}" style="text-decoration: none; color: #007bff;">Écrire un article</a> |
             {% endif %}
-            <a href="{{ url_for('auth.logout') }}" style="text-decoration: none; color: #007bff;">Déconnexion</a>
+            <a href="{{ url_for('login.logout') }}" style="text-decoration: none; color: #007bff;">Déconnexion</a>
         {% else %}
-            <a href="{{ url_for('auth.render_login_page') }}" style="text-decoration: none; color: #007bff;">🔑 Connexion</a>
+            <a href="{{ url_for('login.render_login_page') }}" style="text-decoration: none; color: #007bff;">🔑 Connexion</a>
         {% endif %}
     </nav>
 

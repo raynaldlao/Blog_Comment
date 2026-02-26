@@ -2,7 +2,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from app.services.login_service import LoginService
 
-login_bp = Blueprint("auth", __name__)
+login_bp = Blueprint("login", __name__)
 
 
 @login_bp.route("/login-page")
@@ -19,7 +19,7 @@ def login_authentication():
         session["role"] = user_data["role"]
         return redirect(url_for("article.list_articles"))
     flash("Incorrect credentials.")
-    return redirect(url_for("auth.render_login_page"))
+    return redirect(url_for("login.render_login_page"))
 
 
 @login_bp.route("/logout")

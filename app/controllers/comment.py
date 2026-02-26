@@ -10,7 +10,7 @@ def create_comment(article_id):
     # Exception to add here
     if not session.get("user_id"):
         flash("Login required.")
-        return redirect(url_for("auth.render_login_page"))
+        return redirect(url_for("login.render_login_page"))
     if CommentService.create_comment(article_id, session["user_id"], request.form.get("content")):
         flash("Comment added.")
     else:
@@ -23,7 +23,7 @@ def reply_to_comment(parent_comment_id):
     # Exception to add here
     if not session.get("user_id"):
         flash("Login required.")
-        return redirect(url_for("auth.render_login_page"))
+        return redirect(url_for("login.render_login_page"))
     article_id = CommentService.create_reply(parent_comment_id, session["user_id"], request.form.get("content"))
     if article_id:
         return redirect(url_for("article.view_article", article_id=article_id))
