@@ -14,9 +14,13 @@ class CommentService:
             return None
 
         actual_parent_id = parent.comment_reply_to if parent.comment_reply_to else parent.comment_id
-        new_reply = Comment(comment_article_id=parent.comment_article_id, comment_written_account_id=user_id, comment_content=content, comment_reply_to=actual_parent_id)
+        new_reply = Comment(
+            comment_article_id=parent.comment_article_id,
+            comment_written_account_id=user_id,
+            comment_content=content,
+            comment_reply_to=actual_parent_id
+        )
         db_session.add(new_reply)
-        db_session.commit()
         return parent.comment_article_id
 
     @staticmethod
@@ -31,7 +35,6 @@ class CommentService:
             return False
         new_comment = Comment(comment_article_id=article_id, comment_written_account_id=user_id, comment_content=content)
         db_session.add(new_comment)
-        db_session.commit()
         return True
 
     @staticmethod
@@ -43,7 +46,6 @@ class CommentService:
             return False
         article_id = comment.comment_article_id
         db_session.delete(comment)
-        db_session.commit()
         return article_id
 
     @staticmethod

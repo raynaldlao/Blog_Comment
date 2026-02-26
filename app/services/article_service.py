@@ -28,8 +28,7 @@ class ArticleService:
     def create_article(title, content, author_id):
         new_article = Article(article_title=title, article_content=content, article_author_id=author_id)
         db_session.add(new_article)
-        db_session.commit()
-        return True
+        return new_article
 
     @staticmethod
     def update_article(article_id, user_id, role, title, content):
@@ -39,7 +38,6 @@ class ArticleService:
 
         article.article_title = title
         article.article_content = content
-        db_session.commit()
         return True
 
     @staticmethod
@@ -49,7 +47,6 @@ class ArticleService:
             return False
 
         db_session.delete(article)
-        db_session.commit()
         return True
 
     @staticmethod

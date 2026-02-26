@@ -4,6 +4,7 @@ from flask import Blueprint, flash, redirect, render_template, request, session,
 
 from app.services.article_service import ArticleService
 from app.services.comment_service import CommentService
+from database.database_setup import db_session
 
 article_bp = Blueprint("article", __name__)
 
@@ -37,6 +38,7 @@ def create_article():
         return redirect(url_for("article.list_articles"))
     if request.method == "POST":
         ArticleService.create_article(request.form.get("title"), request.form.get("content"), session["user_id"])
+        db_session.commit()
         flash("Article published!")
         return redirect(url_for("article.list_articles"))
     return render_template("article_form.html", article=None)
@@ -45,8 +47,15 @@ def create_article():
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
 def edit_article(article_id):
     if request.method == "POST":
-        success = ArticleService.update_article(article_id, session.get("user_id"), session.get("role"), request.form.get("title"), request.form.get("content"))
+        success = ArticleService.update_article(
+            article_id,
+            session.get("user_id"),
+            session.get("role"),
+            request.form.get("title"),
+            request.form.get("content")
+        )
         if success:
+            db_session.commit()
             flash("Article updated!")
             return redirect(url_for("article.view_article", article_id=article_id))
         flash("Update failed: Unauthorized or not found.")
@@ -58,6 +67,7 @@ def edit_article(article_id):
 @article_bp.route("/article/<int:article_id>/delete")
 def delete_article(article_id):
     if ArticleService.delete_article(article_id, session.get("user_id"), session.get("role")):
+        db_session.commit()
         flash("Article deleted.")
     else:
         flash("Delete failed.")
