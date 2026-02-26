@@ -7,7 +7,8 @@ comment_bp = Blueprint("comment", __name__, url_prefix="/comments")
 
 @comment_bp.route("/create/<int:article_id>", methods=["POST"])
 def create_comment(article_id):
-    if "user_id" not in session:
+    # Exception to add here
+    if not session.get("user_id"):
         flash("Login required.")
         return redirect(url_for("auth.render_login_page"))
     if CommentService.create_comment(article_id, session["user_id"], request.form.get("content")):
@@ -19,7 +20,8 @@ def create_comment(article_id):
 
 @comment_bp.route("/reply/<int:parent_comment_id>", methods=["POST"])
 def reply_to_comment(parent_comment_id):
-    if "user_id" not in session:
+    # Exception to add here
+    if not session.get("user_id"):
         flash("Login required.")
         return redirect(url_for("auth.render_login_page"))
     article_id = CommentService.create_reply(parent_comment_id, session["user_id"], request.form.get("content"))
