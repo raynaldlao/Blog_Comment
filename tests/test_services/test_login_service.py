@@ -7,7 +7,6 @@ def test_authenticate_user_success(db_session):
     db_session.add(user)
     db_session.commit()
     result = LoginService.authenticate_user("leia", "password123")
-
     assert result is not None
     assert result["username"] == "leia"
     assert result["role"] == "user"
@@ -18,7 +17,6 @@ def test_authenticate_user_wrong_password(db_session):
     user = make_account(account_username="leia", account_password="password123")
     db_session.add(user)
     db_session.commit()
-
     result = LoginService.authenticate_user("leia", "mauvais_pass")
     assert result is None
 
