@@ -2,7 +2,7 @@ import os
 import sys
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
 
 from configurations.configuration_variables import env_vars
 
@@ -12,4 +12,7 @@ else:
     database_url = env_vars.database_url
 
 database_engine = create_engine(database_url)
+session_factory = sessionmaker(bind=database_engine)
+db_session = scoped_session(session_factory)
 Base = declarative_base()
+Base.query = db_session.query_property()

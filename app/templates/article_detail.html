@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ article.article_title }}</title>
+</head>
+<body style="font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; background-color: #f4f4f4; color: #333;">
+    
+    <nav style="margin-bottom: 20px;">
+        <a href="{{ url_for('article.list_articles') }}" style="text-decoration: none; color: #007bff;">← Accueil</a>
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for m in messages %}
+            <p style="color: red; background: #f8d7da; padding: 10px; border-radius: 4px; border: 1px solid #f5c6cb;">{{ m }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div style="background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 30px;">
+        <h1 style="margin-top: 0;">{{ article.article_title }}</h1>
+        <p style="font-style: italic; color: #666;">
+            Par <span style="font-weight: bold; color: #000;">{{ article.article_author.account_username }}</span>
+        </p>
+
+        <div style="margin-bottom: 15px;">
+            {% if session.get('user_id') == article.article_author_id %}
+                <a href="{{ url_for('article.edit_article', article_id=article.article_id) }}" style="color: blue; text-decoration: none; font-size: 0.9em;">[Modifier]</a>
+            {% endif %}
+            
+            {% if session.get('role') == 'admin' or session.get('user_id') == article.article_author_id %}
+                <a href="{{ url_for('article.delete_article', article_id=article.article_id) }}" 
+                   style="color: red; font-size: 0.9em; margin-left: 10px; text-decoration: none;" 
+                   onclick="return confirm('Supprimer cet article ?')">[Supprimer l'article]</a>
+            {% endif %}
+        </div>
+
+        <div style="white-space: pre-wrap; border-top: 1px solid #eee; padding-top: 20px; margin-top: 10px;">{{ article.article_content }}</div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #ccc; margin: 30px 0;">
+    
+    <h3 style="margin-bottom: 20px;">Commentaires</h3>
+    
+    {% for comment in comments %}
+        <div style="background: #fff; border: 1px solid #ddd; margin: 15px 0; padding: 15px; border-radius: 5px;">
+            <span style="font-weight: bold;">{{ comment.comment_author.account_username }}</span> : {{ comment.comment_content }}
+            
+            {% if session.get('role') == 'admin' %}
+                <a href="{{ url_for('comment.delete_comment', comment_id=comment.comment_id) }}" 
+                   style="color: red; font-size: 0.8em; margin-left: 10px; text-decoration: none;"
+                   onclick="return confirm('Supprimer ce commentaire ?')">[Supprimer]</a>
+            {% endif %}
+
+            {% if session.get('user_id') %}
+            <div style="margin-top: 10px;">
+                <form action="{{ url_for('comment.reply_to_comment', parent_comment_id=comment.comment_id) }}" method="post">
+                    <input type="text" name="content" placeholder="Répondre..." required style="width: 70%; padding: 5px; border: 1px solid #ccc; border-radius: 4px;">
+                    <button type="submit" style="padding: 5px 10px; cursor: pointer; background: #eee; border: 1px solid #ccc; border-radius: 4px;">Répondre</button>
+                </form>
+            </div>
+            {% endif %}
+
+            {% for reply in comment.comment_replies %}
+                <div style="margin-left: 40px; border-left: 3px solid #007bff; padding: 10px; background: #f9f9f9; margin-top: 10px; border-radius: 0 5px 5px 0;">
+                    <span style="font-weight: bold;">{{ reply.comment_author.account_username }}</span> : {{ reply.comment_content }}
+                    
+                    {% if session.get('role') == 'admin' %}
+                        <a href="{{ url_for('comment.delete_comment', comment_id=reply.comment_id) }}" 
+                           style="color: red; font-size: 0.8em; margin-left: 10px; text-decoration: none;"
+                           onclick="return confirm('Supprimer cette réponse ?')">[Supprimer]</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p style="color: #666;">Aucun commentaire pour le moment.</p>
+    {% endfor %}
+
+    {% if session.get('user_id') %}
+        <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 30px;">
+            <h4 style="margin-top: 0;">Ajouter un commentaire</h4>
+            <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="post">
+                <textarea name="content" placeholder="Écrire un commentaire..." required style="width: 100%; height: 80px; box-sizing: border-box; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-family: sans-serif;"></textarea>
+                <button type="submit" style="padding: 10px 20px; background: #007bff; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Publier le commentaire</button>
+            </form>
+        </div>
+    {% else %}
+        <p style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('login.render_login_page') }}" style="color: #007bff; text-decoration: none;">Connectez-vous</a> pour commenter.
+        </p>
+    {% endif %}
+
+</body>
+</html>

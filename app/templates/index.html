@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Accueil du Blog</title>
+</head>
+<body style="font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; background-color: #f4f4f4;">
+    
+    <nav style="background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+        <a href="{{ url_for('article.list_articles') }}" style="text-decoration: none; color: #007bff;">Accueil</a> | 
+        {% if session.get('user_id') %}
+            Connecté : <strong>{{ session.get('username') }}</strong> |
+            {% if session.get('role') in ['admin', 'author'] %}
+                <a href="{{ url_for('article.create_article') }}" style="text-decoration: none; color: #007bff;">Écrire un article</a> |
+            {% endif %}
+            <a href="{{ url_for('login.logout') }}" style="text-decoration: none; color: #007bff;">Déconnexion</a>
+        {% else %}
+            <a href="{{ url_for('login.render_login_page') }}" style="text-decoration: none; color: #007bff;">🔑 Connexion</a>
+        {% endif %}
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for m in messages %}<p style="color:red">{{ m }}</p>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <h1>Derniers articles</h1>
+    
+    {% for article in articles %}
+        <div style="background: #fff; padding: 20px; margin-bottom: 20px; border-radius: 5px; border-bottom: 1px solid #ccc;">
+            <h3 style="margin-top: 0;">{{ article.article_title }}</h3>
+            <p style="font-size: 0.9em; color: #666;">Par {{ article.account_username }}</p>
+            
+            <a href="{{ url_for('article.view_article', article_id=article.article_id) }}" style="text-decoration: none; color: #007bff; font-weight: bold;">Lire la suite →</a>
+            
+            {% if session.get('role') == 'admin' or session.get('user_id') == article.article_author_id %}
+                | <a href="{{ url_for('article.delete_article', article_id=article.article_id) }}" style="color:red; text-decoration: none; font-size: 0.9em;" onclick="return confirm('Supprimer ?')">Supprimer</a>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Aucun article trouvé.</p>
+    {% endfor %}
+
+    {% if total_pages > 1 %}
+    <div style="text-align: center; margin-top: 30px; padding: 20px;">
+        {% if page_number  > 1 %}
+            <a href="{{ url_for('article.list_articles', page=page_number - 1) }}" style="padding: 10px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">« Précédent</a>
+        {% endif %}
+
+        <span style="margin: 0 15px; font-weight: bold;">Page {{ page_number }} / {{ total_pages }}</span>
+
+        {% if page_number  < total_pages %}
+            <a href="{{ url_for('article.list_articles', page=page_number + 1) }}" style="padding: 10px 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">Suivant »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</body>
+</html>
