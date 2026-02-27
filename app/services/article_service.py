@@ -33,7 +33,7 @@ class ArticleService:
     @staticmethod
     def update_article(article_id, user_id, role, title, content):
         article = ArticleService.get_by_id(article_id)
-        if not article or (role != "admin" and article.article_author_id != user_id):
+        if not article or article.article_author_id != user_id:
             return None
 
         article.article_title = title
@@ -42,7 +42,7 @@ class ArticleService:
 
     @staticmethod
     def delete_article(article_id, user_id, role):
-        article = db_session.get(Article, article_id)
+        article = ArticleService.get_by_id(article_id)
         if not article or (role != "admin" and article.article_author_id != user_id):
             return False
 
@@ -60,7 +60,7 @@ class ArticleService:
                 Account.account_username
             )
             .join(Account, Article.article_author_id == Account.account_id)
-            .order_by(Article.article_published_at.desc())
+            .order_by(Article.article_id.desc())
             .limit(per_page)
             .offset((page - 1) * per_page)
         )

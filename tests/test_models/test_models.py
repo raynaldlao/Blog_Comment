@@ -9,7 +9,7 @@ from tests.factories import make_account, make_article, make_comment
 # --- Basic CRUD and Relationship Tests ---
 
 def test_create_account(db_session):
-    account = make_account()
+    account = make_account(account_username="Xxx__D4RK_V4D0R__xxX")
     db_session.add(account)
     db_session.commit()
 
