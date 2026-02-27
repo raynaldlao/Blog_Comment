@@ -6,7 +6,7 @@ from flask import Flask
 from app.controllers.article_controller import article_bp
 from app.controllers.comment_controller import comment_bp
 from app.controllers.login_controller import login_bp
-from configurations.configuration_variables import env_vars
+from config.configuration_variables import env_vars
 from database.database_setup import db_session
 
 

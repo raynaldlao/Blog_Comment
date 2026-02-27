@@ -4,7 +4,7 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, scoped_session, sessionmaker
 
-from configurations.configuration_variables import env_vars
+from config.configuration_variables import env_vars
 
 if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
     database_url = env_vars.test_database_url

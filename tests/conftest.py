@@ -5,7 +5,7 @@ from app import initialize_flask_application
 from app.models.account_model import Account
 from app.models.article_model import Article
 from app.models.comment_model import Comment
-from configurations.configuration_variables import env_vars
+from config.configuration_variables import env_vars
 from database.database_setup import Base, database_engine
 from database.database_setup import db_session as app_db_session
 
