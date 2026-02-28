@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
 
 from flask import flash, redirect, session, url_for
 
@@ -9,10 +10,10 @@ from app.constants import Role, SessionKey
 def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator to ensure that a user is logged in before accessing a route.
-    
+
     Args:
         f (Callable): The route function to wrap.
-        
+
     Returns:
         Callable: The wrapped function.
     """
@@ -28,10 +29,10 @@ def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
 def roles_accepted(*roles: Role) -> Callable[..., Any]:
     """
     Decorator to ensure that a logged-in user has one of the required roles.
-    
+
     Args:
         *roles (Role): Variable list of accepted roles.
-        
+
     Returns:
         Callable: A decorator that wraps the route function.
     """

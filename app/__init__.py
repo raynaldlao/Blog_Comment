@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import Optional
 
 from flask import Flask
 
@@ -11,13 +10,14 @@ from config.configuration_variables import env_vars
 from database.database_setup import db_session
 
 
-def shutdown_session(exception: Optional[BaseException] = None) -> None:
+def shutdown_session(exception: BaseException | None = None) -> None:
     """
     Removes the database session at the end of the request.
 
     Args:
-        exception (Optional[BaseException]): The exception that triggered the teardown, if any.
+        exception (BaseException | None): The exception that triggered the teardown, if any.
     """
+
     db_session.remove()
 
 

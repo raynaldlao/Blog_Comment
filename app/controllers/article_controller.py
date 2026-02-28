@@ -1,5 +1,4 @@
 import math
-from typing import Union
 
 from flask import (
     Blueprint,
@@ -46,7 +45,7 @@ def list_articles() -> str:
 
 
 @article_bp.route("/article/<int:article_id>")
-def view_article(article_id: int) -> Union[str, Response]:
+def view_article(article_id: int) -> str | Response:
     """
     Displays the details of a specific article and its comments.
 
@@ -54,7 +53,7 @@ def view_article(article_id: int) -> Union[str, Response]:
         article_id (int): ID of the article to view.
 
     Returns:
-        Union[str, Response]: The rendered HTML template for the article or a redirect if the article is not found.
+        str | Response: The rendered HTML template for the article or a redirect if the article is not found.
     """
     article_service = ArticleService(db_session)
     article = article_service.get_by_id(article_id)
@@ -69,13 +68,13 @@ def view_article(article_id: int) -> Union[str, Response]:
 
 @article_bp.route("/article/new", methods=["GET", "POST"])
 @roles_accepted(Role.ADMIN, Role.AUTHOR)
-def create_article() -> Union[str, Response]:
+def create_article() -> str | Response:
     """
     Handles the creation of a new blog article.
     Restricted to 'admin' and 'author' roles.
 
     Returns:
-        Union[str, Response]: The rendered HTML form (GET) or a redirect to the article list after creation (POST).
+        str | Response: The rendered HTML form (GET) or a redirect to the article list after creation (POST).
     """
     if request.method == "POST":
         article_service = ArticleService(db_session)
@@ -97,7 +96,7 @@ def create_article() -> Union[str, Response]:
 
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
 @roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
-def edit_article(article_id: int) -> Union[str, Response]:
+def edit_article(article_id: int) -> str | Response:
     """
     Handles the editing of an existing article.
     Ensures the user is authorized to perform the update.
@@ -106,7 +105,7 @@ def edit_article(article_id: int) -> Union[str, Response]:
         article_id (int): ID of the article to edit.
 
     Returns:
-        Union[str, Response]: The rendered HTML form (GET) or a redirect to the updated article (POST).
+        str | Response: The rendered HTML form (GET) or a redirect to the updated article (POST).
     """
     article_service = ArticleService(db_session)
 

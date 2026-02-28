@@ -21,7 +21,7 @@ class ArticleService:
 
         Args:
             session (Session | scoped_session[Session]): The SQLAlchemy database session.
-        """
+    """
         self.session = session
 
     def get_all_ordered_by_date(self) -> Sequence[Article]:
@@ -97,10 +97,9 @@ class ArticleService:
             content (str): New content for the article.
 
         Returns:
-            Article | None: The updated Article instance or None if unauthorized/not found.
+            Article | None: The Article instance or None if unauthorized/not found.
         """
         article = self.get_by_id(article_id)
-        # Validation logic (Admin role check removed here as per your requirements)
         if not article or article.article_author_id != user_id:
             return None
 
@@ -125,7 +124,6 @@ class ArticleService:
         if not article:
             return False
 
-        # Access control: Author or Admin
         if article.article_author_id == user_id or role == Role.ADMIN:
             self.session.delete(article)
             return True
