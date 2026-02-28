@@ -12,6 +12,19 @@ from database.database_setup import Base
 
 
 class Account(Base):
+    """
+    Represents a user account in the system.
+    
+    Attributes:
+        account_id (int): Unique identifier for the account.
+        account_username (str): Unique username for login.
+        account_password (str): Plaintext password (should be hashed in production).
+        account_email (str): Optional email address.
+        account_role (str): Role of the user ('admin', 'author', 'user').
+        account_created_at (datetime): Timestamp when the account was created.
+        articles (relationship): List of articles authored by this account.
+        comments (relationship): List of comments written by this account.
+    """
     __tablename__ = "accounts"
     __table_args__ = (CheckConstraint(sqltext="account_role IN ('admin', 'author', 'user')", name="accounts_role_check"),)
 

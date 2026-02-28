@@ -12,6 +12,21 @@ from database.database_setup import Base
 
 
 class Comment(Base):
+    """
+    Represents a comment or a reply on an article.
+
+    Attributes:
+        comment_id (int): Unique identifier for the comment.
+        comment_article_id (int): Foreign key to the article.
+        comment_written_account_id (int): Foreign key to the author's account.
+        comment_reply_to (int, optional): Foreign key to the parent comment if it's a reply.
+        comment_content (str): Text content of the comment.
+        comment_posted_at (datetime): Timestamp when the comment was posted.
+        comment_article (relationship): The Article instance this comment belongs to.
+        comment_author (relationship): The Account instance of the comment's author.
+        reply_to_comment (relationship): The parent Comment instance if this is a reply.
+        comment_replies (relationship): List of child Comment instances (replies).
+    """
     __tablename__ = "comments"
 
     comment_id = Column(name="comment_id", type_=Integer, primary_key=True, autoincrement=True)

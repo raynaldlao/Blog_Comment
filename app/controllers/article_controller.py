@@ -1,6 +1,15 @@
 import math
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Blueprint,
+    Response,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 
 from app.services.article_service import ArticleService
 from app.services.comment_service import CommentService
@@ -10,7 +19,13 @@ article_bp = Blueprint("article", __name__)
 
 
 @article_bp.route("/")
-def list_articles():
+def list_articles() -> str:
+    """
+    Renders the homepage with a paginated list of articles.
+
+    Returns:
+        str: Rendered HTML template.
+    """
     current_page_number = 1
     page_number = request.args.get("page", current_page_number, type=int)
     articles_per_page = 10
@@ -22,7 +37,16 @@ def list_articles():
 
 
 @article_bp.route("/article/<int:article_id>")
-def view_article(article_id):
+def view_article(article_id: int) -> str | Response:
+    """
+    Displays the details of a specific article and its comments.
+
+    Args:
+        article_id (int): ID of the article to view.
+
+    Returns:
+        str | Response: Rendered HTML template or redirect if not found.
+    """
     article_service = ArticleService(db_session)
     article = article_service.get_by_id(article_id)
     if not article:
@@ -35,7 +59,14 @@ def view_article(article_id):
 
 
 @article_bp.route("/article/new", methods=["GET", "POST"])
-def create_article():
+def create_article() -> str | Response:
+    """
+    Handles the creation of a new blog article.
+    Restricted to 'admin' and 'author' roles.
+
+    Returns:
+        str | Response: Rendered HTML template (GET) or redirect (POST).
+    """
     if session.get("role") not in ["admin", "author"]:
         flash("Access restricted.")
         return redirect(url_for("article.list_articles"))
@@ -49,7 +80,17 @@ def create_article():
 
 
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
-def edit_article(article_id):
+def edit_article(article_id: int) -> str | Response:
+    """
+    Handles the editing of an existing article.
+    Ensures the user is authorized to perform the update.
+
+    Args:
+        article_id (int): ID of the article to edit.
+
+    Returns:
+        str | Response: Rendered HTML template (GET) or redirect (POST).
+    """
     if request.method == "POST":
         article_service = ArticleService(db_session)
         article = article_service.update_article(
@@ -74,7 +115,16 @@ def edit_article(article_id):
 
 
 @article_bp.route("/article/<int:article_id>/delete")
-def delete_article(article_id):
+def delete_article(article_id: int) -> Response:
+    """
+    Handles the deletion of an article.
+
+    Args:
+        article_id (int): ID of the article to delete.
+
+    Returns:
+        Response: Redirect to the article list.
+    """
     article_service = ArticleService(db_session)
     if article_service.delete_article(article_id, session.get("user_id"), session.get("role")):
         db_session.commit()
