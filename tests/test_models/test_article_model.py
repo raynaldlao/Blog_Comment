@@ -27,7 +27,6 @@ def test_article_missing_title(db_session):
     author = make_account()
     db_session.add(author)
     db_session.commit()
-    # We intentionally pass None to test database constraints
     article = make_article(article_author_id=author.account_id, article_title=cast(str, None))
     db_session.add(article)
     with pytest.raises(exc.IntegrityError):
@@ -39,7 +38,6 @@ def test_article_missing_content(db_session):
     db_session.add(author)
     db_session.commit()
 
-    # We intentionally pass None to test database constraints
     article = make_article(article_author_id=author.account_id, article_content=cast(str, None))
     db_session.add(article)
     with pytest.raises(exc.IntegrityError):

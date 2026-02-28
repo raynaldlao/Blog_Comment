@@ -29,7 +29,6 @@ def test_account_username_unique(db_session):
 
 
 def test_account_missing_username(db_session):
-    # We intentionally pass None to test database constraints
     account = make_account(account_username=cast(str, None))
     db_session.add(account)
     with pytest.raises(exc.IntegrityError):
