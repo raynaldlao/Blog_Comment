@@ -1,4 +1,5 @@
-from flask import Blueprint, Response, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from werkzeug.wrappers import Response
 
 from app.constants import SessionKey
 from app.services.login_service import LoginService
@@ -13,7 +14,7 @@ def render_login_page() -> str:
     Renders the login page.
 
     Returns:
-        str: Rendered HTML template.
+        str: The rendered HTML template for the login page.
     """
     return render_template("login.html")
 
@@ -25,19 +26,21 @@ def login_authentication() -> Response:
     Validates credentials and sets up the session.
 
     Returns:
-        Response: Redirect to the article list on success, or login page on failure.
+        Response: A redirect to the article list on success, or back to the login page on failure.
     """
     login_service = LoginService(db_session)
+    username = str(request.form.get("username") or "")
+    password = str(request.form.get("password") or "")
     user = login_service.authenticate_user(
-        username=request.form.get("username"), 
-        password=request.form.get("password")
+        username=username,
+        password=password
     )
     if user:
         session[SessionKey.USER_ID] = user.account_id
         session[SessionKey.USERNAME] = user.account_username
         session[SessionKey.ROLE] = user.account_role
         return redirect(url_for("article.list_articles"))
-        
+
     flash("Incorrect credentials.")
     return redirect(url_for("login.render_login_page"))
 
@@ -48,7 +51,7 @@ def logout() -> Response:
     Clears the user session and redirects to the article list.
 
     Returns:
-        Response: Redirect to the article list.
+        Response: A redirect to the article list after clearing the session.
     """
     session.clear()
     return redirect(url_for("article.list_articles"))

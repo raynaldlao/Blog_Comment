@@ -1,11 +1,12 @@
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, scoped_session
 
 from app import initialize_flask_application
 from app.models.account_model import Account
@@ -60,7 +61,7 @@ def client(app: Flask) -> FlaskClient:
 
 
 @pytest.fixture(scope="function")
-def db_session(app: Flask) -> Generator[Session, Any, None]:
+def db_session(app) -> Generator[scoped_session[Session], None, None]:
     """
     Pytest fixture that provides a clean database session for each test function.
     Truncates all tables before yielding the session.
@@ -73,7 +74,7 @@ def db_session(app: Flask) -> Generator[Session, Any, None]:
     """
     # Explicitly referencing models to satisfy linters and ensure metadata is populated
     _ = (Account, Article, Comment)
-    
+
     if database_engine.url.render_as_string(hide_password=False) != env_vars.test_database_url:
         pytest.exit("SECURITY ERROR: The current database URL does not match the configured TEST database URL.")
 

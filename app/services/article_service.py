@@ -1,7 +1,7 @@
-from typing import List, Optional
+from collections.abc import Sequence
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session, defer, joinedload
+from sqlalchemy import Row, func, select
+from sqlalchemy.orm import Session, defer, joinedload, scoped_session
 
 from app.constants import Role
 from app.models.account_model import Account
@@ -14,22 +14,22 @@ class ArticleService:
     Handles creating, retrieving, updating and deleting articles as well as pagination logic.
     """
 
-    def __init__(self, session: Session):
+    def __init__(self, session: Session | scoped_session[Session]):
         """
         Initialize the service with a database session (Dependency Injection).
-        
+        Supports both standard Session and scoped_session.
+
         Args:
-            session (Session): The SQLAlchemy database session to use for queries.
+            session (Session | scoped_session[Session]): The SQLAlchemy database session.
         """
         self.session = session
 
-    def get_all_ordered_by_date(self) -> List[Article]:
+    def get_all_ordered_by_date(self) -> Sequence[Article]:
         """
         Retrieves all articles ordered by their publication date in descending order.
-        Eagerly loads author information and defers the loading of the full content for performance.
 
         Returns:
-            List[Article]: A list of Article instances containing metadata.
+            Sequence[Article]: A sequence of Article instances.
         """
         query = (
             select(Article)
@@ -39,24 +39,28 @@ class ArticleService:
             )
             .order_by(Article.article_published_at.desc())
         )
-        return list(self.session.execute(query).unique().scalars().all())
+        return self.session.execute(query).unique().scalars().all()
 
-    def get_by_id(self, article_id: int) -> Optional[Article]:
+    def get_by_id(self, article_id: int) -> Article | None:
         """
-        Retrieves a single article by its ID. Eagerly loads the author information.
+        Retrieves a single article by its ID.
 
         Args:
             article_id (int): The unique identifier of the article.
 
         Returns:
-            Optional[Article]: The Article instance if found, None otherwise.
+            Article | None: The Article instance if found, None otherwise.
         """
-        query = select(Article).where(Article.article_id == article_id).options(joinedload(Article.article_author))
+        query = (
+            select(Article)
+            .where(Article.article_id == article_id)
+            .options(joinedload(Article.article_author))
+        )
         return self.session.execute(query).unique().scalar_one_or_none()
 
     def create_article(self, title: str, content: str, author_id: int) -> Article:
         """
-        Creates a new article and adds it to the database session.
+        Creates a new article instance.
 
         Args:
             title (str): The title of the new article.
@@ -66,25 +70,37 @@ class ArticleService:
         Returns:
             Article: The newly created Article instance.
         """
-        new_article = Article(article_title=title, article_content=content, article_author_id=author_id)
+        new_article = Article(
+            article_title=title,
+            article_content=content,
+            article_author_id=author_id
+        )
         self.session.add(new_article)
         return new_article
 
-    def update_article(self, article_id: int, user_id: int, role: str, title: str, content: str) -> Optional[Article]:
+    def update_article(
+        self,
+        article_id: int,
+        user_id: int,
+        role: str,
+        title: str,
+        content: str
+    ) -> Article | None:
         """
         Updates an existing article ensuring the requester is the original author.
 
         Args:
-            article_id (int): The unique identifier of the article to update.
-            user_id (int): The identifier of the user attempting to update.
-            role (str): The role of the user.
-            title (str): The new title of the article.
-            content (str): The new content of the article.
+            article_id (int): ID of the article to update.
+            user_id (int): ID of the user requesting the update.
+            role (str): Role of the user requesting the update.
+            title (str): New title for the article.
+            content (str): New content for the article.
 
         Returns:
-            Optional[Article]: The updated Article instance if successful, None if not found or unauthorized.
+            Article | None: The updated Article instance or None if unauthorized/not found.
         """
         article = self.get_by_id(article_id)
+        # Validation logic (Admin role check removed here as per your requirements)
         if not article or article.article_author_id != user_id:
             return None
 
@@ -97,30 +113,31 @@ class ArticleService:
         Deletes an article. Only the original author or an Admin can delete it.
 
         Args:
-            article_id (int): The unique identifier of the article to delete.
-            user_id (int): The identifier of the user attempting to delete.
-            role (str): The role of the user (e.g., 'admin', 'user').
+            article_id (int): ID of the article to delete.
+            user_id (int): ID of the user requesting deletion.
+            role (str): Role of the user requesting deletion.
 
         Returns:
-            bool: True if the deletion was successful, False if not found or unauthorized.
+            bool: True if deleted, False otherwise.
         """
+
         article = self.get_by_id(article_id)
-        if not article or (role != Role.ADMIN and article.article_author_id != user_id):
+        if not article:
             return False
 
-        self.session.delete(article)
-        return True
+        # Access control: Author or Admin
+        if article.article_author_id == user_id or role == Role.ADMIN:
+            self.session.delete(article)
+            return True
 
-    def get_paginated_articles(self, page: int, per_page: int) -> List[tuple]:
+        return False
+
+    def get_paginated_articles(self, page: int, per_page: int) -> Sequence[Row]:
         """
-        Retrieves a paginated list of articles containing limited metadata.
-
-        Args:
-            page (int): The current page number to retrieve (1-indexed).
-            per_page (int): The number of articles per page.
+        Retrieves a paginated list of articles containing specific columns.
 
         Returns:
-            List[tuple]: A list of tuples containing (id, title, published_at, author_id, username).
+            Sequence[Row]: A sequence of SQLAlchemy Row objects containing selected columns.
         """
         query = (
             select(
@@ -135,14 +152,14 @@ class ArticleService:
             .limit(per_page)
             .offset((page - 1) * per_page)
         )
-        return list(self.session.execute(query).all())
+        return self.session.execute(query).all()
 
     def get_total_count(self) -> int:
         """
-        Retrieves the total number of articles in the database.
+        Retrieves the total number of articles.
 
         Returns:
-            int: The total count of articles.
+            int: The total count.
         """
         query = select(func.count(Article.article_id))
         count = self.session.execute(query).scalar()

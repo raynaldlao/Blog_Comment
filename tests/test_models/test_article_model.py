@@ -1,5 +1,7 @@
+from typing import cast
+
 import pytest
-import sqlalchemy
+from sqlalchemy import exc
 
 from app.models.article_model import Article
 from tests.factories import make_account, make_article
@@ -25,9 +27,10 @@ def test_article_missing_title(db_session):
     author = make_account()
     db_session.add(author)
     db_session.commit()
-    article = make_article(article_author_id=author.account_id, article_title=None)
+    # We intentionally pass None to test database constraints
+    article = make_article(article_author_id=author.account_id, article_title=cast(str, None))
     db_session.add(article)
-    with pytest.raises(sqlalchemy.exc.IntegrityError):
+    with pytest.raises(exc.IntegrityError):
         db_session.commit()
 
 
@@ -36,9 +39,10 @@ def test_article_missing_content(db_session):
     db_session.add(author)
     db_session.commit()
 
-    article = make_article(article_author_id=author.account_id, article_content=None)
+    # We intentionally pass None to test database constraints
+    article = make_article(article_author_id=author.account_id, article_content=cast(str, None))
     db_session.add(article)
-    with pytest.raises(sqlalchemy.exc.IntegrityError):
+    with pytest.raises(exc.IntegrityError):
         db_session.commit()
 
 

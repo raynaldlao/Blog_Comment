@@ -1,4 +1,5 @@
-from flask import Blueprint, Response, flash, redirect, request, session, url_for
+from flask import Blueprint, flash, redirect, request, session, url_for
+from werkzeug.wrappers import Response
 
 from app.constants import Role, SessionKey
 from app.services.comment_service import CommentService
@@ -19,19 +20,20 @@ def create_comment(article_id: int) -> Response:
         article_id (int): ID of the article being commented on.
 
     Returns:
-        Response: Redirect to the article view or login page.
+        Response: A redirect to the article view or login page.
     """
     comment_service = CommentService(db_session)
+    content = str(request.form.get("content") or "")
     if comment_service.create_comment(
-        article_id=article_id, 
-        user_id=session[SessionKey.USER_ID], 
-        content=request.form.get("content")
+        article_id=article_id,
+        user_id=session[SessionKey.USER_ID],
+        content=content
     ):
         db_session.commit()
         flash("Comment added.")
     else:
         flash("Error adding comment.")
-        
+
     return redirect(url_for("article.view_article", article_id=article_id))
 
 
@@ -46,13 +48,14 @@ def reply_to_comment(parent_comment_id: int) -> Response:
         parent_comment_id (int): ID of the comment being replied to.
 
     Returns:
-        Response: Redirect to the article view or error page.
+        Response: A redirect to the article view or the article list in case of error.
     """
     comment_service = CommentService(db_session)
+    content = str(request.form.get("content") or "")
     article_id = comment_service.create_reply(
-        parent_comment_id=parent_comment_id, 
-        user_id=session[SessionKey.USER_ID], 
-        content=request.form.get("content")
+        parent_comment_id=parent_comment_id,
+        user_id=session[SessionKey.USER_ID],
+        content=content
     )
     if article_id:
         db_session.commit()
@@ -73,12 +76,13 @@ def delete_comment(comment_id: int) -> Response:
         comment_id (int): ID of the comment to delete.
 
     Returns:
-        Response: Redirect to the article view or article list.
+        Response: A redirect to the article view or article list after deletion.
     """
     comment_service = CommentService(db_session)
+    role = str(session.get(SessionKey.ROLE) or "")
     article_id = comment_service.delete_comment(
-        comment_id=comment_id, 
-        role=session.get(SessionKey.ROLE)
+        comment_id=comment_id,
+        role=role
     )
     if article_id:
         db_session.commit()
@@ -87,4 +91,3 @@ def delete_comment(comment_id: int) -> Response:
 
     flash("Unauthorized or not found.")
     return redirect(url_for("article.list_articles"))
-
