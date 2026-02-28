@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from app.constants import Role, SessionKey
 from app.models.article_model import Article
 from tests.factories import make_account, make_article
 
@@ -30,21 +31,21 @@ def test_view_article_not_found(client):
 
 def test_create_article_restricted(client):
     with client.session_transaction() as sess:
-        sess["user_id"] = 1
-        sess["role"] = "user"
+        sess[SessionKey.USER_ID] = 1
+        sess[SessionKey.ROLE] = Role.USER
 
     response = client.get("/article/new", follow_redirects=True)
     assert b"Access restricted" in response.data
 
 
 def test_create_article_success(client, db_session):
-    author = make_account(account_role="author")
+    author = make_account(account_role=Role.AUTHOR)
     db_session.add(author)
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author.account_id
-        sess["role"] = "author"
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
 
     response = client.post("/article/new", data={"title": "Nouveau Titre", "content": "Contenu"}, follow_redirects=True)
     assert b"Article published!" in response.data
@@ -53,13 +54,13 @@ def test_create_article_success(client, db_session):
 
 
 def test_create_article_atomicity_failure(client, db_session):
-    author = make_account(account_role="author")
+    author = make_account(account_role=Role.AUTHOR)
     db_session.add(author)
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author.account_id
-        sess["role"] = "author"
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
 
     with patch("database.database_setup.db_session.commit") as mock_commit:
         mock_commit.side_effect = Exception("Database Failure")
@@ -74,8 +75,8 @@ def test_create_article_atomicity_failure(client, db_session):
 
 
 def test_edit_article_unauthorized(client, db_session):
-    author1 = make_account(account_username="Author1", account_role="author")
-    author2 = make_account(account_username="Author2", account_role="author")
+    author1 = make_account(account_username="Author1", account_role=Role.AUTHOR)
+    author2 = make_account(account_username="Author2", account_role=Role.AUTHOR)
     db_session.add_all([author1, author2])
     db_session.commit()
 
@@ -84,8 +85,8 @@ def test_edit_article_unauthorized(client, db_session):
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author2.account_id
-        sess["role"] = "author"
+        sess[SessionKey.USER_ID] = author2.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
 
     response = client.post(f"/article/{article.article_id}/edit", data={"title": "Hack", "content": "Hack"}, follow_redirects=True)
     assert b"Update failed" in response.data
@@ -94,7 +95,7 @@ def test_edit_article_unauthorized(client, db_session):
 
 
 def test_delete_article_success(client, db_session):
-    author = make_account(account_role="admin")
+    author = make_account(account_role=Role.ADMIN)
     db_session.add(author)
     db_session.commit()
     article = make_article(author.account_id)
@@ -102,8 +103,8 @@ def test_delete_article_success(client, db_session):
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author.account_id
-        sess["role"] = "admin"
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.ADMIN
 
     response = client.get(f"/article/{article.article_id}/delete", follow_redirects=True)
     assert b"Article deleted" in response.data
@@ -129,8 +130,8 @@ def test_list_articles_pagination(client, db_session):
 
 def test_edit_article_not_found(client):
     with client.session_transaction() as sess:
-        sess["user_id"] = 1
-        sess["role"] = "admin"
+        sess[SessionKey.USER_ID] = 1
+        sess[SessionKey.ROLE] = Role.ADMIN
 
     response = client.get("/article/999/edit", follow_redirects=True)
     assert response.status_code == 200
@@ -138,7 +139,7 @@ def test_edit_article_not_found(client):
 
 
 def test_edit_article_success_by_author(client, db_session):
-    author = make_account(account_role="author")
+    author = make_account(account_role=Role.AUTHOR)
     db_session.add(author)
     db_session.commit()
     article = make_article(author.account_id, article_title="Ancien Titre")
@@ -146,8 +147,8 @@ def test_edit_article_success_by_author(client, db_session):
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author.account_id
-        sess["role"] = "author"
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
 
     response = client.post(f"/article/{article.article_id}/edit", data={"title": "Titre Modifié", "content": "Nouveau contenu"}, follow_redirects=True)
 
@@ -158,7 +159,7 @@ def test_edit_article_success_by_author(client, db_session):
 
 def test_admin_cannot_edit_others_article(client, db_session):
     author = make_account(account_username="Auteur")
-    admin = make_account(account_username="Admin", account_role="admin")
+    admin = make_account(account_username="Admin", account_role=Role.ADMIN)
     db_session.add_all([author, admin])
     db_session.commit()
     article = make_article(author.account_id, article_title="Titre Intouchable")
@@ -166,8 +167,8 @@ def test_admin_cannot_edit_others_article(client, db_session):
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = admin.account_id
-        sess["role"] = "admin"
+        sess[SessionKey.USER_ID] = admin.account_id
+        sess[SessionKey.ROLE] = Role.ADMIN
 
     response = client.post(f"/article/{article.article_id}/edit", data={"title": "Hack par Admin", "content": "..."}, follow_redirects=True)
 
@@ -177,7 +178,7 @@ def test_admin_cannot_edit_others_article(client, db_session):
 
 
 def test_delete_article_success_by_author(client, db_session):
-    author = make_account(account_role="author")
+    author = make_account(account_role=Role.AUTHOR)
     db_session.add(author)
     db_session.commit()
     article = make_article(author.account_id)
@@ -185,8 +186,8 @@ def test_delete_article_success_by_author(client, db_session):
     db_session.commit()
 
     with client.session_transaction() as sess:
-        sess["user_id"] = author.account_id
-        sess["role"] = "author"
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
 
     response = client.get(f"/article/{article.article_id}/delete", follow_redirects=True)
     assert b"Article deleted" in response.data

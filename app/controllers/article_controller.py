@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 from flask import (
     Blueprint,
@@ -11,8 +12,10 @@ from flask import (
     url_for,
 )
 
+from app.constants import PaginationConfig, Role, SessionKey
 from app.services.article_service import ArticleService
 from app.services.comment_service import CommentService
+from app.utils.decorators import roles_accepted
 from database.database_setup import db_session
 
 article_bp = Blueprint("article", __name__)
@@ -26,14 +29,20 @@ def list_articles() -> str:
     Returns:
         str: Rendered HTML template.
     """
-    current_page_number = 1
-    page_number = request.args.get("page", current_page_number, type=int)
-    articles_per_page = 10
+    page_number = request.args.get("page", 1, type=int)
+    articles_per_page = PaginationConfig.ARTICLES_PER_PAGE
+    
     article_service = ArticleService(db_session)
     articles = article_service.get_paginated_articles(page_number, articles_per_page)
     total_articles = article_service.get_total_count()
     total_pages = math.ceil(total_articles / articles_per_page)
-    return render_template("index.html", articles=articles, page_number=page_number, total_pages=total_pages)
+    
+    return render_template(
+        "index.html", 
+        articles=articles, 
+        page_number=page_number, 
+        total_pages=total_pages
+    )
 
 
 @article_bp.route("/article/<int:article_id>")
@@ -59,6 +68,7 @@ def view_article(article_id: int) -> str | Response:
 
 
 @article_bp.route("/article/new", methods=["GET", "POST"])
+@roles_accepted(Role.ADMIN, Role.AUTHOR)
 def create_article() -> str | Response:
     """
     Handles the creation of a new blog article.
@@ -67,19 +77,22 @@ def create_article() -> str | Response:
     Returns:
         str | Response: Rendered HTML template (GET) or redirect (POST).
     """
-    if session.get("role") not in ["admin", "author"]:
-        flash("Access restricted.")
-        return redirect(url_for("article.list_articles"))
     if request.method == "POST":
         article_service = ArticleService(db_session)
-        article_service.create_article(request.form.get("title"), request.form.get("content"), session["user_id"])
+        article_service.create_article(
+            title=request.form.get("title"), 
+            content=request.form.get("content"), 
+            author_id=session[SessionKey.USER_ID]
+        )
         db_session.commit()
         flash("Article published!")
         return redirect(url_for("article.list_articles"))
+        
     return render_template("article_form.html", article=None)
 
 
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
+@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
 def edit_article(article_id: int) -> str | Response:
     """
     Handles the editing of an existing article.
@@ -91,30 +104,34 @@ def edit_article(article_id: int) -> str | Response:
     Returns:
         str | Response: Rendered HTML template (GET) or redirect (POST).
     """
+    article_service = ArticleService(db_session)
+    
     if request.method == "POST":
-        article_service = ArticleService(db_session)
         article = article_service.update_article(
-            article_id,
-            session.get("user_id"),
-            session.get("role"),
-            request.form.get("title"),
-            request.form.get("content")
+            article_id=article_id,
+            user_id=session.get(SessionKey.USER_ID),
+            role=session.get(SessionKey.ROLE),
+            title=request.form.get("title"),
+            content=request.form.get("content")
         )
         if article:
             db_session.commit()
             flash("Article updated!")
             return redirect(url_for("article.view_article", article_id=article_id))
+            
         flash("Update failed: Unauthorized or not found.")
         return redirect(url_for("article.list_articles"))
-    article_service = ArticleService(db_session)
+
     article = article_service.get_by_id(article_id)
     if not article:
         flash("Article not found.")
         return redirect(url_for("article.list_articles"))
+        
     return render_template("article_form.html", article=article)
 
 
 @article_bp.route("/article/<int:article_id>/delete")
+@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
 def delete_article(article_id: int) -> Response:
     """
     Handles the deletion of an article.
@@ -126,9 +143,14 @@ def delete_article(article_id: int) -> Response:
         Response: Redirect to the article list.
     """
     article_service = ArticleService(db_session)
-    if article_service.delete_article(article_id, session.get("user_id"), session.get("role")):
+    if article_service.delete_article(
+        article_id=article_id, 
+        user_id=session.get(SessionKey.USER_ID), 
+        role=session.get(SessionKey.ROLE)
+    ):
         db_session.commit()
         flash("Article deleted.")
     else:
-        flash("Delete failed.")
+        flash("Delete failed: Unauthorized or not found.")
+        
     return redirect(url_for("article.list_articles"))

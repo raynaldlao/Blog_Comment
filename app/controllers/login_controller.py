@@ -1,5 +1,6 @@
 from flask import Blueprint, Response, flash, redirect, render_template, request, session, url_for
 
+from app.constants import SessionKey
 from app.services.login_service import LoginService
 from database.database_setup import db_session
 
@@ -27,12 +28,16 @@ def login_authentication() -> Response:
         Response: Redirect to the article list on success, or login page on failure.
     """
     login_service = LoginService(db_session)
-    user = login_service.authenticate_user(request.form.get("username"), request.form.get("password"))
+    user = login_service.authenticate_user(
+        username=request.form.get("username"), 
+        password=request.form.get("password")
+    )
     if user:
-        session["user_id"] = user.account_id
-        session["username"] = user.account_username
-        session["role"] = user.account_role
+        session[SessionKey.USER_ID] = user.account_id
+        session[SessionKey.USERNAME] = user.account_username
+        session[SessionKey.ROLE] = user.account_role
         return redirect(url_for("article.list_articles"))
+        
     flash("Incorrect credentials.")
     return redirect(url_for("login.render_login_page"))
 
