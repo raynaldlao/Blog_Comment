@@ -12,7 +12,8 @@ def create_comment(article_id):
     if not session.get("user_id"):
         flash("Login required.")
         return redirect(url_for("login.render_login_page"))
-    if CommentService.create_comment(article_id, session["user_id"], request.form.get("content")):
+    comment_service = CommentService(db_session)
+    if comment_service.create_comment(article_id, session["user_id"], request.form.get("content")):
         db_session.commit()
         flash("Comment added.")
     else:
@@ -27,7 +28,8 @@ def reply_to_comment(parent_comment_id):
         flash("Login required.")
         return redirect(url_for("login.render_login_page"))
 
-    article_id = CommentService.create_reply(parent_comment_id, session["user_id"], request.form.get("content"))
+    comment_service = CommentService(db_session)
+    article_id = comment_service.create_reply(parent_comment_id, session["user_id"], request.form.get("content"))
     if article_id:
         db_session.commit()
         return redirect(url_for("article.view_article", article_id=article_id))
@@ -38,7 +40,8 @@ def reply_to_comment(parent_comment_id):
 
 @comment_bp.route("/delete/<int:comment_id>")
 def delete_comment(comment_id):
-    article_id = CommentService.delete_comment(comment_id, session.get("role"))
+    comment_service = CommentService(db_session)
+    article_id = comment_service.delete_comment(comment_id, session.get("role"))
     if article_id:
         db_session.commit()
         flash("Comment deleted.")
