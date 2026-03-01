@@ -26,10 +26,12 @@ def get_env_variable(name: str) -> str:
         raise RuntimeError(f"Missing mandatory environment variable: '{name}'")
     return value
 
+
 class EnvVariablesConfig:
     """
     Configuration class to manage environment variables for the application.
     """
+
     @property
     def database_url(self) -> str:
         """
@@ -69,5 +71,6 @@ class EnvVariablesConfig:
             str: Test secret key string.
         """
         return get_env_variable("TEST_SECRET_KEY")
+
 
 env_vars = EnvVariablesConfig()
