@@ -75,5 +75,8 @@ jobs:
       - name: Run tests
         run: poetry run pytest
 
+      - name: Run type check
+        run: poetry run pyright
+
       - name: Run lint
         run: poetry run ruff check .

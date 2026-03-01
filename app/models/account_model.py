@@ -1,26 +1,41 @@
+from datetime import datetime
+
 from sqlalchemy import (
     TIMESTAMP,
     CheckConstraint,
-    Column,
     Integer,
     Text,
     func,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database_setup import Base
 
 
 class Account(Base):
+    """
+    Represents a user account in the system.
+
+    Attributes:
+        account_id (int): Unique identifier for the account (Primary Key).
+        account_username (str): Unique username used for authentication.
+        account_password (str): Securely hashed password string.
+        account_email (str | None): Optional email address for the user.
+        account_role (str): Permissions role ('admin', 'author', or 'user').
+        account_created_at (datetime): Automated timestamp of account creation.
+        articles (list[Article]): Collection of articles authored by this account.
+        comments (list[Comment]): Collection of comments written by this account.
+    """
+
     __tablename__ = "accounts"
     __table_args__ = (CheckConstraint(sqltext="account_role IN ('admin', 'author', 'user')", name="accounts_role_check"),)
 
-    account_id = Column(name="account_id", type_=Integer, primary_key=True, autoincrement=True)
-    account_username = Column(name="account_username", type_=Text, unique=True, nullable=False)
-    account_password = Column(name="account_password", type_=Text, nullable=False)
-    account_email = Column(name="account_email", type_=Text)
-    account_role = Column(name="account_role", type_=Text, nullable=False)
-    account_created_at = Column(name="account_created_at", type_=TIMESTAMP, server_default=func.now())
+    account_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    account_password: Mapped[str] = mapped_column(Text, nullable=False)
+    account_email: Mapped[str | None] = mapped_column(Text)
+    account_role: Mapped[str] = mapped_column(Text, nullable=False)
+    account_created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
 
-    articles = relationship(argument="Article", back_populates="article_author", cascade="all, delete-orphan")
-    comments = relationship(argument="Comment", back_populates="comment_author", cascade="all, delete-orphan")
+    articles = relationship("Article", back_populates="article_author", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")

@@ -1,5 +1,8 @@
 from flask import Blueprint, flash, redirect, request, session, url_for
+from werkzeug.wrappers import Response
 
+from app.constants import Role, SessionKey
+from app.controllers.decorators import login_required, roles_accepted
 from app.services.comment_service import CommentService
 from database.database_setup import db_session
 
@@ -7,27 +10,53 @@ comment_bp = Blueprint("comment", __name__, url_prefix="/comments")
 
 
 @comment_bp.route("/create/<int:article_id>", methods=["POST"])
-def create_comment(article_id):
-    # Exception to add here
-    if not session.get("user_id"):
-        flash("Login required.")
-        return redirect(url_for("login.render_login_page"))
-    if CommentService.create_comment(article_id, session["user_id"], request.form.get("content")):
+@login_required
+def create_comment(article_id: int) -> Response:
+    """
+    Handles the creation of a new comment on an article.
+    Requires the user to be logged in.
+
+    Args:
+        article_id (int): ID of the article being commented on.
+
+    Returns:
+        Response: A redirect to the article view or login page.
+    """
+    comment_service = CommentService(db_session)
+    content = str(request.form.get("content") or "")
+    if comment_service.create_comment(
+        article_id=article_id,
+        user_id=session[SessionKey.USER_ID],
+        content=content
+    ):
         db_session.commit()
         flash("Comment added.")
     else:
         flash("Error adding comment.")
+
     return redirect(url_for("article.view_article", article_id=article_id))
 
 
 @comment_bp.route("/reply/<int:parent_comment_id>", methods=["POST"])
-def reply_to_comment(parent_comment_id):
-    # Exception to add here
-    if not session.get("user_id"):
-        flash("Login required.")
-        return redirect(url_for("login.render_login_page"))
+@login_required
+def reply_to_comment(parent_comment_id: int) -> Response:
+    """
+    Handles the creation of a reply to an existing comment.
+    Requires the user to be logged in.
 
-    article_id = CommentService.create_reply(parent_comment_id, session["user_id"], request.form.get("content"))
+    Args:
+        parent_comment_id (int): ID of the comment being replied to.
+
+    Returns:
+        Response: A redirect to the article view or the article list in case of error.
+    """
+    comment_service = CommentService(db_session)
+    content = str(request.form.get("content") or "")
+    article_id = comment_service.create_reply(
+        parent_comment_id=parent_comment_id,
+        user_id=session[SessionKey.USER_ID],
+        content=content
+    )
     if article_id:
         db_session.commit()
         return redirect(url_for("article.view_article", article_id=article_id))
@@ -37,8 +66,24 @@ def reply_to_comment(parent_comment_id):
 
 
 @comment_bp.route("/delete/<int:comment_id>")
-def delete_comment(comment_id):
-    article_id = CommentService.delete_comment(comment_id, session.get("role"))
+@roles_accepted(Role.ADMIN)
+def delete_comment(comment_id: int) -> Response:
+    """
+    Handles the deletion of a comment.
+    Restricted to users with the 'admin' role.
+
+    Args:
+        comment_id (int): ID of the comment to delete.
+
+    Returns:
+        Response: A redirect to the article view or article list after deletion.
+    """
+    comment_service = CommentService(db_session)
+    role = str(session.get(SessionKey.ROLE) or "")
+    article_id = comment_service.delete_comment(
+        comment_id=comment_id,
+        role=role
+    )
     if article_id:
         db_session.commit()
         flash("Comment deleted.")
