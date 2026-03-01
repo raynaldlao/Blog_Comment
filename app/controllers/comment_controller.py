@@ -2,8 +2,8 @@ from flask import Blueprint, flash, redirect, request, session, url_for
 from werkzeug.wrappers import Response
 
 from app.constants import Role, SessionKey
+from app.controllers.decorators import login_required, roles_accepted
 from app.services.comment_service import CommentService
-from app.utils.decorators import login_required, roles_accepted
 from database.database_setup import db_session
 
 comment_bp = Blueprint("comment", __name__, url_prefix="/comments")

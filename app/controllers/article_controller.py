@@ -12,9 +12,9 @@ from flask import (
 from werkzeug.wrappers import Response
 
 from app.constants import PaginationConfig, Role, SessionKey
+from app.controllers.decorators import roles_accepted
 from app.services.article_service import ArticleService
 from app.services.comment_service import CommentService
-from app.utils.decorators import roles_accepted
 from database.database_setup import db_session
 
 article_bp = Blueprint("article", __name__)

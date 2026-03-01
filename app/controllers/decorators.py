@@ -17,12 +17,14 @@ def login_required(f: Callable[..., Any]) -> Callable[..., Any]:
     Returns:
         Callable: The wrapped function.
     """
+
     @wraps(f)
     def decorated_function(*args: Any, **kwargs: Any) -> Any:
         if not session.get(SessionKey.USER_ID):
             flash("Login required.")
             return redirect(url_for("login.render_login_page"))
         return f(*args, **kwargs)
+
     return decorated_function
 
 
@@ -36,6 +38,7 @@ def roles_accepted(*roles: Role) -> Callable[..., Any]:
     Returns:
         Callable: A decorator that wraps the route function.
     """
+
     def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(f)
         @login_required
@@ -45,5 +48,7 @@ def roles_accepted(*roles: Role) -> Callable[..., Any]:
                 flash("Access restricted: Insufficient permissions.")
                 return redirect(url_for("article.list_articles"))
             return f(*args, **kwargs)
+
         return decorated_function
+
     return decorator
