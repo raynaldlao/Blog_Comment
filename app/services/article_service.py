@@ -21,7 +21,7 @@ class ArticleService:
 
         Args:
             session (Session | scoped_session[Session]): The SQLAlchemy database session.
-    """
+        """
         self.session = session
 
     def get_all_ordered_by_date(self) -> Sequence[Article]:

@@ -6,6 +6,7 @@ from flask import Flask
 from app.controllers.article_controller import article_bp
 from app.controllers.comment_controller import comment_bp
 from app.controllers.login_controller import login_bp
+from app.controllers.registration_controller import registration_bp
 from config.configuration_variables import env_vars
 from database.database_setup import db_session
 
@@ -36,6 +37,7 @@ def initialize_flask_application() -> Flask:
         app.secret_key = env_vars.secret_key
 
     app.register_blueprint(login_bp)
+    app.register_blueprint(registration_bp)
     app.register_blueprint(article_bp)
     app.register_blueprint(comment_bp)
     app.teardown_appcontext(shutdown_session)

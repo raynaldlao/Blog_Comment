@@ -88,8 +88,8 @@ def test_create_reply_atomicity_failure(client, db_session):
 
 
 def test_delete_comment_admin_only(client, db_session):
-    admin = make_account(account_username="Admin", account_role=Role.ADMIN)
-    user = make_account(account_username="User", account_role=Role.USER)
+    admin = make_account(account_username="Admin", account_email="admin@test.com", account_role=Role.ADMIN)
+    user = make_account(account_username="User", account_email="user@test.com", account_role=Role.USER)
     db_session.add_all([admin, user])
     db_session.commit()
     article = make_article(admin.account_id)
