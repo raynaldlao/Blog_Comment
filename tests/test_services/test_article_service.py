@@ -44,8 +44,8 @@ def test_update_article_success(db_session):
 
 
 def test_update_article_unauthorized(db_session):
-    author = make_account(account_username="Author")
-    wrong_user = make_account(account_username="Stranger")
+    author = make_account(account_username="Author", account_email="author@test.com")
+    wrong_user = make_account(account_username="Stranger", account_email="stranger@test.com")
     db_session.add_all([author, wrong_user])
     db_session.commit()
     article = make_article(author.account_id)
@@ -57,8 +57,8 @@ def test_update_article_unauthorized(db_session):
 
 
 def test_delete_article_by_admin(db_session):
-    author = make_account()
-    admin = make_account(account_username="Admin", account_role="admin")
+    author = make_account(account_email="author@test.com")
+    admin = make_account(account_username="Admin", account_email="admin@test.com", account_role="admin")
     db_session.add_all([author, admin])
     db_session.commit()
     article = make_article(author.account_id)
@@ -99,8 +99,8 @@ def test_get_all_ordered_by_date(db_session):
 
 
 def test_delete_article_unauthorized(db_session):
-    author = make_account(account_username="Author")
-    stranger = make_account(account_username="Stranger")
+    author = make_account(account_username="Author", account_email="author@test.com")
+    stranger = make_account(account_username="Stranger", account_email="stranger@test.com")
     db_session.add_all([author, stranger])
     db_session.commit()
     article = make_article(author.account_id)

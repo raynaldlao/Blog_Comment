@@ -75,8 +75,8 @@ def test_create_article_atomicity_failure(client, db_session):
 
 
 def test_edit_article_unauthorized(client, db_session):
-    author1 = make_account(account_username="Author1", account_role=Role.AUTHOR)
-    author2 = make_account(account_username="Author2", account_role=Role.AUTHOR)
+    author1 = make_account(account_username="Author1", account_email="author1@test.com", account_role=Role.AUTHOR)
+    author2 = make_account(account_username="Author2", account_email="author2@test.com", account_role=Role.AUTHOR)
     db_session.add_all([author1, author2])
     db_session.commit()
 
@@ -158,8 +158,8 @@ def test_edit_article_success_by_author(client, db_session):
 
 
 def test_admin_cannot_edit_others_article(client, db_session):
-    author = make_account(account_username="Auteur")
-    admin = make_account(account_username="Admin", account_role=Role.ADMIN)
+    author = make_account(account_username="Auteur", account_email="auteur@test.com")
+    admin = make_account(account_username="Admin", account_email="admin@test.com", account_role=Role.ADMIN)
     db_session.add_all([author, admin])
     db_session.commit()
     article = make_article(author.account_id, article_title="Titre Intouchable")

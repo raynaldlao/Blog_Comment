@@ -29,12 +29,13 @@ def submit_registration_form() -> Response:
     registration_service = RegistrationService(db_session)
     username = str(request.form.get("username") or "")
     password = str(request.form.get("password") or "")
+    email = str(request.form.get("email") or "")
 
-    user = registration_service.create_account(username=username, password=password)
+    result = registration_service.create_account(username=username, password=password, email=email)
 
-    if user:
-        flash("Account created successfully.")
-        return redirect(url_for("login.render_login_page"))
+    if isinstance(result, str):
+        flash(result)
+        return redirect(url_for("registration.render_registration_page"))
 
-    flash("This username is already taken.")
-    return redirect(url_for("registration.render_registration_page"))
+    flash("Account created successfully.")
+    return redirect(url_for("login.render_login_page"))

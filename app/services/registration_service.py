@@ -18,24 +18,39 @@ class RegistrationService:
         """
         self.session = session
 
-    def create_account(self, username: str, password: str) -> Account | None:
+    def create_account(self, username: str, password: str, email: str) -> Account | str:
         """
-        Creates a new user account with the default 'user' role if the username is not already taken.
+        Creates a new user account with the default 'user' role if the username and email are not already taken.
 
         Args:
             username (str): The username for the new account.
             password (str): The plaintext password for the new account.
+            email (str): The email address for the new account.
 
         Returns:
-            Account | None: The newly created Account instance, or None if the username already exists.
+            Account | str: The newly created Account instance, or an error message string if creation fails.
         """
-        existing_user_query = select(Account).where(Account.account_username == username)
-        existing_user = self.session.execute(existing_user_query).scalar_one_or_none()
+        username_taken_message = "This username is already taken."
+        email_taken_message = "This email is already taken."
 
-        if existing_user:
-            return None
+        existing_username_query = select(Account).where(Account.account_username == username)
+        existing_username = self.session.execute(existing_username_query).scalar_one_or_none()
 
-        new_account = Account(account_username=username, account_password=password, account_role="user")
+        if existing_username:
+            return username_taken_message
+
+        existing_email_query = select(Account).where(Account.account_email == email)
+        existing_email = self.session.execute(existing_email_query).scalar_one_or_none()
+
+        if existing_email:
+            return email_taken_message
+
+        new_account = Account(
+            account_username=username,
+            account_password=password,
+            account_email=email,
+            account_role="user",
+        )
         self.session.add(new_account)
         self.session.commit()
         return new_account
