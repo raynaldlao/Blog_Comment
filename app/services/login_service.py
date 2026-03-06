@@ -34,6 +34,6 @@ class LoginService:
         user = self.session.execute(query).scalar_one_or_none()
 
         if user and user.account_password == password:
-             return user
+            return user
 
         return None

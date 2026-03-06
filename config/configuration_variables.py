@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 load_dotenv(BASE_DIR / ".env.test")
 
+
 def get_env_variable(name: str) -> str:
     """
     Retrieves an environment variable or raises a RuntimeError if missing.
