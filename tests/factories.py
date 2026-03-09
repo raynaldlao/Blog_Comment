@@ -1,3 +1,4 @@
+from app.constants import Role
 from app.models.account_model import Account
 from app.models.article_model import Article
 from app.models.comment_model import Comment
@@ -25,7 +26,9 @@ def make_account(
         account_username=account_username,
         account_password=account_password,
         account_email=account_email,
-        account_role=account_role,
+        account_role=(
+            account_role.value if isinstance(account_role, Role) else account_role
+        ),
     )
 
 

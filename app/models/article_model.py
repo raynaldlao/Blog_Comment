@@ -30,22 +30,27 @@ class Article(Base):
     __tablename__ = "articles"
 
     article_id: Mapped[int] = mapped_column(
-        "article_id", Integer, primary_key=True, autoincrement=True
+        name="article_id", type_=Integer, primary_key=True, autoincrement=True
     )
     article_author_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.account_id", ondelete="CASCADE"),
         name="article_author_id",
+        type_=Integer,
         nullable=False,
     )
-    article_title: Mapped[str] = mapped_column("article_title", Text, nullable=False)
+    article_title: Mapped[str] = mapped_column(
+        name="article_title", type_=Text, nullable=False
+    )
     article_content: Mapped[str] = mapped_column(
-        "article_content", Text, nullable=False
+        name="article_content", type_=Text, nullable=False
     )
     article_published_at: Mapped[datetime] = mapped_column(
-        "article_published_at", TIMESTAMP, server_default=func.now()
+        name="article_published_at", type_=TIMESTAMP, server_default=func.now()
     )
 
-    article_author = relationship("Account", back_populates="articles")
+    article_author = relationship(argument="Account", back_populates="articles")
     article_comments = relationship(
-        "Comment", back_populates="comment_article", cascade="all, delete-orphan"
+        argument="Comment",
+        back_populates="comment_article",
+        cascade="all, delete-orphan",
     )

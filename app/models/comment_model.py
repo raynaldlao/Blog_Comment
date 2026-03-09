@@ -35,39 +35,46 @@ class Comment(Base):
     __tablename__ = "comments"
 
     comment_id: Mapped[int] = mapped_column(
-        "comment_id", Integer, primary_key=True, autoincrement=True
+        name="comment_id", type_=Integer, primary_key=True, autoincrement=True
     )
     comment_article_id: Mapped[int] = mapped_column(
         ForeignKey("articles.article_id", ondelete="CASCADE"),
         name="comment_article_id",
+        type_=Integer,
         nullable=False,
     )
     comment_written_account_id: Mapped[int] = mapped_column(
         ForeignKey("accounts.account_id", ondelete="CASCADE"),
         name="comment_written_account_id",
+        type_=Integer,
         nullable=False,
     )
     comment_reply_to: Mapped[int | None] = mapped_column(
-        ForeignKey("comments.comment_id"), name="comment_reply_to", nullable=True
+        ForeignKey("comments.comment_id"),
+        name="comment_reply_to",
+        type_=Integer,
+        nullable=True,
     )
     comment_content: Mapped[str] = mapped_column(
-        "comment_content", Text, nullable=False
+        name="comment_content", type_=Text, nullable=False
     )
     comment_posted_at: Mapped[datetime] = mapped_column(
-        "comment_posted_at", TIMESTAMP, server_default=func.now()
+        name="comment_posted_at", type_=TIMESTAMP, server_default=func.now()
     )
 
-    comment_article = relationship("Article", back_populates="article_comments")
-    comment_author = relationship("Account", back_populates="comments")
+    comment_article = relationship(
+        argument="Article", back_populates="article_comments"
+    )
+    comment_author = relationship(argument="Account", back_populates="comments")
 
     reply_to_comment = relationship(
-        "Comment",
+        argument="Comment",
         remote_side=[comment_id],
         back_populates="comment_replies",
         uselist=False,
     )
     comment_replies = relationship(
-        "Comment",
+        argument="Comment",
         back_populates="reply_to_comment",
         cascade="all, delete-orphan",
     )
