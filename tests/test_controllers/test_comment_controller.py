@@ -178,8 +178,6 @@ def test_create_comment_failure(client, db_session):
         sess[SessionKey.USER_ID] = user.account_id
 
     response = client.post(
-        "/comments/create/999",
-        data={"content": "Nope"},
-        follow_redirects=True
+        "/comments/create/999", data={"content": "Nope"}, follow_redirects=True
     )
     assert b"Error adding comment." in response.data

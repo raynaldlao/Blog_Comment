@@ -1,3 +1,4 @@
+from app.constants import Role
 from app.services.registration_service import RegistrationService
 from tests.factories import make_account
 
@@ -11,7 +12,7 @@ def test_create_account_success(db_session):
     assert not isinstance(user, str)
     assert user.account_username == "new_user"
     assert user.account_email == "new_user@test.com"
-    assert user.account_role == "user"
+    assert user.account_role == Role.USER.value
     assert user.account_id is not None
 
 

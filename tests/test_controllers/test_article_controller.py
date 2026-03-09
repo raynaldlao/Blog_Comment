@@ -297,6 +297,6 @@ def test_edit_article_failure_unauthorized_user(client, db_session):
     response = client.post(
         f"/article/{article.article_id}/edit",
         data={"title": "Hacker", "content": "Hacker"},
-        follow_redirects=True
+        follow_redirects=True,
     )
     assert b"Update failed" in response.data

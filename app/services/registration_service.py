@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session, scoped_session
 
+from app.constants import Role
 from app.models.account_model import Account
 
 
@@ -56,7 +57,7 @@ class RegistrationService:
             account_username=username,
             account_password=password,
             account_email=email,
-            account_role="user",
+            account_role=Role.USER.value,
         )
         self.session.add(new_account)
         self.session.commit()
