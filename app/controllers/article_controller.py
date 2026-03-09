@@ -97,7 +97,7 @@ def create_article() -> str | Response:
 
 
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
-@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
+@roles_accepted(Role.ADMIN, Role.AUTHOR)
 def edit_article(article_id: int) -> str | Response:
     """
     Handles the editing of an existing article.
@@ -114,14 +114,12 @@ def edit_article(article_id: int) -> str | Response:
 
     if request.method == "POST":
         user_id = int(session.get(SessionKey.USER_ID) or 0)
-        role = str(session.get(SessionKey.ROLE) or "")
         title = str(request.form.get("title") or "")
         content = str(request.form.get("content") or "")
 
         article = article_service.update_article(
             article_id=article_id,
             user_id=user_id,
-            role=role,
             title=title,
             content=content,
         )
@@ -142,7 +140,7 @@ def edit_article(article_id: int) -> str | Response:
 
 
 @article_bp.route("/article/<int:article_id>/delete")
-@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
+@roles_accepted(Role.ADMIN, Role.AUTHOR)
 def delete_article(article_id: int) -> Response:
     """
     Handles the deletion of an article.

@@ -299,4 +299,4 @@ def test_edit_article_failure_unauthorized_user(client, db_session):
         data={"title": "Hacker", "content": "Hacker"},
         follow_redirects=True,
     )
-    assert b"Update failed" in response.data
+    assert b"Access restricted" in response.data

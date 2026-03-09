@@ -140,7 +140,10 @@ class CommentService:
         query = (
             select(Comment)
             .where(Comment.comment_article_id == article_id)
-            .options(joinedload(Comment.comment_author))
+            .options(
+                joinedload(Comment.comment_author),
+                joinedload(Comment.comment_replies).joinedload(Comment.comment_author),
+            )
             .order_by(Comment.comment_posted_at.asc())
         )
         all_comments = self.session.execute(query).unique().scalars().all()

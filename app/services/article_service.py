@@ -81,7 +81,7 @@ class ArticleService:
         return new_article
 
     def update_article(
-        self, article_id: int, user_id: int, role: str, title: str, content: str
+        self, article_id: int, user_id: int, title: str, content: str
     ) -> Article | None:
         """
         Updates an existing article ensuring the requester is the original author.
@@ -89,7 +89,6 @@ class ArticleService:
         Args:
             article_id (int): ID of the article to update.
             user_id (int): ID of the user requesting the update.
-            role (str): Role of the user requesting the update.
             title (str): New title for the article.
             content (str): New content for the article.
 

@@ -38,7 +38,7 @@ def test_update_article_success(db_session):
     db_session.commit()
     article_service = ArticleService(db_session)
     result = article_service.update_article(
-        article.article_id, author.account_id, "user", "New Title", "New Content"
+        article.article_id, author.account_id, "New Title", "New Content"
     )
     db_session.commit()
     assert result is not None
@@ -57,7 +57,7 @@ def test_update_article_unauthorized(db_session):
     db_session.commit()
     article_service = ArticleService(db_session)
     result = article_service.update_article(
-        article.article_id, wrong_user.account_id, "user", "Hacked", "..."
+        article.article_id, wrong_user.account_id, "Hacked", "..."
     )
     assert result is None
 
