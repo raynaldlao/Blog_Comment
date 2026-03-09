@@ -11,7 +11,8 @@ from app.models.article_model import Article
 class ArticleService:
     """
     Service class responsible for business logic operations related to Articles.
-    Handles creating, retrieving, updating and deleting articles as well as pagination logic.
+    Handles creating, retrieving, updating and deleting articles
+    as well as pagination logic.
     """
 
     def __init__(self, session: Session | scoped_session[Session]):
@@ -20,7 +21,8 @@ class ArticleService:
         Supports both standard Session and scoped_session.
 
         Args:
-            session (Session | scoped_session[Session]): The SQLAlchemy database session.
+            session (Session | scoped_session[Session]): The SQLAlchemy
+            database session.
         """
         self.session = session
 
@@ -73,18 +75,13 @@ class ArticleService:
         new_article = Article(
             article_title=title,
             article_content=content,
-            article_author_id=author_id
+            article_author_id=author_id,
         )
         self.session.add(new_article)
         return new_article
 
     def update_article(
-        self,
-        article_id: int,
-        user_id: int,
-        role: str,
-        title: str,
-        content: str
+        self, article_id: int, user_id: int, role: str, title: str, content: str
     ) -> Article | None:
         """
         Updates an existing article ensuring the requester is the original author.
@@ -135,7 +132,8 @@ class ArticleService:
         Retrieves a paginated list of articles containing specific columns.
 
         Returns:
-            Sequence[Row]: A sequence of SQLAlchemy Row objects containing selected columns.
+            Sequence[Row]: A sequence of SQLAlchemy Row objects
+            containing selected columns.
         """
         query = (
             select(
@@ -143,7 +141,7 @@ class ArticleService:
                 Article.article_title,
                 Article.article_published_at,
                 Article.article_author_id,
-                Account.account_username
+                Account.account_username,
             )
             .join(Account, Article.article_author_id == Account.account_id)
             .order_by(Article.article_id.desc())

@@ -37,7 +37,9 @@ def test_update_article_success(db_session):
     db_session.add(article)
     db_session.commit()
     article_service = ArticleService(db_session)
-    result = article_service.update_article(article.article_id, author.account_id, "user", "New Title", "New Content")
+    result = article_service.update_article(
+        article.article_id, author.account_id, "user", "New Title", "New Content"
+    )
     db_session.commit()
     assert result is not None
     assert result.article_title == "New Title"
@@ -45,27 +47,35 @@ def test_update_article_success(db_session):
 
 def test_update_article_unauthorized(db_session):
     author = make_account(account_username="Author", account_email="author@test.com")
-    wrong_user = make_account(account_username="Stranger", account_email="stranger@test.com")
+    wrong_user = make_account(
+        account_username="Stranger", account_email="stranger@test.com"
+    )
     db_session.add_all([author, wrong_user])
     db_session.commit()
     article = make_article(author.account_id)
     db_session.add(article)
     db_session.commit()
     article_service = ArticleService(db_session)
-    result = article_service.update_article(article.article_id, wrong_user.account_id, "user", "Hacked", "...")
+    result = article_service.update_article(
+        article.article_id, wrong_user.account_id, "user", "Hacked", "..."
+    )
     assert result is None
 
 
 def test_delete_article_by_admin(db_session):
     author = make_account(account_email="author@test.com")
-    admin = make_account(account_username="Admin", account_email="admin@test.com", account_role="admin")
+    admin = make_account(
+        account_username="Admin", account_email="admin@test.com", account_role="admin"
+    )
     db_session.add_all([author, admin])
     db_session.commit()
     article = make_article(author.account_id)
     db_session.add(article)
     db_session.commit()
     article_service = ArticleService(db_session)
-    result = article_service.delete_article(article.article_id, admin.account_id, Role.ADMIN)
+    result = article_service.delete_article(
+        article.article_id, admin.account_id, Role.ADMIN
+    )
     db_session.commit()
     assert result is True
     assert db_session.get(Article, article.article_id) is None
@@ -100,13 +110,17 @@ def test_get_all_ordered_by_date(db_session):
 
 def test_delete_article_unauthorized(db_session):
     author = make_account(account_username="Author", account_email="author@test.com")
-    stranger = make_account(account_username="Stranger", account_email="stranger@test.com")
+    stranger = make_account(
+        account_username="Stranger", account_email="stranger@test.com"
+    )
     db_session.add_all([author, stranger])
     db_session.commit()
     article = make_article(author.account_id)
     db_session.add(article)
     db_session.commit()
     article_service = ArticleService(db_session)
-    result = article_service.delete_article(article.article_id, stranger.account_id, "user")
+    result = article_service.delete_article(
+        article.article_id, stranger.account_id, "user"
+    )
     assert result is False
     assert db_session.get(Article, article.article_id) is not None

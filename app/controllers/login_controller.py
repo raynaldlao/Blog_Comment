@@ -26,15 +26,13 @@ def login_authentication() -> Response:
     Validates credentials and sets up the session.
 
     Returns:
-        Response: A redirect to the article list on success, or back to the login page on failure.
+        Response: A redirect to the article list on success, or
+        back to the login page on failure.
     """
     login_service = LoginService(db_session)
     username = str(request.form.get("username") or "")
     password = str(request.form.get("password") or "")
-    user = login_service.authenticate_user(
-        username=username,
-        password=password
-    )
+    user = login_service.authenticate_user(username=username, password=password)
     if user:
         session[SessionKey.USER_ID] = user.account_id
         session[SessionKey.USERNAME] = user.account_username

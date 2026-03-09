@@ -28,14 +28,27 @@ class Account(Base):
     """
 
     __tablename__ = "accounts"
-    __table_args__ = (CheckConstraint(sqltext="account_role IN ('admin', 'author', 'user')", name="accounts_role_check"),)
+    __table_args__ = (
+        CheckConstraint(
+            sqltext="account_role IN ('admin', 'author', 'user')",
+            name="accounts_role_check",
+        ),
+    )
 
-    account_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    account_id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True
+    )
     account_username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     account_password: Mapped[str] = mapped_column(Text, nullable=False)
     account_email: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     account_role: Mapped[str] = mapped_column(Text, nullable=False)
-    account_created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    account_created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP, server_default=func.now()
+    )
 
-    articles = relationship("Article", back_populates="article_author", cascade="all, delete-orphan")
-    comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")
+    articles = relationship(
+        "Article", back_populates="article_author", cascade="all, delete-orphan"
+    )
+    comments = relationship(
+        "Comment", back_populates="comment_author", cascade="all, delete-orphan"
+    )

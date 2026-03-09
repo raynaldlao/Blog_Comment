@@ -24,14 +24,17 @@ def submit_registration_form() -> Response:
     Handles user account creation.
 
     Returns:
-        Response: A redirect back to the login page with a success or error flash message.
+        Response: A redirect back to the login page with a success
+        or error flash message.
     """
     registration_service = RegistrationService(db_session)
     username = str(request.form.get("username") or "")
     password = str(request.form.get("password") or "")
     email = str(request.form.get("email") or "")
 
-    result = registration_service.create_account(username=username, password=password, email=email)
+    result = registration_service.create_account(
+        username=username, password=password, email=email
+    )
 
     if isinstance(result, str):
         flash(result)

@@ -11,7 +11,8 @@ from app.models.comment_model import Comment
 class CommentService:
     """
     Service class responsible for business logic operations related to Comments.
-    Handles creating top-level comments, replies, retrieving comments by article, and deleting comments.
+    Handles creating top-level comments, replies, retrieving
+    comments by article, and deleting comments.
     """
 
     def __init__(self, session: Session | scoped_session[Session]):
@@ -20,14 +21,18 @@ class CommentService:
         Supports both standard Session and scoped_session.
 
         Args:
-            session (Session | scoped_session[Session]): The SQLAlchemy database session to use for queries.
+            session (Session | scoped_session[Session]): The SQLAlchemy
+            database session to use for queries.
         """
         self.session = session
 
-    def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> int | None:
+    def create_reply(
+        self, parent_comment_id: int, user_id: int, content: str
+    ) -> int | None:
         """
-        Creates a reply to an existing comment. A reply is linked either to the parent directly
-        or to the parent's top-level comment (threading logic).
+        Creates a reply to an existing comment. A reply is linked
+        either to the parent directly or to the parent's top-level
+        comment (threading logic).
 
         Args:
             parent_comment_id (int): The ID of the comment being replied to.
@@ -35,19 +40,22 @@ class CommentService:
             content (str): The text content of the reply.
 
         Returns:
-            int | None: The article ID the comment belongs to if successful, None if the parent comment is not found.
+            int | None: The article ID the comment belongs to if
+            successful, None if the parent comment is not found.
         """
         parent = self.session.get(Comment, parent_comment_id)
         if not parent:
             return None
 
-        actual_parent_id = parent.comment_reply_to if parent.comment_reply_to else parent.comment_id
+        actual_parent_id = (
+            parent.comment_reply_to if parent.comment_reply_to else parent.comment_id
+        )
 
         new_reply = Comment(
             comment_article_id=parent.comment_article_id,
             comment_written_account_id=user_id,
             comment_content=content,
-            comment_reply_to=actual_parent_id
+            comment_reply_to=actual_parent_id,
         )
         self.session.add(new_reply)
         return parent.comment_article_id
@@ -79,7 +87,8 @@ class CommentService:
             content (str): The body text of the comment.
 
         Returns:
-            bool: True if the comment was created successfully, False if the article does not exist.
+            bool: True if the comment was created successfully, False
+            if the article does not exist.
         """
         article = self.session.get(Article, article_id)
         if not article:
@@ -88,7 +97,7 @@ class CommentService:
         new_comment = Comment(
             comment_article_id=article_id,
             comment_written_account_id=user_id,
-            comment_content=content
+            comment_content=content,
         )
         self.session.add(new_comment)
         return True
@@ -102,7 +111,8 @@ class CommentService:
             role (str): The role of the user attempting the deletion.
 
         Returns:
-            int | None: The article ID the comment belonged to if successful, None if unauthorized or not found.
+            int | None: The article ID the comment belonged to if
+            successful, None if unauthorized or not found.
         """
         if role != Role.ADMIN:
             return None
@@ -124,7 +134,8 @@ class CommentService:
             article_id (int): The ID of the article.
 
         Returns:
-            Sequence[Comment]: A sequence of top-level Comment instances for the given article.
+            Sequence[Comment]: A sequence of top-level Comment
+            instances for the given article.
         """
         query = (
             select(Comment)
