@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.constants import Role
 from database.database_setup import Base
 
 
@@ -30,7 +31,7 @@ class Account(Base):
     __tablename__ = "accounts"
     __table_args__ = (
         CheckConstraint(
-            sqltext="account_role IN ('admin', 'author', 'user')",
+            sqltext=f"account_role IN ({', '.join([f"'{r.value}'" for r in Role])})",
             name="accounts_role_check",
         ),
     )
