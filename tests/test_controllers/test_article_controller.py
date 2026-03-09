@@ -231,3 +231,72 @@ def test_delete_article_success_by_author(client, db_session):
     assert b"Article deleted" in response.data
     db_session.remove()
     assert db_session.get(Article, article.article_id) is None
+
+
+def test_delete_article_failure(client, db_session):
+    author = make_account(account_role=Role.ADMIN)
+    db_session.add(author)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.ADMIN
+
+    response = client.get("/article/999/delete", follow_redirects=True)
+    assert b"Delete failed" in response.data
+
+
+def test_create_article_get_form(client, db_session):
+    author = make_account(account_role=Role.AUTHOR)
+    db_session.add(author)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
+
+    response = client.get("/article/new")
+    assert response.status_code == 200
+    assert b"Publish Article" in response.data or b"title" in response.data
+
+
+def test_edit_article_get_form(client, db_session):
+    author = make_account(account_role=Role.AUTHOR)
+    db_session.add(author)
+    db_session.commit()
+    article = make_article(author.account_id)
+    db_session.add(article)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = author.account_id
+        sess[SessionKey.ROLE] = Role.AUTHOR
+
+    response = client.get(f"/article/{article.article_id}/edit")
+    assert response.status_code == 200
+    assert b"Edit Article" in response.data or b"title" in response.data
+
+
+def test_edit_article_failure_unauthorized_user(client, db_session):
+    author = make_account(account_role=Role.AUTHOR)
+    user = make_account(
+        account_username="User",
+        account_email="u@a.com",
+        account_role=Role.USER,
+    )
+    db_session.add_all([author, user])
+    db_session.commit()
+    article = make_article(author.account_id)
+    db_session.add(article)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = user.account_id
+        sess[SessionKey.ROLE] = Role.USER
+
+    response = client.post(
+        f"/article/{article.article_id}/edit",
+        data={"title": "Hacker", "content": "Hacker"},
+        follow_redirects=True
+    )
+    assert b"Update failed" in response.data

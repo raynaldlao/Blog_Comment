@@ -154,3 +154,32 @@ def test_reply_to_non_existent_comment(client, db_session):
         "/comments/reply/999", data={"content": "Hello"}, follow_redirects=True
     )
     assert b"Error replying" in response.data
+
+
+def test_delete_comment_failure(client, db_session):
+    admin = make_account(account_role=Role.ADMIN)
+    db_session.add(admin)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = admin.account_id
+        sess[SessionKey.ROLE] = Role.ADMIN
+
+    response = client.get("/comments/delete/999", follow_redirects=True)
+    assert b"Unauthorized or not found." in response.data
+
+
+def test_create_comment_failure(client, db_session):
+    user = make_account()
+    db_session.add(user)
+    db_session.commit()
+
+    with client.session_transaction() as sess:
+        sess[SessionKey.USER_ID] = user.account_id
+
+    response = client.post(
+        "/comments/create/999",
+        data={"content": "Nope"},
+        follow_redirects=True
+    )
+    assert b"Error adding comment." in response.data

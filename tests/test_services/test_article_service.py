@@ -124,3 +124,9 @@ def test_delete_article_unauthorized(db_session):
     )
     assert result is False
     assert db_session.get(Article, article.article_id) is not None
+
+
+def test_delete_article_non_existent(db_session):
+    article_service = ArticleService(db_session)
+    result = article_service.delete_article(999, 1, Role.ADMIN)
+    assert result is False

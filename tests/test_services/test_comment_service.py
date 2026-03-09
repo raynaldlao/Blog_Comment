@@ -68,3 +68,50 @@ def test_create_comment_invalid_article(db_session):
     comment_service = CommentService(db_session)
     result = comment_service.create_comment(999, author.account_id, "Hello")
     assert result is False
+
+
+def test_get_comment_by_id(db_session):
+    author = make_account()
+    db_session.add(author)
+    db_session.commit()
+    article = make_article(author.account_id)
+    db_session.add(article)
+    db_session.commit()
+    comment = make_comment(article.article_id, author.account_id)
+    db_session.add(comment)
+    db_session.commit()
+    comment_service = CommentService(db_session)
+    result = comment_service.get_by_id(comment.comment_id)
+    assert result is not None
+    assert result.comment_id == comment.comment_id
+
+
+def test_delete_comment_unauthorized(db_session):
+    author = make_account()
+    db_session.add(author)
+    db_session.commit()
+    article = make_article(author.account_id)
+    db_session.add(article)
+    db_session.commit()
+    comment = make_comment(article.article_id, author.account_id)
+    db_session.add(comment)
+    db_session.commit()
+    comment_service = CommentService(db_session)
+    result = comment_service.delete_comment(comment.comment_id, Role.USER)
+    assert result is None
+    assert db_session.get(Comment, comment.comment_id) is not None
+
+
+def test_delete_comment_non_existent(db_session):
+    comment_service = CommentService(db_session)
+    result = comment_service.delete_comment(999, Role.ADMIN)
+    assert result is None
+
+
+def test_create_reply_non_existent_parent(db_session):
+    author = make_account()
+    db_session.add(author)
+    db_session.commit()
+    comment_service = CommentService(db_session)
+    result = comment_service.create_reply(999, author.account_id, "Reply")
+    assert result is None
