@@ -9,6 +9,7 @@ __pycache__/
 
 # 🧪 Tests
 .pytest_cache/
+.coverage
 
 # 🧹 Ruff
 .ruff_cache/
