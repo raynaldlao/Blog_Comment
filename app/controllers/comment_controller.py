@@ -77,7 +77,8 @@ def delete_comment(comment_id: int) -> Response:
         Response: A redirect to the article view or article list after deletion.
     """
     comment_service = CommentService(db_session)
-    role = str(session.get(SessionKey.ROLE) or "")
+    role_val = session.get(SessionKey.ROLE)
+    role = Role(str(role_val)) if role_val else Role.USER
     article_id = comment_service.delete_comment(comment_id=comment_id, role=role)
     if article_id:
         db_session.commit()

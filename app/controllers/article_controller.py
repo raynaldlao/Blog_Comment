@@ -153,7 +153,8 @@ def delete_article(article_id: int) -> Response:
     """
     article_service = ArticleService(db_session)
     user_id = int(session.get(SessionKey.USER_ID) or 0)
-    role = str(session.get(SessionKey.ROLE) or "")
+    role_val = session.get(SessionKey.ROLE)
+    role = Role(str(role_val)) if role_val else Role.USER
 
     if article_service.delete_article(
         article_id=article_id,

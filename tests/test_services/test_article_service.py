@@ -5,7 +5,7 @@ from tests.factories import make_account, make_article
 
 
 def test_create_article_service(db_session):
-    author = make_account(account_role="author")
+    author = make_account(account_role=Role.AUTHOR)
     db_session.add(author)
     db_session.commit()
     article_service = ArticleService(db_session)
@@ -65,7 +65,9 @@ def test_update_article_unauthorized(db_session):
 def test_delete_article_by_admin(db_session):
     author = make_account(account_email="author@test.com")
     admin = make_account(
-        account_username="Admin", account_email="admin@test.com", account_role="admin"
+        account_username="Admin",
+        account_email="admin@test.com",
+        account_role=Role.ADMIN,
     )
     db_session.add_all([author, admin])
     db_session.commit()
@@ -120,7 +122,7 @@ def test_delete_article_unauthorized(db_session):
     db_session.commit()
     article_service = ArticleService(db_session)
     result = article_service.delete_article(
-        article.article_id, stranger.account_id, "user"
+        article.article_id, stranger.account_id, Role.USER
     )
     assert result is False
     assert db_session.get(Article, article.article_id) is not None

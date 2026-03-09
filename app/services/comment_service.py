@@ -72,8 +72,8 @@ class CommentService:
         """
         query = (
             select(Comment)
-            .options(joinedload(Comment.comment_author))
             .where(Comment.comment_id == comment_id)
+            .options(joinedload(Comment.comment_author))
         )
         return self.session.execute(query).unique().scalar_one_or_none()
 
@@ -102,13 +102,13 @@ class CommentService:
         self.session.add(new_comment)
         return True
 
-    def delete_comment(self, comment_id: int, role: str) -> int | None:
+    def delete_comment(self, comment_id: int, role: Role) -> int | None:
         """
         Deletes a comment. Only users with the 'admin' role can delete comments.
 
         Args:
             comment_id (int): The ID of the comment to delete.
-            role (str): The role of the user attempting the deletion.
+            role (Role): The role of the user attempting the deletion.
 
         Returns:
             int | None: The article ID the comment belonged to if

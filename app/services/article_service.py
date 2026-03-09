@@ -103,14 +103,14 @@ class ArticleService:
         article.article_content = content
         return article
 
-    def delete_article(self, article_id: int, user_id: int, role: str) -> bool:
+    def delete_article(self, article_id: int, user_id: int, role: Role) -> bool:
         """
         Deletes an article. Only the original author or an Admin can delete it.
 
         Args:
             article_id (int): ID of the article to delete.
             user_id (int): ID of the user requesting deletion.
-            role (str): Role of the user requesting deletion.
+            role (Role): Role of the user requesting deletion.
 
         Returns:
             bool: True if deleted, False otherwise.
