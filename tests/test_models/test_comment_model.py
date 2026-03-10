@@ -9,7 +9,9 @@ def test_create_comment_with_replies(db_session):
     article = make_article(author.account_id)
     db_session.add(article)
     db_session.commit()
-    parent = make_comment(article.article_id, author.account_id, comment_content="Parent")
+    parent = make_comment(
+        article.article_id, author.account_id, comment_content="Parent"
+    )
     db_session.add(parent)
     db_session.commit()
     reply = make_comment(article.article_id, author.account_id, comment_content="Child")

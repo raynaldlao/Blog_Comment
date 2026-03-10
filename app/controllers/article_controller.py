@@ -40,7 +40,7 @@ def list_articles() -> str:
         "index.html",
         articles=articles,
         page_number=page_number,
-        total_pages=total_pages
+        total_pages=total_pages,
     )
 
 
@@ -53,7 +53,8 @@ def view_article(article_id: int) -> str | Response:
         article_id (int): ID of the article to view.
 
     Returns:
-        str | Response: The rendered HTML template for the article or a redirect if the article is not found.
+        str | Response: The rendered HTML template for the article
+        or a redirect if the article is not found.
     """
     article_service = ArticleService(db_session)
     article = article_service.get_by_id(article_id)
@@ -74,7 +75,8 @@ def create_article() -> str | Response:
     Restricted to 'admin' and 'author' roles.
 
     Returns:
-        str | Response: The rendered HTML form (GET) or a redirect to the article list after creation (POST).
+        str | Response: The rendered HTML form (GET) or a redirect
+        to the article list after creation (POST).
     """
     if request.method == "POST":
         article_service = ArticleService(db_session)
@@ -85,7 +87,7 @@ def create_article() -> str | Response:
         article_service.create_article(
             title=title,
             content=content,
-            author_id=user_id
+            author_id=user_id,
         )
         db_session.commit()
         flash("Article published!")
@@ -95,7 +97,7 @@ def create_article() -> str | Response:
 
 
 @article_bp.route("/article/<int:article_id>/edit", methods=["GET", "POST"])
-@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
+@roles_accepted(Role.ADMIN, Role.AUTHOR)
 def edit_article(article_id: int) -> str | Response:
     """
     Handles the editing of an existing article.
@@ -105,22 +107,21 @@ def edit_article(article_id: int) -> str | Response:
         article_id (int): ID of the article to edit.
 
     Returns:
-        str | Response: The rendered HTML form (GET) or a redirect to the updated article (POST).
+        str | Response: The rendered HTML form (GET) or a redirect
+        to the updated article (POST).
     """
     article_service = ArticleService(db_session)
 
     if request.method == "POST":
         user_id = int(session.get(SessionKey.USER_ID) or 0)
-        role = str(session.get(SessionKey.ROLE) or "")
         title = str(request.form.get("title") or "")
         content = str(request.form.get("content") or "")
 
         article = article_service.update_article(
             article_id=article_id,
             user_id=user_id,
-            role=role,
             title=title,
-            content=content
+            content=content,
         )
         if article:
             db_session.commit()
@@ -139,7 +140,7 @@ def edit_article(article_id: int) -> str | Response:
 
 
 @article_bp.route("/article/<int:article_id>/delete")
-@roles_accepted(Role.ADMIN, Role.AUTHOR, Role.USER)
+@roles_accepted(Role.ADMIN, Role.AUTHOR)
 def delete_article(article_id: int) -> Response:
     """
     Handles the deletion of an article.
@@ -152,12 +153,13 @@ def delete_article(article_id: int) -> Response:
     """
     article_service = ArticleService(db_session)
     user_id = int(session.get(SessionKey.USER_ID) or 0)
-    role = str(session.get(SessionKey.ROLE) or "")
+    role_val = session.get(SessionKey.ROLE)
+    role = Role(str(role_val)) if role_val else Role.USER
 
     if article_service.delete_article(
         article_id=article_id,
         user_id=user_id,
-        role=role
+        role=role,
     ):
         db_session.commit()
         flash("Article deleted.")

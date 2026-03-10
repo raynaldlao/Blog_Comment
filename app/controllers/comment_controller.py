@@ -25,9 +25,7 @@ def create_comment(article_id: int) -> Response:
     comment_service = CommentService(db_session)
     content = str(request.form.get("content") or "")
     if comment_service.create_comment(
-        article_id=article_id,
-        user_id=session[SessionKey.USER_ID],
-        content=content
+        article_id=article_id, user_id=session[SessionKey.USER_ID], content=content
     ):
         db_session.commit()
         flash("Comment added.")
@@ -55,7 +53,7 @@ def reply_to_comment(parent_comment_id: int) -> Response:
     article_id = comment_service.create_reply(
         parent_comment_id=parent_comment_id,
         user_id=session[SessionKey.USER_ID],
-        content=content
+        content=content,
     )
     if article_id:
         db_session.commit()
@@ -79,11 +77,9 @@ def delete_comment(comment_id: int) -> Response:
         Response: A redirect to the article view or article list after deletion.
     """
     comment_service = CommentService(db_session)
-    role = str(session.get(SessionKey.ROLE) or "")
-    article_id = comment_service.delete_comment(
-        comment_id=comment_id,
-        role=role
-    )
+    role_val = session.get(SessionKey.ROLE)
+    role = Role(str(role_val)) if role_val else Role.USER
+    article_id = comment_service.delete_comment(comment_id=comment_id, role=role)
     if article_id:
         db_session.commit()
         flash("Comment deleted.")

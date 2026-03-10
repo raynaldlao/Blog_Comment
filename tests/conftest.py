@@ -39,10 +39,7 @@ def app() -> Generator[Flask, Any, None]:
         Flask: The Flask application instance.
     """
     flask_app = initialize_flask_application()
-    flask_app.config.update({
-        "TESTING": True,
-        "SECRET_KEY": env_vars.test_secret_key
-    })
+    flask_app.config.update({"TESTING": True, "SECRET_KEY": env_vars.test_secret_key})
     yield flask_app
 
 
@@ -75,8 +72,14 @@ def db_session(app) -> Generator[scoped_session[Session], None, None]:
     # Explicitly referencing models to satisfy linters and ensure metadata is populated
     _ = (Account, Article, Comment)
 
-    if database_engine.url.render_as_string(hide_password=False) != env_vars.test_database_url:
-        pytest.exit("SECURITY ERROR: The current database URL does not match the configured TEST database URL.")
+    if (
+        database_engine.url.render_as_string(hide_password=False)
+        != env_vars.test_database_url
+    ):
+        pytest.exit(
+            "SECURITY ERROR: The current database URL does not match"
+            " the configured TEST database URL."
+        )
 
     app_db_session.remove()
     with database_engine.connect() as connection:

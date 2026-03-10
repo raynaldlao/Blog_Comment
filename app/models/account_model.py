@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.constants import Role
 from database.database_setup import Base
 
 
@@ -28,14 +29,39 @@ class Account(Base):
     """
 
     __tablename__ = "accounts"
-    __table_args__ = (CheckConstraint(sqltext="account_role IN ('admin', 'author', 'user')", name="accounts_role_check"),)
+    __table_args__ = (
+        CheckConstraint(
+            sqltext=f"account_role IN ({', '.join([f"'{r.value}'" for r in Role])})",
+            name="accounts_role_check",
+        ),
+    )
 
-    account_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    account_username: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
-    account_password: Mapped[str] = mapped_column(Text, nullable=False)
-    account_email: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
-    account_role: Mapped[str] = mapped_column(Text, nullable=False)
-    account_created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    account_id: Mapped[int] = mapped_column(
+        name="account_id", type_=Integer, primary_key=True, autoincrement=True
+    )
+    account_username: Mapped[str] = mapped_column(
+        name="account_username", type_=Text, unique=True, nullable=False
+    )
+    account_password: Mapped[str] = mapped_column(
+        name="account_password", type_=Text, nullable=False
+    )
+    account_email: Mapped[str] = mapped_column(
+        name="account_email", type_=Text, unique=True, nullable=False
+    )
+    account_role: Mapped[str] = mapped_column(
+        name="account_role", type_=Text, nullable=False
+    )
+    account_created_at: Mapped[datetime] = mapped_column(
+        name="account_created_at", type_=TIMESTAMP, server_default=func.now()
+    )
 
-    articles = relationship("Article", back_populates="article_author", cascade="all, delete-orphan")
-    comments = relationship("Comment", back_populates="comment_author", cascade="all, delete-orphan")
+    articles = relationship(
+        argument="Article",
+        back_populates="article_author",
+        cascade="all, delete-orphan",
+    )
+    comments = relationship(
+        argument="Comment",
+        back_populates="comment_author",
+        cascade="all, delete-orphan",
+    )

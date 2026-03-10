@@ -16,7 +16,8 @@ def shutdown_session(exception: BaseException | None = None) -> None:
     Removes the database session at the end of the request.
 
     Args:
-        exception (BaseException | None): The exception that triggered the teardown, if any.
+        exception (BaseException | None): The exception that triggered
+        the teardown, if any.
     """
 
     db_session.remove()
