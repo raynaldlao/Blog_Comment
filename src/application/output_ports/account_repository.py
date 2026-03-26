@@ -25,6 +25,20 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def get_by_id(self, account_id: int) -> Account | None:
+        """
+        Retrieves an account by its ID.
+
+        Args:
+            account_id (int): The account ID.
+
+        Returns:
+            Account | None: The Account domain entity if found,
+            None otherwise.
+        """
+        pass
+
+    @abstractmethod
     def find_by_email(self, email: str) -> Account | None:
         """
         Retrieves an account by its email address.

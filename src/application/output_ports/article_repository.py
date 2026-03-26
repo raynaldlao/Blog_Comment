@@ -11,7 +11,7 @@ class ArticleRepository(ABC):
     """
 
     @abstractmethod
-    def get_all_ordered_by_date(self) -> list[Article]:
+    def get_all_ordered_by_date_desc(self) -> list[Article]:
         """
         Retrieves all articles ordered by publication date (descending).
 
