@@ -1,3 +1,4 @@
+from src.application.domain.account import Account
 from src.application.domain.article import Article
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -20,6 +21,22 @@ class ArticleManagementService:
         self.article_repository = article_repository
         self.account_repository = account_repository
 
+    def _get_authorized_account(self, user_id: int) -> Account | None:
+        """
+        Checks if a user exists and has the required permissions (admin or author).
+
+        Args:
+            user_id (int): The unique identifier of the user.
+
+        Returns:
+            Account | None: The Account domain entity if authorized, None otherwise.
+        """
+        account = self.account_repository.get_by_id(user_id)
+        valid_roles = ["admin", "author"]
+        if not account or account.account_role not in valid_roles:
+            return None
+        return account
+
     def create_article(self, title: str, content: str, author_id: int, author_role: str) -> Article | None:
         """
         Creates a new article and saves it via the repository if the account exists and the user has
@@ -35,9 +52,7 @@ class ArticleManagementService:
             Article | None: The newly created Article domain entity,
             or None if unauthorized or account not found.
         """
-        account = self.account_repository.get_by_id(author_id)
-        valid_roles = ["admin", "author"]
-        if not account or author_role not in valid_roles:
+        if not self._get_authorized_account(author_id):
             return None
 
         new_article = Article(
@@ -71,3 +86,28 @@ class ArticleManagementService:
             Article | None: The Article domain entity if found, None otherwise.
         """
         return self.article_repository.get_by_id(article_id)
+
+    def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | None:
+        """
+        Updates an existing article ensuring the requester is the original author.
+
+        Args:
+            article_id (int): ID of the article to update.
+            user_id (int): ID of the user requesting the update.
+            title (str): New title for the article.
+            content (str): New content for the article.
+
+        Returns:
+            Article | None: The updated Article domain entity,
+            or None if not found or unauthorized.
+        """
+        article = self.article_repository.get_by_id(article_id)
+        if not article or article.article_author_id != user_id:
+            return None
+
+        if not self._get_authorized_account(user_id):
+            return None
+
+        article.article_title = title
+        article.article_content = content
+        return article
