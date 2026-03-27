@@ -34,9 +34,11 @@ class RegistrationService:
         """
 
         if self.account_repository.find_by_username(username):
+            # TODO: Raise UsernameAlreadyTakenException
             return "This username is already taken."
 
         if self.account_repository.find_by_email(email):
+            # TODO: Raise EmailAlreadyTakenException
             return "This email is already taken."
 
         new_account = Account(

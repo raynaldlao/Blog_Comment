@@ -34,6 +34,7 @@ class ArticleManagementService:
         account = self.account_repository.get_by_id(user_id)
         valid_roles = ["admin", "author"]
         if not account or account.account_role not in valid_roles:
+            # TODO: Raise AccountNotFoundException or InsufficientPermissionsException
             return None
         return account
 
@@ -103,6 +104,7 @@ class ArticleManagementService:
         """
         article = self.article_repository.get_by_id(article_id)
         if not article or article.article_author_id != user_id:
+            # TODO: Raise ArticleNotFoundException or OwnershipException
             return None
 
         if not self._get_authorized_account(user_id):
