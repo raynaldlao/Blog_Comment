@@ -150,8 +150,8 @@ def test_get_by_id_found():
     )
 
     mock_article_repo.get_by_id.return_value = fake_article
-    result = service.get_by_id(article_id=1)
-    mock_article_repo.get_by_id.assert_called_once_with(1)
+    result = service.get_by_id(article_id=fake_article.article_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
     assert result is not None
     assert result.article_title == "Found Article"
 
@@ -201,14 +201,14 @@ def test_update_article_success():
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
-        article_id=1,
+        article_id=fake_article.article_id,
         user_id=fake_account.account_id,
         title="New Title",
         content="New Content",
     )
 
-    mock_article_repo.get_by_id.assert_called_once_with(1)
-    mock_account_repo.get_by_id.assert_called_once_with(1)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     assert result is not None
     assert result.article_title == "New Title"
     assert result.article_content == "New Content"
@@ -244,13 +244,13 @@ def test_update_article_unauthorized():
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
-        article_id=1,
+        article_id=fake_article.article_id,
         user_id=fake_account.account_id,
         title="Hacked Title",
         content="Hacked Content",
     )
 
-    mock_article_repo.get_by_id.assert_called_once_with(1)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
     assert result is None
 
 
@@ -284,14 +284,14 @@ def test_update_article_insufficient_role():
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
-        article_id=1,
-        user_id=1,
+        article_id=fake_article.article_id,
+        user_id=fake_account.account_id,
         title="Hacked Title",
         content="Hacked Content",
     )
 
-    mock_article_repo.get_by_id.assert_called_once_with(1)
-    mock_account_repo.get_by_id.assert_called_once_with(1)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     assert result is None
 
 
