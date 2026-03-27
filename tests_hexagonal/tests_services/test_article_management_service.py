@@ -290,7 +290,7 @@ def test_update_article_insufficient_role():
         content="Hacked Content",
     )
 
-    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_article_repo.get_by_id.assert_not_called()
     mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     assert result is None
 
@@ -306,12 +306,162 @@ def test_update_article_not_found():
 
     mock_article_repo.get_by_id.return_value = None
 
+    fake_account = Account(
+        account_id=1,
+        account_username="leia",
+        account_password="password123",
+        account_email="leia@galaxy.com",
+        account_role="author",
+        account_created_at=datetime.now(),
+    )
+    mock_account_repo.get_by_id.return_value = fake_account
+
     result = service.update_article(
         article_id=999,
-        user_id=1,
+        user_id=fake_account.account_id,
         title="New Title",
         content="New Content",
     )
 
     mock_article_repo.get_by_id.assert_called_once_with(999)
     assert result is None
+
+
+def test_delete_article_success_by_author():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_article = Article(
+        article_id=1,
+        article_author_id=1,
+        article_title="To Be Deleted",
+        article_content="Delete me",
+        article_published_at=datetime.now(),
+    )
+
+    fake_account = Account(
+        account_id=1,
+        account_username="leia",
+        account_password="password123",
+        account_email="leia@galaxy.com",
+        account_role="author",
+        account_created_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = fake_article
+    mock_account_repo.get_by_id.return_value = fake_account
+
+    result = service.delete_article(article_id=fake_article.article_id, user_id=fake_account.account_id)
+
+    mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_article_repo.delete.assert_called_once_with(fake_article)
+    assert result is True
+
+
+def test_delete_article_success_by_admin():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_article = Article(
+        article_id=1,
+        article_author_id=1,
+        article_title="To Be Deleted",
+        article_content="Delete me",
+        article_published_at=datetime.now(),
+    )
+
+    fake_admin = Account(
+        account_id=99,
+        account_username="admin2",
+        account_password="password123",
+        account_email="admin@cyber.com",
+        account_role="admin",
+        account_created_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = fake_article
+    mock_account_repo.get_by_id.return_value = fake_admin
+
+    result = service.delete_article(article_id=fake_article.article_id, user_id=fake_admin.account_id)
+
+    mock_account_repo.get_by_id.assert_called_once_with(fake_admin.account_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_article_repo.delete.assert_called_once_with(fake_article)
+    assert result is True
+
+
+def test_delete_article_unauthorized_ownership():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_article = Article(
+        article_id=1,
+        article_author_id=1,
+        article_title="To Be Deleted",
+        article_content="Delete me",
+        article_published_at=datetime.now(),
+    )
+
+    fake_author_other = Account(
+        account_id=99,
+        account_username="other",
+        account_password="password123",
+        account_email="other@cyber.com",
+        account_role="author",
+        account_created_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = fake_article
+    mock_account_repo.get_by_id.return_value = fake_author_other
+
+    result = service.delete_article(article_id=fake_article.article_id, user_id=fake_author_other.account_id)
+
+    mock_account_repo.get_by_id.assert_called_once_with(fake_author_other.account_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_article_repo.delete.assert_not_called()
+    assert result is False
+
+
+def test_delete_article_not_found():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_account = Account(
+        account_id=1,
+        account_username="leia",
+        account_password="password123",
+        account_email="leia@galaxy.com",
+        account_role="author",
+        account_created_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = None
+    mock_account_repo.get_by_id.return_value = fake_account
+
+    result = service.delete_article(article_id=999, user_id=fake_account.account_id)
+
+    mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+    mock_article_repo.get_by_id.assert_called_once_with(999)
+    mock_article_repo.delete.assert_not_called()
+    assert result is False

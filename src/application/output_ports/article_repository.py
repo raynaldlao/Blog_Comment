@@ -43,3 +43,13 @@ class ArticleRepository(ABC):
             article (Article): The Article domain entity to save.
         """
         pass
+
+    @abstractmethod
+    def delete(self, article: Article) -> None:
+        """
+        Deletes a given article.
+
+        Args:
+            article (Article): The Article domain entity to delete.
+        """
+        pass

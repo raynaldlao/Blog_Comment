@@ -102,14 +102,42 @@ class ArticleManagementService:
             Article | None: The updated Article domain entity,
             or None if not found or unauthorized.
         """
+        account = self._get_authorized_account(user_id)
+        if not account:
+            return None
+
         article = self.article_repository.get_by_id(article_id)
         if not article or article.article_author_id != user_id:
             # TODO: Raise ArticleNotFoundException or OwnershipException
             return None
 
-        if not self._get_authorized_account(user_id):
-            return None
-
         article.article_title = title
         article.article_content = content
         return article
+
+    def delete_article(self, article_id: int, user_id: int) -> bool:
+        """
+        Deletes an article. Only the original author or an admin can delete it.
+
+        Args:
+            article_id (int): ID of the article to delete.
+            user_id (int): ID of the user requesting the deletion.
+
+        Returns:
+            bool: True if deletion was successful, False otherwise.
+        """
+        account = self._get_authorized_account(user_id)
+        if not account:
+            return False
+
+        article = self.article_repository.get_by_id(article_id)
+        if not article:
+            # TODO: Raise ArticleNotFoundException
+            return False
+
+        if account.account_role != "admin" and article.article_author_id != user_id:
+            # TODO: Raise OwnershipException
+            return False
+
+        self.article_repository.delete(article)
+        return True
