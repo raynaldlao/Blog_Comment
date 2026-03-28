@@ -128,8 +128,8 @@ def test_get_all_ordered_by_date_desc():
     result = service.get_all_ordered_by_date_desc()
     mock_article_repo.get_all_ordered_by_date_desc.assert_called_once()
     assert len(result) == 2
-    index_first_article_list = 0
-    assert result[index_first_article_list].article_title == "Recent Article"
+    first_article_list = result[0]
+    assert first_article_list.article_title == "Recent Article"
 
 
 def test_get_by_id_found():
@@ -198,6 +198,7 @@ def test_update_article_success():
         account_role="author",
         account_created_at=datetime.now(),
     )
+
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
@@ -241,6 +242,7 @@ def test_update_article_unauthorized():
         account_role="admin",
         account_created_at=datetime.now(),
     )
+
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
@@ -281,6 +283,7 @@ def test_update_article_insufficient_role():
         account_role="user",
         account_created_at=datetime.now(),
     )
+
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
@@ -314,6 +317,7 @@ def test_update_article_not_found():
         account_role="author",
         account_created_at=datetime.now(),
     )
+
     mock_account_repo.get_by_id.return_value = fake_account
 
     result = service.update_article(
@@ -355,9 +359,7 @@ def test_delete_article_success_by_author():
 
     mock_article_repo.get_by_id.return_value = fake_article
     mock_account_repo.get_by_id.return_value = fake_account
-
     result = service.delete_article(article_id=fake_article.article_id, user_id=fake_account.account_id)
-
     mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
     mock_article_repo.delete.assert_called_once_with(fake_article)
@@ -392,9 +394,7 @@ def test_delete_article_success_by_admin():
 
     mock_article_repo.get_by_id.return_value = fake_article
     mock_account_repo.get_by_id.return_value = fake_admin
-
     result = service.delete_article(article_id=fake_article.article_id, user_id=fake_admin.account_id)
-
     mock_account_repo.get_by_id.assert_called_once_with(fake_admin.account_id)
     mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
     mock_article_repo.delete.assert_called_once_with(fake_article)
