@@ -53,3 +53,27 @@ class ArticleRepository(ABC):
             article (Article): The Article domain entity to delete.
         """
         pass
+
+    @abstractmethod
+    def get_paginated(self, page: int, per_page: int) -> list[Article]:
+        """
+        Retrieves a paginated list of articles.
+
+        Args:
+            page (int): The page number (1-indexed).
+            per_page (int): The number of items per page.
+
+        Returns:
+            list[Article]: A list of Article domain entities for the given page.
+        """
+        pass
+
+    @abstractmethod
+    def count_all(self) -> int:
+        """
+        Retrieves the total number of articles.
+
+        Returns:
+            int: The total count of articles.
+        """
+        pass

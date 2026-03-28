@@ -465,3 +465,95 @@ def test_delete_article_not_found():
     mock_article_repo.get_by_id.assert_called_once_with(999)
     mock_article_repo.delete.assert_not_called()
     assert result is False
+
+
+def test_get_paginated_articles():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_articles = [
+        Article(
+            article_id=1,
+            article_author_id=1,
+            article_title="First",
+            article_content="Content 1",
+            article_published_at=datetime.now(),
+        ),
+        Article(
+            article_id=2,
+            article_author_id=1,
+            article_title="Second",
+            article_content="Content 2",
+            article_published_at=datetime.now(),
+        )
+    ]
+
+    mock_article_repo.get_paginated.return_value = fake_articles
+    result = service.get_paginated_articles(page=2, per_page=10)
+    mock_article_repo.get_paginated.assert_called_once_with(2, 10)
+    assert len(result) == 2
+    first_article_list = result[0]
+    second_article_list = result[1]
+    assert first_article_list.article_title == "First"
+    assert second_article_list.article_title == "Second"
+
+
+def test_get_paginated_articles_page_less_than_one():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_articles = [
+        Article(
+            article_id=1,
+            article_author_id=1,
+            article_title="Paged Title",
+            article_content="Paged Content",
+            article_published_at=datetime.now(),
+        )
+    ]
+
+    mock_article_repo.get_paginated.return_value = fake_articles
+    result = service.get_paginated_articles(page=-5, per_page=10)
+    mock_article_repo.get_paginated.assert_called_once_with(1, 10)
+    assert len(result) == 1
+
+
+def test_get_total_count():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    mock_article_repo.count_all.return_value = 42
+    result = service.get_total_count()
+    mock_article_repo.count_all.assert_called_once()
+    assert result == 42
+
+
+def test_get_paginated_articles_defaults():
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = ArticleManagementService(
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    mock_article_repo.get_paginated.return_value = []
+    service.get_paginated_articles()
+    page = 1
+    per_page = 10
+    mock_article_repo.get_paginated.assert_called_once_with(page, per_page)

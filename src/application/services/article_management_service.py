@@ -141,3 +141,28 @@ class ArticleManagementService:
 
         self.article_repository.delete(article)
         return True
+
+    def get_paginated_articles(self, page: int = 1, per_page: int = 10) -> list[Article]:
+        """
+        Retrieves a paginated list of articles.
+
+        Args:
+            page (int): The page number requested (1-indexed). Defaults to 1.
+            per_page (int): The number of items to display per page. Defaults to 10.
+
+        Returns:
+            list[Article]: A list of Article domain entities.
+        """
+        min_page = 1
+        if page < min_page:
+            page = min_page
+        return self.article_repository.get_paginated(page, per_page)
+
+    def get_total_count(self) -> int:
+        """
+        Retrieves the total number of articles.
+
+        Returns:
+            int: The total count of all articles.
+        """
+        return self.article_repository.count_all()
