@@ -1,4 +1,6 @@
+from collections import defaultdict
 from datetime import datetime
+from operator import attrgetter
 
 from src.application.domain.account import Account
 from src.application.domain.comment import Comment
@@ -118,3 +120,47 @@ class CommentService:
 
         self.comment_repository.save(new_reply)
         return new_reply
+
+    def get_comments_for_article(self, article_id: int) -> dict[str | int, list[Comment]] | str:
+        """
+        Retrieves all comments for a specific article and structures them
+        in a dictionary for easy display (threading).
+
+        Args:
+            article_id (int): ID of the article.
+
+        Returns:
+            dict[str | int, list[Comment]] | str: A dictionary containing the threaded comments,
+            or an error message string if the article is not found.
+            Structure:
+            {
+                "root": [Comment1, Comment2],
+                comment_id_1: [Reply1, Reply2],
+                comment_id_2: [Reply3]
+            }
+        """
+        article = self.article_repository.get_by_id(article_id)
+        if not article:
+            # TODO: Raise ArticleNotFoundException later
+            return "Article not found."
+
+        all_comments = self.comment_repository.get_all_by_article_id(article_id)
+        tree = defaultdict(list)
+        tree["root"] = []
+
+        for comment in all_comments:
+            if comment.comment_reply_to is None:
+                key = "root"
+            else:
+                key = comment.comment_reply_to
+
+            tree[key].append(comment)
+
+        get_date = attrgetter("comment_posted_at")
+        if "root" in tree:
+            tree["root"].sort(key=get_date, reverse=True)
+
+        for root in tree["root"]:
+            tree[root.comment_id].sort(key=get_date)
+
+        return dict(tree)

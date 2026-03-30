@@ -31,3 +31,16 @@ class CommentRepository(ABC):
             Comment | None: The Comment domain entity if found, None otherwise.
         """
         pass
+
+    @abstractmethod
+    def get_all_by_article_id(self, article_id: int) -> list[Comment]:
+        """
+        Retrieves all comments associated with a specific article.
+
+        Args:
+            article_id (int): ID of the article.
+
+        Returns:
+            list[Comment]: A list of all Comment domain entities for this article.
+        """
+        pass

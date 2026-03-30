@@ -234,3 +234,100 @@ def test_create_reply_parent_not_found():
     mock_comment_repo.get_by_id.assert_called_once_with(999)
     mock_comment_repo.save.assert_not_called()
     assert result == "Parent comment not found."
+
+
+def test_get_comments_for_article_not_found():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    mock_article_repo.get_by_id.return_value = None
+    result = service.get_comments_for_article(article_id=999)
+    mock_article_repo.get_by_id.assert_called_once_with(999)
+    mock_comment_repo.get_all_by_article_id.assert_not_called()
+    assert result == "Article not found."
+
+
+def test_get_comments_for_article_empty():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_article = Article(
+        article_id=1,
+        article_author_id=2,
+        article_title="My Article",
+        article_content="Content",
+        article_published_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = fake_article
+    mock_comment_repo.get_all_by_article_id.return_value = []
+    result = service.get_comments_for_article(article_id=fake_article.article_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
+    assert isinstance(result, dict)
+    assert result == {"root": []}
+
+
+def test_get_comments_for_article_success():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_article = Article(
+        article_id=1,
+        article_author_id=2,
+        article_title="My Article",
+        article_content="Content",
+        article_published_at=datetime.now(),
+    )
+
+    mock_article_repo.get_by_id.return_value = fake_article
+
+    root_comment = Comment(
+        comment_id=10,
+        comment_article_id=fake_article.article_id,
+        comment_written_account_id=3,
+        comment_reply_to=None,
+        comment_content="First!",
+        comment_posted_at=datetime.now(),
+    )
+
+    reply = Comment(
+        comment_id=15,
+        comment_article_id=fake_article.article_id,
+        comment_written_account_id=4,
+        comment_reply_to=root_comment.comment_id,
+        comment_content="Awesome!",
+        comment_posted_at=datetime.now(),
+    )
+
+    mock_comment_repo.get_all_by_article_id.return_value = [root_comment, reply]
+    result = service.get_comments_for_article(article_id=fake_article.article_id)
+    mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+    mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
+    assert isinstance(result, dict)
+    assert "root" in result
+    assert result["root"] == [root_comment]
+    comment_id_key = root_comment.comment_id
+    assert comment_id_key in result
+    assert result[comment_id_key] == [reply]
