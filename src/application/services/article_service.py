@@ -4,7 +4,7 @@ from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 
 
-class ArticleManagementService:
+class ArticleService:
     """
     Service responsible for business logic operations related to Articles.
     Depends on the ArticleRepository and AccountRepository output ports.

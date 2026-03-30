@@ -5,14 +5,14 @@ from src.application.domain.account import Account
 from src.application.domain.article import Article
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
-from src.application.services.article_management_service import ArticleManagementService
+from src.application.services.article_service import ArticleService
 
 
 def test_create_article_success():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -47,7 +47,7 @@ def test_create_article_unauthorized_role():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -79,7 +79,7 @@ def test_create_article_account_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -102,7 +102,7 @@ def test_get_all_ordered_by_date_desc():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -136,7 +136,7 @@ def test_get_by_id_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -160,7 +160,7 @@ def test_get_by_id_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -175,7 +175,7 @@ def test_update_article_success():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -219,7 +219,7 @@ def test_update_article_unauthorized():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -260,7 +260,7 @@ def test_update_article_insufficient_role():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -302,7 +302,7 @@ def test_update_article_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -335,7 +335,7 @@ def test_delete_article_success_by_author():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -370,7 +370,7 @@ def test_delete_article_success_by_admin():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -405,7 +405,7 @@ def test_delete_article_unauthorized_ownership():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -442,7 +442,7 @@ def test_delete_article_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -471,7 +471,7 @@ def test_get_paginated_articles():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -507,7 +507,7 @@ def test_get_paginated_articles_page_less_than_one():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -532,7 +532,7 @@ def test_get_total_count():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )
@@ -547,7 +547,7 @@ def test_get_paginated_articles_defaults():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = ArticleManagementService(
+    service = ArticleService(
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
     )

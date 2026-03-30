@@ -6,7 +6,7 @@ from src.application.domain.article import Article
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.comment_management_service import CommentManagementService
+from src.application.services.comment_service import CommentService
 
 
 def test_create_comment_success():
@@ -14,7 +14,7 @@ def test_create_comment_success():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = CommentManagementService(
+    service = CommentService(
         comment_repository=mock_comment_repo,
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
@@ -65,7 +65,7 @@ def test_create_comment_account_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = CommentManagementService(
+    service = CommentService(
         comment_repository=mock_comment_repo,
         article_repository=mock_article_repo,
         account_repository=mock_account_repo
@@ -90,7 +90,7 @@ def test_create_comment_article_not_found():
     mock_article_repo = MagicMock(spec=ArticleRepository)
     mock_account_repo = MagicMock(spec=AccountRepository)
 
-    service = CommentManagementService(
+    service = CommentService(
         comment_repository=mock_comment_repo,
         article_repository=mock_article_repo,
         account_repository=mock_account_repo

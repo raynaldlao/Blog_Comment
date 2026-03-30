@@ -7,7 +7,7 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 
 
-class CommentManagementService:
+class CommentService:
     """
     Service responsible for business logic operations related to Comments.
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports.
