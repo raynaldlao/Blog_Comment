@@ -72,7 +72,7 @@ def test_create_article_unauthorized_role():
 
     mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     mock_article_repo.save.assert_not_called()
-    assert result is None
+    assert result == "Insufficient permissions."
 
 
 def test_create_article_account_not_found():
@@ -95,7 +95,7 @@ def test_create_article_account_not_found():
 
     mock_account_repo.get_by_id.assert_called_once_with(999)
     mock_article_repo.save.assert_not_called()
-    assert result is None
+    assert result == "Account not found."
 
 
 def test_get_all_ordered_by_date_desc():
@@ -253,7 +253,7 @@ def test_update_article_unauthorized():
     )
 
     mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
-    assert result is None
+    assert result == "Unauthorized : You are not the author of this article."
 
 
 def test_update_article_insufficient_role():
@@ -295,7 +295,7 @@ def test_update_article_insufficient_role():
 
     mock_article_repo.get_by_id.assert_not_called()
     mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
-    assert result is None
+    assert result == "Insufficient permissions."
 
 
 def test_update_article_not_found():
@@ -328,7 +328,7 @@ def test_update_article_not_found():
     )
 
     mock_article_repo.get_by_id.assert_called_once_with(999)
-    assert result is None
+    assert result == "Article not found."
 
 
 def test_delete_article_success_by_author():
@@ -435,7 +435,7 @@ def test_delete_article_unauthorized_ownership():
     mock_account_repo.get_by_id.assert_called_once_with(fake_author_other.account_id)
     mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
     mock_article_repo.delete.assert_not_called()
-    assert result is False
+    assert result == "Unauthorized : Only authors or admins can delete articles."
 
 
 def test_delete_article_not_found():
@@ -464,7 +464,7 @@ def test_delete_article_not_found():
     mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
     mock_article_repo.get_by_id.assert_called_once_with(999)
     mock_article_repo.delete.assert_not_called()
-    assert result is False
+    assert result == "Article not found."
 
 
 def test_get_paginated_articles():

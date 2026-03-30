@@ -21,7 +21,7 @@ class ArticleManagementService:
         self.article_repository = article_repository
         self.account_repository = account_repository
 
-    def _get_authorized_account(self, user_id: int) -> Account | None:
+    def _get_authorized_account(self, user_id: int) -> Account | str:
         """
         Checks if a user exists and has the required permissions (admin or author).
 
@@ -29,16 +29,21 @@ class ArticleManagementService:
             user_id (int): The unique identifier of the user.
 
         Returns:
-            Account | None: The Account domain entity if authorized, None otherwise.
+            Account | str: The Account domain entity if authorized, or an error message string.
         """
         account = self.account_repository.get_by_id(user_id)
+        if not account:
+            # TODO: Raise AccountNotFoundException
+            return "Account not found."
+
         valid_roles = ["admin", "author"]
-        if not account or account.account_role not in valid_roles:
-            # TODO: Raise AccountNotFoundException or InsufficientPermissionsException
-            return None
+        if account.account_role not in valid_roles:
+            # TODO: Raise InsufficientPermissionsException
+            return "Insufficient permissions."
+
         return account
 
-    def create_article(self, title: str, content: str, author_id: int, author_role: str) -> Article | None:
+    def create_article(self, title: str, content: str, author_id: int, author_role: str) -> Article | str:
         """
         Creates a new article and saves it via the repository if the account exists and the user has
         the correct permissions.
@@ -50,11 +55,12 @@ class ArticleManagementService:
             author_role (str): The role of the user (e.g. 'admin', 'author', 'user').
 
         Returns:
-            Article | None: The newly created Article domain entity,
-            or None if unauthorized or account not found.
+            Article | str: The newly created Article domain entity,
+            or an error message string if unauthorized or account not found.
         """
-        if not self._get_authorized_account(author_id):
-            return None
+        account_or_error = self._get_authorized_account(author_id)
+        if isinstance(account_or_error, str):
+            return account_or_error
 
         new_article = Article(
             article_id=0,
@@ -88,7 +94,7 @@ class ArticleManagementService:
         """
         return self.article_repository.get_by_id(article_id)
 
-    def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | None:
+    def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | str:
         """
         Updates an existing article ensuring the requester is the original author.
 
@@ -99,23 +105,27 @@ class ArticleManagementService:
             content (str): New content for the article.
 
         Returns:
-            Article | None: The updated Article domain entity,
-            or None if not found or unauthorized.
+            Article | str: The updated Article domain entity,
+            or an error message string if not found or unauthorized.
         """
-        account = self._get_authorized_account(user_id)
-        if not account:
-            return None
+        account_or_error = self._get_authorized_account(user_id)
+        if isinstance(account_or_error, str):
+            return account_or_error
 
         article = self.article_repository.get_by_id(article_id)
-        if not article or article.article_author_id != user_id:
-            # TODO: Raise ArticleNotFoundException or OwnershipException
-            return None
+        if not article:
+            # TODO: Raise ArticleNotFoundException
+            return "Article not found."
+
+        if article.article_author_id != user_id:
+            # TODO: Raise OwnershipException
+            return "Unauthorized : You are not the author of this article."
 
         article.article_title = title
         article.article_content = content
         return article
 
-    def delete_article(self, article_id: int, user_id: int) -> bool:
+    def delete_article(self, article_id: int, user_id: int) -> bool | str:
         """
         Deletes an article. Only the original author or an admin can delete it.
 
@@ -124,20 +134,21 @@ class ArticleManagementService:
             user_id (int): ID of the user requesting the deletion.
 
         Returns:
-            bool: True if deletion was successful, False otherwise.
+            bool | str: True if deletion was successful, or an error message string.
         """
-        account = self._get_authorized_account(user_id)
-        if not account:
-            return False
+        account_or_error = self._get_authorized_account(user_id)
+        if isinstance(account_or_error, str):
+            return account_or_error
 
+        account: Account = account_or_error
         article = self.article_repository.get_by_id(article_id)
         if not article:
             # TODO: Raise ArticleNotFoundException
-            return False
+            return "Article not found."
 
         if account.account_role != "admin" and article.article_author_id != user_id:
             # TODO: Raise OwnershipException
-            return False
+            return "Unauthorized : Only authors or admins can delete articles."
 
         self.article_repository.delete(article)
         return True
