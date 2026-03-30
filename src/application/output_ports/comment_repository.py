@@ -18,3 +18,16 @@ class CommentRepository(ABC):
             comment (Comment): The Comment domain entity to save.
         """
         pass
+
+    @abstractmethod
+    def get_by_id(self, comment_id: int) -> Comment | None:
+        """
+        Retrieves a single comment by its ID.
+
+        Args:
+            comment_id (int): The unique identifier of the comment.
+
+        Returns:
+            Comment | None: The Comment domain entity if found, None otherwise.
+        """
+        pass

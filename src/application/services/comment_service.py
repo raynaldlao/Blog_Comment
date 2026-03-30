@@ -72,3 +72,49 @@ class CommentService:
 
         self.comment_repository.save(new_comment)
         return new_comment
+
+    def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
+        """
+        Creates a reply to an existing comment. A reply is linked
+        either to the parent directly or to the parent's top-level
+        comment (threading logic).
+
+        Args:
+            parent_comment_id (int): The ID of the comment being replied to.
+            user_id (int): The identifier of the user creating the reply.
+            content (str): The text content of the reply.
+
+        Returns:
+            Comment | str: The new Comment domain entity if successful,
+            or an error message string if unauthorized or parent not found.
+        """
+        account_or_error = self._get_authorized_account(user_id)
+        if isinstance(account_or_error, str):
+            # TODO: Raise UnauthorizedException later
+            return account_or_error
+
+        account: Account = account_or_error
+
+        parent_comment = self.comment_repository.get_by_id(parent_comment_id)
+        if not parent_comment:
+            # TODO: Raise CommentNotFoundException later
+            return "Parent comment not found."
+
+        is_parent_a_reply = parent_comment.comment_reply_to is not None
+        if is_parent_a_reply:
+            thread_root_id = parent_comment.comment_reply_to
+        else:
+            thread_root_id = parent_comment.comment_id
+
+        fake_comment_id = 0
+        new_reply = Comment(
+            comment_id=fake_comment_id,
+            comment_article_id=parent_comment.comment_article_id,
+            comment_written_account_id=account.account_id,
+            comment_content=content,
+            comment_reply_to=thread_root_id,
+            comment_posted_at=datetime.now(),
+        )
+
+        self.comment_repository.save(new_reply)
+        return new_reply
