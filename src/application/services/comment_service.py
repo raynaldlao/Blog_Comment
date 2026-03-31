@@ -164,3 +164,33 @@ class CommentService:
             tree[root.comment_id].sort(key=get_date)
 
         return dict(tree)
+
+    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+        """
+        Deletes a comment. Only an admin can delete a comment.
+
+        Args:
+            comment_id (int): ID of the comment to delete.
+            user_id (int): ID of the user requesting the deletion.
+
+        Returns:
+            bool | str: True if deletion was successful, or an error message string.
+        """
+        account_or_error = self._get_authorized_account(user_id)
+        if isinstance(account_or_error, str):
+            # TODO: Raise UnauthorizedException later
+            return account_or_error
+
+        account: Account = account_or_error
+
+        if account.account_role != "admin":
+            # TODO: Raise InsufficientPermissionsException later
+            return "Unauthorized : Only admins can delete comments."
+
+        comment = self.comment_repository.get_by_id(comment_id)
+        if not comment:
+            # TODO: Raise CommentNotFoundException later
+            return "Comment not found."
+
+        self.comment_repository.delete(comment_id)
+        return True

@@ -44,3 +44,13 @@ class CommentRepository(ABC):
             list[Comment]: A list of all Comment domain entities for this article.
         """
         pass
+
+    @abstractmethod
+    def delete(self, comment_id: int) -> None:
+        """
+        Deletes a comment by its ID from the repository.
+
+        Args:
+            comment_id (int): ID of the comment to remove.
+        """
+        pass

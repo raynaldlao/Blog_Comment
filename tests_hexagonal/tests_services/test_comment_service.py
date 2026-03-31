@@ -331,3 +331,117 @@ def test_get_comments_for_article_success():
     comment_id_key = root_comment.comment_id
     assert comment_id_key in result
     assert result[comment_id_key] == [reply]
+
+
+def test_delete_comment_success_as_admin():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    admin_account = Account(
+        account_id=1,
+        account_username="admin_user",
+        account_password="password123",
+        account_email="admin@galaxy.com",
+        account_role="admin",
+        account_created_at=datetime.now(),
+    )
+
+    mock_account_repo.get_by_id.return_value = admin_account
+
+    comment_to_delete = Comment(
+        comment_id=10,
+        comment_article_id=5,
+        comment_written_account_id=2,
+        comment_reply_to=None,
+        comment_content="Bad comment",
+        comment_posted_at=datetime.now(),
+    )
+
+    mock_comment_repo.get_by_id.return_value = comment_to_delete
+    result = service.delete_comment(comment_id=comment_to_delete.comment_id, user_id=admin_account.account_id)
+    mock_account_repo.get_by_id.assert_called_once_with(admin_account.account_id)
+    mock_comment_repo.get_by_id.assert_called_once_with(comment_to_delete.comment_id)
+    mock_comment_repo.delete.assert_called_once_with(comment_to_delete.comment_id)
+    assert result is True
+
+
+def test_delete_comment_unauthorized_not_admin():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_account = Account(
+        account_id=2,
+        account_username="regular_user",
+        account_password="password123",
+        account_email="user@galaxy.com",
+        account_role="user",
+        account_created_at=datetime.now(),
+    )
+
+    mock_account_repo.get_by_id.return_value = fake_account
+    result = service.delete_comment(comment_id=10, user_id=fake_account.account_id)
+    mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+    mock_comment_repo.get_by_id.assert_not_called()
+    mock_comment_repo.delete.assert_not_called()
+    assert result == "Unauthorized : Only admins can delete comments."
+
+
+def test_delete_comment_not_found():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    fake_account = Account(
+        account_id=1,
+        account_username="admin_user",
+        account_password="password123",
+        account_email="admin@galaxy.com",
+        account_role="admin",
+        account_created_at=datetime.now(),
+    )
+
+    mock_account_repo.get_by_id.return_value = fake_account
+    mock_comment_repo.get_by_id.return_value = None
+    result = service.delete_comment(comment_id=999, user_id=fake_account.account_id)
+    mock_comment_repo.get_by_id.assert_called_once_with(999)
+    mock_comment_repo.delete.assert_not_called()
+    assert result == "Comment not found."
+
+
+def test_delete_comment_account_not_found():
+    mock_comment_repo = MagicMock(spec=CommentRepository)
+    mock_article_repo = MagicMock(spec=ArticleRepository)
+    mock_account_repo = MagicMock(spec=AccountRepository)
+
+    service = CommentService(
+        comment_repository=mock_comment_repo,
+        article_repository=mock_article_repo,
+        account_repository=mock_account_repo
+    )
+
+    mock_account_repo.get_by_id.return_value = None
+    result = service.delete_comment(comment_id=10, user_id=999)
+    mock_account_repo.get_by_id.assert_called_once_with(999)
+    mock_comment_repo.get_by_id.assert_not_called()
+    mock_comment_repo.delete.assert_not_called()
+    assert result == "Account not found."
