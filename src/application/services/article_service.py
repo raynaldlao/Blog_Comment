@@ -21,7 +21,7 @@ class ArticleService:
         self.article_repository = article_repository
         self.account_repository = account_repository
 
-    def _get_authorized_account(self, user_id: int) -> Account | str:
+    def _get_account_if_author_or_admin(self, user_id: int) -> Account | str:
         """
         Checks if a user exists and has the required permissions (admin or author).
 
@@ -57,7 +57,7 @@ class ArticleService:
             Article | str: The newly created Article domain entity,
             or an error message string if unauthorized or account not found.
         """
-        account_or_error = self._get_authorized_account(author_id)
+        account_or_error = self._get_account_if_author_or_admin(author_id)
         if isinstance(account_or_error, str):
             return account_or_error
 
@@ -107,7 +107,7 @@ class ArticleService:
             Article | str: The updated Article domain entity,
             or an error message string if not found or unauthorized.
         """
-        account_or_error = self._get_authorized_account(user_id)
+        account_or_error = self._get_account_if_author_or_admin(user_id)
         if isinstance(account_or_error, str):
             return account_or_error
 
@@ -135,7 +135,7 @@ class ArticleService:
         Returns:
             bool | str: True if deletion was successful, or an error message string.
         """
-        account_or_error = self._get_authorized_account(user_id)
+        account_or_error = self._get_account_if_author_or_admin(user_id)
         if isinstance(account_or_error, str):
             return account_or_error
 

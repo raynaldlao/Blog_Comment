@@ -28,7 +28,7 @@ class CommentService:
         self.article_repository = article_repository
         self.account_repository = account_repository
 
-    def _get_authorized_account(self, user_id: int) -> Account | str:
+    def _get_account_if_exists(self, user_id: int) -> Account | str:
         """
         Helper method to retrieve and validate an account.
         """
@@ -50,7 +50,7 @@ class CommentService:
         Returns:
             Comment | str: The created Comment entity, or an error message string.
         """
-        account_or_error = self._get_authorized_account(user_id)
+        account_or_error = self._get_account_if_exists(user_id)
         if isinstance(account_or_error, str):
             # TODO: Raise UnauthorizedException later
             return account_or_error
@@ -90,7 +90,7 @@ class CommentService:
             Comment | str: The new Comment domain entity if successful,
             or an error message string if unauthorized or parent not found.
         """
-        account_or_error = self._get_authorized_account(user_id)
+        account_or_error = self._get_account_if_exists(user_id)
         if isinstance(account_or_error, str):
             # TODO: Raise UnauthorizedException later
             return account_or_error
@@ -176,7 +176,7 @@ class CommentService:
         Returns:
             bool | str: True if deletion was successful, or an error message string.
         """
-        account_or_error = self._get_authorized_account(user_id)
+        account_or_error = self._get_account_if_exists(user_id)
         if isinstance(account_or_error, str):
             # TODO: Raise UnauthorizedException later
             return account_or_error
