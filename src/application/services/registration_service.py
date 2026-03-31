@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 
 
@@ -46,7 +46,7 @@ class RegistrationService:
             account_username=username,
             account_password=password,
             account_email=email,
-            account_role="user",
+            account_role=AccountRole.USER,
             account_created_at=None,
         )
 

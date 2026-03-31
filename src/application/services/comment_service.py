@@ -2,7 +2,7 @@ from collections import defaultdict
 from datetime import datetime
 from operator import attrgetter
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.domain.comment import Comment
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -183,7 +183,7 @@ class CommentService:
 
         account: Account = account_or_error
 
-        if account.account_role != "admin":
+        if account.account_role != AccountRole.ADMIN:
             # TODO: Raise InsufficientPermissionsException later
             return "Unauthorized : Only admins can delete comments."
 

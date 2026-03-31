@@ -1,4 +1,15 @@
 from datetime import datetime
+from enum import Enum
+
+
+class AccountRole(str, Enum):
+    """
+    Available roles for user accounts.
+    Inheriting from str ensures JSON serializability and string comparisons work.
+    """
+    ADMIN = "admin"
+    AUTHOR = "author"
+    USER = "user"
 
 
 class Account:
@@ -10,7 +21,7 @@ class Account:
         account_username (str): Unique username used for authentication.
         account_password (str): Securely hashed password string.
         account_email (str): Unique email address for the user.
-        account_role (str): Permissions role ('admin', 'author', or 'user').
+        account_role (AccountRole): Permissions role.
         account_created_at (datetime): Timestamp of account creation.
     """
 
@@ -20,7 +31,7 @@ class Account:
         account_username: str,
         account_password: str,
         account_email: str,
-        account_role: str,
+        account_role: AccountRole,
         account_created_at: datetime,
     ):
         self.account_id = account_id

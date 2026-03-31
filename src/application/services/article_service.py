@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -36,8 +36,7 @@ class ArticleService:
             # TODO: Raise AccountNotFoundException
             return "Account not found."
 
-        valid_roles = ["admin", "author"]
-        if account.account_role not in valid_roles:
+        if account.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             # TODO: Raise InsufficientPermissionsException
             return "Insufficient permissions."
 
@@ -52,7 +51,7 @@ class ArticleService:
             title (str): The title of the new article.
             content (str): The body content of the new article.
             author_id (int): The unique identifier of the user creating the article.
-            author_role (str): The role of the user (e.g. 'admin', 'author', 'user').
+            author_role (AccountRole): The role of the user.
 
         Returns:
             Article | str: The newly created Article domain entity,
@@ -146,7 +145,7 @@ class ArticleService:
             # TODO: Raise ArticleNotFoundException
             return "Article not found."
 
-        if account.account_role != "admin" and article.article_author_id != user_id:
+        if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
             # TODO: Raise OwnershipException
             return "Unauthorized : Only authors or admins can delete articles."
 

@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.registration_service import RegistrationService
 
@@ -24,7 +24,7 @@ def test_create_account_success():
     assert isinstance(result, Account)
     assert result.account_username == "leia"
     assert result.account_email == "leia@galaxy.com"
-    assert result.account_role == "user"
+    assert result.account_role == AccountRole.USER
 
 
 def test_create_account_username_taken():
@@ -36,7 +36,7 @@ def test_create_account_username_taken():
         account_username="leia",
         account_password="existing_pass",
         account_email="existing@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -63,7 +63,7 @@ def test_create_account_email_taken():
         account_username="han",
         account_password="other_pass",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 

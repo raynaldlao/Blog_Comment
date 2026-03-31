@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.domain.comment import Comment
 from src.application.output_ports.account_repository import AccountRepository
@@ -26,7 +26,7 @@ def test_create_comment_success():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -102,7 +102,7 @@ def test_create_comment_article_not_found():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -137,7 +137,7 @@ def test_create_reply_success_root_comment():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -184,7 +184,7 @@ def test_create_reply_success_nested_comment():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -224,7 +224,7 @@ def test_create_reply_parent_not_found():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -349,7 +349,7 @@ def test_delete_comment_success_as_admin():
         account_username="admin_user",
         account_password="password123",
         account_email="admin@galaxy.com",
-        account_role="admin",
+        account_role=AccountRole.ADMIN,
         account_created_at=datetime.now(),
     )
 
@@ -388,7 +388,7 @@ def test_delete_comment_unauthorized_not_admin():
         account_username="regular_user",
         account_password="password123",
         account_email="user@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -416,7 +416,7 @@ def test_delete_comment_not_found():
         account_username="admin_user",
         account_password="password123",
         account_email="admin@galaxy.com",
-        account_role="admin",
+        account_role=AccountRole.ADMIN,
         account_created_at=datetime.now(),
     )
 

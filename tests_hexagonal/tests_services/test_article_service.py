@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -22,7 +22,7 @@ def test_create_article_success():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="admin",
+        account_role=AccountRole.ADMIN,
         account_created_at=datetime.now(),
     )
 
@@ -57,7 +57,7 @@ def test_create_article_unauthorized_role():
         account_username="boris",
         account_password="password123",
         account_email="boris@ordinary.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -90,7 +90,7 @@ def test_create_article_account_not_found():
         title="Ghost Article",
         content="Content from beyond!",
         author_id=999,
-        author_role="author",
+        author_role=AccountRole.AUTHOR,
     )
 
     mock_account_repo.get_by_id.assert_called_once_with(999)
@@ -195,7 +195,7 @@ def test_update_article_success():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="author",
+        account_role=AccountRole.AUTHOR,
         account_created_at=datetime.now(),
     )
 
@@ -239,7 +239,7 @@ def test_update_article_unauthorized():
         account_username="hacker",
         account_password="password123",
         account_email="hacker@cyber.com",
-        account_role="admin",
+        account_role=AccountRole.ADMIN,
         account_created_at=datetime.now(),
     )
 
@@ -280,7 +280,7 @@ def test_update_article_insufficient_role():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now(),
     )
 
@@ -314,7 +314,7 @@ def test_update_article_not_found():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="author",
+        account_role=AccountRole.AUTHOR,
         account_created_at=datetime.now(),
     )
 
@@ -353,7 +353,7 @@ def test_delete_article_success_by_author():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="author",
+        account_role=AccountRole.AUTHOR,
         account_created_at=datetime.now(),
     )
 
@@ -388,7 +388,7 @@ def test_delete_article_success_by_admin():
         account_username="admin2",
         account_password="password123",
         account_email="admin@cyber.com",
-        account_role="admin",
+        account_role=AccountRole.ADMIN,
         account_created_at=datetime.now(),
     )
 
@@ -423,7 +423,7 @@ def test_delete_article_unauthorized_ownership():
         account_username="other",
         account_password="password123",
         account_email="other@cyber.com",
-        account_role="author",
+        account_role=AccountRole.AUTHOR,
         account_created_at=datetime.now(),
     )
 
@@ -452,7 +452,7 @@ def test_delete_article_not_found():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="author",
+        account_role=AccountRole.AUTHOR,
         account_created_at=datetime.now(),
     )
 

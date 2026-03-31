@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.login_service import LoginService
 
@@ -15,7 +15,7 @@ def test_authenticate_user_success():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now()
     )
 
@@ -35,7 +35,7 @@ def test_authenticate_user_wrong_password():
         account_username="leia",
         account_password="password123",
         account_email="leia@galaxy.com",
-        account_role="user",
+        account_role=AccountRole.USER,
         account_created_at=datetime.now()
     )
 
