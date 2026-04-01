@@ -122,6 +122,7 @@ class ArticleService:
 
         article.article_title = title
         article.article_content = content
+        self.article_repository.save(article)
         return article
 
     def delete_article(self, article_id: int, user_id: int) -> bool | str:

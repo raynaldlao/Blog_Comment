@@ -164,6 +164,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
 
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+        self.mock_article_repo.save.assert_called_once_with(result)
         assert result.article_title == "New Title"
         assert result.article_content == "New Content"
 
