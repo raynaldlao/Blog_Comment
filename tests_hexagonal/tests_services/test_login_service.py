@@ -16,14 +16,18 @@ class TestAuthenticateUser(LoginServiceTestBase):
         fake_account = create_test_account()
 
         self.mock_repo.find_by_username.return_value = fake_account
-        result = self.service.authenticate_user(username=fake_account.account_username, password=fake_account.account_password)
+
+        result = self.service.authenticate_user(
+            username=fake_account.account_username,
+            password=fake_account.account_password
+        )
+
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
         assert result is not None
         assert result.account_username == "leia"
 
     def test_authenticate_user_wrong_password(self):
         fake_account = create_test_account()
-
         self.mock_repo.find_by_username.return_value = fake_account
         result = self.service.authenticate_user(username=fake_account.account_username, password="bad_password")
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)

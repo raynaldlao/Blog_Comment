@@ -1,4 +1,3 @@
-from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
@@ -6,7 +5,11 @@ from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.comment_service import CommentService
-from tests_hexagonal.tests_services.test_domain_factories import create_test_account, create_test_article, create_test_comment
+from tests_hexagonal.tests_services.test_domain_factories import (
+    create_test_account,
+    create_test_article,
+    create_test_comment,
+)
 
 
 class CommentServiceTestBase:
@@ -93,14 +96,18 @@ class TestCreateReply(CommentServiceTestBase):
         )
 
         self.mock_comment_repo.get_by_id.return_value = parent_comment
-        result = self.service.create_reply(parent_comment_id=parent_comment.comment_id, user_id=fake_account.account_id, content="This is a reply")
+
+        result = self.service.create_reply(
+            parent_comment_id=parent_comment.comment_id,
+            user_id=fake_account.account_id, content="This is a reply"
+        )
+
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_comment_repo.get_by_id.assert_called_once_with(parent_comment.comment_id)
         self.mock_comment_repo.save.assert_called_once()
         index_args = 0
         index_kwargs = 0
         saved_reply = self.mock_comment_repo.save.call_args[index_args][index_kwargs]
-
         assert saved_reply.comment_article_id == parent_comment.comment_article_id
         assert saved_reply.comment_written_account_id == fake_account.account_id
         assert saved_reply.comment_reply_to == parent_comment.comment_id
@@ -119,7 +126,12 @@ class TestCreateReply(CommentServiceTestBase):
             comment_content="I am a reply",
         )
         self.mock_comment_repo.get_by_id.return_value = parent_comment
-        result = self.service.create_reply(parent_comment_id=parent_comment.comment_id, user_id=fake_account.account_id, content="Replying to a reply")
+
+        result = self.service.create_reply(
+            parent_comment_id=parent_comment.comment_id,
+            user_id=fake_account.account_id, content="Replying to a reply"
+        )
+
         self.mock_comment_repo.save.assert_called_once()
         index_args = 0
         index_kwargs = 0
@@ -131,7 +143,13 @@ class TestCreateReply(CommentServiceTestBase):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
         self.mock_comment_repo.get_by_id.return_value = None
-        result = self.service.create_reply(parent_comment_id=999, user_id=fake_account.account_id, content="Replying to nothing")
+
+        result = self.service.create_reply(
+            parent_comment_id=999,
+            user_id=fake_account.account_id,
+            content="Replying to nothing"
+        )
+
         self.mock_comment_repo.get_by_id.assert_called_once_with(999)
         self.mock_comment_repo.save.assert_not_called()
         assert result == "Parent comment not found."
@@ -189,7 +207,12 @@ class TestDeleteComment(CommentServiceTestBase):
 
         comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
         self.mock_comment_repo.get_by_id.return_value = comment_to_delete
-        result = self.service.delete_comment(comment_id=comment_to_delete.comment_id, user_id=admin_account.account_id)
+
+        result = self.service.delete_comment(
+            comment_id=comment_to_delete.comment_id,
+            user_id=admin_account.account_id
+        )
+
         self.mock_account_repo.get_by_id.assert_called_once_with(admin_account.account_id)
         self.mock_comment_repo.get_by_id.assert_called_once_with(comment_to_delete.comment_id)
         self.mock_comment_repo.delete.assert_called_once_with(comment_to_delete.comment_id)

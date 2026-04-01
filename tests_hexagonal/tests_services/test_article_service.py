@@ -5,7 +5,10 @@ from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
-from tests_hexagonal.tests_services.test_domain_factories import create_test_account, create_test_article
+from tests_hexagonal.tests_services.test_domain_factories import (
+    create_test_account,
+    create_test_article,
+)
 
 
 class ArticleServiceTestBase:

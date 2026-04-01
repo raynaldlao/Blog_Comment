@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.domain.comment import Comment
@@ -15,7 +16,7 @@ def create_test_account(
     """Factory to create a test Account entity with sensible defaults."""
     if account_created_at is None:
         account_created_at = datetime.now()
-    
+
     return Account(
         account_id=account_id,
         account_username=account_username,
@@ -36,7 +37,7 @@ def create_test_article(
     """Factory to create a test Article entity with sensible defaults."""
     if article_published_at is None:
         article_published_at = datetime.now()
-        
+
     return Article(
         article_id=article_id,
         article_author_id=article_author_id,
@@ -57,7 +58,7 @@ def create_test_comment(
     """Factory to create a test Comment entity with sensible defaults."""
     if comment_posted_at is None:
         comment_posted_at = datetime.now()
-        
+
     return Comment(
         comment_id=comment_id,
         comment_article_id=comment_article_id,
