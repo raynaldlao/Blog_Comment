@@ -5,7 +5,7 @@ from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
-from tests_hexagonal.tests_services.test_domain_factories import (
+from tests_hexagonal.test_domain_factories import (
     create_test_account,
     create_test_article,
 )
@@ -182,6 +182,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         )
 
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
+        self.mock_article_repo.save.assert_not_called()
         assert result == "Unauthorized : You are not the author of this article."
 
     def test_update_article_insufficient_role(self):
@@ -197,6 +198,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
 
         self.mock_article_repo.get_by_id.assert_not_called()
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+        self.mock_article_repo.save.assert_not_called()
         assert result == "Insufficient permissions."
 
     def test_update_article_not_found(self):
@@ -212,6 +214,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         )
 
         self.mock_article_repo.get_by_id.assert_called_once_with(999)
+        self.mock_article_repo.save.assert_not_called()
         assert result == "Article not found."
 
 

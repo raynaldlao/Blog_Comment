@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.login_service import LoginService
-from tests_hexagonal.tests_services.test_domain_factories import create_test_account
+from tests_hexagonal.test_domain_factories import create_test_account
 
 
 class LoginServiceTestBase:

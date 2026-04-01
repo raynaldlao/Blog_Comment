@@ -5,7 +5,7 @@ from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.comment_service import CommentService
-from tests_hexagonal.tests_services.test_domain_factories import (
+from tests_hexagonal.test_domain_factories import (
     create_test_account,
     create_test_article,
     create_test_comment,
@@ -42,9 +42,8 @@ class TestCreateComment(CommentServiceTestBase):
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.save.assert_called_once()
-        index_args = 0
-        index_kwargs = 0
-        saved_comment = self.mock_comment_repo.save.call_args[index_args][index_kwargs]
+        index_first_arg = 0
+        saved_comment = self.mock_comment_repo.save.call_args.args[index_first_arg]
         assert saved_comment.comment_article_id == fake_article.article_id
         assert saved_comment.comment_written_account_id == fake_account.account_id
         assert saved_comment.comment_reply_to is None
@@ -105,9 +104,8 @@ class TestCreateReply(CommentServiceTestBase):
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_comment_repo.get_by_id.assert_called_once_with(parent_comment.comment_id)
         self.mock_comment_repo.save.assert_called_once()
-        index_args = 0
-        index_kwargs = 0
-        saved_reply = self.mock_comment_repo.save.call_args[index_args][index_kwargs]
+        index_first_arg = 0
+        saved_reply = self.mock_comment_repo.save.call_args.args[index_first_arg]
         assert saved_reply.comment_article_id == parent_comment.comment_article_id
         assert saved_reply.comment_written_account_id == fake_account.account_id
         assert saved_reply.comment_reply_to == parent_comment.comment_id
@@ -133,9 +131,8 @@ class TestCreateReply(CommentServiceTestBase):
         )
 
         self.mock_comment_repo.save.assert_called_once()
-        index_args = 0
-        index_kwargs = 0
-        saved_reply = self.mock_comment_repo.save.call_args[index_args][index_kwargs]
+        index_first_arg = 0
+        saved_reply = self.mock_comment_repo.save.call_args.args[index_first_arg]
         assert saved_reply.comment_reply_to == 10
         assert result is saved_reply
 
