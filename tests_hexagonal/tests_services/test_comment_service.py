@@ -1,20 +1,19 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account, AccountRole
-from src.application.domain.article import Article
-from src.application.domain.comment import Comment
+from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.comment_service import CommentService
+from tests_hexagonal.tests_services.test_domain_factories import create_test_account, create_test_article, create_test_comment
 
 
 class CommentServiceTestBase:
     def setup_method(self):
-        self.mock_comment_repo = MagicMock(spec=CommentRepository)
-        self.mock_article_repo = MagicMock(spec=ArticleRepository)
-        self.mock_account_repo = MagicMock(spec=AccountRepository)
+        self.mock_comment_repo = MagicMock(spec=CommentRepository, autospec=True)
+        self.mock_article_repo = MagicMock(spec=ArticleRepository, autospec=True)
+        self.mock_account_repo = MagicMock(spec=AccountRepository, autospec=True)
 
         self.service = CommentService(
             comment_repository=self.mock_comment_repo,
@@ -25,25 +24,10 @@ class CommentServiceTestBase:
 
 class TestCreateComment(CommentServiceTestBase):
     def test_create_comment_success(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        fake_article = Article(
-            article_id=1,
-            article_author_id=2,
-            article_title="My Article",
-            article_content="Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
 
         result = self.service.create_comment(
@@ -79,15 +63,7 @@ class TestCreateComment(CommentServiceTestBase):
         assert result == "Account not found."
 
     def test_create_comment_article_not_found(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
         self.mock_article_repo.get_by_id.return_value = None
 
@@ -105,24 +81,15 @@ class TestCreateComment(CommentServiceTestBase):
 
 class TestCreateReply(CommentServiceTestBase):
     def test_create_reply_success_root_comment(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        parent_comment = Comment(
+        parent_comment = create_test_comment(
             comment_id=10,
             comment_article_id=5,
             comment_written_account_id=2,
             comment_reply_to=None,
             comment_content="Root comment",
-            comment_posted_at=datetime.now(),
         )
 
         self.mock_comment_repo.get_by_id.return_value = parent_comment
@@ -141,24 +108,15 @@ class TestCreateReply(CommentServiceTestBase):
         assert result is saved_reply
 
     def test_create_reply_success_nested_comment(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        parent_comment = Comment(
+        parent_comment = create_test_comment(
             comment_id=15,
             comment_article_id=5,
             comment_written_account_id=2,
             comment_reply_to=10,
             comment_content="I am a reply",
-            comment_posted_at=datetime.now(),
         )
         self.mock_comment_repo.get_by_id.return_value = parent_comment
         result = self.service.create_reply(parent_comment_id=parent_comment.comment_id, user_id=fake_account.account_id, content="Replying to a reply")
@@ -170,15 +128,7 @@ class TestCreateReply(CommentServiceTestBase):
         assert result is saved_reply
 
     def test_create_reply_parent_not_found(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
         self.mock_comment_repo.get_by_id.return_value = None
         result = self.service.create_reply(parent_comment_id=999, user_id=fake_account.account_id, content="Replying to nothing")
@@ -196,85 +146,48 @@ class TestGetComments(CommentServiceTestBase):
         assert result == "Article not found."
 
     def test_get_comments_for_article_empty(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=2,
-            article_title="My Article",
-            article_content="Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_comment_repo.get_all_by_article_id.return_value = []
         result = self.service.get_comments_for_article(article_id=fake_article.article_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
-        assert isinstance(result, dict)
         assert result == {"root": []}
 
     def test_get_comments_for_article_success(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=2,
-            article_title="My Article",
-            article_content="Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
 
-        root_comment = Comment(
+        root_comment = create_test_comment(
             comment_id=10,
             comment_article_id=fake_article.article_id,
             comment_written_account_id=3,
             comment_reply_to=None,
             comment_content="First!",
-            comment_posted_at=datetime.now(),
         )
 
-        reply = Comment(
+        reply = create_test_comment(
             comment_id=15,
             comment_article_id=fake_article.article_id,
             comment_written_account_id=4,
             comment_reply_to=root_comment.comment_id,
             comment_content="Awesome!",
-            comment_posted_at=datetime.now(),
         )
 
         self.mock_comment_repo.get_all_by_article_id.return_value = [root_comment, reply]
         result = self.service.get_comments_for_article(article_id=fake_article.article_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
-        assert isinstance(result, dict)
-        assert "root" in result
         assert result["root"] == [root_comment]
-        comment_id_key = root_comment.comment_id
-        assert comment_id_key in result
-        assert result[comment_id_key] == [reply]
+        assert result[root_comment.comment_id] == [reply]
 
 
 class TestDeleteComment(CommentServiceTestBase):
     def test_delete_comment_success_as_admin(self):
-        admin_account = Account(
-            account_id=1,
-            account_username="admin_user",
-            account_password="password123",
-            account_email="admin@galaxy.com",
-            account_role=AccountRole.ADMIN,
-            account_created_at=datetime.now(),
-        )
-
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_account_repo.get_by_id.return_value = admin_account
 
-        comment_to_delete = Comment(
-            comment_id=10,
-            comment_article_id=5,
-            comment_written_account_id=2,
-            comment_reply_to=None,
-            comment_content="Bad comment",
-            comment_posted_at=datetime.now(),
-        )
-
+        comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
         self.mock_comment_repo.get_by_id.return_value = comment_to_delete
         result = self.service.delete_comment(comment_id=comment_to_delete.comment_id, user_id=admin_account.account_id)
         self.mock_account_repo.get_by_id.assert_called_once_with(admin_account.account_id)
@@ -283,15 +196,7 @@ class TestDeleteComment(CommentServiceTestBase):
         assert result is True
 
     def test_delete_comment_unauthorized_not_admin(self):
-        fake_account = Account(
-            account_id=2,
-            account_username="regular_user",
-            account_password="password123",
-            account_email="user@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=2, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
         result = self.service.delete_comment(comment_id=10, user_id=fake_account.account_id)
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
@@ -300,15 +205,7 @@ class TestDeleteComment(CommentServiceTestBase):
         assert result == "Unauthorized : Only admins can delete comments."
 
     def test_delete_comment_not_found(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="admin_user",
-            account_password="password123",
-            account_email="admin@galaxy.com",
-            account_role=AccountRole.ADMIN,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_account_repo.get_by_id.return_value = fake_account
         self.mock_comment_repo.get_by_id.return_value = None
         result = self.service.delete_comment(comment_id=999, user_id=fake_account.account_id)

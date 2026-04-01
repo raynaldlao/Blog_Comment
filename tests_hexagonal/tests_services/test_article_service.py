@@ -1,17 +1,17 @@
 from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account, AccountRole
-from src.application.domain.article import Article
+from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
+from tests_hexagonal.tests_services.test_domain_factories import create_test_account, create_test_article
 
 
 class ArticleServiceTestBase:
     def setup_method(self):
-        self.mock_article_repo = MagicMock(spec=ArticleRepository)
-        self.mock_account_repo = MagicMock(spec=AccountRepository)
+        self.mock_article_repo = MagicMock(spec=ArticleRepository, autospec=True)
+        self.mock_account_repo = MagicMock(spec=AccountRepository, autospec=True)
         self.service = ArticleService(
             article_repository=self.mock_article_repo,
             account_repository=self.mock_account_repo
@@ -20,14 +20,7 @@ class ArticleServiceTestBase:
 
 class TestCreateArticle(ArticleServiceTestBase):
     def test_create_article_success(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.ADMIN,
-            account_created_at=datetime.now(),
-        )
+        fake_account = create_test_account(account_role=AccountRole.ADMIN)
 
         self.mock_account_repo.get_by_id.return_value = fake_account
 
@@ -40,19 +33,16 @@ class TestCreateArticle(ArticleServiceTestBase):
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_article_repo.save.assert_called_once_with(result)
-        assert isinstance(result, Article)
         assert result.article_title == "My First Article"
         assert result.article_content == "Hello World !"
         assert result.article_author_id == fake_account.account_id
 
     def test_create_article_unauthorized_role(self):
-        fake_account = Account(
+        fake_account = create_test_account(
             account_id=2,
             account_username="boris",
-            account_password="password123",
             account_email="boris@ordinary.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
+            account_role=AccountRole.USER
         )
 
         self.mock_account_repo.get_by_id.return_value = fake_account
@@ -86,18 +76,14 @@ class TestCreateArticle(ArticleServiceTestBase):
 class TestGetArticles(ArticleServiceTestBase):
     def test_get_all_ordered_by_date_desc(self):
         fake_articles = [
-            Article(
+            create_test_article(
                 article_id=2,
-                article_author_id=1,
                 article_title="Recent Article",
-                article_content="Content 2",
                 article_published_at=datetime(2026, 3, 25),
             ),
-            Article(
+            create_test_article(
                 article_id=1,
-                article_author_id=1,
                 article_title="Old Article",
-                article_content="Content 1",
                 article_published_at=datetime(2026, 1, 1),
             ),
         ]
@@ -111,20 +97,8 @@ class TestGetArticles(ArticleServiceTestBase):
 
     def test_get_paginated_articles(self):
         fake_articles = [
-            Article(
-                article_id=1,
-                article_author_id=1,
-                article_title="First",
-                article_content="Content 1",
-                article_published_at=datetime.now(),
-            ),
-            Article(
-                article_id=2,
-                article_author_id=1,
-                article_title="Second",
-                article_content="Content 2",
-                article_published_at=datetime.now(),
-            )
+            create_test_article(article_id=1, article_title="First"),
+            create_test_article(article_id=2, article_title="Second")
         ]
 
         self.mock_article_repo.get_paginated.return_value = fake_articles
@@ -137,16 +111,7 @@ class TestGetArticles(ArticleServiceTestBase):
         assert second_article_list.article_title == "Second"
 
     def test_get_paginated_articles_page_less_than_one(self):
-        fake_articles = [
-            Article(
-                article_id=1,
-                article_author_id=1,
-                article_title="Paged Title",
-                article_content="Paged Content",
-                article_published_at=datetime.now(),
-            )
-        ]
-
+        fake_articles = [create_test_article(article_title="Paged Title")]
         self.mock_article_repo.get_paginated.return_value = fake_articles
         result = self.service.get_paginated_articles(page=-5, per_page=10)
         self.mock_article_repo.get_paginated.assert_called_once_with(1, 10)
@@ -155,9 +120,7 @@ class TestGetArticles(ArticleServiceTestBase):
     def test_get_paginated_articles_defaults(self):
         self.mock_article_repo.get_paginated.return_value = []
         self.service.get_paginated_articles()
-        page = 1
-        per_page = 10
-        self.mock_article_repo.get_paginated.assert_called_once_with(page, per_page)
+        self.mock_article_repo.get_paginated.assert_called_once_with(1, 10)
 
     def test_get_total_count(self):
         self.mock_article_repo.count_all.return_value = 42
@@ -168,14 +131,7 @@ class TestGetArticles(ArticleServiceTestBase):
 
 class TestGetArticleById(ArticleServiceTestBase):
     def test_get_by_id_found(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="Found Article",
-            article_content="Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_title="Found Article")
         self.mock_article_repo.get_by_id.return_value = fake_article
         result = self.service.get_by_id(article_id=fake_article.article_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
@@ -191,25 +147,9 @@ class TestGetArticleById(ArticleServiceTestBase):
 
 class TestUpdateArticle(ArticleServiceTestBase):
     def test_update_article_success(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="Old Title",
-            article_content="Old Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_title="Old Title")
         self.mock_article_repo.get_by_id.return_value = fake_article
-
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.AUTHOR,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.update_article(
@@ -221,30 +161,13 @@ class TestUpdateArticle(ArticleServiceTestBase):
 
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
-        assert result is not None
         assert result.article_title == "New Title"
         assert result.article_content == "New Content"
 
     def test_update_article_unauthorized(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="Old Title",
-            article_content="Old Content",
-            article_published_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_author_id=1)
         self.mock_article_repo.get_by_id.return_value = fake_article
-
-        fake_account = Account(
-            account_id=99,
-            account_username="hacker",
-            account_password="password123",
-            account_email="hacker@cyber.com",
-            account_role=AccountRole.ADMIN,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=99, account_role=AccountRole.ADMIN)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.update_article(
@@ -258,29 +181,11 @@ class TestUpdateArticle(ArticleServiceTestBase):
         assert result == "Unauthorized : You are not the author of this article."
 
     def test_update_article_insufficient_role(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="Old Title",
-            article_content="Old Content",
-            article_published_at=datetime.now(),
-        )
-
-        self.mock_article_repo.get_by_id.return_value = fake_article
-
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.update_article(
-            article_id=fake_article.article_id,
+            article_id=1,
             user_id=fake_account.account_id,
             title="Hacked Title",
             content="Hacked Content",
@@ -292,16 +197,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
 
     def test_update_article_not_found(self):
         self.mock_article_repo.get_by_id.return_value = None
-
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.AUTHOR,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_role=AccountRole.AUTHOR)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.update_article(
@@ -317,23 +213,8 @@ class TestUpdateArticle(ArticleServiceTestBase):
 
 class TestDeleteArticle(ArticleServiceTestBase):
     def test_delete_article_success_by_author(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="To Be Deleted",
-            article_content="Delete me",
-            article_published_at=datetime.now(),
-        )
-
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.AUTHOR,
-            account_created_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_author_id=1)
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_account
         result = self.service.delete_article(article_id=fake_article.article_id, user_id=fake_account.account_id)
@@ -343,23 +224,8 @@ class TestDeleteArticle(ArticleServiceTestBase):
         assert result is True
 
     def test_delete_article_success_by_admin(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="To Be Deleted",
-            article_content="Delete me",
-            article_published_at=datetime.now(),
-        )
-
-        fake_admin = Account(
-            account_id=99,
-            account_username="admin2",
-            account_password="password123",
-            account_email="admin@cyber.com",
-            account_role=AccountRole.ADMIN,
-            account_created_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_id=1, article_author_id=1)
+        fake_admin = create_test_account(account_id=99, account_role=AccountRole.ADMIN)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_admin
         result = self.service.delete_article(article_id=fake_article.article_id, user_id=fake_admin.account_id)
@@ -369,23 +235,8 @@ class TestDeleteArticle(ArticleServiceTestBase):
         assert result is True
 
     def test_delete_article_unauthorized_ownership(self):
-        fake_article = Article(
-            article_id=1,
-            article_author_id=1,
-            article_title="To Be Deleted",
-            article_content="Delete me",
-            article_published_at=datetime.now(),
-        )
-
-        fake_author_other = Account(
-            account_id=99,
-            account_username="other",
-            account_password="password123",
-            account_email="other@cyber.com",
-            account_role=AccountRole.AUTHOR,
-            account_created_at=datetime.now(),
-        )
-
+        fake_article = create_test_article(article_author_id=1)
+        fake_author_other = create_test_account(account_id=99, account_role=AccountRole.AUTHOR)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_author_other
         result = self.service.delete_article(article_id=fake_article.article_id, user_id=fake_author_other.account_id)
@@ -395,15 +246,7 @@ class TestDeleteArticle(ArticleServiceTestBase):
         assert result == "Unauthorized : Only authors or admins can delete articles."
 
     def test_delete_article_not_found(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.AUTHOR,
-            account_created_at=datetime.now(),
-        )
-
+        fake_account = create_test_account(account_role=AccountRole.AUTHOR)
         self.mock_article_repo.get_by_id.return_value = None
         self.mock_account_repo.get_by_id.return_value = fake_account
         result = self.service.delete_article(article_id=999, user_id=fake_account.account_id)

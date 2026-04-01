@@ -1,14 +1,14 @@
-from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.registration_service import RegistrationService
+from tests_hexagonal.tests_services.test_domain_factories import create_test_account
 
 
 class RegistrationServiceTestBase:
     def setup_method(self):
-        self.mock_repo = MagicMock(spec=AccountRepository)
+        self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
         self.service = RegistrationService(account_repository=self.mock_repo)
 
 
@@ -32,13 +32,10 @@ class TestCreateAccount(RegistrationServiceTestBase):
         assert result.account_role == AccountRole.USER
 
     def test_create_account_username_taken(self):
-        existing_account = Account(
+        existing_account = create_test_account(
             account_id=1,
             account_username="leia",
-            account_password="existing_pass",
-            account_email="existing@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
+            account_email="existing@galaxy.com"
         )
 
         self.mock_repo.find_by_username.return_value = existing_account
@@ -55,13 +52,10 @@ class TestCreateAccount(RegistrationServiceTestBase):
         assert result == "This username is already taken."
 
     def test_create_account_email_taken(self):
-        existing_account = Account(
+        existing_account = create_test_account(
             account_id=2,
             account_username="han",
-            account_password="other_pass",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now(),
+            account_email="leia@galaxy.com"
         )
 
         self.mock_repo.find_by_username.return_value = None

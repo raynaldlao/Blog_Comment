@@ -1,27 +1,19 @@
-from datetime import datetime
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.login_service import LoginService
+from tests_hexagonal.tests_services.test_domain_factories import create_test_account
 
 
 class LoginServiceTestBase:
     def setup_method(self):
-        self.mock_repo = MagicMock(spec=AccountRepository)
+        self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
         self.service = LoginService(account_repository=self.mock_repo)
 
 
 class TestAuthenticateUser(LoginServiceTestBase):
     def test_authenticate_user_success(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now()
-        )
+        fake_account = create_test_account()
 
         self.mock_repo.find_by_username.return_value = fake_account
         result = self.service.authenticate_user(username=fake_account.account_username, password=fake_account.account_password)
@@ -30,14 +22,7 @@ class TestAuthenticateUser(LoginServiceTestBase):
         assert result.account_username == "leia"
 
     def test_authenticate_user_wrong_password(self):
-        fake_account = Account(
-            account_id=1,
-            account_username="leia",
-            account_password="password123",
-            account_email="leia@galaxy.com",
-            account_role=AccountRole.USER,
-            account_created_at=datetime.now()
-        )
+        fake_account = create_test_account()
 
         self.mock_repo.find_by_username.return_value = fake_account
         result = self.service.authenticate_user(username=fake_account.account_username, password="bad_password")
