@@ -23,6 +23,17 @@ class Comment:
         comment_content: str,
         comment_posted_at: datetime,
     ):
+        """
+        Initialize a comment or reply.
+
+        Args:
+            comment_id (int): Unique identifier for the comment.
+            comment_article_id (int): Reference to the associated article.
+            comment_written_account_id (int): Reference to the author's account.
+            comment_reply_to (int | None): Reference to a parent comment (for replies).
+            comment_content (str): Text content of the comment.
+            comment_posted_at (datetime): Timestamp of when the comment was posted.
+        """
         self.comment_id = comment_id
         self.comment_article_id = comment_article_id
         self.comment_written_account_id = comment_written_account_id

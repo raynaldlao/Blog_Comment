@@ -12,11 +12,11 @@ class ArticleService:
 
     def __init__(self, article_repository: ArticleRepository, account_repository: AccountRepository):
         """
-        Initialize the service with repositories (Dependency Injection).
+        Initialize the service via Dependency Injection.
 
         Args:
-            article_repository (ArticleRepository): Port for article data.
-            account_repository (AccountRepository): Port for account data.
+            article_repository (ArticleRepository): Port for article data access.
+            account_repository (AccountRepository): Port for account data access.
         """
         self.article_repository = article_repository
         self.account_repository = account_repository

@@ -34,6 +34,17 @@ class Account:
         account_role: AccountRole,
         account_created_at: datetime,
     ):
+        """
+        Initialize a user account.
+
+        Args:
+            account_id (int): Unique identifier for the account.
+            account_username (str): Unique username used for authentication.
+            account_password (str): Securely hashed password string.
+            account_email (str): Unique email address for the user.
+            account_role (AccountRole): Permissions role.
+            account_created_at (datetime): Timestamp of account creation.
+        """
         self.account_id = account_id
         self.account_username = account_username
         self.account_password = account_password

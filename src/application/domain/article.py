@@ -21,6 +21,16 @@ class Article:
         article_content: str,
         article_published_at: datetime,
     ):
+        """
+        Initialize a blog article.
+
+        Args:
+            article_id (int): Unique identifier for the article.
+            article_author_id (int): Reference to the author's Account.
+            article_title (str): Title of the article.
+            article_content (str): Full text content of the article.
+            article_published_at (datetime): Timestamp of publication.
+        """
         self.article_id = article_id
         self.article_author_id = article_author_id
         self.article_title = article_title

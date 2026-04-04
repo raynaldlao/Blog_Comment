@@ -23,6 +23,11 @@ class CommentService:
     ):
         """
         Initialize the service via Dependency Injection.
+
+        Args:
+            comment_repository (CommentRepository): Port for comment data access.
+            article_repository (ArticleRepository): Port for article data access.
+            account_repository (AccountRepository): Port for account data access.
         """
         self.comment_repository = comment_repository
         self.article_repository = article_repository
@@ -31,6 +36,12 @@ class CommentService:
     def _get_account_if_exists(self, user_id: int) -> Account | str:
         """
         Helper method to retrieve and validate an account.
+
+        Args:
+            user_id (int): The unique identifier of the user to check.
+
+        Returns:
+            Account | str: The Account domain entity if found, or an error message string.
         """
         account = self.account_repository.get_by_id(user_id)
         if not account:

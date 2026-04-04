@@ -9,10 +9,6 @@ from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_t
 
 
 class SqlAlchemyArticleAdapterTestBase(SqlAlchemyTestBase):
-    """
-    Base class for SqlAlchemyArticleAdapter integration tests.
-    """
-
     def setup_method(self):
         super().setup_method()
         self.repository = SqlAlchemyArticleAdapter(self.session)
