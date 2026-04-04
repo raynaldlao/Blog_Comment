@@ -2,17 +2,45 @@ from unittest.mock import MagicMock
 
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
-from src.application.services.registration_service import RegistrationService
+from src.application.services.account_service import AccountService
 from tests_hexagonal.test_domain_factories import create_test_account
 
 
-class RegistrationServiceTestBase:
+class AccountServiceTestBase:
     def setup_method(self):
         self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
-        self.service = RegistrationService(account_repository=self.mock_repo)
+        self.service = AccountService(account_repository=self.mock_repo)
 
 
-class TestCreateAccount(RegistrationServiceTestBase):
+class TestAccountAuthentication(AccountServiceTestBase):
+    def test_authenticate_user_success(self):
+        fake_account = create_test_account()
+        self.mock_repo.find_by_username.return_value = fake_account
+
+        result = self.service.authenticate_user(
+            username=fake_account.account_username,
+            password=fake_account.account_password
+        )
+
+        self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
+        assert result is not None
+        assert result.account_username == "leia"
+
+    def test_authenticate_user_wrong_password(self):
+        fake_account = create_test_account()
+        self.mock_repo.find_by_username.return_value = fake_account
+        result = self.service.authenticate_user(username=fake_account.account_username, password="bad_password")
+        self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
+        assert result is None
+
+    def test_authenticate_user_non_existent(self):
+        self.mock_repo.find_by_username.return_value = None
+        result = self.service.authenticate_user(username="phantom", password="nothing")
+        self.mock_repo.find_by_username.assert_called_once_with("phantom")
+        assert result is None
+
+
+class TestAccountCreation(AccountServiceTestBase):
     def test_create_account_success(self):
         self.mock_repo.find_by_username.return_value = None
         self.mock_repo.find_by_email.return_value = None

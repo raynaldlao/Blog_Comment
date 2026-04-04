@@ -2,9 +2,10 @@ from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 
 
-class RegistrationService:
+class AccountService:
     """
-    Service responsible for handling user registration and account creation logic.
+    Service responsible for handling all account-related logic,
+    including authentication and registration.
     Depends on the AccountRepository output port for data access.
     """
 
@@ -17,6 +18,27 @@ class RegistrationService:
             for account data access.
         """
         self.account_repository = account_repository
+
+    def authenticate_user(self, username: str, password: str) -> Account | None:
+        """
+        Validates the user's credentials by retrieving the account
+        from the repository and comparing the password.
+
+        Args:
+            username (str): The username provided by the user.
+            password (str): The plaintext password provided by the user.
+
+        Returns:
+            Account | None: The authenticated Account instance if
+            credentials match, None otherwise.
+        """
+        account = self.account_repository.find_by_username(username)
+
+        if account and account.account_password == password:
+            return account
+
+        # TODO: Raise InvalidCredentialsException
+        return None
 
     def create_account(self, username: str, password: str, email: str) -> Account | str:
         """
