@@ -1,8 +1,10 @@
-
 from src.application.domain.account import Account, AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
-from tests_hexagonal.tests_infrastructure.tests_output_adapters.sqlalchemy_test_base import SqlAlchemyTestBase
+from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_test_utils import (
+    AccountDataBuilder,
+    SqlAlchemyTestBase,
+)
 
 
 class SqlAlchemyAccountAdapterTestBase(SqlAlchemyTestBase):
@@ -13,28 +15,12 @@ class SqlAlchemyAccountAdapterTestBase(SqlAlchemyTestBase):
     def setup_method(self):
         super().setup_method()
         self.repository = SqlAlchemyAccountAdapter(self.session)
-
-    def _insert_account(
-        self,
-        username="testuser",
-        password="password123",
-        email="test@example.com",
-        role="user",
-    ) -> AccountModel:
-
-        model = AccountModel()
-        model.account_username = username
-        model.account_password = password
-        model.account_email = email
-        model.account_role = role
-        self.session.add(model)
-        self.session.commit()
-        return model
+        self.account_builder = AccountDataBuilder(self.session)
 
 
 class TestFindByUsername(SqlAlchemyAccountAdapterTestBase):
     def test_find_by_username_returns_domain_account(self):
-        self._insert_account(username="admin_user", role="admin")
+        self.account_builder.create(username="admin_user", role="admin")
         result = self.repository.find_by_username("admin_user")
         assert result is not None
         assert isinstance(result, Account)
@@ -46,7 +32,7 @@ class TestFindByUsername(SqlAlchemyAccountAdapterTestBase):
         assert result is None
 
     def test_find_by_username_returns_correct_password(self):
-        self._insert_account(username="login_test", password="secret123")
+        self.account_builder.create(username="login_test", password="secret123")
         result = self.repository.find_by_username("login_test")
         assert result is not None
         assert result.account_password == "secret123"
@@ -54,7 +40,7 @@ class TestFindByUsername(SqlAlchemyAccountAdapterTestBase):
 
 class TestFindByEmail(SqlAlchemyAccountAdapterTestBase):
     def test_find_by_email_returns_domain_account(self):
-        self._insert_account(email="found@example.com", role="author")
+        self.account_builder.create(email="found@example.com", role="author")
         result = self.repository.find_by_email("found@example.com")
         assert result is not None
         assert isinstance(result, Account)
@@ -66,7 +52,7 @@ class TestFindByEmail(SqlAlchemyAccountAdapterTestBase):
         assert result is None
 
     def test_find_by_email_returns_correct_username(self):
-        self._insert_account(username="email_owner", email="owner@blog.com")
+        self.account_builder.create(username="email_owner", email="owner@blog.com")
         result = self.repository.find_by_email("owner@blog.com")
         assert result is not None
         assert result.account_username == "email_owner"
@@ -74,7 +60,7 @@ class TestFindByEmail(SqlAlchemyAccountAdapterTestBase):
 
 class TestGetById(SqlAlchemyAccountAdapterTestBase):
     def test_get_by_id_returns_domain_account(self):
-        inserted = self._insert_account(username="id_user", role="user")
+        inserted = self.account_builder.create(username="id_user", role="user")
         result = self.repository.get_by_id(inserted.account_id)
         assert result is not None
         assert isinstance(result, Account)
