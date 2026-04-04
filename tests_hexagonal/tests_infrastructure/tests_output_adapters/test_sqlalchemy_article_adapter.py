@@ -20,7 +20,7 @@ class SqlAlchemyArticleAdapterTestBase(SqlAlchemyTestBase):
         self.article_builder = ArticleDataBuilder(self.session)
 
 
-class TestGetById(SqlAlchemyArticleAdapterTestBase):
+class TestArticleGetById(SqlAlchemyArticleAdapterTestBase):
     def test_get_by_id_returns_article(self):
         account = self.account_builder.create()
         inserted = self.article_builder.create(author_id=account.account_id)
@@ -34,7 +34,7 @@ class TestGetById(SqlAlchemyArticleAdapterTestBase):
         assert result is None
 
 
-class TestSave(SqlAlchemyArticleAdapterTestBase):
+class TestArticleSave(SqlAlchemyArticleAdapterTestBase):
     def test_save_persists_article_to_database(self):
         account = self.account_builder.create()
 
@@ -53,7 +53,7 @@ class TestSave(SqlAlchemyArticleAdapterTestBase):
         assert model.article_author_id == account.account_id
 
 
-class TestDelete(SqlAlchemyArticleAdapterTestBase):
+class TestArticleDelete(SqlAlchemyArticleAdapterTestBase):
     def test_delete_removes_article_from_database(self):
         account = self.account_builder.create()
         inserted = self.article_builder.create(author_id=account.account_id)
@@ -64,7 +64,7 @@ class TestDelete(SqlAlchemyArticleAdapterTestBase):
         assert check is None
 
 
-class TestPagination(SqlAlchemyArticleAdapterTestBase):
+class TestArticlePagination(SqlAlchemyArticleAdapterTestBase):
     def test_get_paginated_returns_correct_chunk(self):
         account = self.account_builder.create()
 
@@ -84,7 +84,7 @@ class TestPagination(SqlAlchemyArticleAdapterTestBase):
         assert total == 2
 
 
-class TestGetAllOrderedByDateDesc(SqlAlchemyArticleAdapterTestBase):
+class TestArticleGetAllOrderedByDateDesc(SqlAlchemyArticleAdapterTestBase):
     def test_returns_all_articles_sorted_newest_first(self):
         from datetime import datetime, timedelta
 

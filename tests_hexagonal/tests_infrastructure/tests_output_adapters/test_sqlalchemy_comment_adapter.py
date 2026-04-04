@@ -22,7 +22,7 @@ class SqlAlchemyCommentAdapterTestBase(SqlAlchemyTestBase):
         self.comment_builder = CommentDataBuilder(self.session)
 
 
-class TestGetById(SqlAlchemyCommentAdapterTestBase):
+class TestCommentGetById(SqlAlchemyCommentAdapterTestBase):
     def test_get_by_id_returns_comment(self):
         account = self.account_builder.create()
         article = self.article_builder.create(author_id=account.account_id)
@@ -37,7 +37,7 @@ class TestGetById(SqlAlchemyCommentAdapterTestBase):
         assert result is None
 
 
-class TestSave(SqlAlchemyCommentAdapterTestBase):
+class TestCommentSave(SqlAlchemyCommentAdapterTestBase):
     def test_save_persists_comment_to_database(self):
         account = self.account_builder.create()
         article = self.article_builder.create(author_id=account.account_id)
@@ -59,7 +59,7 @@ class TestSave(SqlAlchemyCommentAdapterTestBase):
         assert model.comment_written_account_id == account.account_id
 
 
-class TestDelete(SqlAlchemyCommentAdapterTestBase):
+class TestCommentDelete(SqlAlchemyCommentAdapterTestBase):
     def test_delete_removes_comment_from_database(self):
         account = self.account_builder.create()
         article = self.article_builder.create(author_id=account.account_id)
@@ -69,7 +69,7 @@ class TestDelete(SqlAlchemyCommentAdapterTestBase):
         assert check is None
 
 
-class TestGetAllByArticleId(SqlAlchemyCommentAdapterTestBase):
+class TestCommentGetAllByArticleId(SqlAlchemyCommentAdapterTestBase):
     def test_get_all_by_article_id_returns_correct_comments(self):
         account = self.account_builder.create()
         article1 = self.article_builder.create(author_id=account.account_id, title="Article 1")

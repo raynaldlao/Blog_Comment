@@ -18,7 +18,7 @@ class SqlAlchemyAccountAdapterTestBase(SqlAlchemyTestBase):
         self.account_builder = AccountDataBuilder(self.session)
 
 
-class TestFindByUsername(SqlAlchemyAccountAdapterTestBase):
+class TestAccountFindByUsername(SqlAlchemyAccountAdapterTestBase):
     def test_find_by_username_returns_domain_account(self):
         self.account_builder.create(username="admin_user", role="admin")
         result = self.repository.find_by_username("admin_user")
@@ -38,7 +38,7 @@ class TestFindByUsername(SqlAlchemyAccountAdapterTestBase):
         assert result.account_password == "secret123"
 
 
-class TestFindByEmail(SqlAlchemyAccountAdapterTestBase):
+class TestAccountFindByEmail(SqlAlchemyAccountAdapterTestBase):
     def test_find_by_email_returns_domain_account(self):
         self.account_builder.create(email="found@example.com", role="author")
         result = self.repository.find_by_email("found@example.com")
@@ -58,7 +58,7 @@ class TestFindByEmail(SqlAlchemyAccountAdapterTestBase):
         assert result.account_username == "email_owner"
 
 
-class TestGetById(SqlAlchemyAccountAdapterTestBase):
+class TestAccountGetById(SqlAlchemyAccountAdapterTestBase):
     def test_get_by_id_returns_domain_account(self):
         inserted = self.account_builder.create(username="id_user", role="user")
         result = self.repository.get_by_id(inserted.account_id)
@@ -72,7 +72,7 @@ class TestGetById(SqlAlchemyAccountAdapterTestBase):
         assert result is None
 
 
-class TestSave(SqlAlchemyAccountAdapterTestBase):
+class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
     def test_save_persists_account_to_database(self):
         account = Account(
             account_id=0,
