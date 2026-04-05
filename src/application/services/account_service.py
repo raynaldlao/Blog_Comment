@@ -1,11 +1,13 @@
 from src.application.domain.account import Account, AccountRole
+from src.application.input_ports.account_management import AccountManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 
 
-class AccountService:
+class AccountService(AccountManagementPort):
     """
     Service responsible for handling all account-related logic,
     including authentication and registration.
+    Implements the AccountManagementPort.
     Depends on the AccountRepository output port for data access.
     """
 
