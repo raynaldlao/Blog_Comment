@@ -1,13 +1,16 @@
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
+from src.application.input_ports.article_management import ArticleManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 
 
-class ArticleService:
+class ArticleService(ArticleManagementPort):
     """
-    Service responsible for business logic operations related to Articles.
-    Depends on the ArticleRepository and AccountRepository output ports.
+    Implements the ArticleManagementPort input port.
+    Handles all business logic operations related to Articles.
+    Depends on the ArticleRepository and AccountRepository output ports
+    for data persistence, injected via the constructor.
     """
 
     def __init__(self, article_repository: ArticleRepository, account_repository: AccountRepository):
