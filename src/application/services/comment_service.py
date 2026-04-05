@@ -4,15 +4,18 @@ from operator import attrgetter
 
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.comment import Comment
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 
 
-class CommentService:
+class CommentService(CommentManagementPort):
     """
-    Service responsible for business logic operations related to Comments.
-    Depends on CommentRepository, ArticleRepository, and AccountRepository output ports.
+    Implements the CommentManagementPort input port.
+    Handles all business logic operations related to Comments.
+    Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
+    for data persistence, injected via the constructor.
     """
 
     def __init__(
