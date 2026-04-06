@@ -6,7 +6,7 @@ class RegistrationRequest(BaseModel):
     Pydantic DTO (Data Transfer Object) for an account registration request.
 
     Validates the data received at the registration endpoint before
-    it is passed to the AccountManagementPort. Enforces strict rules
+    it is passed to the RegistrationManagementPort. Enforces strict rules
     on email format, password length, and password confirmation.
     """
 

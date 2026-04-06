@@ -6,7 +6,7 @@ class LoginRequest(BaseModel):
     Pydantic DTO (Data Transfer Object) for a login request.
 
     Validates the data received at the authentication endpoint before
-    it is passed to the AccountManagementPort.
+    it is passed to the LoginManagementPort.
     """
 
     username: str = Field(..., description="The account username.")
