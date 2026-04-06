@@ -1,4 +1,5 @@
 from src.application.domain.account import Account
+from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.application.input_ports.login_management import LoginManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 
@@ -9,15 +10,20 @@ class LoginService(LoginManagementPort):
     Implements the LoginManagementPort.
     """
 
-    def __init__(self, account_repository: AccountRepository):
+    def __init__(
+        self,
+        account_repository: AccountRepository,
+        session_service: AccountSessionManagement
+    ):
         """
-        Initialize the service with an AccountRepository (Dependency Injection).
+        Initializes the service with both account repository and session management.
 
         Args:
-            account_repository (AccountRepository): The repository port
-            for account data access.
+            account_repository (AccountRepository): The repository for account data access.
+            session_service (AccountSessionManagement): The service for session state coordination.
         """
         self.account_repository = account_repository
+        self.session_service = session_service
 
     def authenticate_user(self, username: str, password: str) -> Account | None:
         """
@@ -34,6 +40,7 @@ class LoginService(LoginManagementPort):
         account = self.account_repository.find_by_username(username)
 
         if account and account.account_password == password:
+            self.session_service.start_session(account)
             return account
 
         # TODO: Raise InvalidCredentialsException
