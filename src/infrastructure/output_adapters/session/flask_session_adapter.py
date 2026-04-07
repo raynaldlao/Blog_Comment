@@ -11,7 +11,7 @@ class FlaskSessionAdapter(AccountSessionRepository):
     flask.session dictionary manipulations, using only native Python types.
     """
 
-    def set(self, key: str, value: str | int | float | bool | dict | list) -> None:
+    def store_value(self, key: str, value: str | int | float | bool | dict | list) -> None:
         """
         Assigns a primitive value to a session key using Flask's session object.
 
@@ -21,7 +21,7 @@ class FlaskSessionAdapter(AccountSessionRepository):
         """
         flask_session[key] = value
 
-    def get(self, key: str) -> str | int | float | bool | dict | list | None:
+    def retrieve_value(self, key: str) -> str | int | float | bool | dict | list | None:
         """
         Gets a value from a session key using Flask's session object.
 
@@ -33,7 +33,7 @@ class FlaskSessionAdapter(AccountSessionRepository):
         """
         return flask_session.get(key)
 
-    def clear(self) -> None:
+    def invalidate(self) -> None:
         """
         Wipes the entire Flask session cookie, removing all stored data.
         """

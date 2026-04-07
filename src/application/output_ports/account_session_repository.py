@@ -12,7 +12,7 @@ class AccountSessionRepository(ABC):
     """
 
     @abstractmethod
-    def set(self, key: str, value: str | int | float | bool | dict | list) -> None:
+    def store_value(self, key: str, value: str | int | float | bool | dict | list) -> None:
         """
         Stores a primitive value in the current session.
 
@@ -23,7 +23,7 @@ class AccountSessionRepository(ABC):
         pass
 
     @abstractmethod
-    def get(self, key: str) -> str | int | float | bool | dict | list | None:
+    def retrieve_value(self, key: str) -> str | int | float | bool | dict | list | None:
         """
         Retrieves a primitive value from the current session.
 
@@ -36,7 +36,7 @@ class AccountSessionRepository(ABC):
         pass
 
     @abstractmethod
-    def clear(self) -> None:
+    def invalidate(self) -> None:
         """
         Wipes all current session data from storage.
         """

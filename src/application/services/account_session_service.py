@@ -31,9 +31,9 @@ class AccountSessionService(AccountSessionManagement):
         Args:
             account (Account): The domain entity being logged in.
         """
-        self._session_repository.set(AccountSessionKey.USER_ID, account.account_id)
-        self._session_repository.set(AccountSessionKey.USERNAME, account.account_username)
-        self._session_repository.set(AccountSessionKey.ROLE, account.account_role.value)
+        self._session_repository.store_value(AccountSessionKey.USER_ID, account.account_id)
+        self._session_repository.store_value(AccountSessionKey.USERNAME, account.account_username)
+        self._session_repository.store_value(AccountSessionKey.ROLE, account.account_role.value)
 
     def get_current_account(self) -> Account | None:
         """
@@ -42,7 +42,7 @@ class AccountSessionService(AccountSessionManagement):
         Returns:
             Account | None: The domain entity if its ID is found in session, otherwise None.
         """
-        account_id = self._session_repository.get(AccountSessionKey.USER_ID)
+        account_id = self._session_repository.retrieve_value(AccountSessionKey.USER_ID)
         if not account_id:
             return None
 
@@ -52,4 +52,4 @@ class AccountSessionService(AccountSessionManagement):
         """
         Wipes the identification data from the session storage, effectively logging out.
         """
-        self._session_repository.clear()
+        self._session_repository.invalidate()

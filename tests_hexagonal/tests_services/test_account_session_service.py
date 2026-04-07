@@ -19,13 +19,13 @@ class TestAccountSessionService:
     def test_start_session(self):
         account = create_test_account()
         self.service.start_session(account)
-        self.session_repo.set.assert_any_call(AccountSessionKey.USER_ID, account.account_id)
-        self.session_repo.set.assert_any_call(AccountSessionKey.USERNAME, account.account_username)
-        self.session_repo.set.assert_any_call(AccountSessionKey.ROLE, account.account_role.value)
+        self.session_repo.store_value.assert_any_call(AccountSessionKey.USER_ID, account.account_id)
+        self.session_repo.store_value.assert_any_call(AccountSessionKey.USERNAME, account.account_username)
+        self.session_repo.store_value.assert_any_call(AccountSessionKey.ROLE, account.account_role.value)
 
     def test_get_current_account_success(self):
         account = create_test_account()
-        self.session_repo.get.return_value = account.account_id
+        self.session_repo.retrieve_value.return_value = account.account_id
         self.account_repo.get_by_id.return_value = account
         result = self.service.get_current_account()
         assert result is not None
@@ -33,10 +33,10 @@ class TestAccountSessionService:
         self.account_repo.get_by_id.assert_called_once_with(account.account_id)
 
     def test_get_current_account_no_session(self):
-        self.session_repo.get.return_value = None
+        self.session_repo.retrieve_value.return_value = None
         result = self.service.get_current_account()
         assert result is None
 
     def test_terminate_session(self):
         self.service.terminate_session()
-        self.session_repo.clear.assert_called_once()
+        self.session_repo.invalidate.assert_called_once()
