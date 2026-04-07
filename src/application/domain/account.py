@@ -12,6 +12,16 @@ class AccountRole(str, Enum):
     USER = "user"
 
 
+class AccountSessionKey(str, Enum):
+    """
+    Available keys for storing account information in the session.
+    Using an Enum ensures consistency across the application and prevents typos.
+    """
+    USER_ID = "user_id"
+    USERNAME = "username"
+    ROLE = "role"
+
+
 class Account:
     """
     Represents a user account in the system.

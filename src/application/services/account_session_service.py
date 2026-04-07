@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountSessionKey
 from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
@@ -7,15 +7,7 @@ from src.application.output_ports.account_session_repository import AccountSessi
 class AccountSessionService(AccountSessionManagement):
     """
     Service providing session-related business logic.
-
-    Decouples the system's identity management from a physical storage implementation.
-    This service is the only component that knows the specific storage keys used
-    for maintaining a session.
     """
-
-    USER_ID_KEY = "user_id"
-    USERNAME_KEY = "username"
-    ROLE_KEY = "role"
 
     def __init__(
         self,
@@ -39,9 +31,9 @@ class AccountSessionService(AccountSessionManagement):
         Args:
             account (Account): The domain entity being logged in.
         """
-        self._session_repository.set(self.USER_ID_KEY, account.account_id)
-        self._session_repository.set(self.USERNAME_KEY, account.account_username)
-        self._session_repository.set(self.ROLE_KEY, account.account_role.value)
+        self._session_repository.set(AccountSessionKey.USER_ID, account.account_id)
+        self._session_repository.set(AccountSessionKey.USERNAME, account.account_username)
+        self._session_repository.set(AccountSessionKey.ROLE, account.account_role.value)
 
     def get_current_account(self) -> Account | None:
         """
@@ -50,7 +42,7 @@ class AccountSessionService(AccountSessionManagement):
         Returns:
             Account | None: The domain entity if its ID is found in session, otherwise None.
         """
-        account_id = self._session_repository.get(self.USER_ID_KEY)
+        account_id = self._session_repository.get(AccountSessionKey.USER_ID)
         if not account_id:
             return None
 

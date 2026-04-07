@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from src.application.domain.account import AccountSessionKey
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.services.account_session_service import AccountSessionService
@@ -18,9 +19,9 @@ class TestAccountSessionService:
     def test_start_session(self):
         account = create_test_account()
         self.service.start_session(account)
-        self.session_repo.set.assert_any_call("user_id", account.account_id)
-        self.session_repo.set.assert_any_call("username", account.account_username)
-        self.session_repo.set.assert_any_call("role", account.account_role.value)
+        self.session_repo.set.assert_any_call(AccountSessionKey.USER_ID, account.account_id)
+        self.session_repo.set.assert_any_call(AccountSessionKey.USERNAME, account.account_username)
+        self.session_repo.set.assert_any_call(AccountSessionKey.ROLE, account.account_role.value)
 
     def test_get_current_account_success(self):
         account = create_test_account()
