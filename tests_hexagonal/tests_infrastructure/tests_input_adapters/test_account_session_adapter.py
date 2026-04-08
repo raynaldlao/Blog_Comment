@@ -39,32 +39,26 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/login", "auth.login", "login")
 
     def test_logout_clears_session(self):
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/logout", follow_redirects=True)
+        response = self.client.get("/logout", follow_redirects=True)
 
-                assert b"You have been logged out." in response.data
-                self.mock_session_repo.invalidate.assert_called_once()
+        assert b"You have been logged out." in response.data
+        self.mock_session_repo.invalidate.assert_called_once()
 
     def test_get_profile_success(self):
         fake_user = create_test_account()
         self.mock_session_repo.retrieve_value.return_value = fake_user.account_id
         self.mock_repo.get_by_id.return_value = fake_user
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/profile")
+        response = self.client.get("/profile")
 
-                assert response.status_code == 200
-                assert b"leia" in response.data
-                assert b"leia@galaxy.com" in response.data
+        assert response.status_code == 200
+        assert b"leia" in response.data
+        assert b"leia@galaxy.com" in response.data
 
     def test_get_profile_unauthenticated(self):
         self.mock_session_repo.retrieve_value.return_value = None
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/profile", follow_redirects=True)
+        response = self.client.get("/profile", follow_redirects=True)
 
-                assert b"Please sign in to view your profile." in response.data
-                assert b"login" in response.data
+        assert b"Please sign in to view your profile." in response.data
+        assert b"login" in response.data

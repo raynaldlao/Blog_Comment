@@ -33,55 +33,47 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/login", "auth.login", "login_page")
 
     def test_get_registration_page(self):
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/register")
-                assert response.status_code == 200
-                assert b"Join the Blog" in response.data
+        response = self.client.get("/register")
+        assert response.status_code == 200
+        assert b"Join the Blog" in response.data
 
     def test_post_registration_success(self):
         self.mock_repo.find_by_username.return_value = None
         self.mock_repo.find_by_email.return_value = None
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/register", data={
-                    "username": "leia",
-                    "email": "leia@rebels.com",
-                    "password": "password123",
-                    "confirm_password": "password123"
-                }, follow_redirects=True)
+        response = self.client.post("/register", data={
+            "username": "leia",
+            "email": "leia@rebels.com",
+            "password": "password123",
+            "confirm_password": "password123"
+        }, follow_redirects=True)
 
-                assert b"Registration successful. Please sign in." in response.data
-                assert response.request.path == "/login"
-                self.mock_repo.save.assert_called_once()
+        assert b"Registration successful. Please sign in." in response.data
+        assert response.request.path == "/login"
+        self.mock_repo.save.assert_called_once()
 
     def test_post_registration_password_mismatch(self):
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/register", data={
-                    "username": "leia",
-                    "email": "leia@rebels.com",
-                    "password": "password123",
-                    "confirm_password": "wrong_confirm"
-                }, follow_redirects=True)
+        response = self.client.post("/register", data={
+            "username": "leia",
+            "email": "leia@rebels.com",
+            "password": "password123",
+            "confirm_password": "wrong_confirm"
+        }, follow_redirects=True)
 
-                assert b"Passwords do not match." in response.data
-                self.mock_repo.save.assert_not_called()
+        assert b"Passwords do not match." in response.data
+        self.mock_repo.save.assert_not_called()
 
     def test_post_registration_email_taken(self):
         existing_account = create_test_account(account_email="leia@rebels.com")
         self.mock_repo.find_by_username.return_value = None
         self.mock_repo.find_by_email.return_value = existing_account
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/register", data={
-                    "username": "leia",
-                    "email": "leia@rebels.com",
-                    "password": "password123",
-                    "confirm_password": "password123"
-                }, follow_redirects=True)
+        response = self.client.post("/register", data={
+            "username": "leia",
+            "email": "leia@rebels.com",
+            "password": "password123",
+            "confirm_password": "password123"
+        }, follow_redirects=True)
 
-                assert b"This email is already taken." in response.data
-                self.mock_repo.save.assert_not_called()
+        assert b"This email is already taken." in response.data
+        self.mock_repo.save.assert_not_called()

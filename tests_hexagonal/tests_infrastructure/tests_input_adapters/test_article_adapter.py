@@ -97,127 +97,100 @@ class TestArticleList(ArticleAdapterTestBase):
         article = create_test_article(article_title="Hexagonal Architecture Rocks")
         self.mock_article_repo.get_paginated.return_value = [article]
         self.mock_article_repo.count_all.return_value = 1
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/")
-                assert response.status_code == 200
-                assert b"Hexagonal Architecture Rocks" in response.data
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"Hexagonal Architecture Rocks" in response.data
 
     def test_pagination_navigation_visible(self):
         self.mock_article_repo.get_paginated.return_value = [create_test_article()] * 10
         self.mock_article_repo.count_all.return_value = 15
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/")
-                assert b"Next &rarr;" in response.data
+        response = self.client.get("/")
+        assert b"Next &rarr;" in response.data
 
     def test_article_content_truncation_on_list_view(self):
         long_content = "A" * 500
         article = create_test_article(article_content=long_content)
         self.mock_article_repo.get_paginated.return_value = [article]
         self.mock_article_repo.count_all.return_value = 1
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/")
-                assert len(long_content) > 123
-                assert b"AAA..." in response.data
+        response = self.client.get("/")
+        assert len(long_content) > 123
+        assert b"AAA..." in response.data
 
 
 class TestArticleDetail(ArticleAdapterTestBase):
     def test_read_article_not_found(self):
         self.mock_article_repo.get_by_id.return_value = None
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/articles/999", follow_redirects=True)
-                assert b"The requested article could not be found." in response.data
+        response = self.client.get("/articles/999", follow_redirects=True)
+        assert b"The requested article could not be found." in response.data
 
     def test_ui_hides_edit_delete_buttons_for_non_owners(self):
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=99)
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/articles/101")
-                assert b"Edit" not in response.data
-                assert b"Delete" not in response.data
+        response = self.client.get("/articles/101")
+        assert b"Edit" not in response.data
+        assert b"Delete" not in response.data
 
     def test_xss_escaping_in_article_detail(self):
         malicious_title = "<script>alert('XSS')</script>"
         article = create_test_article(article_title=malicious_title)
         self.mock_article_repo.get_by_id.return_value = article
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/articles/1")
-                assert b"<script>" not in response.data
-                assert b"&lt;script&gt;" in response.data
+        response = self.client.get("/articles/1")
+        assert b"<script>" not in response.data
+        assert b"&lt;script&gt;" in response.data
 
     def test_author_username_rendered(self):
         article = create_test_article(article_title="My Awesome Article")
         self.mock_article_repo.get_by_id.return_value = article
         self.article_service.get_author_name.return_value = "KingArthur"
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/articles/1")
-                assert b"KingArthur" in response.data
-                assert b"99" not in response.data
+        response = self.client.get("/articles/1")
+        assert b"KingArthur" in response.data
+        assert b"99" not in response.data
 
     def test_seo_meta_description_rendered(self):
         content = "This is a brief summary of the article content for SEO purposes."
         article = create_test_article(article_content=content)
         self.mock_article_repo.get_by_id.return_value = article
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/articles/1")
-                assert b'meta name="description"' in response.data
-                assert b"This is a brief summary" in response.data
+        response = self.client.get("/articles/1")
+        assert b'meta name="description"' in response.data
+        assert b"This is a brief summary" in response.data
 
 
 
 class TestArticleCreate(ArticleAdapterTestBase):
     def test_create_article_requires_login(self):
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/new",
-                    data={"title": "T", "content": "C"},
-                    follow_redirects=True
-                )
-                assert b"You must be signed in" in response.data
-                self.mock_article_repo.save.assert_not_called()
+        response = self.client.post(
+            "/articles/new",
+            data={"title": "T", "content": "C"},
+            follow_redirects=True
+        )
+
+        assert b"You must be signed in" in response.data
+        self.mock_article_repo.save.assert_not_called()
 
     def test_create_article_validation_error(self):
         account = create_test_account(account_role=AccountRole.AUTHOR)
         self._login_user(account)
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/new",
-                    data={"title": "Hi", "content": "Valid content length."},
-                    follow_redirects=True
-                )
-                assert b"Validation Error" in response.data
-                self.mock_article_repo.save.assert_not_called()
+        response = self.client.post(
+            "/articles/new",
+            data={"title": "Hi", "content": "Valid content length."},
+            follow_redirects=True
+        )
+
+        assert b"Validation Error" in response.data
+        self.mock_article_repo.save.assert_not_called()
 
     def test_regular_user_cannot_create_article(self):
         account = create_test_account(account_role=AccountRole.USER)
         self._login_user(account)
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/new",
-                    data={"title": "Valid Title", "content": "Valid content length."},
-                    follow_redirects=True
-                )
-                assert b"Insufficient permissions" in response.data
-                self.mock_article_repo.save.assert_not_called()
+        response = self.client.post(
+            "/articles/new",
+            data={"title": "Valid Title", "content": "Valid content length."},
+            follow_redirects=True
+        )
+
+        assert b"Insufficient permissions" in response.data
+        self.mock_article_repo.save.assert_not_called()
 
     def test_create_article_success(self):
         account = create_test_account(account_id=42, account_role=AccountRole.AUTHOR)
@@ -225,15 +198,13 @@ class TestArticleCreate(ArticleAdapterTestBase):
         self.mock_article_repo.save.return_value = None
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_id=101)
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/new",
-                    data={"title": "Valid Title", "content": "Valid content length."},
-                    follow_redirects=True
-                )
-                assert b"Your article has been successfully published!" in response.data
-                self.mock_article_repo.save.assert_called_once()
+        response = self.client.post(
+            "/articles/new",
+            data={"title": "Valid Title", "content": "Valid content length."},
+            follow_redirects=True
+        )
+        assert b"Your article has been successfully published!" in response.data
+        self.mock_article_repo.save.assert_called_once()
 
 
 class TestArticleUpdate(ArticleAdapterTestBase):
@@ -242,15 +213,14 @@ class TestArticleUpdate(ArticleAdapterTestBase):
         self._login_user(account)
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=99)
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/101/edit",
-                    data={"title": "Hack!", "content": "Trying to edit someone else's."},
-                    follow_redirects=True
-                )
-                assert b"Unauthorized" in response.data
-                self.mock_article_repo.save.assert_not_called()
+        response = self.client.post(
+            "/articles/101/edit",
+            data={"title": "Hack!", "content": "Trying to edit someone else's."},
+            follow_redirects=True
+        )
+
+        assert b"Unauthorized" in response.data
+        self.mock_article_repo.save.assert_not_called()
 
     def test_update_article_success(self):
         account = create_test_account(account_id=42, account_role=AccountRole.AUTHOR)
@@ -258,15 +228,14 @@ class TestArticleUpdate(ArticleAdapterTestBase):
         self.mock_article_repo.save.return_value = None
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=42)
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post(
-                    "/articles/101/edit",
-                    data={"title": "Updated Title", "content": "Updated content length."},
-                    follow_redirects=True
-                )
-                assert b"Your article has been successfully updated!" in response.data
-                self.mock_article_repo.save.assert_called_once()
+        response = self.client.post(
+            "/articles/101/edit",
+            data={"title": "Updated Title", "content": "Updated content length."},
+            follow_redirects=True
+        )
+
+        assert b"Your article has been successfully updated!" in response.data
+        self.mock_article_repo.save.assert_called_once()
 
 
 class TestArticleDelete(ArticleAdapterTestBase):
@@ -274,31 +243,22 @@ class TestArticleDelete(ArticleAdapterTestBase):
         account = create_test_account(account_id=42, account_role=AccountRole.AUTHOR)
         self._login_user(account)
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=99)
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/articles/101/delete", follow_redirects=True)
-                assert b"Unauthorized" in response.data
-                self.mock_article_repo.delete.assert_not_called()
+        response = self.client.post("/articles/101/delete", follow_redirects=True)
+        assert b"Unauthorized" in response.data
+        self.mock_article_repo.delete.assert_not_called()
 
     def test_admin_can_delete_any_article(self):
         account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self._login_user(account)
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=99)
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/articles/101/delete", follow_redirects=True)
-                assert b"Article has been successfully deleted." in response.data
-                self.mock_article_repo.delete.assert_called_once()
+        response = self.client.post("/articles/101/delete", follow_redirects=True)
+        assert b"Article has been successfully deleted." in response.data
+        self.mock_article_repo.delete.assert_called_once()
 
     def test_delete_article_success(self):
         account = create_test_account(account_id=42, account_role=AccountRole.AUTHOR)
         self._login_user(account)
         self.mock_article_repo.get_by_id.return_value = create_test_article(article_author_id=42)
-
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/articles/101/delete", follow_redirects=True)
-                assert b"Article has been successfully deleted." in response.data
-                self.mock_article_repo.delete.assert_called_once()
+        response = self.client.post("/articles/101/delete", follow_redirects=True)
+        assert b"Article has been successfully deleted." in response.data
+        self.mock_article_repo.delete.assert_called_once()

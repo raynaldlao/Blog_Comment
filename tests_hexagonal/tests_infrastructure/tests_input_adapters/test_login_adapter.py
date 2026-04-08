@@ -28,36 +28,31 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/register", "registration.register", "reg")
 
     def test_get_login_page(self):
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.get("/login")
-                assert response.status_code == 200
-                assert b"Welcome Back" in response.data
+        response = self.client.get("/login")
+        assert response.status_code == 200
+        assert b"Welcome Back" in response.data
 
     def test_post_login_success(self):
         account = create_test_account()
         self.mock_repo.find_by_username.return_value = account
 
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/login", data={
-                    "username": "leia",
-                    "password": "password123"
-                })
+        response = self.client.post("/login", data={
+            "username": "leia",
+            "password": "password123"
+        })
 
-                assert response.status_code == 302
-                assert response.location.endswith("/articles")
-                self.mock_repo.find_by_username.assert_called_once_with("leia")
-                self.mock_session.start_session.assert_called_once_with(account)
+        assert response.status_code == 302
+        assert response.location.endswith("/articles")
+        self.mock_repo.find_by_username.assert_called_once_with("leia")
+        self.mock_session.start_session.assert_called_once_with(account)
 
     def test_post_login_invalid_credentials(self):
         self.mock_repo.find_by_username.return_value = None
-        with self.app.test_request_context():
-            with self.app.test_client() as client:
-                response = client.post("/login", data={
-                    "username": "wrong",
-                    "password": "wrong"
-                }, follow_redirects=True)
 
-                assert b"Invalid username or password." in response.data
-                self.mock_repo.find_by_username.assert_called_once()
+        response = self.client.post("/login", data={
+            "username": "wrong",
+            "password": "wrong"
+        }, follow_redirects=True)
+
+        assert b"Invalid username or password." in response.data
+        self.mock_repo.find_by_username.assert_called_once()

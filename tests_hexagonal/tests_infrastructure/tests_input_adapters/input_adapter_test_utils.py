@@ -13,10 +13,21 @@ class FlaskInputAdapterTestBase:
     TEMPLATE_DIR = os.path.abspath("src/infrastructure/input_adapters/templates")
 
     def setup_method(self):
+        """
+        Sets up the Flask test client and pushes the application context globally.
+        Child test classes can simply use `self.client` without context managers.
+        """
         self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR)
         self.app.config["SECRET_KEY"] = "test_secret"
         self.app.config["SERVER_NAME"] = "localhost"
         self.app.config["TESTING"] = True
+        self.client = self.app.test_client()
+        self.app_context = self.app.test_request_context()
+        self.app_context.push()
+
+    def teardown_method(self):
+        """Pops the application context after each test."""
+        self.app_context.pop()
 
     def _register_dummy_route(self, rule, endpoint, label=None):
         """
