@@ -48,6 +48,27 @@ class TestArticleSave(SqlAlchemyArticleAdapterTestBase):
         assert model.article_content == "New Content"
         assert model.article_author_id == account.account_id
 
+    def test_save_updates_existing_article(self):
+        account = self.account_builder.create()
+        inserted = self.article_builder.create(
+            author_id=account.account_id,
+            title="Original Title",
+            content="Original Content",
+        )
+
+        updated_article = create_test_article(
+            article_id=inserted.article_id,
+            article_author_id=account.account_id,
+            article_title="Updated Title",
+            article_content="Updated Content",
+        )
+
+        self.repository.save(updated_article)
+        result = self.repository.get_by_id(inserted.article_id)
+        assert result is not None
+        assert result.article_title == "Updated Title"
+        assert result.article_content == "Updated Content"
+
 
 class TestArticleDelete(SqlAlchemyArticleAdapterTestBase):
     def test_delete_removes_article_from_database(self):

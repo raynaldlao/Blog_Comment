@@ -103,3 +103,17 @@ class ArticleManagementPort(ABC):
             int: The total count of all articles.
         """
         pass
+
+    @abstractmethod
+    def get_author_name(self, author_id: int) -> str:
+        """
+        Retrieves the username of an author by their unique identifier.
+
+        Args:
+            author_id (int): The unique identifier of the author.
+
+        Returns:
+            str: The username of the author, or 'Unknown' if not found.
+        """
+        pass
+

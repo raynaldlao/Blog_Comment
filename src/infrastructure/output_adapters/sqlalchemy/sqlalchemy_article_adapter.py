@@ -68,11 +68,21 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
 
     def save(self, article: Article) -> None:
         """
-        Saves a new article to the database.
+        Persists an article to the database.
+        If the article has an ID of 0, a new record is created (INSERT).
+        If the article has a valid ID, the existing record is updated (UPDATE).
 
         Args:
-            article (Article): The Article domain entity to save.
+            article (Article): The Article domain entity to persist.
         """
+        if article.article_id and article.article_id > 0:
+            model = self._session.get(ArticleModel, article.article_id)
+            if model:
+                model.article_title = article.article_title
+                model.article_content = article.article_content
+                self._session.commit()
+                return
+
         model = ArticleModel()
         model.article_author_id = article.article_author_id
         model.article_title = article.article_title

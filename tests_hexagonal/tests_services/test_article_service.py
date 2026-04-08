@@ -261,3 +261,18 @@ class TestDeleteArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.assert_called_once_with(999)
         self.mock_article_repo.delete.assert_not_called()
         assert result == "Article not found."
+
+
+class TestGetAuthorName(ArticleServiceTestBase):
+    def test_get_author_name_found(self):
+        fake_account = create_test_account(account_username="KingArthur")
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        result = self.service.get_author_name(author_id=fake_account.account_id)
+        self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
+        assert result == "KingArthur"
+
+    def test_get_author_name_not_found(self):
+        self.mock_account_repo.get_by_id.return_value = None
+        result = self.service.get_author_name(author_id=999)
+        self.mock_account_repo.get_by_id.assert_called_once_with(999)
+        assert result == "Unknown"

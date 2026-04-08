@@ -37,10 +37,12 @@ class ArticleRepository(ABC):
     @abstractmethod
     def save(self, article: Article) -> None:
         """
-        Saves a new article to the database.
+        Persists an article to the database.
+        If the article has an ID of 0, a new record is created (INSERT).
+        If the article has a valid ID, the existing record is updated (UPDATE).
 
         Args:
-            article (Article): The Article domain entity to save.
+            article (Article): The Article domain entity to persist.
         """
         pass
 
