@@ -8,8 +8,8 @@ from src.infrastructure.input_adapters.dto.registration_request import Registrat
 
 class RegistrationAdapter(MethodView):
     """
-    Adapter responsible for handling account registration via the Web interface.
-    It bridges HTTP requests to the RegistrationManagementPort.
+    Flask Input Adapter (Controller) for Registration operations.
+    Translates web requests into domain operations and renders HTML templates.
     """
 
     def __init__(self, registration_service: RegistrationManagementPort):

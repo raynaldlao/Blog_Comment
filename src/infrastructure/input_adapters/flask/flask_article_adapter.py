@@ -9,8 +9,8 @@ from src.infrastructure.input_adapters.dto.article_response import ArticleRespon
 
 class ArticleAdapter:
     """
-    Input adapter (Flask Controller) for Article operations.
-    Translates HTTP requests into domain operations and renders HTML templates.
+    Flask Input Adapter (Controller) for Article operations.
+    Translates web requests into domain operations and renders HTML templates.
     """
 
     def __init__(

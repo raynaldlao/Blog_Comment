@@ -3,9 +3,9 @@ from unittest.mock import Mock
 from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.services.login_service import LoginService
-from src.infrastructure.input_adapters.login_adapter import LoginAdapter
+from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_test_utils import (
+from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

@@ -7,8 +7,8 @@ from src.infrastructure.input_adapters.dto.account_response import AccountRespon
 
 class AccountSessionAdapter(MethodView):
     """
-    Unified adapter for session-related operations (Logout and Profile).
-    It bridges HTTP requests to the AccountSessionManagement port.
+    Flask Input Adapter (Controller) for Account Session and Profile operations.
+    Translates web requests into domain operations and renders HTML templates.
 
     This class adheres to Rule #6 (Adapter Uniqueness) by centralizing
     all session-related Web actions into a single infrastructure component.

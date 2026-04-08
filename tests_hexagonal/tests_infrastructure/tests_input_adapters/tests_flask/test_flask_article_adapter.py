@@ -6,9 +6,9 @@ from src.application.output_ports.account_session_repository import AccountSessi
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.account_session_service import AccountSessionService
 from src.application.services.article_service import ArticleService
-from src.infrastructure.input_adapters.article_adapter import ArticleAdapter
+from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
 from tests_hexagonal.test_domain_factories import create_test_account, create_test_article
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_test_utils import (
+from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

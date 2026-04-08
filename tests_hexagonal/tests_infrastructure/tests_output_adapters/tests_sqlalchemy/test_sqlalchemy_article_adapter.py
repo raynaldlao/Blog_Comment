@@ -1,7 +1,7 @@
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from tests_hexagonal.test_domain_factories import create_test_article
-from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_test_utils import (
+from tests_hexagonal.tests_infrastructure.tests_output_adapters.tests_sqlalchemy.sqlalchemy_test_utils import (
     AccountDataBuilder,
     ArticleDataBuilder,
     SqlAlchemyTestBase,

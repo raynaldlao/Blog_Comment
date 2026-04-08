@@ -8,8 +8,8 @@ from src.infrastructure.input_adapters.dto.login_request import LoginRequest
 
 class LoginAdapter(MethodView):
     """
-    Adapter responsible for handling user authentication via the Web interface.
-    It bridges HTTP requests to the LoginManagementPort.
+    Flask Input Adapter (Controller) for Authentication (Login) operations.
+    Translates web requests into domain operations and renders HTML templates.
     """
 
     def __init__(self, login_service: LoginManagementPort):
