@@ -1,6 +1,8 @@
 from unittest.mock import Mock
 
-from src.application.input_ports.account_session_management import AccountSessionManagement
+from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.account_session_repository import AccountSessionRepository
+from src.application.services.account_session_service import AccountSessionService
 from src.infrastructure.input_adapters.account_session_adapter import AccountSessionAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
 from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_test_utils import (
@@ -11,8 +13,15 @@ from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_tes
 class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
-        self.mock_service = Mock(spec=AccountSessionManagement)
-        self.adapter = AccountSessionAdapter(session_service=self.mock_service)
+        self.mock_repo = Mock(spec=AccountRepository, autospec=True)
+        self.mock_session_repo = Mock(spec=AccountSessionRepository, autospec=True)
+
+        self.service = AccountSessionService(
+            session_repository=self.mock_session_repo,
+            account_repository=self.mock_repo
+        )
+
+        self.adapter = AccountSessionAdapter(session_service=self.service)
 
         self.app.add_url_rule(
             "/logout",
@@ -35,11 +44,12 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
                 response = client.get("/logout", follow_redirects=True)
 
                 assert b"You have been logged out." in response.data
-                self.mock_service.terminate_session.assert_called_once()
+                self.mock_session_repo.invalidate.assert_called_once()
 
     def test_get_profile_success(self):
         fake_user = create_test_account()
-        self.mock_service.get_current_account.return_value = fake_user
+        self.mock_session_repo.retrieve_value.return_value = fake_user.account_id
+        self.mock_repo.get_by_id.return_value = fake_user
 
         with self.app.test_request_context():
             with self.app.test_client() as client:
@@ -50,7 +60,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
                 assert b"leia@galaxy.com" in response.data
 
     def test_get_profile_unauthenticated(self):
-        self.mock_service.get_current_account.return_value = None
+        self.mock_session_repo.retrieve_value.return_value = None
 
         with self.app.test_request_context():
             with self.app.test_client() as client:
