@@ -1,6 +1,6 @@
-from src.application.domain.article import Article
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
+from tests_hexagonal.test_domain_factories import create_test_article
 from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_test_utils import (
     AccountDataBuilder,
     ArticleDataBuilder,
@@ -22,6 +22,7 @@ class TestArticleGetById(SqlAlchemyArticleAdapterTestBase):
         inserted = self.article_builder.create(author_id=account.account_id)
         result = self.repository.get_by_id(inserted.article_id)
         assert result is not None
+        from src.application.domain.article import Article
         assert isinstance(result, Article)
         assert result.article_title == "Test Title"
 
@@ -34,12 +35,11 @@ class TestArticleSave(SqlAlchemyArticleAdapterTestBase):
     def test_save_persists_article_to_database(self):
         account = self.account_builder.create()
 
-        article = Article(
+        article = create_test_article(
             article_id=0,
             article_author_id=account.account_id,
             article_title="Saved Article",
             article_content="New Content",
-            article_published_at=None,
         )
 
         self.repository.save(article)

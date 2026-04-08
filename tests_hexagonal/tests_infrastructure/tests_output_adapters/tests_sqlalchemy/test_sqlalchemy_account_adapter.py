@@ -1,6 +1,7 @@
-from src.application.domain.account import Account, AccountRole
+from src.application.domain.account import AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
+from tests_hexagonal.test_domain_factories import create_test_account
 from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_test_utils import (
     AccountDataBuilder,
     SqlAlchemyTestBase,
@@ -19,6 +20,7 @@ class TestAccountFindByUsername(SqlAlchemyAccountAdapterTestBase):
         self.account_builder.create(username="admin_user", role="admin")
         result = self.repository.find_by_username("admin_user")
         assert result is not None
+        from src.application.domain.account import Account
         assert isinstance(result, Account)
         assert result.account_username == "admin_user"
         assert result.account_role == AccountRole.ADMIN
@@ -39,6 +41,7 @@ class TestAccountFindByEmail(SqlAlchemyAccountAdapterTestBase):
         self.account_builder.create(email="found@example.com", role="author")
         result = self.repository.find_by_email("found@example.com")
         assert result is not None
+        from src.application.domain.account import Account
         assert isinstance(result, Account)
         assert result.account_email == "found@example.com"
         assert result.account_role == AccountRole.AUTHOR
@@ -59,6 +62,7 @@ class TestAccountGetById(SqlAlchemyAccountAdapterTestBase):
         inserted = self.account_builder.create(username="id_user", role="user")
         result = self.repository.get_by_id(inserted.account_id)
         assert result is not None
+        from src.application.domain.account import Account
         assert isinstance(result, Account)
         assert result.account_username == "id_user"
         assert result.account_role == AccountRole.USER
@@ -70,13 +74,12 @@ class TestAccountGetById(SqlAlchemyAccountAdapterTestBase):
 
 class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
     def test_save_persists_account_to_database(self):
-        account = Account(
+        account = create_test_account(
             account_id=0,
             account_username="new_user",
             account_password="hashed_pwd",
             account_email="new@example.com",
             account_role=AccountRole.USER,
-            account_created_at=None,
         )
 
         self.repository.save(account)
@@ -86,13 +89,12 @@ class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
         assert model.account_role == "user"
 
     def test_save_account_is_retrievable_via_adapter(self):
-        account = Account(
+        account = create_test_account(
             account_id=0,
             account_username="round_trip",
             account_password="secure",
             account_email="round@trip.com",
             account_role=AccountRole.AUTHOR,
-            account_created_at=None,
         )
 
         self.repository.save(account)
@@ -102,13 +104,12 @@ class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
         assert result.account_role == AccountRole.AUTHOR
 
     def test_save_assigns_auto_generated_id(self):
-        account = Account(
+        account = create_test_account(
             account_id=0,
             account_username="auto_id",
             account_password="pass",
             account_email="auto@id.com",
             account_role=AccountRole.USER,
-            account_created_at=None,
         )
 
         self.repository.save(account)

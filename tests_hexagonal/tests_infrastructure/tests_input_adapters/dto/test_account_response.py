@@ -1,31 +1,46 @@
 from datetime import datetime
 
-from src.application.domain.account import Account, AccountRole
+from src.application.domain.account import AccountRole
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
+from tests_hexagonal.test_domain_factories import create_test_account
 
 
-def test_account_response_from_domain_excludes_password():
-    """
-    Test that mapping from an Account domain entity correctly populates
-    all public fields and completely excludes the password.
-    """
-    domain_account = Account(
+def test_account_response_creation():
+    fixed_date = datetime(2026, 4, 7, 10, 0, 0)
+
+    response = AccountResponse(
         account_id=1,
-        account_username="testuser",
-        account_password="secret_password_123",
-        account_email="test@example.com",
-        account_role=AccountRole.USER,
-        account_created_at=datetime(2023, 1, 1, 12, 0, 0),
+        account_username="leia",
+        account_email="leia@galaxy.com",
+        account_role="user",
+        account_created_at=fixed_date
     )
 
-    response_dto = AccountResponse.from_domain(domain_account)
-    assert response_dto.account_id == 1
-    assert response_dto.account_username == "testuser"
-    assert response_dto.account_email == "test@example.com"
-    assert response_dto.account_role == "user"
-    assert response_dto.account_created_at == datetime(2023, 1, 1, 12, 0, 0)
-    assert not hasattr(response_dto, "account_password")
-    assert not hasattr(response_dto, "password")
-    response_dict = response_dto.model_dump()
+    assert response.account_id == 1
+    assert response.account_username == "leia"
+    assert response.account_role == "user"
+    assert response.account_created_at == fixed_date
+
+
+def test_from_domain():
+    fixed_date = datetime(2026, 4, 7, 10, 0, 0)
+
+    domain_account = create_test_account(
+        account_id=1,
+        account_username="leia",
+        account_email="leia@galaxy.com",
+        account_role=AccountRole.USER,
+        account_created_at=fixed_date
+    )
+
+    response = AccountResponse.from_domain(domain_account)
+    assert response.account_id == 1
+    assert response.account_username == "leia"
+    assert response.account_email == "leia@galaxy.com"
+    assert response.account_role == "user"
+    assert response.account_created_at == fixed_date
+    assert not hasattr(response, "account_password")
+    assert not hasattr(response, "password")
+    response_dict = response.model_dump()
     assert "account_password" not in response_dict
     assert "password" not in response_dict

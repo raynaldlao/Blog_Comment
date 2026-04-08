@@ -1,6 +1,6 @@
-from src.application.domain.comment import Comment
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
+from tests_hexagonal.test_domain_factories import create_test_comment
 from tests_hexagonal.tests_infrastructure.tests_output_adapters.infrastructure_test_utils import (
     AccountDataBuilder,
     ArticleDataBuilder,
@@ -25,6 +25,7 @@ class TestCommentGetById(SqlAlchemyCommentAdapterTestBase):
         inserted = self.comment_builder.create(article_id=article.article_id, author_id=account.account_id)
         result = self.repository.get_by_id(inserted.comment_id)
         assert result is not None
+        from src.application.domain.comment import Comment
         assert isinstance(result, Comment)
         assert result.comment_content == "Test Comment"
 
@@ -38,13 +39,12 @@ class TestCommentSave(SqlAlchemyCommentAdapterTestBase):
         account = self.account_builder.create()
         article = self.article_builder.create(author_id=account.account_id)
 
-        comment = Comment(
+        comment = create_test_comment(
             comment_id=0,
             comment_article_id=article.article_id,
             comment_written_account_id=account.account_id,
             comment_reply_to=None,
             comment_content="My new comment",
-            comment_posted_at=None,
         )
 
         self.repository.save(comment)
