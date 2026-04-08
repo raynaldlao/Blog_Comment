@@ -1,36 +1,34 @@
 from unittest.mock import Mock
 
-from flask import Flask
-
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.infrastructure.input_adapters.registration_adapter import RegistrationAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
+from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_test_utils import (
+    FlaskInputAdapterTestBase,
+)
 
 
-class TestRegistrationAdapter:
-    """
-    Tests for the RegistrationAdapter to ensure correct registration flow.
-    """
-
+class TestRegistrationAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
-        import os
-        template_dir = os.path.abspath("src/infrastructure/input_adapters/templates")
-
-        self.app = Flask(__name__, template_folder=template_dir)
-        self.app.config["SECRET_KEY"] = "test_secret"
-        self.app.config["SERVER_NAME"] = "localhost"
-        self.app.config["TESTING"] = True
-        self.app.config["PROPAGATE_EXCEPTIONS"] = True
+        super().setup_method()
         self.mock_service = Mock(spec=RegistrationManagementPort)
         self.adapter = RegistrationAdapter(registration_service=self.mock_service)
-        self.app.add_url_rule("/register", view_func=self.adapter.render_registration_page, methods=["GET"], endpoint="registration.register")
-        self.app.add_url_rule("/register", view_func=self.adapter.register, methods=["POST"], endpoint="registration.register_post")
 
-        @self.app.route("/login")
-        def login_dummy():
-            from flask import get_flashed_messages
-            return f"login_page {get_flashed_messages()}"
-        self.app.add_url_rule("/login", endpoint="auth.login")
+        self.app.add_url_rule(
+            "/register",
+            view_func=self.adapter.render_registration_page,
+            methods=["GET"],
+            endpoint="registration.register"
+        )
+
+        self.app.add_url_rule(
+            "/register",
+            iew_func=self.adapter.register,
+            methods=["POST"],
+            endpoint="registration.register_post"
+        )
+
+        self._register_dummy_route("/login", "auth.login", "login_page")
 
     def test_get_registration_page(self):
         with self.app.test_request_context():

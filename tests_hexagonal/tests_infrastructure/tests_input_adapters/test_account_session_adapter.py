@@ -1,20 +1,16 @@
-import os
 from unittest.mock import Mock
-
-from flask import Flask, get_flashed_messages
 
 from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.infrastructure.input_adapters.account_session_adapter import AccountSessionAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
+from tests_hexagonal.tests_infrastructure.tests_input_adapters.input_adapter_test_utils import (
+    FlaskInputAdapterTestBase,
+)
 
 
-class TestAccountSessionAdapter:
+class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
-        template_dir = os.path.abspath("src/infrastructure/input_adapters/templates")
-        self.app = Flask(__name__, template_folder=template_dir)
-        self.app.config["SECRET_KEY"] = "test_secret"
-        self.app.config["SERVER_NAME"] = "localhost"
-        self.app.config["TESTING"] = True
+        super().setup_method()
         self.mock_service = Mock(spec=AccountSessionManagement)
         self.adapter = AccountSessionAdapter(session_service=self.mock_service)
 
@@ -30,15 +26,8 @@ class TestAccountSessionAdapter:
             endpoint="account_session.profile"
         )
 
-        @self.app.route("/articles")
-        def articles_dummy():
-            return f"articles {get_flashed_messages()}"
-        self.app.add_url_rule("/articles", endpoint="article.list_articles")
-
-        @self.app.route("/login")
-        def login_dummy():
-            return f"login {get_flashed_messages()}"
-        self.app.add_url_rule("/login", endpoint="auth.login")
+        self._register_dummy_route("/articles", "article.list_articles", "articles")
+        self._register_dummy_route("/login", "auth.login", "login")
 
     def test_logout_clears_session(self):
         with self.app.test_request_context():
