@@ -1,176 +1,40 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Blog Management</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --text-color: #2d3748;
-            --input-border: #e2e8f0;
-            --accent-color: #667eea;
-        }
+{% extends "base.html" %}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-        }
+{% block title %}Login - Blog Management{% endblock %}
 
-        body {
-            background: var(--primary-gradient);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
 
-        .login-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            max-width: 400px;
-            width: 100%;
-            border-radius: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            padding: 2.5rem;
-            animation: fadeIn 0.6s ease-out;
-        }
+{% block content %}
+<div class="login-card">
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Please enter your credentials to login</p>
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1 {
-            color: var(--text-color);
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #718096;
-            font-size: 0.875rem;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .flash-messages {
-            margin-bottom: 1.5rem;
-        }
-
-        .alert {
-            background-color: #fff5f5;
-            color: #c53030;
-            padding: 1rem;
-            border-left: 4px solid #fc8181;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        label {
-            display: block;
-            color: #4a5568;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--input-border);
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
-        }
-
-        button {
-            width: 100%;
-            padding: 0.875rem;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-            margin-top: 1rem;
-        }
-
-        button:hover {
-            transform: scale(1.02);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        .footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.875rem;
-            color: #718096;
-        }
-
-        .footer a {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <h1>Welcome Back</h1>
-        <p class="subtitle">Please enter your credentials to login</p>
-
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="alert">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
-        <form action="{{ url_for('auth.login') }}" method="POST">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="Enter your username" required>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="alert">{{ message }}</div>
+                {% endfor %}
             </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
-            </div>
-            <button type="submit">Sign In</button>
-        </form>
+        {% endif %}
+    {% endwith %}
 
-        <div class="footer">
-            Don't have an account? <a href="{{ url_for('registration.register') }}">Register now</a>
+    <form action="{{ url_for('auth.login') }}" method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
         </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit">Sign In</button>
+    </form>
+
+    <div class="footer">
+        Don't have an account? <a href="{{ url_for('registration.register') }}">Register now</a>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
