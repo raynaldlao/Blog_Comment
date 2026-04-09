@@ -1,3 +1,5 @@
+import pytest
+
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 from tests_hexagonal.test_domain_factories import create_test_comment
@@ -10,8 +12,8 @@ from tests_hexagonal.tests_infrastructure.tests_output_adapters.tests_sqlalchemy
 
 
 class SqlAlchemyCommentAdapterTestBase(SqlAlchemyTestBase):
-    def setup_method(self):
-        super().setup_method()
+    @pytest.fixture(autouse=True)
+    def setup_adapter(self):
         self.repository = SqlAlchemyCommentAdapter(self.session)
         self.account_builder = AccountDataBuilder(self.session)
         self.article_builder = ArticleDataBuilder(self.session)

@@ -1,3 +1,6 @@
+import pytest
+
+from src.application.domain.article import Article
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from tests_hexagonal.test_domain_factories import create_test_article
@@ -9,11 +12,11 @@ from tests_hexagonal.tests_infrastructure.tests_output_adapters.tests_sqlalchemy
 
 
 class SqlAlchemyArticleAdapterTestBase(SqlAlchemyTestBase):
-    def setup_method(self):
-        super().setup_method()
+    @pytest.fixture(autouse=True)
+    def setup_adapter(self):
         self.repository = SqlAlchemyArticleAdapter(self.session)
-        self.account_builder = AccountDataBuilder(self.session)
         self.article_builder = ArticleDataBuilder(self.session)
+        self.account_builder = AccountDataBuilder(self.session)
 
 
 class TestArticleGetById(SqlAlchemyArticleAdapterTestBase):
@@ -22,7 +25,6 @@ class TestArticleGetById(SqlAlchemyArticleAdapterTestBase):
         inserted = self.article_builder.create(author_id=account.account_id)
         result = self.repository.get_by_id(inserted.article_id)
         assert result is not None
-        from src.application.domain.article import Article
         assert isinstance(result, Article)
         assert result.article_title == "Test Title"
 

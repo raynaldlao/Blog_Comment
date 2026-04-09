@@ -1,7 +1,7 @@
-from sqlalchemy import create_engine, text
+import pytest
+from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.infrastructure.config import infra_config
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
@@ -10,29 +10,37 @@ from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry im
 
 class SqlAlchemyTestBase:
     """
-    Shared Base class for SQLAlchemy integration tests.
-    Connects to the PostgreSQL test database, creates tables before
-    each test and truncates data after each test for inspection.
+    Shared Base class for SQLAlchemy integration tests (Persistence for Inspection mode).
+
+    Strategy:
+        - Orchestrated via the 'db_context' autouse fixture.
+        - BEFORE each test: database is cleaned.
+        - DURING each test: real commits are allowed.
+        - AFTER each test: session is closed, data persists for inspection.
     """
 
-    def setup_method(self):
-        self.engine = create_engine(infra_config.test_database_url)
-        SqlAlchemyModel.metadata.create_all(self.engine)
+    @staticmethod
+    def _truncate_all(connection):
+        """Purges all tables and resets sequences. Called before each test."""
+        tables = SqlAlchemyModel.metadata.sorted_tables
+        table_names = ", ".join(f'"{t.name}"' for t in tables)
+        if table_names:
+            connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
 
-        with self.engine.connect() as connection:
-            tables = SqlAlchemyModel.metadata.sorted_tables
-            table_names = ", ".join(f'"{t.name}"' for t in tables)
-            if table_names:
-                connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
-                connection.commit()
+    @pytest.fixture(autouse=True)
+    def db_context(self, db_engine):
+        """
+        Pytest fixture that orchestrates the database state for each test.
+        Replaces setup_method/teardown_method for better fixture integration.
+        """
+        with db_engine.begin() as conn:
+            self._truncate_all(conn)
 
-        session_factory = sessionmaker(bind=self.engine)
+        session_factory = sessionmaker(bind=db_engine)
         self.session = session_factory()
-
-    def teardown_method(self):
-        self.session.rollback()
+        self.engine = db_engine
+        yield
         self.session.close()
-        self.engine.dispose()
 
 
 class AccountDataBuilder:

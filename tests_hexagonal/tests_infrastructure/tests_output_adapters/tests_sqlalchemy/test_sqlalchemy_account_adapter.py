@@ -1,3 +1,5 @@
+import pytest
+
 from src.application.domain.account import AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
@@ -9,8 +11,8 @@ from tests_hexagonal.tests_infrastructure.tests_output_adapters.tests_sqlalchemy
 
 
 class SqlAlchemyAccountAdapterTestBase(SqlAlchemyTestBase):
-    def setup_method(self):
-        super().setup_method()
+    @pytest.fixture(autouse=True)
+    def setup_adapter(self):
         self.repository = SqlAlchemyAccountAdapter(self.session)
         self.account_builder = AccountDataBuilder(self.session)
 
