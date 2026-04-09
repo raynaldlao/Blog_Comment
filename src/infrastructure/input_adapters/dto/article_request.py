@@ -1,14 +1,15 @@
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field
 
 
 class ArticleRequest(BaseModel):
     """
     Data Transfer Object representing the request to create or update an article.
-    Validates incoming data constraints at the web boundary.
+    Synchronised with SQLAlchemy model constraints (Text, nullable=False).
+    Using min_length=1 to enforce that 'NOT NULL' fields are not empty.
     """
-    title: constr(strip_whitespace=True, min_length=3, max_length=150) = Field(
-        ..., description="The title of the article. Must be between 3 and 150 characters."
+    title: str = Field(
+        ..., min_length=1, description="The title of the article. Required (NOT NULL)."
     )
-    content: constr(strip_whitespace=True, min_length=10) = Field(
-        ..., description="The main content of the article. Must be at least 10 characters."
+    content: str = Field(
+        ..., min_length=1, description="The main content of the article. Required (NOT NULL)."
     )
