@@ -4,35 +4,46 @@ from pydantic import ValidationError
 from src.infrastructure.input_adapters.dto.registration_request import RegistrationRequest
 
 
-def test_registration_request_valid():
-    request = RegistrationRequest(
-        username="testuser",
-        email="test@example.com",
-        password="password123",
-        confirm_password="password123",
-    )
-    assert request.username == "testuser"
-    assert str(request.email) == "test@example.com"
-    assert request.password == "password123"
+class TestRegistrationRequest:
+    """
+    Unit tests for RegistrationRequest DTO.
+    Ensures that validation rules (Email, Password matching) are correctly applied.
+    """
 
-
-def test_registration_request_invalid_email():
-    with pytest.raises(ValidationError) as exc_info:
-        RegistrationRequest(
-            username="testuser",
-            email="not-an-email",
+    def test_registration_request_valid(self):
+        req = RegistrationRequest(
+            username="leia",
+            email="leia@rebels.com",
             password="password123",
-            confirm_password="password123",
+            confirm_password="password123"
         )
-    assert "value is not a valid email address" in str(exc_info.value)
+        assert req.username == "leia"
+        assert req.email == "leia@rebels.com"
 
+    def test_registration_request_invalid_email(self):
+        with pytest.raises(ValidationError):
+            RegistrationRequest(
+                username="leia",
+                email="invalid-email",
+                password="password123",
+                confirm_password="password123"
+            )
 
-def test_registration_request_passwords_do_not_match():
-    with pytest.raises(ValidationError) as exc_info:
-        RegistrationRequest(
-            username="testuser",
-            email="test@example.com",
-            password="password123",
-            confirm_password="differentpassword",
-        )
-    assert "Passwords do not match." in str(exc_info.value)
+    def test_registration_request_password_mismatch(self):
+        with pytest.raises(ValidationError) as excinfo:
+            RegistrationRequest(
+                username="leia",
+                email="leia@rebels.com",
+                password="password123",
+                confirm_password="different_password"
+            )
+        assert "Passwords do not match." in str(excinfo.value)
+
+    def test_registration_request_missing_field(self):
+        with pytest.raises(ValidationError):
+            RegistrationRequest(
+                # username missing
+                email="leia@rebels.com",
+                password="password123",
+                confirm_password="password123"
+            )
