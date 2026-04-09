@@ -46,3 +46,17 @@ class FlaskInputAdapterTestBase:
             return f"{label} {get_flashed_messages()}"
 
         self.app.add_url_rule(rule, view_func=dummy_view, endpoint=endpoint)
+
+    def set_current_user(self, account):
+        """
+        Injects a domain Account into the Flask 'g' context for testing.
+        Uses a before_request hook to ensure the user stays logged in
+        even across redirects within a single test.
+
+        Args:
+            account (Account): The domain entity to inject as the current user.
+        """
+        @self.app.before_request
+        def inject_test_user():
+            from flask import g as global_request_context
+            global_request_context.current_user = account
