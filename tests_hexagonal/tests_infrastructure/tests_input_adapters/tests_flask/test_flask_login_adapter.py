@@ -56,3 +56,4 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
 
         assert b"Invalid username or password." in response.data
         self.mock_repo.find_by_username.assert_called_once()
+        self.mock_session.start_session.assert_not_called()

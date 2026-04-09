@@ -32,7 +32,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.app.add_url_rule(
             "/profile",
             view_func=self.adapter.display_profile,
-            endpoint="account_session.profile"
+            endpoint="profile.profile"
         )
 
         self._register_dummy_route("/articles", "article.list_articles", "articles")

@@ -1,58 +1,45 @@
 from unittest.mock import Mock
 
-import pytest
-from flask import Flask
 from flask import g as global_request_context
 
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.infrastructure.input_adapters.flask.flask_handler import FlaskHandler
 from tests_hexagonal.test_domain_factories import create_test_account
+from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+    FlaskInputAdapterTestBase,
+)
 
 
-class TestFlaskHandler:
-    @pytest.fixture
-    def app(self):
-        application = Flask(__name__)
-        application.config["TESTING"] = True
-        return application
+class TestFlaskHandler(FlaskInputAdapterTestBase):
+    def setup_method(self):
+        super().setup_method()
+        self.mock_session_service = Mock(spec=AccountSessionManagement)
 
-    def test_handler_injects_current_user_into_context(self, app: Flask):
-        mock_session_service = Mock(spec=AccountSessionManagement)
-        test_account = create_test_account(account_username="AgentSmith", account_role=AccountRole.ADMIN)
-        mock_session_service.get_current_account.return_value = test_account
-        FlaskHandler.register_before_request_handler(app, mock_session_service)
-        captured_user = None
+    def _capture_user_via_route(self, endpoint: str):
+        captured = {"user": "NOT_SET"}
 
-        @app.route("/dummy-test-route")
+        @self.app.route(f"/{endpoint}")
         def dummy_route():
-            nonlocal captured_user
-            captured_user = global_request_context.get("current_user")
+            captured["user"] = global_request_context.get("current_user")
             return "OK", 200
 
-        with app.test_client() as client:
-            response = client.get("/dummy-test-route")
+        self.client.get(f"/{endpoint}")
+        return captured["user"]
 
-        assert response.status_code == 200
-        mock_session_service.get_current_account.assert_called_once()
+    def test_handler_injects_current_user_into_context(self):
+        test_account = create_test_account(account_username="AgentSmith", account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = test_account
+        FlaskHandler.register_before_request_handler(self.app, self.mock_session_service)
+        captured_user = self._capture_user_via_route("test-authenticated")
+        self.mock_session_service.get_current_account.assert_called_once()
         assert captured_user is not None
         assert captured_user.account_username == "AgentSmith"
         assert captured_user.account_role == AccountRole.ADMIN
 
-    def test_handler_injects_none_when_anonymous(self, app: Flask):
-        mock_session_service = Mock(spec=AccountSessionManagement)
-        mock_session_service.get_current_account.return_value = None
-        FlaskHandler.register_before_request_handler(app, mock_session_service)
-        captured_user = "NOT_NONE"
-
-        @app.route("/dummy-test-route-anon")
-        def dummy_route():
-            nonlocal captured_user
-            captured_user = global_request_context.get("current_user")
-            return "OK", 200
-
-        with app.test_client() as client:
-            client.get("/dummy-test-route-anon")
-
-        mock_session_service.get_current_account.assert_called_once()
+    def test_handler_injects_none_when_anonymous(self):
+        self.mock_session_service.get_current_account.return_value = None
+        FlaskHandler.register_before_request_handler(self.app, self.mock_session_service)
+        captured_user = self._capture_user_via_route("test-anonymous")
+        self.mock_session_service.get_current_account.assert_called_once()
         assert captured_user is None
