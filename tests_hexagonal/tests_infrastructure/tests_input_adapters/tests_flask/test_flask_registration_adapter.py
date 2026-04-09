@@ -77,3 +77,17 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
 
         assert b"This email is already taken." in response.data
         self.mock_repo.save.assert_not_called()
+
+    def test_post_registration_username_taken(self):
+        existing_account = create_test_account(account_username="leia")
+        self.mock_repo.find_by_username.return_value = existing_account
+
+        response = self.client.post("/register", data={
+            "username": "leia",
+            "email": "leia@rebels.com",
+            "password": "password123",
+            "confirm_password": "password123"
+        }, follow_redirects=True)
+
+        assert b"This username is already taken." in response.data
+        self.mock_repo.save.assert_not_called()

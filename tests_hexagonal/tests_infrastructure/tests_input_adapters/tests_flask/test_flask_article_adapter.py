@@ -76,6 +76,7 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         self.set_current_user(account)
         self.mock_account_repo.get_by_id.return_value = account
 
+
 class TestArticleAnonymousAccess(ArticleAdapterTestBase):
     def test_list_articles_as_anonymous(self):
         article = create_test_article(article_title="Hexagonal Secrets")
@@ -96,6 +97,11 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
 
+    def test_delete_article_redirects_anonymous_to_login(self):
+        response = self.client.post("/articles/1/delete", follow_redirects=True)
+        assert b"You must be signed in" in response.data
+
+
 class TestArticleAuthorAccess(ArticleAdapterTestBase):
     def test_author_can_create_article_with_short_title(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -108,6 +114,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
             data={"title": "A", "content": "Contenu suffisant."},
             follow_redirects=True
         )
+
         assert b"Your article has been successfully published!" in response.data
         self.mock_article_repo.save.assert_called_once()
 
@@ -122,6 +129,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
             data={"title": "Updated Title", "content": "New content is long enough."},
             follow_redirects=True
         )
+
         assert b"Your article has been successfully updated!" in response.data
         self.mock_article_repo.save.assert_called_once()
 
@@ -136,8 +144,25 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
             data={"title": "Hack Attempt", "content": "I am not the author."},
             follow_redirects=True
         )
+
         assert b"Unauthorized" in response.data
         self.mock_article_repo.save.assert_not_called()
+
+    def test_read_article_not_found(self):
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        self.mock_article_repo.get_by_id.return_value = None
+        response = self.client.get("/articles/999", follow_redirects=True)
+        assert b"Error: The requested article could not be found." in response.data
+
+    def test_render_edit_page_not_found(self):
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        self.mock_article_repo.get_by_id.return_value = None
+
+        response = self.client.get("/articles/999/edit", follow_redirects=True)
+        assert b"Error: The requested article could not be found." in response.data
+
 
 class TestArticleAdminAccess(ArticleAdapterTestBase):
     def test_admin_can_delete_any_article(self):
@@ -148,6 +173,7 @@ class TestArticleAdminAccess(ArticleAdapterTestBase):
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Article has been successfully deleted." in response.data
         self.mock_article_repo.delete.assert_called_once()
+
 
 class TestArticleValidation(ArticleAdapterTestBase):
     def test_create_article_fails_if_field_missing(self):

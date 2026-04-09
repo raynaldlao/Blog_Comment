@@ -40,7 +40,6 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
 
     def test_logout_clears_session(self):
         response = self.client.get("/logout", follow_redirects=True)
-
         assert b"You have been logged out." in response.data
         self.mock_session_repo.invalidate.assert_called_once()
 
@@ -48,17 +47,14 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         fake_user = create_test_account()
         self.mock_session_repo.retrieve_value.return_value = fake_user.account_id
         self.mock_repo.get_by_id.return_value = fake_user
-
         response = self.client.get("/profile")
-
         assert response.status_code == 200
         assert b"leia" in response.data
         assert b"leia@galaxy.com" in response.data
+        self.mock_repo.get_by_id.assert_called_once_with(fake_user.account_id)
 
     def test_get_profile_unauthenticated(self):
         self.mock_session_repo.retrieve_value.return_value = None
-
         response = self.client.get("/profile", follow_redirects=True)
-
         assert b"Please sign in to view your profile." in response.data
         assert b"login" in response.data
