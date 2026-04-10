@@ -40,6 +40,63 @@
         </div>
         {% endif %}
         <div class="detail-content">{{ article.article_content }}</div>
-    </article>
-</div>
+
+        <section class="comments-section" style="margin-top: 4rem; border-top: 1px solid #edf2f7; padding-top: 2rem;">
+            <h2 style="margin-bottom: 2rem;">Comments</h2>
+
+            {% if current_user %}
+            <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST" style="margin-bottom: 3rem;">
+                <textarea name="content" placeholder="Share your thoughts..." required style="width: 100%; min-height: 100px; padding: 1rem; border-radius: 8px; border: 1px solid #cbd5e0; margin-bottom: 1rem; font-family: inherit;"></textarea>
+                <button type="submit" class="btn">Post Comment</button>
+            </form>
+            {% else %}
+            <p style="margin-bottom: 3rem; background: #f7fafc; padding: 1rem; border-radius: 8px; text-align: center;">
+                <a href="{{ url_for('auth.login') }}">Login</a> to participate in the conversation.
+            </p>
+            {% endif %}
+
+            <div id="comments-container">
+                {% for root_comment in threaded_comments.get('root', []) %}
+                    <div class="comment-root" style="background: white; border: 1px solid #edf2f7; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                            <strong>{{ root_comment.author_username }}</strong>
+                            <small style="color: #a0aec0;">{{ root_comment.comment_posted_at_formatted }}</small>
+                        </div>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">{{ root_comment.comment_content }}</p>
+                        
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            {% if current_user %}
+                            <details style="font-size: 0.9rem; color: var(--accent-color); cursor: pointer;">
+                                <summary>Reply</summary>
+                                <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <textarea name="content" required placeholder="Write a reply..." style="padding: 0.5rem; border-radius: 6px; border: 1px solid #cbd5e0; min-height: 60px; font-family: inherit;"></textarea>
+                                    <button type="submit" class="btn btn-sm" style="align-self: flex-start;">Send Reply</button>
+                                </form>
+                            </details>
+                            {% endif %}
+                            
+                            {% if current_user and (current_user.account_role.name == 'ADMIN' or current_user.account_role == 'ADMIN') %}
+                            <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" style="background: none; border: none; color: #fc8181; cursor: pointer; font-size: 0.85rem;" onclick="return confirm('Delete this comment?');">Delete</button>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                        <div class="replies-wrapper" style="margin-top: 1rem; border-left: 2px solid #edf2f7; padding-left: 1.5rem;">
+                            {% for reply in threaded_comments.get(root_comment.comment_id, []) %}
+                                <div class="comment-reply" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #f7fafc;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                                        <strong>{{ reply.author_username }}</strong>
+                                        <small style="color: #a0aec0; font-size: 0.8rem;">{{ reply.comment_posted_at_formatted }}</small>
+                                    </div>
+                                    <p style="font-size: 0.95rem; color: #4a5568;">{{ reply.comment_content }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <p style="color: #a0aec0; text-align: center; margin-top: 2rem;">No comments yet. Be the first to reply!</p>
+                {% endfor %}
+            </div>
+        </section>
 {% endblock %}

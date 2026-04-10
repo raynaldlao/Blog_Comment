@@ -6,6 +6,7 @@ from pydantic import ValidationError
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
 from src.infrastructure.input_adapters.dto.article_response import ArticleResponse
+from src.infrastructure.input_adapters.dto.comment_response import CommentResponse
 
 
 class ArticleAdapter:
@@ -60,8 +61,8 @@ class ArticleAdapter:
 
     def read_article(self, article_id: int) -> str | Response:
         """
-        Renders the detailed view of a single article.
-        If the article is not found, redirects to the list with an error message.
+        Renders the detailed view of a single article, including its comments.
+        Composition is handled at the service layer to respect port isolation.
 
         Args:
             article_id (int): The unique identifier of the article to read.
@@ -69,15 +70,25 @@ class ArticleAdapter:
         Returns:
             Union[str, Response]: The 'article_detail.html' template or a redirect to the list view.
         """
-        domain_article = self.article_service.get_by_id(article_id)
-        if not domain_article:
-            flash("Error: The requested article could not be found.")
+        result = self.article_service.get_article_with_comments(article_id)
+        if isinstance(result, str):
+            flash(f"Error: {result}")
             return redirect(url_for("article.list_articles"))
 
+        domain_article, threaded_comments = result
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
+        dto_comments = {}
+        for key, comments in threaded_comments.items():
+            dto_comments[key] = [CommentResponse.from_domain(c) for c in comments]
+
         user = global_request_context.get("current_user")
-        return render_template("article_detail.html", article=article, current_user=user)
+        return render_template(
+            "article_detail.html",
+            article=article,
+            threaded_comments=dto_comments,
+            current_user=user
+        )
 
     def render_create_page(self) -> str | Response:
         """

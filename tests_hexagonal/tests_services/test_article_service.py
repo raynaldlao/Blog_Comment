@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
@@ -15,9 +16,11 @@ class ArticleServiceTestBase:
     def setup_method(self):
         self.mock_article_repo = MagicMock(spec=ArticleRepository, autospec=True)
         self.mock_account_repo = MagicMock(spec=AccountRepository, autospec=True)
+        self.mock_comment_management = MagicMock(spec=CommentManagementPort, autospec=True)
         self.service = ArticleService(
             article_repository=self.mock_article_repo,
-            account_repository=self.mock_account_repo
+            account_repository=self.mock_account_repo,
+            comment_management=self.mock_comment_management
         )
 
 
@@ -276,3 +279,31 @@ class TestGetAuthorName(ArticleServiceTestBase):
         result = self.service.get_author_name(author_id=999)
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
         assert result == "Unknown"
+
+
+class TestGetArticleWithComments(ArticleServiceTestBase):
+    def test_get_article_with_comments_success(self):
+        fake_article = create_test_article(article_id=1, article_title="Composed Article")
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_comment_management.get_comments_for_article.return_value = {"root": []}
+        result = self.service.get_article_with_comments(article_id=1)
+        assert isinstance(result, tuple)
+        article, comments = result
+        assert article.article_title == "Composed Article"
+        assert comments == {"root": []}
+        self.mock_article_repo.get_by_id.assert_called_once_with(1)
+        self.mock_comment_management.get_comments_for_article.assert_called_once_with(1)
+
+    def test_get_article_with_comments_article_not_found(self):
+        self.mock_article_repo.get_by_id.return_value = None
+        result = self.service.get_article_with_comments(article_id=999)
+        assert result == "Article not found."
+
+    def test_get_article_with_comments_handles_comment_error(self):
+        fake_article = create_test_article(article_id=1)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_comment_management.get_comments_for_article.return_value = "Critial logic failure"
+        result = self.service.get_article_with_comments(article_id=1)
+        article, comments = result
+        assert article.article_id == 1
+        assert comments == {"root": []}

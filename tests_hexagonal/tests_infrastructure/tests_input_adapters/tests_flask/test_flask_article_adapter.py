@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 from src.application.domain.account import AccountRole
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
@@ -17,10 +18,13 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         self.mock_article_repo.count_all.return_value = 0
         self.mock_article_repo.get_paginated.return_value = []
         self.mock_account_repo = Mock()
+        self.mock_comment_port = Mock(spec=CommentManagementPort, autospec=True)
+        self.mock_comment_port.get_comments_for_article.return_value = {"root": []}
 
         self.article_service = ArticleService(
             article_repository=self.mock_article_repo,
             account_repository=self.mock_account_repo,
+            comment_management=self.mock_comment_port
         )
 
         self.adapter = ArticleAdapter(article_service=self.article_service)
@@ -71,6 +75,9 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         self._register_dummy_route("/register", "registration.register", "registration")
         self._register_dummy_route("/logout", "logout.logout", "logout")
         self._register_dummy_route("/profile", "profile.profile", "profile")
+        self._register_dummy_route("/articles/<int:article_id>/comments", "comment.create_comment", "comment")
+        self._register_dummy_route("/articles/<int:article_id>/comments/<int:parent_comment_id>/reply", "comment.reply_to_comment", "comment")
+        self._register_dummy_route("/articles/<int:article_id>/comments/<int:comment_id>/delete", "comment.delete_comment", "comment")
 
     def _prepare_user_context(self, account):
         self.set_current_user(account)
@@ -153,7 +160,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         self._prepare_user_context(author)
         self.mock_article_repo.get_by_id.return_value = None
         response = self.client.get("/articles/999", follow_redirects=True)
-        assert b"Error: The requested article could not be found." in response.data
+        assert b"Error: Article not found." in response.data
 
     def test_render_edit_page_not_found(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)

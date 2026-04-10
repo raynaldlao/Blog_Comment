@@ -1,6 +1,7 @@
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.input_ports.article_management import ArticleManagementPort
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 
@@ -13,16 +14,23 @@ class ArticleService(ArticleManagementPort):
     for data persistence, injected via the constructor.
     """
 
-    def __init__(self, article_repository: ArticleRepository, account_repository: AccountRepository):
+    def __init__(
+        self,
+        article_repository: ArticleRepository,
+        account_repository: AccountRepository,
+        comment_management: CommentManagementPort
+    ):
         """
         Initialize the service via Dependency Injection.
 
         Args:
             article_repository (ArticleRepository): Port for article data access.
             account_repository (AccountRepository): Port for account data access.
+            comment_management (CommentManagementPort): Port for comment operations.
         """
         self.article_repository = article_repository
         self.account_repository = account_repository
+        self.comment_management = comment_management
 
     def _get_account_if_author_or_admin(self, user_id: int) -> Account | str:
         """
@@ -193,4 +201,29 @@ class ArticleService(ArticleManagementPort):
         """
         account = self.account_repository.get_by_id(author_id)
         return account.account_username if account else "Unknown"
+
+    def get_article_with_comments(self, article_id: int) -> tuple[Article, dict] | str:
+        """
+        Orchestrates the retrieval of an article and its associated threaded comments.
+        Uses the injected CommentManagementPort to fetch comments, ensuring isolation.
+
+        Args:
+            article_id (int): ID of the article to retrieve.
+
+        Returns:
+            tuple[Article, dict] | str: A tuple (Article, threaded_comments_dict)
+            or an error message string if the article is not found.
+        """
+        article = self.article_repository.get_by_id(article_id)
+        if not article:
+            return "Article not found."
+
+        comments = self.comment_management.get_comments_for_article(article_id)
+        if isinstance(comments, str):
+            # If error during comment fetching, we still show the article but with empty comments
+            # or return the error if it's a critical logic failure.
+            # Here we follow the simple approach: return an empty dict for UI safety.
+            comments = {"root": []}
+
+        return (article, comments)
 

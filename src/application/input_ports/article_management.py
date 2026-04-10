@@ -117,3 +117,18 @@ class ArticleManagementPort(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_article_with_comments(self, article_id: int) -> tuple[Article, dict] | str:
+        """
+        Orchestrates the retrieval of an article and its associated comments.
+        Respects the separation of concerns by using the comment management port.
+
+        Args:
+            article_id (int): ID of the article to retrieve.
+
+        Returns:
+            tuple[Article, dict] | str: A tuple containing the Article and its threaded comments,
+            or an error message string if the article is missing.
+        """
+        pass
+
