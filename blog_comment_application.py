@@ -16,6 +16,7 @@ from src.infrastructure.input_adapters.flask.flask_comment_adapter import Commen
 from src.infrastructure.input_adapters.flask.flask_handler import FlaskHandler
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
+from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
@@ -40,9 +41,10 @@ def create_app() -> Flask:
     comment_repo = SqlAlchemyCommentAdapter(db_session)
 
     # 3. Core Application (Services)
-    login_service = LoginService(account_repo)
     registration_service = RegistrationService(account_repo)
-    session_service = AccountSessionService(account_repo)
+    session_repo = FlaskSessionAdapter()
+    session_service = AccountSessionService(session_repo, account_repo)
+    login_service = LoginService(account_repo, session_service)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
     article_service = ArticleService(article_repo, account_repo, comment_service)
 
@@ -72,11 +74,11 @@ def create_app() -> Flask:
     app.add_url_rule("/articles/<int:article_id>/comments/<int:parent_comment_id>/reply", view_func=comment_adapter.reply_to_comment, methods=["POST"], endpoint="comment.reply_to_comment")
     app.add_url_rule("/articles/<int:article_id>/comments/<int:comment_id>/delete", view_func=comment_adapter.delete_comment, methods=["POST"], endpoint="comment.delete_comment")
 
-    # Auth Routes (Namespace simulation: auth.xxx)
+    # Auth & Registration Routes (Simulating namespaces)
     app.add_url_rule("/login", view_func=login_adapter.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=login_adapter.authenticate, methods=["POST"], endpoint="auth.authenticate")
-    app.add_url_rule("/register", view_func=registration_adapter.render_registration_page, methods=["GET"], endpoint="auth.register")
-    app.add_url_rule("/register", view_func=registration_adapter.register, methods=["POST"], endpoint="auth.register_action")
+    app.add_url_rule("/register", view_func=registration_adapter.render_registration_page, methods=["GET"], endpoint="registration.register")
+    app.add_url_rule("/register", view_func=registration_adapter.register, methods=["POST"], endpoint="registration.register_action")
     app.add_url_rule("/logout", view_func=account_session_adapter.logout, endpoint="auth.logout")
 
     # 6. Global Handlers (Identity Concierge)
