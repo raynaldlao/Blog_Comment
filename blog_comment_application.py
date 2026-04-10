@@ -50,7 +50,8 @@ def create_app() -> Flask:
 
     # 4. Input Adapters (Flask)
     template_dir = os.path.abspath("src/infrastructure/input_adapters/templates")
-    app = Flask(__name__, template_folder=template_dir)
+    static_dir = os.path.abspath("src/infrastructure/input_adapters/static")
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key")
 
     article_adapter = ArticleAdapter(article_service)

@@ -27,10 +27,11 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "/register",
             view_func=self.adapter.register,
             methods=["POST"],
-            endpoint="registration.register_post"
+            endpoint="registration.register_action"
         )
 
         self._register_dummy_route("/login", "auth.login", "login_page")
+        self._register_dummy_route("/", "article.list_articles", "home_page")
 
     def test_get_registration_page(self):
         response = self.client.get("/register")
