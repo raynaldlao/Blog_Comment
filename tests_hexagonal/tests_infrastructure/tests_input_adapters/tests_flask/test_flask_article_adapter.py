@@ -73,8 +73,8 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
 
         self._register_dummy_route("/login", "auth.login", "auth")
         self._register_dummy_route("/register", "registration.register", "registration")
-        self._register_dummy_route("/logout", "logout.logout", "logout")
-        self._register_dummy_route("/profile", "profile.profile", "profile")
+        self._register_dummy_route("/logout", "auth.logout", "logout")
+        self._register_dummy_route("/profile", "auth.profile", "profile")
         self._register_dummy_route("/articles/<int:article_id>/comments", "comment.create_comment", "comment")
         self._register_dummy_route("/articles/<int:article_id>/comments/<int:parent_comment_id>/reply", "comment.reply_to_comment", "comment")
         self._register_dummy_route("/articles/<int:article_id>/comments/<int:comment_id>/delete", "comment.delete_comment", "comment")

@@ -80,6 +80,7 @@ def create_app() -> Flask:
     app.add_url_rule("/login", view_func=login_adapter.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=registration_adapter.render_registration_page, methods=["GET"], endpoint="registration.register")
     app.add_url_rule("/register", view_func=registration_adapter.register, methods=["POST"], endpoint="registration.register_action")
+    app.add_url_rule("/profile", view_func=account_session_adapter.display_profile, endpoint="auth.profile")
     app.add_url_rule("/logout", view_func=account_session_adapter.logout, endpoint="auth.logout")
 
     # 6. Global Handlers (Identity Concierge)

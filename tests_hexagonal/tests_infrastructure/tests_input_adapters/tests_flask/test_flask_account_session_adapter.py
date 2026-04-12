@@ -26,7 +26,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.app.add_url_rule(
             "/logout",
             view_func=self.adapter.logout,
-            endpoint="logout.logout"
+            endpoint="auth.logout"
         )
 
         self.app.add_url_rule(

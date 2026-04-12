@@ -95,3 +95,4 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.account_role = account.account_role.value
         self._session.add(model)
         self._session.commit()
+        account.account_id = model.account_id

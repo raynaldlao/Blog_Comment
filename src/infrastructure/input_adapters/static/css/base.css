@@ -47,8 +47,9 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Flash Messages (Legacy Style) */
+/* Flash Messages */
 .flash-messages {
+    margin-top: 20px;
     margin-bottom: 1.5rem;
 }
 
@@ -60,7 +61,7 @@ a:hover {
     border: 1px solid var(--error-border);
 }
 
-/* Forms (Legacy Style) */
+/* Forms */
 .form-group {
     margin-bottom: 15px;
 }
@@ -86,7 +87,7 @@ textarea {
     height: 80px;
 }
 
-/* Buttons (Legacy Style) */
+/* Buttons */
 button, .btn {
     padding: 10px 20px;
     background: var(--accent-color);

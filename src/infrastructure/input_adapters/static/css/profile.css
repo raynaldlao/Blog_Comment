@@ -1,108 +1,98 @@
 .profile-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
+    background: #fff;
     max-width: 500px;
     width: 100%;
-    border-radius: 1.5rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    padding: 3rem;
-    position: relative;
-    animation: fadeIn 0.6s ease-out;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    padding: 2rem;
+    margin: 20px auto;
 }
 
 .profile-header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 25px;
 }
 
 .avatar-placeholder {
-    width: 80px;
-    height: 80px;
-    background: var(--primary-gradient);
-    color: white;
+    width: 60px;
+    height: 60px;
+    background: #eee;
+    color: #333;
+    border: 1px solid #ccc;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    font-weight: 700;
-    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 0 auto 10px;
 }
 
 .role-badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
-    background: #edf2f7;
-    color: #4a5568;
-    border-radius: 1rem;
+    padding: 2px 8px;
+    background: #eee;
+    color: #666;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .info-section {
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
 }
 
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 1rem 0;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
 }
 
 .info-label {
-    color: #718096;
-    font-size: 0.875rem;
-    font-weight: 500;
+    color: #666;
+    font-size: 0.9rem;
 }
 
 .info-value {
-    color: var(--text-color);
-    font-size: 0.875rem;
-    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+    font-weight: bold;
 }
 
 .actions {
     display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
+    gap: 10px;
+    margin-top: 20px;
 }
 
 .btn {
     flex: 1;
-    text-align: center;
     text-decoration: none;
-    margin-top: 0;
 }
 
 .btn-primary {
-    background: var(--primary-gradient);
+    background: #007bff;
     color: white;
-    border: none;
 }
 
 .btn-outline {
-    background: white;
-    color: #e53e3e;
-    border: 2px solid #fed7d7;
-}
-
-.btn-outline:hover {
-    background: #fff5f5;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
 }
 
 .back-link {
     display: block;
     text-align: center;
-    margin-top: 1.5rem;
-    color: #718096;
-    font-size: 0.875rem;
+    margin-top: 20px;
+    color: #007bff;
+    font-size: 0.9rem;
     text-decoration: none;
 }
 
 .back-link:hover {
-    color: var(--accent-color);
     text-decoration: underline;
 }

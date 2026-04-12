@@ -14,8 +14,9 @@
         <div class="nav-links">
             {% if current_user %}
                 <span>Hello, <strong>{{ current_user.account_username }}</strong></span>
+                <a href="{{ url_for('auth.profile') }}" style="margin-left: 15px;">[Profile]</a>
                 <a href="{{ url_for('article.render_create_page') }}" style="margin-left: 15px;">[New Article]</a>
-                <a href="{{ url_for('logout.logout') }}" style="margin-left: 15px;">[Logout]</a>
+                <a href="{{ url_for('auth.logout') }}" style="margin-left: 15px;">[Logout]</a>
             {% else %}
                 <a href="{{ url_for('auth.login') }}">Sign In</a>
                 <a href="{{ url_for('registration.register') }}" style="margin-left: 15px;">Sign Up</a>
@@ -23,15 +24,6 @@
         </div>
     </header>
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
 
     <div class="article-grid">
         {% for article in articles %}

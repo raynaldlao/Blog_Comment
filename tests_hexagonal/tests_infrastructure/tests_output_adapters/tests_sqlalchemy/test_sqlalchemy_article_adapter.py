@@ -45,6 +45,7 @@ class TestArticleSave(SqlAlchemyArticleAdapterTestBase):
         )
 
         self.repository.save(article)
+        assert article.article_id > 0
         model = self.session.query(ArticleModel).filter_by(article_title="Saved Article").first()
         assert model is not None
         assert model.article_content == "New Content"
