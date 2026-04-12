@@ -104,9 +104,28 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
 
+    def test_render_create_page_redirects_anonymous_to_login(self):
+        response = self.client.get("/articles/new", follow_redirects=True)
+        assert b"You must be signed in" in response.data
+
     def test_delete_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"You must be signed in" in response.data
+
+
+class TestArticleUserAccess(ArticleAdapterTestBase):
+    def test_user_cannot_access_create_page(self):
+        user = create_test_account(account_id=10, account_role=AccountRole.USER)
+        self._prepare_user_context(user)
+        response = self.client.get("/articles/new", follow_redirects=True)
+        assert b"Insufficient permissions" in response.data
+
+    def test_user_cannot_create_article(self):
+        user = create_test_account(account_id=10, account_role=AccountRole.USER)
+        self._prepare_user_context(user)
+        response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
+        assert b"Insufficient permissions" in response.data
+        self.mock_article_repo.save.assert_not_called()
 
 
 class TestArticleAuthorAccess(ArticleAdapterTestBase):

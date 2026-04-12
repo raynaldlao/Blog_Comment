@@ -103,6 +103,10 @@ class ArticleAdapter:
             flash("You must be signed in to author an article.")
             return redirect(url_for("auth.login"))
 
+        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+            flash("Insufficient permissions: Only authors or admins can create articles.")
+            return redirect(url_for("article.list_articles"))
+
         return render_template("article_create.html", current_user=user)
 
     def create_article(self) -> Response:
@@ -117,6 +121,10 @@ class ArticleAdapter:
         if not user:
             flash("You must be signed in to author an article.")
             return redirect(url_for("auth.login"))
+
+        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+            flash("Insufficient permissions: Only authors or admins can create articles.")
+            return redirect(url_for("article.list_articles"))
 
         try:
             req_data = ArticleRequest(
@@ -158,6 +166,10 @@ class ArticleAdapter:
             flash("You must be signed in to edit an article.")
             return redirect(url_for("auth.login"))
 
+        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+            flash("Insufficient permissions: Only authors or admins can create articles.")
+            return redirect(url_for("article.list_articles"))
+
         domain_article = self.article_service.get_by_id(article_id)
         if not domain_article:
             flash("Error: The requested article could not be found.")
@@ -182,6 +194,10 @@ class ArticleAdapter:
         if not user:
             flash("You must be signed in to edit an article.")
             return redirect(url_for("auth.login"))
+
+        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+            flash("Insufficient permissions: Only authors or admins can create articles.")
+            return redirect(url_for("article.list_articles"))
 
         try:
             req_data = ArticleRequest(
@@ -222,6 +238,10 @@ class ArticleAdapter:
         if not user:
             flash("You must be signed in to delete an article.")
             return redirect(url_for("auth.login"))
+
+        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+            flash("Insufficient permissions: Only authors or admins can create articles.")
+            return redirect(url_for("article.list_articles"))
 
         result = self.article_service.delete_article(
             article_id=article_id,

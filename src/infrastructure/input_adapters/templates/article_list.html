@@ -15,7 +15,9 @@
             {% if current_user %}
                 <span>Hello, <strong>{{ current_user.account_username }}</strong></span>
                 <a href="{{ url_for('auth.profile') }}" style="margin-left: 15px;">[Profile]</a>
-                <a href="{{ url_for('article.render_create_page') }}" style="margin-left: 15px;">[New Article]</a>
+                {% if current_user.account_role in ['admin', 'author'] %}
+                    <a href="{{ url_for('article.render_create_page') }}" style="margin-left: 15px;">[New Article]</a>
+                {% endif %}
                 <a href="{{ url_for('auth.logout') }}" style="margin-left: 15px;">[Logout]</a>
             {% else %}
                 <a href="{{ url_for('auth.login') }}">Sign In</a>
