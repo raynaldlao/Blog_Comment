@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
+from src.application.domain.comment import CommentThreadView
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -103,28 +104,35 @@ class TestGetArticles(ArticleServiceTestBase):
 
     def test_get_paginated_articles(self):
         fake_articles = [
-            create_test_article(article_id=1, article_title="First"),
-            create_test_article(article_id=2, article_title="Second")
+            create_test_article(article_id=1, article_title="First", article_author_id=10),
+            create_test_article(article_id=2, article_title="Second", article_author_id=20)
+        ]
+
+        fake_authors = [
+            create_test_account(account_id=10, account_username="Author1"),
+            create_test_account(account_id=20, account_username="Author2")
         ]
 
         self.mock_article_repo.get_paginated.return_value = fake_articles
-        result = self.service.get_paginated_articles(page=2, per_page=10)
-        self.mock_article_repo.get_paginated.assert_called_once_with(2, 10)
-        assert len(result) == 2
-        first_article_list = result[0]
-        second_article_list = result[1]
-        assert first_article_list.article_title == "First"
-        assert second_article_list.article_title == "Second"
+        self.mock_account_repo.get_by_ids.return_value = fake_authors
+        articles = self.service.get_paginated_articles(page=2, per_page=10)
+        article_1, article_2 = articles
+        assert article_1.article.article_title == "First"
+        assert article_1.author_name == "Author1"
+        assert article_2.article.article_title == "Second"
+        assert article_2.author_name == "Author2"
 
     def test_get_paginated_articles_page_less_than_one(self):
-        fake_articles = [create_test_article(article_title="Paged Title")]
+        fake_articles = [create_test_article(article_title="Paged Title", article_author_id=1)]
         self.mock_article_repo.get_paginated.return_value = fake_articles
-        result = self.service.get_paginated_articles(page=-5, per_page=10)
-        self.mock_article_repo.get_paginated.assert_called_once_with(1, 10)
-        assert len(result) == 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="User")]
+        articles = self.service.get_paginated_articles(page=-5, per_page=10)
+        article_view, = articles
+        assert article_view.author_name == "User"
 
     def test_get_paginated_articles_defaults(self):
         self.mock_article_repo.get_paginated.return_value = []
+        self.mock_account_repo.get_by_ids.return_value = []
         self.service.get_paginated_articles()
         self.mock_article_repo.get_paginated.assert_called_once_with(1, 10)
 
@@ -133,6 +141,33 @@ class TestGetArticles(ArticleServiceTestBase):
         result = self.service.get_total_count()
         self.mock_article_repo.count_all.assert_called_once()
         assert result == 42
+
+    def test_get_paginated_articles_deduplication(self):
+        same_author_id = 99
+        fake_articles = [
+            create_test_article(article_id=1, article_author_id=same_author_id),
+            create_test_article(article_id=2, article_author_id=same_author_id),
+            create_test_article(article_id=3, article_author_id=42)
+        ]
+
+        self.mock_article_repo.get_paginated.return_value = fake_articles
+        self.mock_account_repo.get_by_ids.return_value = [
+            create_test_account(account_id=99, account_username="Author99"),
+            create_test_account(account_id=42, account_username="Author42")
+        ]
+
+        self.service.get_paginated_articles()
+        called_ids = self.mock_account_repo.get_by_ids.call_args[0][0]
+        assert len(called_ids) == 2
+        assert set(called_ids) == {99, 42}
+        self.mock_account_repo.get_by_id.assert_not_called()
+
+    def test_get_paginated_articles_unknown_author(self):
+        fake_articles = [create_test_article(article_id=1, article_author_id=999)]
+        self.mock_article_repo.get_paginated.return_value = fake_articles
+        self.mock_account_repo.get_by_ids.return_value = []
+        result = self.service.get_paginated_articles()
+        assert result[0].author_name == "Unknown"
 
 
 class TestGetArticleById(ArticleServiceTestBase):
@@ -283,14 +318,15 @@ class TestGetAuthorName(ArticleServiceTestBase):
 
 class TestGetArticleWithComments(ArticleServiceTestBase):
     def test_get_article_with_comments_success(self):
-        fake_article = create_test_article(article_id=1, article_title="Composed Article")
+        fake_article = create_test_article(article_id=1, article_title="Composed Article", article_author_id=10)
         self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_comment_management.get_comments_for_article.return_value = {"root": []}
+        self.mock_comment_management.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
+        self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=10, account_username="ArticleAuthor")
         result = self.service.get_article_with_comments(article_id=1)
-        assert isinstance(result, tuple)
-        article, comments = result
-        assert article.article_title == "Composed Article"
-        assert comments == {"root": []}
+        article_view = result.article_with_author
+        assert article_view.article.article_title == "Composed Article"
+        assert article_view.author_name == "ArticleAuthor"
+        assert result.threaded_comments.threads == {"root": []}
         self.mock_article_repo.get_by_id.assert_called_once_with(1)
         self.mock_comment_management.get_comments_for_article.assert_called_once_with(1)
 
@@ -300,10 +336,21 @@ class TestGetArticleWithComments(ArticleServiceTestBase):
         assert result == "Article not found."
 
     def test_get_article_with_comments_handles_comment_error(self):
-        fake_article = create_test_article(article_id=1)
+        fake_article = create_test_article(article_id=1, article_author_id=10)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_comment_management.get_comments_for_article.return_value = "Critial logic failure"
+        self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=10, account_username="ArticleAuthor")
         result = self.service.get_article_with_comments(article_id=1)
-        article, comments = result
-        assert article.article_id == 1
-        assert comments == {"root": []}
+        assert not isinstance(result, str)
+        assert result.article_with_author.article.article_id == 1
+        assert result.threaded_comments.threads == {"root": []}
+        assert result.article_with_author.author_name == "ArticleAuthor"
+
+    def test_get_article_with_comments_unknown_author(self):
+        fake_article = create_test_article(article_id=1, article_author_id=999)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_comment_management.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
+        self.mock_account_repo.get_by_id.return_value = None
+        result = self.service.get_article_with_comments(article_id=1)
+        assert not isinstance(result, str)
+        assert result.article_with_author.author_name == "Unknown"

@@ -43,3 +43,19 @@ class CommentResponse(BaseModel):
             comment_content=comment.comment_content,
             comment_posted_at_formatted=formatted_date
         )
+
+    @classmethod
+    def map_threaded_comments(cls, threads: dict) -> dict[str | int, list["CommentResponse"]]:
+        """
+        Maps a dictionary of threaded Read Models (CommentWithAuthor) into a dictionary of DTOs.
+
+        Args:
+            threads (dict): The dictionary of threaded comments from the Read Model.
+
+        Returns:
+            dict[str | int, list[CommentResponse]]: The mapped dictionary.
+        """
+        return {
+            key: [cls.from_domain(c.comment, c.author_name) for c in comments]
+            for key, comments in threads.items()
+        }

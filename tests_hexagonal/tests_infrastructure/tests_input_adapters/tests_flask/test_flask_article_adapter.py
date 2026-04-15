@@ -1,7 +1,9 @@
 from unittest.mock import Mock
 
 from src.application.domain.account import AccountRole
+from src.application.domain.comment import CommentThreadView
 from src.application.input_ports.comment_management import CommentManagementPort
+from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
@@ -17,9 +19,10 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         self.mock_article_repo = Mock(spec=ArticleRepository, autospec=True)
         self.mock_article_repo.count_all.return_value = 0
         self.mock_article_repo.get_paginated.return_value = []
-        self.mock_account_repo = Mock()
+        self.mock_account_repo = Mock(spec=AccountRepository, autospec=True)
+        self.mock_account_repo.get_by_ids.return_value = []
         self.mock_comment_port = Mock(spec=CommentManagementPort, autospec=True)
-        self.mock_comment_port.get_comments_for_article.return_value = {"root": []}
+        self.mock_comment_port.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
 
         self.article_service = ArticleService(
             article_repository=self.mock_article_repo,
@@ -86,16 +89,19 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
 
 class TestArticleAnonymousAccess(ArticleAdapterTestBase):
     def test_list_articles_as_anonymous(self):
-        article = create_test_article(article_title="Hexagonal Secrets")
+        article = create_test_article(article_title="Hexagonal Secrets", article_author_id=1)
         self.mock_article_repo.get_paginated.return_value = [article]
         self.mock_article_repo.count_all.return_value = 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
         response = self.client.get("/")
         assert response.status_code == 200
         assert b"Hexagonal Secrets" in response.data
 
     def test_read_article_as_anonymous(self):
-        article = create_test_article(article_title="Public View")
+        article = create_test_article(article_title="Public View", article_author_id=1)
         self.mock_article_repo.get_by_id.return_value = article
+        self.mock_comment_port.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
+        self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=1, account_username="Author")
         response = self.client.get("/articles/1")
         assert response.status_code == 200
         assert b"Public View" in response.data

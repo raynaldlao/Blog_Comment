@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -40,3 +41,18 @@ class Comment:
         self.comment_reply_to = comment_reply_to
         self.comment_content = comment_content
         self.comment_posted_at = comment_posted_at
+
+@dataclass
+class CommentWithAuthor:
+    """
+    Read Model that combines a Comment domain entity with its author's username.
+    """
+    comment: Comment
+    author_name: str
+
+@dataclass
+class CommentThreadView:
+    """
+    Read Model for a threaded comment tree associated with an article.
+    """
+    threads: dict[str | int, list[CommentWithAuthor]] = field(default_factory=dict)

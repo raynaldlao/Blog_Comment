@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.domain.comment import Comment
+from src.application.domain.comment import Comment, CommentThreadView
 
 
 class CommentManagementPort(ABC):
@@ -42,23 +42,17 @@ class CommentManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_comments_for_article(self, article_id: int) -> dict[str | int, list[Comment]] | str:
+    def get_comments_for_article(self, article_id: int) -> CommentThreadView | str:
         """
         Retrieves all comments for a specific article and structures them
-        into a threaded dictionary for display.
+        into a threaded view for display, along with associated author names.
 
         Args:
             article_id (int): ID of the article.
 
         Returns:
-            dict[str | int, list[Comment]] | str: A dictionary containing the threaded comments,
+            CommentThreadView | str: A Read Model containing the threaded comments,
             or an error message string if the article is not found.
-            Structure:
-            {
-                "root": [Comment1, Comment2],
-                comment_id_1: [Reply1, Reply2],
-                comment_id_2: [Reply3]
-            }
         """
         pass
 

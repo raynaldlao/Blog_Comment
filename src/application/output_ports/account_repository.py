@@ -27,14 +27,26 @@ class AccountRepository(ABC):
     @abstractmethod
     def get_by_id(self, account_id: int) -> Account | None:
         """
-        Retrieves an account by its ID.
+        Retrieves a single account by its ID.
 
         Args:
-            account_id (int): The account ID.
+            account_id (int): The unique identifier of the account.
 
         Returns:
-            Account | None: The Account domain entity if found,
-            None otherwise.
+            Account | None: The Account domain entity if found, None otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def get_by_ids(self, account_ids: list[int]) -> list[Account]:
+        """
+        Retrieves a list of accounts by their unique IDs in a single batch.
+
+        Args:
+            account_ids (list[int]): A list of account identifiers.
+
+        Returns:
+            list[Account]: A list of found Account domain entities.
         """
         pass
 

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.domain.article import Article
+from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
 
 
 class ArticleManagementPort(ABC):
@@ -81,16 +81,16 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_paginated_articles(self, page: int, per_page: int) -> list[Article]:
+    def get_paginated_articles(self, page: int, per_page: int) -> list[ArticleWithAuthor]:
         """
-        Retrieves a paginated list of articles.
+        Retrieves a paginated list of articles along with their authors' usernames.
 
         Args:
             page (int): The page number requested (1-indexed).
             per_page (int): The number of items to display per page.
 
         Returns:
-            list[Article]: A list of Article domain entities for the requested page.
+            list[ArticleWithAuthor]: A list of Read Models combining articles and their authors.
         """
         pass
 
@@ -118,16 +118,16 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_article_with_comments(self, article_id: int) -> tuple[Article, dict] | str:
+    def get_article_with_comments(self, article_id: int) -> ArticleDetailView | str:
         """
-        Orchestrates the retrieval of an article and its associated comments.
+        Orchestrates the retrieval of an article, its associated comments, and author information.
         Respects the separation of concerns by using the comment management port.
 
         Args:
             article_id (int): ID of the article to retrieve.
 
         Returns:
-            tuple[Article, dict] | str: A tuple containing the Article and its threaded comments,
+            ArticleDetailView | str: A Read Model for the complete article detail page,
             or an error message string if the article is missing.
         """
         pass

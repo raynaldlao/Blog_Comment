@@ -1,4 +1,7 @@
+from dataclasses import dataclass, field
 from datetime import datetime
+
+from src.application.domain.comment import CommentThreadView
 
 
 class Article:
@@ -36,3 +39,20 @@ class Article:
         self.article_title = article_title
         self.article_content = article_content
         self.article_published_at = article_published_at
+
+@dataclass
+class ArticleWithAuthor:
+    """
+    Read Model that combines an Article domain entity with its author's username.
+    """
+    article: Article
+    author_name: str
+
+@dataclass
+class ArticleDetailView:
+    """
+    Read Model for the article detail page.
+    Encapsulates an article with its author and threaded comments.
+    """
+    article_with_author: ArticleWithAuthor
+    threaded_comments: CommentThreadView = field(default_factory=CommentThreadView)

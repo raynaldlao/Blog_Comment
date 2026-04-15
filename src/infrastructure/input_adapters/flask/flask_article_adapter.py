@@ -38,13 +38,10 @@ class ArticleAdapter:
         page = request.args.get("page", 1, type=int)
         domain_articles = self.article_service.get_paginated_articles(page=page)
         total_count = self.article_service.get_total_count()
-        author_names = {}
         articles = []
 
-        for a in domain_articles:
-            if a.article_author_id not in author_names:
-                author_names[a.article_author_id] = self.article_service.get_author_name(a.article_author_id)
-            articles.append(ArticleResponse.from_domain(a, author_username=author_names[a.article_author_id]))
+        for item in domain_articles:
+            articles.append(ArticleResponse.from_domain(item.article, author_username=item.author_name))
 
         has_next = (page * 10) < total_count
         has_prev = page > 1
@@ -75,13 +72,9 @@ class ArticleAdapter:
             flash(f"Error: {result}")
             return redirect(url_for("article.list_articles"))
 
-        domain_article, threaded_comments = result
-        username = self.article_service.get_author_name(domain_article.article_author_id)
-        article = ArticleResponse.from_domain(domain_article, author_username=username)
-        dto_comments = {}
-        for key, comments in threaded_comments.items():
-            dto_comments[key] = [CommentResponse.from_domain(c) for c in comments]
-
+        detail = result
+        article = ArticleResponse.from_domain(detail.article_with_author.article, author_username=detail.article_with_author.author_name)
+        dto_comments = CommentResponse.map_threaded_comments(detail.threaded_comments.threads)
         user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",

@@ -66,6 +66,26 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             return None
         return self._to_domain(model)
 
+    def get_by_ids(self, account_ids: list[int]) -> list[Account]:
+        """
+        Retrieves a list of accounts by their unique IDs in a single batch.
+
+        Args:
+            account_ids (list[int]): A list of account identifiers.
+
+        Returns:
+            list[Account]: A list of found Account domain entities.
+        """
+        if not account_ids:
+            return []
+
+        models = (
+            self._session.query(AccountModel)
+            .filter(AccountModel.account_id.in_(account_ids))
+            .all()
+        )
+        return [self._to_domain(model) for model in models]
+
     def find_by_email(self, email: str) -> Account | None:
         """
         Retrieves a domain account by its unique email address.

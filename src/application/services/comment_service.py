@@ -1,9 +1,8 @@
 from collections import defaultdict
 from datetime import datetime
-from operator import attrgetter
 
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment
+from src.application.domain.comment import Comment, CommentThreadView, CommentWithAuthor
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
@@ -135,23 +134,17 @@ class CommentService(CommentManagementPort):
         self.comment_repository.save(new_reply)
         return new_reply
 
-    def get_comments_for_article(self, article_id: int) -> dict[str | int, list[Comment]] | str:
+    def get_comments_for_article(self, article_id: int) -> CommentThreadView | str:
         """
         Retrieves all comments for a specific article and structures them
-        in a dictionary for easy display (threading).
+        in a threaded view for display, along with author names.
 
         Args:
             article_id (int): ID of the article.
 
         Returns:
-            dict[str | int, list[Comment]] | str: A dictionary containing the threaded comments,
+            CommentThreadView | str: A Read Model containing the threaded comments,
             or an error message string if the article is not found.
-            Structure:
-            {
-                "root": [Comment1, Comment2],
-                comment_id_1: [Reply1, Reply2],
-                comment_id_2: [Reply3]
-            }
         """
         article = self.article_repository.get_by_id(article_id)
         if not article:
@@ -159,6 +152,9 @@ class CommentService(CommentManagementPort):
             return "Article not found."
 
         all_comments = self.comment_repository.get_all_by_article_id(article_id)
+        author_ids = {c.comment_written_account_id for c in all_comments}
+        authors = self.account_repository.get_by_ids(list(author_ids))
+        author_map = {acc.account_id: acc.account_username for acc in authors}
         tree = defaultdict(list)
         tree["root"] = []
 
@@ -168,16 +164,17 @@ class CommentService(CommentManagementPort):
             else:
                 key = comment.comment_reply_to
 
-            tree[key].append(comment)
+            comp = CommentWithAuthor(comment=comment, author_name=author_map.get(comment.comment_written_account_id, "Unknown"))
+            tree[key].append(comp)
 
-        get_date = attrgetter("comment_posted_at")
+        get_date = lambda cwa: cwa.comment.comment_posted_at
         if "root" in tree:
             tree["root"].sort(key=get_date, reverse=True)
 
         for root in tree["root"]:
-            tree[root.comment_id].sort(key=get_date)
+            tree[root.comment.comment_id].sort(key=get_date)
 
-        return dict(tree)
+        return CommentThreadView(threads=dict(tree))
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """

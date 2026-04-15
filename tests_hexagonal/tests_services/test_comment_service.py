@@ -164,19 +164,22 @@ class TestGetComments(CommentServiceTestBase):
         fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_comment_repo.get_all_by_article_id.return_value = []
-        result = self.service.get_comments_for_article(article_id=fake_article.article_id)
+        self.mock_account_repo.get_by_ids.return_value = []
+        comments = self.service.get_comments_for_article(article_id=fake_article.article_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
-        assert result == {"root": []}
+        assert comments.threads == {"root": []}
 
     def test_get_comments_for_article_success(self):
         fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
+        root_author_id = 3
+        reply_author_id = 4
 
         root_comment = create_test_comment(
             comment_id=10,
             comment_article_id=fake_article.article_id,
-            comment_written_account_id=3,
+            comment_written_account_id=root_author_id,
             comment_reply_to=None,
             comment_content="First!",
         )
@@ -184,24 +187,59 @@ class TestGetComments(CommentServiceTestBase):
         reply = create_test_comment(
             comment_id=15,
             comment_article_id=fake_article.article_id,
-            comment_written_account_id=4,
+            comment_written_account_id=reply_author_id,
             comment_reply_to=root_comment.comment_id,
             comment_content="Awesome!",
         )
 
         self.mock_comment_repo.get_all_by_article_id.return_value = [root_comment, reply]
+
+        self.mock_account_repo.get_by_ids.return_value = [
+            create_test_account(account_id=root_author_id, account_username="Author3"),
+            create_test_account(account_id=reply_author_id, account_username="Author4")
+        ]
+
         result = self.service.get_comments_for_article(article_id=fake_article.article_id)
-        self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
-        self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
-        assert result["root"] == [root_comment]
-        assert result[root_comment.comment_id] == [reply]
+        root_comment_view, = result.threads["root"]
+        reply_view, = result.threads[root_comment.comment_id]
+        assert root_comment_view.comment == root_comment
+        assert root_comment_view.author_name == "Author3"
+        assert reply_view.comment == reply
+        assert reply_view.author_name == "Author4"
+
+    def test_get_comments_for_article_ordering(self):
+        from datetime import datetime
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_ids.return_value = []
+        comment_1 = create_test_comment(comment_id=1, comment_posted_at=datetime(2026, 1, 1), comment_reply_to=None)
+        comment_2 = create_test_comment(comment_id=2, comment_posted_at=datetime(2026, 1, 2), comment_reply_to=None)
+        reply_1 = create_test_comment(comment_id=3, comment_posted_at=datetime(2026, 1, 4), comment_reply_to=2)
+        reply_2 = create_test_comment(comment_id=4, comment_posted_at=datetime(2026, 1, 3), comment_reply_to=2)
+        self.mock_comment_repo.get_all_by_article_id.return_value = [comment_1, comment_2, reply_1, reply_2]
+        result = self.service.get_comments_for_article(article_id=1)
+        latest_root, oldest_root = result.threads["root"]
+        latest_reply, oldest_reply = result.threads[comment_2.comment_id]
+        assert latest_root.comment.comment_id == comment_2.comment_id
+        assert oldest_root.comment.comment_id == comment_1.comment_id
+        assert latest_reply.comment.comment_id == reply_2.comment_id
+        assert oldest_reply.comment.comment_id == reply_1.comment_id
+
+    def test_get_comments_for_article_unknown_author(self):
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        comment = create_test_comment(comment_id=1, comment_written_account_id=999, comment_reply_to=None)
+        self.mock_comment_repo.get_all_by_article_id.return_value = [comment]
+        self.mock_account_repo.get_by_ids.return_value = []
+        result = self.service.get_comments_for_article(article_id=1)
+        comment_view, = result.threads["root"]
+        assert comment_view.author_name == "Unknown"
 
 
 class TestDeleteComment(CommentServiceTestBase):
     def test_delete_comment_success_as_admin(self):
         admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_account_repo.get_by_id.return_value = admin_account
-
         comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
         self.mock_comment_repo.get_by_id.return_value = comment_to_delete
 

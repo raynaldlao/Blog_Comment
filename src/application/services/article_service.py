@@ -1,5 +1,6 @@
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.article import Article
+from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
+from src.application.domain.comment import CommentThreadView
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -164,21 +165,26 @@ class ArticleService(ArticleManagementPort):
         self.article_repository.delete(article)
         return True
 
-    def get_paginated_articles(self, page: int = 1, per_page: int = 10) -> list[Article]:
+    def get_paginated_articles(self, page: int = 1, per_page: int = 10) -> list[ArticleWithAuthor]:
         """
-        Retrieves a paginated list of articles.
+        Retrieves a paginated list of articles combined with their authors' usernames.
 
         Args:
             page (int): The page number requested (1-indexed). Defaults to 1.
             per_page (int): The number of items to display per page. Defaults to 10.
 
         Returns:
-            list[Article]: A list of Article domain entities.
+            list[ArticleWithAuthor]: A list of Read Models combining articles and their authors.
         """
         min_page = 1
         if page < min_page:
             page = min_page
-        return self.article_repository.get_paginated(page, per_page)
+
+        domain_articles = self.article_repository.get_paginated(page, per_page)
+        author_ids = {a.article_author_id for a in domain_articles}
+        authors = self.account_repository.get_by_ids(list(author_ids))
+        author_map = {acc.account_id: acc.account_username for acc in authors}
+        return [ArticleWithAuthor(article=a, author_name=author_map.get(a.article_author_id, "Unknown")) for a in domain_articles]
 
     def get_total_count(self) -> int:
         """
@@ -202,28 +208,30 @@ class ArticleService(ArticleManagementPort):
         account = self.account_repository.get_by_id(author_id)
         return account.account_username if account else "Unknown"
 
-    def get_article_with_comments(self, article_id: int) -> tuple[Article, dict] | str:
+    def get_article_with_comments(self, article_id: int) -> ArticleDetailView | str:
         """
-        Orchestrates the retrieval of an article and its associated threaded comments.
-        Uses the injected CommentManagementPort to fetch comments, ensuring isolation.
+        Orchestrates the retrieval of an article, its associated threaded comments,
+        and all involved author names in optimized batches.
 
         Args:
             article_id (int): ID of the article to retrieve.
 
         Returns:
-            tuple[Article, dict] | str: A tuple (Article, threaded_comments_dict)
+            ArticleDetailView | str: A Read Model for the complete article detail page,
             or an error message string if the article is not found.
         """
         article = self.article_repository.get_by_id(article_id)
         if not article:
             return "Article not found."
 
-        comments = self.comment_management.get_comments_for_article(article_id)
-        if isinstance(comments, str):
-            # If error during comment fetching, we still show the article but with empty comments
-            # or return the error if it's a critical logic failure.
-            # Here we follow the simple approach: return an empty dict for UI safety.
-            comments = {"root": []}
+        comment_result = self.comment_management.get_comments_for_article(article_id)
 
-        return (article, comments)
+        if isinstance(comment_result, str):
+            comments = CommentThreadView(threads={"root": []})
+        else:
+            comments = comment_result
 
+        article_author = self.account_repository.get_by_id(article.article_author_id)
+        author_name = article_author.account_username if article_author else "Unknown"
+        article_with_author = ArticleWithAuthor(article=article, author_name=author_name)
+        return ArticleDetailView(article_with_author=article_with_author, threaded_comments=comments)
