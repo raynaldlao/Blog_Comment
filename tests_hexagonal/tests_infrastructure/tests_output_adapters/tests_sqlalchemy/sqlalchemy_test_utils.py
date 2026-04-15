@@ -1,11 +1,10 @@
 import pytest
-from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
-from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry import SqlAlchemyModel
+from tests_hexagonal.db_utils import truncate_all_tables
 
 
 class SqlAlchemyTestBase:
@@ -19,26 +18,16 @@ class SqlAlchemyTestBase:
         - AFTER each test: session is closed, data persists for inspection.
     """
 
-    @staticmethod
-    def _truncate_all(connection):
-        """Purges all tables and resets sequences. Called before each test."""
-        tables = SqlAlchemyModel.metadata.sorted_tables
-        table_names = ", ".join(f'"{t.name}"' for t in tables)
-        if table_names:
-            connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
-
     @pytest.fixture(autouse=True)
     def db_context(self, db_engine):
         """
         Pytest fixture that orchestrates the database state for each test.
         Replaces setup_method/teardown_method for better fixture integration.
         """
-        with db_engine.begin() as conn:
-            self._truncate_all(conn)
-
         session_factory = sessionmaker(bind=db_engine)
         self.session = session_factory()
         self.engine = db_engine
+        truncate_all_tables(self.session)
         yield
         self.session.close()
 

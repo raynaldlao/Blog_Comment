@@ -22,18 +22,22 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 
 
-def create_app() -> Flask:
+def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
     Handles dependency injection and manual route registration.
+
+    Args:
+        db_session: Optional pre-existing database session (useful for tests).
 
     Returns:
         Flask: The configured Flask application.
     """
     # 1. Database Setup
-    engine = create_engine(infra_config.database_url)
-    session_factory = sessionmaker(bind=engine)
-    db_session = session_factory()
+    if db_session is None:
+        engine = create_engine(infra_config.database_url)
+        session_factory = sessionmaker(bind=engine)
+        db_session = session_factory()
 
     # 2. Output Adapters (Repositories)
     account_repo = SqlAlchemyAccountAdapter(db_session)
