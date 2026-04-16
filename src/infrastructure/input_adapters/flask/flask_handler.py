@@ -1,3 +1,5 @@
+import functools
+
 from flask import g as global_request_context
 
 from src.application.input_ports.account_session_management import AccountSessionManagement
@@ -6,7 +8,7 @@ from src.application.input_ports.account_session_management import AccountSessio
 class FlaskHandler:
     """
     Orchestrator for Flask global lifecycle hooks and request context.
-    Acts as the 'Concierge' to handle cross-cutting concerns like authentication.
+    Acts as the 'Concierge' to handle cross-cutting concerns like authentication and error handling.
     """
 
     @staticmethod
@@ -26,6 +28,9 @@ class FlaskHandler:
             app (Flask): The Flask application instance.
             session_service (AccountSessionManagement): The port used to retrieve user data.
         """
-        @app.before_request
-        def identify_user():
-            global_request_context.current_user = session_service.get_current_account()
+        app.before_request(functools.partial(FlaskHandler.identify_user, session_service=session_service))
+
+    @staticmethod
+    def identify_user(session_service: AccountSessionManagement):
+        """Injects the current user into the global request context."""
+        global_request_context.current_user = session_service.get_current_account()

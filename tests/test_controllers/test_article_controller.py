@@ -3,6 +3,7 @@ from unittest.mock import patch
 from app.constants import Role, SessionKey
 from app.models.article_model import Article
 from tests.factories import make_account, make_article
+from tests_hexagonal.exceptions_tests import ExceptionTest
 
 
 def test_list_articles_empty(client):
@@ -67,12 +68,12 @@ def test_create_article_atomicity_failure(client, db_session):
         sess[SessionKey.ROLE] = Role.AUTHOR
 
     with patch("database.database_setup.db_session.commit") as mock_commit:
-        mock_commit.side_effect = Exception("Database Failure")
+        mock_commit.side_effect = ExceptionTest("Database Failure")
         try:
             client.post(
                 "/article/new", data={"title": "Ghost Article", "content": "Text"}
             )
-        except Exception:
+        except ExceptionTest:
             pass
 
     db_session.remove()
