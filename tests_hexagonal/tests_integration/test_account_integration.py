@@ -46,7 +46,12 @@ class TestProfile:
         """
         Verifies session persistence and that name changes propagate to all views.
         """
-        auth = AccountModel(account_username="old_name", account_email="old@test.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="old_name",
+            account_email="old@test.com",
+            account_password="p",
+            account_role="author"
+        )
         db_session.add(auth)
         db_session.commit()
         art = ArticleModel(article_title="My Bio", article_content="...", article_author_id=auth.account_id)
@@ -76,7 +81,7 @@ class TestConcurrency:
 
     def test_concurrency_race_condition_registration_integ(self, client, db_session):
         """
-        Simulates a race condition where multiple identical registration 
+        Simulates a race condition where multiple identical registration
         requests are sent concurrently.
         """
         registration_data = {
@@ -96,10 +101,9 @@ class TestConcurrency:
         count = db_session.query(AccountModel).filter_by(account_email="race@test.com").count()
         assert count == 1
         success_count = 0
-        for i, r in enumerate(results):
+        for _, r in enumerate(results):
             is_success = r.status_code in [200, 302] and b"already taken" not in r.data.lower()
             if is_success:
                 success_count += 1
-            print(f"Thread {i}: Status={r.status_code}, Data={r.data[:100]}")
 
         assert success_count == 1

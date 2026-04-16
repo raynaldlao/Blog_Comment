@@ -68,22 +68,72 @@ def create_app(db_session=None) -> Flask:
     # Article Routes (Namespace simulation: article.xxx)
     app.add_url_rule("/", view_func=article_adapter.list_articles, endpoint="article.list_articles")
     app.add_url_rule("/articles/<int:article_id>", view_func=article_adapter.read_article, endpoint="article.read_article")
-    app.add_url_rule("/articles/new", view_func=article_adapter.render_create_page, methods=["GET"], endpoint="article.render_create_page")
-    app.add_url_rule("/articles/new", view_func=article_adapter.create_article, methods=["POST"], endpoint="article.create_article")
-    app.add_url_rule("/articles/<int:article_id>/edit", view_func=article_adapter.render_edit_page, methods=["GET"], endpoint="article.render_edit_page")
-    app.add_url_rule("/articles/<int:article_id>/edit", view_func=article_adapter.update_article, methods=["POST"], endpoint="article.update_article")
-    app.add_url_rule("/articles/<int:article_id>/delete", view_func=article_adapter.delete_article, methods=["POST"], endpoint="article.delete_article")
+    app.add_url_rule(
+        "/articles/new",
+        view_func=article_adapter.render_create_page,
+        methods=["GET"],
+        endpoint="article.render_create_page"
+    )
+    app.add_url_rule(
+        "/articles/new",
+        view_func=article_adapter.create_article,
+        methods=["POST"],
+        endpoint="article.create_article"
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/edit",
+        view_func=article_adapter.render_edit_page,
+        methods=["GET"],
+        endpoint="article.render_edit_page"
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/edit",
+        view_func=article_adapter.update_article,
+        methods=["POST"],
+        endpoint="article.update_article"
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/delete",
+        view_func=article_adapter.delete_article,
+        methods=["POST"],
+        endpoint="article.delete_article"
+    )
 
     # Comment Routes (Namespace simulation: comment.xxx)
-    app.add_url_rule("/articles/<int:article_id>/comments", view_func=comment_adapter.create_comment, methods=["POST"], endpoint="comment.create_comment")
-    app.add_url_rule("/articles/<int:article_id>/comments/<int:parent_comment_id>/reply", view_func=comment_adapter.reply_to_comment, methods=["POST"], endpoint="comment.reply_to_comment")
-    app.add_url_rule("/articles/<int:article_id>/comments/<int:comment_id>/delete", view_func=comment_adapter.delete_comment, methods=["POST"], endpoint="comment.delete_comment")
+    app.add_url_rule(
+        "/articles/<int:article_id>/comments",
+        view_func=comment_adapter.create_comment,
+        methods=["POST"],
+        endpoint="comment.create_comment"
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/comments/<int:parent_comment_id>/reply",
+        view_func=comment_adapter.reply_to_comment,
+        methods=["POST"],
+        endpoint="comment.reply_to_comment"
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/comments/<int:comment_id>/delete",
+        view_func=comment_adapter.delete_comment,
+        methods=["POST"],
+        endpoint="comment.delete_comment"
+    )
 
     # Auth & Registration Routes (Simulating namespaces)
     app.add_url_rule("/login", view_func=login_adapter.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=login_adapter.authenticate, methods=["POST"], endpoint="auth.authenticate")
-    app.add_url_rule("/register", view_func=registration_adapter.render_registration_page, methods=["GET"], endpoint="registration.register")
-    app.add_url_rule("/register", view_func=registration_adapter.register, methods=["POST"], endpoint="registration.register_action")
+    app.add_url_rule(
+        "/register",
+        view_func=registration_adapter.render_registration_page,
+        methods=["GET"],
+        endpoint="registration.register"
+    )
+    app.add_url_rule(
+        "/register",
+        view_func=registration_adapter.register,
+        methods=["POST"],
+        endpoint="registration.register_action"
+    )
     app.add_url_rule("/profile", view_func=account_session_adapter.display_profile, endpoint="auth.profile")
     app.add_url_rule("/logout", view_func=account_session_adapter.logout, endpoint="auth.logout")
 

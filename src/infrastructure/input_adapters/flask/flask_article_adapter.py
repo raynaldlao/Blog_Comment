@@ -73,7 +73,10 @@ class ArticleAdapter:
             return redirect(url_for("article.list_articles"))
 
         detail = result
-        article = ArticleResponse.from_domain(detail.article_with_author.article, author_username=detail.article_with_author.author_name)
+        article = ArticleResponse.from_domain(
+            detail.article_with_author.article,
+            author_username=detail.article_with_author.author_name
+        )
         dto_comments = CommentResponse.map_threaded_comments(detail.threaded_comments.threads)
         user = global_request_context.get("current_user")
         return render_template(

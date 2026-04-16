@@ -70,15 +70,37 @@ class TestWorkflows:
         article = ArticleModel(article_title="Deep Thread", article_content="...", article_author_id=author.account_id)
         db_session.add(article)
         db_session.commit()
-        c1 = CommentModel(comment_content="Level 1", comment_article_id=article.article_id, comment_written_account_id=author.account_id, comment_reply_to=None)
-        db_session.add(c1)
+
+        comment_1 = CommentModel(
+            comment_content="Level 1",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=None
+        )
+
+        db_session.add(comment_1)
         db_session.commit()
-        c2 = CommentModel(comment_content="Level 2", comment_article_id=article.article_id, comment_written_account_id=author.account_id, comment_reply_to=c1.comment_id)
-        db_session.add(c2)
+
+        comment_2 = CommentModel(
+            comment_content="Level 2",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_1.comment_id
+        )
+
+        db_session.add(comment_2)
         db_session.commit()
-        c3 = CommentModel(comment_content="Level 3", comment_article_id=article.article_id, comment_written_account_id=author.account_id, comment_reply_to=c2.comment_id)
-        db_session.add(c3)
+
+        comment_3 = CommentModel(
+            comment_content="Level 3",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_2.comment_id
+        )
+
+        db_session.add(comment_3)
         db_session.commit()
+
         response = client.get(f"/articles/{article.article_id}")
         assert response.status_code == 200
         assert b"Level 1" in response.data

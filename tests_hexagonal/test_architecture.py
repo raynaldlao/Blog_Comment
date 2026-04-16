@@ -12,7 +12,7 @@ class TestArchitecture:
     @classmethod
     def setup_class(cls):
         """
-        Set up the evaluable architecture graph and dynamically discover 
+        Set up the evaluable architecture graph and dynamically discover
         the base module prefix.
         """
         root_dir = os.getcwd()
@@ -37,7 +37,7 @@ class TestArchitecture:
     def test_domain_purity(self):
         """
         RULE 1 - Domain Purity:
-        Domain entities must not import other internal layers 
+        Domain entities must not import other internal layers
         (services, ports, infrastructure). The domain is the pure core.
         """
         forbidden_for_domain = [
@@ -124,7 +124,7 @@ class TestArchitecture:
     def test_ports_do_not_import_services(self):
         """
         RULE 6 - Port Independence:
-        Ports (input and output) define the contracts. They must not 
+        Ports (input and output) define the contracts. They must not
         depend on the Services implementing them.
         """
         if self.L_SERVICES in self.all_nodes:

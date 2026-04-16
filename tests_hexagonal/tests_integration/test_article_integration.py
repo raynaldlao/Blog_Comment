@@ -101,7 +101,11 @@ class TestPersistence:
         art = ArticleModel(article_title="Ghost Article", article_content="...", article_author_id=auth.account_id)
         db_session.add(art)
         db_session.commit()
-        cmt = CommentModel(comment_content="My last words", comment_article_id=art.article_id, comment_written_account_id=auth.account_id)
+        cmt = CommentModel(
+            comment_content="My last words",
+            comment_article_id=art.article_id,
+            comment_written_account_id=auth.account_id
+        )
         db_session.add(cmt)
         db_session.commit()
         article_id = art.article_id
@@ -122,8 +126,15 @@ class TestPersistence:
         db_session.add(art)
         db_session.commit()
         from unittest.mock import patch
-        with patch("src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter.SqlAlchemyAccountAdapter.get_by_id") as mock_get_id:
-            with patch("src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter.SqlAlchemyAccountAdapter.get_by_ids") as mock_get_ids:
+        target_id = "src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter.SqlAlchemyAccountAdapter.get_by_id"
+
+        target_ids = (
+            "src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter"
+            ".SqlAlchemyAccountAdapter.get_by_ids"
+        )
+
+        with patch(target_id) as mock_get_id:
+            with patch(target_ids) as mock_get_ids:
                 mock_get_id.return_value = None
                 mock_get_ids.return_value = []
                 response = client.get(f"/articles/{art.article_id}")

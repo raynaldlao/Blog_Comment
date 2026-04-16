@@ -167,7 +167,9 @@ class CommentService(CommentManagementPort):
             comp = CommentWithAuthor(comment=comment, author_name=author_map.get(comment.comment_written_account_id, "Unknown"))
             tree[key].append(comp)
 
-        get_date = lambda cwa: cwa.comment.comment_posted_at
+        def get_date(cwa):
+            return cwa.comment.comment_posted_at
+
         if "root" in tree:
             tree["root"].sort(key=get_date, reverse=True)
 

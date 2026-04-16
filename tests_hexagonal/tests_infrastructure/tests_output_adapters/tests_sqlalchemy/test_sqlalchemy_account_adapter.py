@@ -85,7 +85,7 @@ class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
         )
 
         self.repository.save(account)
-        assert account.account_id > 0  # Verify identity synchronization
+        assert account.account_id > 0
         model = self.session.query(AccountModel).filter_by(account_username="new_user").first()
         assert model is not None
         assert model.account_email == "new@example.com"
