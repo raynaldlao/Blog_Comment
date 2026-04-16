@@ -60,6 +60,19 @@ class TestCommentCreate(CommentAdapterTestBase):
             content="Hello!"
         )
 
+    def test_create_comment_validation_error(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments", data={"content": ""}, follow_redirects=True)
+        assert b"Validation Error" in response.data
+
+    def test_create_comment_service_error_string(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        self.mock_comment_service.create_comment.return_value = "Article not found"
+        response = self.client.post("/articles/1/comments", data={"content": "Valid"}, follow_redirects=True)
+        assert b"Article not found" in response.data
+
 class TestCommentReply(CommentAdapterTestBase):
     def test_reply_to_comment_success(self):
         user = create_test_account(account_id=456)
@@ -75,6 +88,23 @@ class TestCommentReply(CommentAdapterTestBase):
             content="Nice reply"
         )
 
+    def test_reply_requires_login(self):
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": "T"}, follow_redirects=True)
+        assert b"You must be signed in to reply" in response.data
+
+    def test_reply_validation_error(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": ""}, follow_redirects=True)
+        assert b"Validation Error" in response.data
+
+    def test_reply_service_error_string(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        self.mock_comment_service.create_reply.return_value = "Parent not found"
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": "Valid"}, follow_redirects=True)
+        assert b"Parent not found" in response.data
+
 class TestCommentDelete(CommentAdapterTestBase):
     def test_delete_comment_success(self):
         user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
@@ -88,3 +118,21 @@ class TestCommentDelete(CommentAdapterTestBase):
             comment_id=99,
             user_id=1
         )
+
+    def test_delete_comment_requires_login(self):
+        response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
+        assert b"You must be signed in to delete comments" in response.data
+
+    def test_delete_comment_service_error_string(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(user)
+        self.mock_comment_service.delete_comment.return_value = "Comment not found"
+        response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
+        assert b"Comment not found" in response.data
+
+    def test_delete_comment_unauthorized_none_return(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(user)
+        self.mock_comment_service.delete_comment.return_value = None
+        response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
+        assert b"Unauthorized or error" in response.data

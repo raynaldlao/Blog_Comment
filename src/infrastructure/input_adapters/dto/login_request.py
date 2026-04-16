@@ -9,5 +9,5 @@ class LoginRequest(BaseModel):
     it is passed to the LoginManagementPort.
     """
 
-    username: str = Field(..., description="The account username.")
-    password: str = Field(..., description="The account password.")
+    username: str = Field(..., min_length=1, description="The account username.")
+    password: str = Field(..., min_length=1, description="The account password.")

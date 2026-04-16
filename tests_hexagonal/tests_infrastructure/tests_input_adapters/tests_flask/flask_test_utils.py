@@ -42,7 +42,7 @@ class FlaskInputAdapterTestBase:
         if label is None:
             label = endpoint
 
-        def dummy_view():
+        def dummy_view(**kwargs):
             return f"{label} {get_flashed_messages()}"
 
         self.app.add_url_rule(rule, view_func=dummy_view, endpoint=endpoint)

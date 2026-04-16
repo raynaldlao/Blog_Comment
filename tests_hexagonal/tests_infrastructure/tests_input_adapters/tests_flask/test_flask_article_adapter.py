@@ -118,12 +118,38 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"You must be signed in" in response.data
 
+    def test_render_edit_page_redirects_anonymous_to_login(self):
+        response = self.client.get("/articles/1/edit", follow_redirects=True)
+        assert b"You must be signed in" in response.data
+
+    def test_update_article_redirects_anonymous_to_login(self):
+        response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
+        assert b"You must be signed in" in response.data
+
 
 class TestArticleUserAccess(ArticleAdapterTestBase):
     def test_user_cannot_access_create_page(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.get("/articles/new", follow_redirects=True)
+        assert b"Insufficient permissions" in response.data
+
+    def test_user_cannot_access_edit_page(self):
+        user = create_test_account(account_id=10, account_role=AccountRole.USER)
+        self._prepare_user_context(user)
+        response = self.client.get("/articles/1/edit", follow_redirects=True)
+        assert b"Insufficient permissions" in response.data
+
+    def test_user_cannot_update_article(self):
+        user = create_test_account(account_id=10, account_role=AccountRole.USER)
+        self._prepare_user_context(user)
+        response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
+        assert b"Insufficient permissions" in response.data
+
+    def test_user_cannot_delete_article(self):
+        user = create_test_account(account_id=10, account_role=AccountRole.USER)
+        self._prepare_user_context(user)
+        response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
 
     def test_user_cannot_create_article(self):
@@ -149,6 +175,20 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
 
         assert b"Your article has been successfully published!" in response.data
         self.mock_article_repo.save.assert_called_once()
+
+    def test_author_create_article_service_error(self):
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        mock_service = Mock(spec=ArticleService)
+        self.adapter.article_service = mock_service
+        mock_service.create_article.return_value = "Service Error Message"
+
+        response = self.client.post(
+            "/articles/new",
+            data={"title": "A", "content": "Long enough content."},
+            follow_redirects=True
+        )
+        assert b"Service Error Message" in response.data
 
     def test_author_can_edit_own_article(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -220,3 +260,33 @@ class TestArticleValidation(ArticleAdapterTestBase):
 
         assert b"Validation Error" in response.data
         self.mock_article_repo.save.assert_not_called()
+
+    def test_update_article_validation_error(self):
+        author = create_test_account(account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        article = create_test_article(article_id=1, article_author_id=author.account_id)
+        self.mock_article_repo.get_by_id.return_value = article
+
+        response = self.client.post(
+            "/articles/1/edit",
+            data={"title": ""},
+            follow_redirects=True
+        )
+
+        assert b"Validation Error" in response.data
+
+    def test_delete_article_service_error(self):
+        from src.application.domain.article import ArticleDetailView, ArticleWithAuthor
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        article = create_test_article(article_id=1, article_author_id=10)
+
+        detail = ArticleDetailView(
+            article_with_author=ArticleWithAuthor(article=article, author_name=author.account_username),
+            threaded_comments=CommentThreadView(threads={"root": []})
+        )
+
+        self.adapter.article_service.delete_article = Mock(return_value="Delete Error")
+        self.adapter.article_service.get_article_with_comments = Mock(return_value=detail)
+        response = self.client.post("/articles/1/delete", follow_redirects=True)
+        assert b"Delete Error" in response.data
