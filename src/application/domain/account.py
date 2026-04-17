@@ -42,7 +42,7 @@ class Account:
         account_password: str,
         account_email: str,
         account_role: AccountRole,
-        account_created_at: datetime,
+        account_created_at: datetime | None,
     ):
         """
         Initialize a user account.

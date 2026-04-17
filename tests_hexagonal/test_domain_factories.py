@@ -11,7 +11,7 @@ def create_test_account(
     account_password: str = "password123",
     account_email: str = "leia@galaxy.com",
     account_role: AccountRole = AccountRole.USER,
-    account_created_at: datetime = None,
+    account_created_at: datetime | None = None,
 ) -> Account:
     """Factory to create a test Account entity with sensible defaults."""
     if account_created_at is None:
@@ -32,7 +32,7 @@ def create_test_article(
     article_author_id: int = 1,
     article_title: str = "Test Article Title",
     article_content: str = "Test article content.",
-    article_published_at: datetime = None,
+    article_published_at: datetime | None = None,
 ) -> Article:
     """Factory to create a test Article entity with sensible defaults."""
     if article_published_at is None:
@@ -53,7 +53,7 @@ def create_test_comment(
     comment_written_account_id: int = 1,
     comment_reply_to: int | None = None,
     comment_content: str = "Test comment content.",
-    comment_posted_at: datetime = None,
+    comment_posted_at: datetime | None = None,
 ) -> Comment:
     """Factory to create a test Comment entity with sensible defaults."""
     if comment_posted_at is None:

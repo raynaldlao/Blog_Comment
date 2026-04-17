@@ -22,7 +22,7 @@ class Article:
         article_author_id: int,
         article_title: str,
         article_content: str,
-        article_published_at: datetime,
+        article_published_at: datetime | None,
     ):
         """
         Initialize a blog article.

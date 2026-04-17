@@ -46,7 +46,7 @@ class AccountSessionService(AccountSessionManagement):
         if not account_id:
             return None
 
-        return self._account_repository.get_by_id(int(account_id))
+        return self._account_repository.get_by_id(int(str(account_id)))
 
     def terminate_session(self) -> None:
         """

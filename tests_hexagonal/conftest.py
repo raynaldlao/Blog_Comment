@@ -1,6 +1,8 @@
+from typing import cast
+
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from blog_comment_application import create_app
 from src.infrastructure.config import infra_config
@@ -24,8 +26,9 @@ def db_setup(db_engine):
 def db_session(db_engine, db_setup):
     session_factory = sessionmaker(bind=db_engine)
     session = scoped_session(session_factory)
-    truncate_all_tables(session)
-    yield session
+    mapped_session = cast(Session, session)
+    truncate_all_tables(mapped_session)
+    yield mapped_session
     session.remove()
 
 @pytest.fixture(scope="function")

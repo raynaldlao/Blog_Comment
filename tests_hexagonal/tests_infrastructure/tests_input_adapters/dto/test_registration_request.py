@@ -41,9 +41,8 @@ class TestRegistrationRequest:
 
     def test_registration_request_missing_field(self):
         with pytest.raises(ValidationError):
-            RegistrationRequest(
-                # username missing
-                email="leia@rebels.com",
-                password="password123",
-                confirm_password="password123"
-            )
+            RegistrationRequest.model_validate({
+                "email": "leia@rebels.com",
+                "password": "password123",
+                "confirm_password": "password123"
+            })

@@ -168,6 +168,7 @@ class TestGetComments(CommentServiceTestBase):
         comments = self.service.get_comments_for_article(article_id=fake_article.article_id)
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
+        assert not isinstance(comments, str)
         assert comments.threads == {"root": []}
 
     def test_get_comments_for_article_success(self):
@@ -200,6 +201,7 @@ class TestGetComments(CommentServiceTestBase):
         ]
 
         result = self.service.get_comments_for_article(article_id=fake_article.article_id)
+        assert not isinstance(result, str)
         root_comment_view, = result.threads["root"]
         reply_view, = result.threads[root_comment.comment_id]
         assert root_comment_view.comment == root_comment
@@ -218,6 +220,7 @@ class TestGetComments(CommentServiceTestBase):
         reply_2 = create_test_comment(comment_id=4, comment_posted_at=datetime(2026, 1, 3), comment_reply_to=2)
         self.mock_comment_repo.get_all_by_article_id.return_value = [comment_1, comment_2, reply_1, reply_2]
         result = self.service.get_comments_for_article(article_id=1)
+        assert not isinstance(result, str)
         latest_root, oldest_root = result.threads["root"]
         latest_reply, oldest_reply = result.threads[comment_2.comment_id]
         assert latest_root.comment.comment_id == comment_2.comment_id
@@ -232,6 +235,7 @@ class TestGetComments(CommentServiceTestBase):
         self.mock_comment_repo.get_all_by_article_id.return_value = [comment]
         self.mock_account_repo.get_by_ids.return_value = []
         result = self.service.get_comments_for_article(article_id=1)
+        assert not isinstance(result, str)
         comment_view, = result.threads["root"]
         assert comment_view.author_name == "Unknown"
 

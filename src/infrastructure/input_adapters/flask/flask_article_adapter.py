@@ -1,7 +1,8 @@
 
-from flask import Response, flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from pydantic import ValidationError
+from werkzeug.wrappers.response import Response
 
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
@@ -36,7 +37,7 @@ class ArticleAdapter:
             str: The rendered HTML content of the 'article_list.html' template.
         """
         page = request.args.get("page", 1, type=int)
-        domain_articles = self.article_service.get_paginated_articles(page=page)
+        domain_articles = self.article_service.get_paginated_articles(page=page, per_page=10)
         total_count = self.article_service.get_total_count()
         articles = []
 

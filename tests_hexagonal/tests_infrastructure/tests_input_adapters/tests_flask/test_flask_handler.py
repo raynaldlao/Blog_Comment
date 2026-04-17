@@ -52,6 +52,7 @@ class TestFlaskHandler(FlaskInputAdapterTestBase):
         captured_user = self._capture_user_via_route("test-authenticated")
         self.mock_session_service.get_current_account.assert_called_once()
         assert captured_user is not None
+        assert isinstance(captured_user, Account)
         assert captured_user.account_username == "AgentSmith"
         assert captured_user.account_role == AccountRole.ADMIN
 

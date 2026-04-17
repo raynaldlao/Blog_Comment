@@ -26,7 +26,9 @@ class TestInMemoryArticleRepository:
         assert repo.get_by_id(5) == article
         article.article_title = "New Title"
         repo.save(article)
-        assert repo.get_by_id(5).article_title == "New Title"
+        fetched_article = repo.get_by_id(5)
+        assert fetched_article is not None
+        assert fetched_article.article_title == "New Title"
         assert repo.count_all() == 1
 
     def test_delete_article(self):

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from src.application.domain.article import Article
 from src.application.output_ports.article_repository import ArticleRepository
 
@@ -47,7 +49,7 @@ class InMemoryArticleRepository(ArticleRepository):
         Returns:
             list[Article]: A sorted list of Article domain entities.
         """
-        return sorted(self._articles.values(), key=lambda a: a.article_published_at, reverse=True)
+        return sorted(list(self._articles.values()), key=lambda a: a.article_published_at or datetime.min, reverse=True)
 
     def get_paginated(self, page: int, per_page: int) -> list[Article]:
         """

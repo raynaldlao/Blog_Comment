@@ -2,6 +2,7 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
+from src.application.domain.article import Article
 from src.application.domain.comment import CommentThreadView
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -40,6 +41,7 @@ class TestCreateArticle(ArticleServiceTestBase):
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_article_repo.save.assert_called_once_with(result)
+        assert isinstance(result, Article)
         assert result.article_title == "My First Article"
         assert result.article_content == "Hello World !"
         assert result.article_author_id == fake_account.account_id
@@ -203,6 +205,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
         self.mock_article_repo.save.assert_called_once_with(result)
+        assert isinstance(result, Article)
         assert result.article_title == "New Title"
         assert result.article_content == "New Content"
 
@@ -323,6 +326,7 @@ class TestGetArticleWithComments(ArticleServiceTestBase):
         self.mock_comment_management.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
         self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=10, account_username="ArticleAuthor")
         result = self.service.get_article_with_comments(article_id=1)
+        assert not isinstance(result, str)
         article_view = result.article_with_author
         assert article_view.article.article_title == "Composed Article"
         assert article_view.author_name == "ArticleAuthor"

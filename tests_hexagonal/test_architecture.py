@@ -1,4 +1,5 @@
 import os
+from typing import Any, cast
 
 from pytestarch import Rule, get_evaluable_architecture
 
@@ -18,7 +19,7 @@ class TestArchitecture:
         root_dir = os.getcwd()
         src_path = os.path.abspath("src")
         cls.evaluable = get_evaluable_architecture(root_dir, src_path)
-        cls.all_nodes = [str(node) for node in cls.evaluable._graph.nodes]
+        cls.all_nodes = [str(node) for node in cast(Any, cls.evaluable)._graph.nodes]
 
         base_prefix = ""
         for node in cls.all_nodes:
@@ -77,9 +78,10 @@ class TestArchitecture:
         technical_frameworks = ("flask", "sqlalchemy", "pydantic")
         forbidden_prefixes = tuple(f"{fw}." for fw in technical_frameworks)
 
+        graph_obj: Any = cast(Any, self.evaluable)._graph
         violations = [
             f"{source} -> {target}"
-            for source, target in self.evaluable._graph.edges
+            for source, target in graph_obj.edges
             if self.L_APP in str(source)
             and (
                 str(target).lower() in technical_frameworks
@@ -98,9 +100,10 @@ class TestArchitecture:
         Infrastructure must depend on Application (and not the other way around).
         At least one adapter must import a port or domain entity.
         """
+        graph_obj_2: Any = cast(Any, self.evaluable)._graph
         infra_to_app_exists = any(
             self.L_INFRA in str(source) and self.L_APP in str(target)
-            for source, target in self.evaluable._graph.edges
+            for source, target in graph_obj_2.edges
         )
 
         assert infra_to_app_exists, (

@@ -17,11 +17,11 @@ class TestArticleRequest:
 
     def test_title_is_required(self):
         with pytest.raises(ValidationError):
-            ArticleRequest(content="Some content")
+            ArticleRequest.model_validate({"content": "Some content"})
 
     def test_content_is_required(self):
         with pytest.raises(ValidationError):
-            ArticleRequest(title="Some Title")
+            ArticleRequest.model_validate({"title": "Some title"})
 
     def test_empty_strings_are_rejected(self):
         with pytest.raises(ValidationError):

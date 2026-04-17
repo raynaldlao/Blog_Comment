@@ -17,8 +17,8 @@ class TestLoginRequest:
 
     def test_login_request_missing_username(self):
         with pytest.raises(ValidationError):
-            LoginRequest(password="password123")
+            LoginRequest.model_validate({"password": "password123"})
 
     def test_login_request_missing_password(self):
         with pytest.raises(ValidationError):
-            LoginRequest(username="leia")
+            LoginRequest.model_validate({"username": "leia"})

@@ -15,4 +15,4 @@ def test_comment_request_empty_content_fails():
 
 def test_comment_request_missing_content_fails():
     with pytest.raises(ValidationError):
-        CommentRequest()
+        CommentRequest.model_validate({})
