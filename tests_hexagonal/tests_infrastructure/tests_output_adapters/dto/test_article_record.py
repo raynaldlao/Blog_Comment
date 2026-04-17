@@ -4,6 +4,17 @@ from src.application.domain.article import Article
 from src.infrastructure.output_adapters.dto.article_record import ArticleRecord
 
 
+class MockArticleModel:
+    """Mock object to simulate an ORM model for Article."""
+
+    def __init__(self) -> None:
+        self.article_id = 99
+        self.article_author_id = 42
+        self.article_title = "ORM Title"
+        self.article_content = "ORM Content"
+        self.article_published_at = datetime(2023, 1, 1, 12, 0, 0)
+
+
 class TestArticleRecordCreation:
     def test_create_record_with_valid_data(self):
         record = ArticleRecord(
@@ -16,15 +27,7 @@ class TestArticleRecordCreation:
         assert record.article_id == 1
         assert record.article_title == "Test Title"
 
-    def test_create_record_from_object_attributes(self):
-        class MockArticleModel:
-            def __init__(self):
-                self.article_id = 99
-                self.article_author_id = 42
-                self.article_title = "ORM Title"
-                self.article_content = "ORM Content"
-                self.article_published_at = datetime(2023, 1, 1, 12, 0, 0)
-
+    def test_create_record_from_object_attributes(self) -> None:
         record = ArticleRecord.model_validate(MockArticleModel())
         assert record.article_id == 99
         assert record.article_title == "ORM Title"

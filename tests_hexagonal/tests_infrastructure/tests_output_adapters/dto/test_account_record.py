@@ -4,6 +4,18 @@ from src.application.domain.account import Account, AccountRole
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
 
 
+class MockAccountModel:
+    """Mock object to simulate an ORM model for Account."""
+
+    def __init__(self) -> None:
+        self.account_id = 42
+        self.account_username = "orm_user"
+        self.account_password = "orm_password"
+        self.account_email = "orm@example.com"
+        self.account_role = "author"
+        self.account_created_at = datetime(2024, 6, 15)
+
+
 class TestAccountRecordCreation:
     def test_create_record_with_valid_data(self):
         record = AccountRecord(
@@ -34,16 +46,7 @@ class TestAccountRecordCreation:
 
         assert record.account_created_at is None
 
-    def test_create_record_from_object_attributes(self):
-        class MockAccountModel:
-            def __init__(self):
-                self.account_id = 42
-                self.account_username = "orm_user"
-                self.account_password = "orm_password"
-                self.account_email = "orm@example.com"
-                self.account_role = "author"
-                self.account_created_at = datetime(2024, 6, 15)
-
+    def test_create_record_from_object_attributes(self) -> None:
         record = AccountRecord.model_validate(MockAccountModel())
         assert record.account_id == 42
         assert record.account_username == "orm_user"

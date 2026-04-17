@@ -35,6 +35,20 @@ class CommentService(CommentManagementPort):
         self.article_repository = article_repository
         self.account_repository = account_repository
 
+    @staticmethod
+    def _get_comment_date(cwa: CommentWithAuthor) -> datetime:
+        """
+        Static helper to extract the posting date from a CommentWithAuthor object.
+        Used as a key for sorting comments.
+
+        Args:
+            cwa (CommentWithAuthor): The comment wrapper object.
+
+        Returns:
+            datetime: The date and time the comment was posted.
+        """
+        return cwa.comment.comment_posted_at
+
     def _get_account_if_exists(self, user_id: int) -> Account | str:
         """
         Helper method to retrieve and validate an account.
@@ -167,14 +181,11 @@ class CommentService(CommentManagementPort):
             comp = CommentWithAuthor(comment=comment, author_name=author_map.get(comment.comment_written_account_id, "Unknown"))
             tree[key].append(comp)
 
-        def get_date(cwa):
-            return cwa.comment.comment_posted_at
-
         if "root" in tree:
-            tree["root"].sort(key=get_date, reverse=True)
+            tree["root"].sort(key=self._get_comment_date, reverse=True)
 
         for root in tree["root"]:
-            tree[root.comment.comment_id].sort(key=get_date)
+            tree[root.comment.comment_id].sort(key=self._get_comment_date)
 
         return CommentThreadView(threads=dict(tree))
 

@@ -89,7 +89,6 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         model.article_content = article.article_content
         self._session.add(model)
         self._session.commit()
-        # Sync the database-generated ID back to the domain entity
         article.article_id = model.article_id
 
     def delete(self, article: Article) -> None:

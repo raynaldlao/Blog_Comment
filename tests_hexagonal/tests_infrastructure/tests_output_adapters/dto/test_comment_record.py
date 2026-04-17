@@ -4,6 +4,18 @@ from src.application.domain.comment import Comment
 from src.infrastructure.output_adapters.dto.comment_record import CommentRecord
 
 
+class MockCommentModel:
+    """Mock object to simulate an ORM model for Comment."""
+
+    def __init__(self) -> None:
+        self.comment_id = 99
+        self.comment_article_id = 42
+        self.comment_written_account_id = 21
+        self.comment_reply_to = 5
+        self.comment_content = "ORM Content"
+        self.comment_posted_at = datetime(2023, 1, 1, 12, 0, 0)
+
+
 class TestCommentRecordCreation:
     def test_create_record_with_valid_data(self):
         record = CommentRecord(
@@ -18,16 +30,7 @@ class TestCommentRecordCreation:
         assert record.comment_content == "Test Content"
         assert record.comment_reply_to is None
 
-    def test_create_record_from_object_attributes(self):
-        class MockCommentModel:
-            def __init__(self):
-                self.comment_id = 99
-                self.comment_article_id = 42
-                self.comment_written_account_id = 21
-                self.comment_reply_to = 5
-                self.comment_content = "ORM Content"
-                self.comment_posted_at = datetime(2023, 1, 1, 12, 0, 0)
-
+    def test_create_record_from_object_attributes(self) -> None:
         record = CommentRecord.model_validate(MockCommentModel())
         assert record.comment_id == 99
         assert record.comment_content == "ORM Content"
