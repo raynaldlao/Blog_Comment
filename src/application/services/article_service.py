@@ -1,17 +1,17 @@
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
-from src.application.domain.comment import CommentThreadView
 from src.application.input_ports.article_management import ArticleManagementPort
-from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
+from src.application.output_ports.comment_repository import CommentRepository
+from src.application.services.service_utils import build_comment_thread_view
 
 
 class ArticleService(ArticleManagementPort):
     """
     Implements the ArticleManagementPort input port.
     Handles all business logic operations related to Articles.
-    Depends on the ArticleRepository and AccountRepository output ports
+    Depends on the ArticleRepository, AccountRepository, and CommentRepository output ports
     for data persistence, injected via the constructor.
     """
 
@@ -19,7 +19,7 @@ class ArticleService(ArticleManagementPort):
         self,
         article_repository: ArticleRepository,
         account_repository: AccountRepository,
-        comment_management: CommentManagementPort
+        comment_repository: CommentRepository
     ):
         """
         Initialize the service via Dependency Injection.
@@ -27,11 +27,11 @@ class ArticleService(ArticleManagementPort):
         Args:
             article_repository (ArticleRepository): Port for article data access.
             account_repository (AccountRepository): Port for account data access.
-            comment_management (CommentManagementPort): Port for comment operations.
+            comment_repository (CommentRepository): Port for comment data access.
         """
         self.article_repository = article_repository
         self.account_repository = account_repository
-        self.comment_management = comment_management
+        self.comment_repository = comment_repository
 
     def _get_account_if_author_or_admin(self, user_id: int) -> Account | str:
         """
@@ -224,14 +224,12 @@ class ArticleService(ArticleManagementPort):
         if not article:
             return "Article not found."
 
-        comment_result = self.comment_management.get_comments_for_article(article_id)
-
-        if isinstance(comment_result, str):
-            comments = CommentThreadView(threads={"root": []})
-        else:
-            comments = comment_result
-
-        article_author = self.account_repository.get_by_id(article.article_author_id)
-        author_name = article_author.account_username if article_author else "Unknown"
+        all_comments = self.comment_repository.get_all_by_article_id(article_id)
+        author_ids = {article.article_author_id}
+        author_ids.update(c.comment_written_account_id for c in all_comments)
+        authors = self.account_repository.get_by_ids(list(author_ids))
+        author_map = {acc.account_id: acc.account_username for acc in authors}
+        comments_view = build_comment_thread_view(all_comments, author_map)
+        author_name = author_map.get(article.article_author_id, "Unknown")
         article_with_author = ArticleWithAuthor(article=article, author_name=author_name)
-        return ArticleDetailView(article_with_author=article_with_author, threaded_comments=comments)
+        return ArticleDetailView(article_with_author=article_with_author, threaded_comments=comments_view)

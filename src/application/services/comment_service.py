@@ -1,12 +1,12 @@
-from collections import defaultdict
 from datetime import datetime
 
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment, CommentThreadView, CommentWithAuthor
+from src.application.domain.comment import Comment, CommentThreadView
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
+from src.application.services.service_utils import build_comment_thread_view
 
 
 class CommentService(CommentManagementPort):
@@ -34,20 +34,6 @@ class CommentService(CommentManagementPort):
         self.comment_repository = comment_repository
         self.article_repository = article_repository
         self.account_repository = account_repository
-
-    @staticmethod
-    def _get_comment_date(cwa: CommentWithAuthor) -> datetime:
-        """
-        Static helper to extract the posting date from a CommentWithAuthor object.
-        Used as a key for sorting comments.
-
-        Args:
-            cwa (CommentWithAuthor): The comment wrapper object.
-
-        Returns:
-            datetime: The date and time the comment was posted.
-        """
-        return cwa.comment.comment_posted_at
 
     def _get_account_if_exists(self, user_id: int) -> Account | str:
         """
@@ -169,25 +155,7 @@ class CommentService(CommentManagementPort):
         author_ids = {c.comment_written_account_id for c in all_comments}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        tree = defaultdict(list)
-        tree["root"] = []
-
-        for comment in all_comments:
-            if comment.comment_reply_to is None:
-                key = "root"
-            else:
-                key = comment.comment_reply_to
-
-            comp = CommentWithAuthor(comment=comment, author_name=author_map.get(comment.comment_written_account_id, "Unknown"))
-            tree[key].append(comp)
-
-        if "root" in tree:
-            tree["root"].sort(key=self._get_comment_date, reverse=True)
-
-        for root in tree["root"]:
-            tree[root.comment.comment_id].sort(key=self._get_comment_date)
-
-        return CommentThreadView(threads=dict(tree))
+        return build_comment_thread_view(all_comments, author_map)
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """

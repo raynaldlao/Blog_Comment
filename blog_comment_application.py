@@ -76,7 +76,7 @@ def _create_services(repositories):
     session_service = AccountSessionService(session_repo, account_repo)
     login_service = LoginService(account_repo, session_service)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
-    article_service = ArticleService(article_repo, account_repo, comment_service)
+    article_service = ArticleService(article_repo, account_repo, comment_repo)
 
     return {
         "registration_service": registration_service,

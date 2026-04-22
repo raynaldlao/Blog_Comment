@@ -2,8 +2,8 @@ from unittest.mock import Mock
 
 from src.application.domain.account import AccountRole
 from src.application.domain.comment import CommentThreadView
-from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.comment_repository import CommentRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.services.article_service import ArticleService
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
@@ -21,13 +21,13 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         self.mock_article_repo.get_paginated.return_value = []
         self.mock_account_repo = Mock(spec=AccountRepository, autospec=True)
         self.mock_account_repo.get_by_ids.return_value = []
-        self.mock_comment_port = Mock(spec=CommentManagementPort, autospec=True)
-        self.mock_comment_port.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
+        self.mock_comment_repo = Mock(spec=CommentRepository, autospec=True)
+        self.mock_comment_repo.get_all_by_article_id.return_value = []
 
         self.article_service = ArticleService(
             article_repository=self.mock_article_repo,
             account_repository=self.mock_account_repo,
-            comment_management=self.mock_comment_port
+            comment_repository=self.mock_comment_repo
         )
 
         self.adapter = ArticleAdapter(article_service=self.article_service)
@@ -108,7 +108,7 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
     def test_read_article_as_anonymous(self):
         article = create_test_article(article_title="Public View", article_author_id=1)
         self.mock_article_repo.get_by_id.return_value = article
-        self.mock_comment_port.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
+        self.mock_comment_repo.get_all_by_article_id.return_value = []
         self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=1, account_username="Author")
         response = self.client.get("/articles/1")
         assert response.status_code == 200

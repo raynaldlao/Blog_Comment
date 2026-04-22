@@ -3,14 +3,14 @@ from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
 from src.application.domain.article import Article
-from src.application.domain.comment import CommentThreadView
-from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
+from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.article_service import ArticleService
 from tests_hexagonal.test_domain_factories import (
     create_test_account,
     create_test_article,
+    create_test_comment,
 )
 
 
@@ -18,11 +18,11 @@ class ArticleServiceTestBase:
     def setup_method(self):
         self.mock_article_repo = MagicMock(spec=ArticleRepository, autospec=True)
         self.mock_account_repo = MagicMock(spec=AccountRepository, autospec=True)
-        self.mock_comment_management = MagicMock(spec=CommentManagementPort, autospec=True)
+        self.mock_comment_repo = MagicMock(spec=CommentRepository, autospec=True)
         self.service = ArticleService(
             article_repository=self.mock_article_repo,
             account_repository=self.mock_account_repo,
-            comment_management=self.mock_comment_management
+            comment_repository=self.mock_comment_repo
         )
 
 
@@ -321,40 +321,44 @@ class TestGetAuthorName(ArticleServiceTestBase):
 
 class TestGetArticleWithComments(ArticleServiceTestBase):
     def test_get_article_with_comments_success(self):
-        fake_article = create_test_article(article_id=1, article_title="Composed Article", article_author_id=10)
+        article_author_id = 10
+        comment_author_id = 20
+        fake_article = create_test_article(article_id=1, article_author_id=article_author_id)
+        fake_comment = create_test_comment(comment_id=101, comment_article_id=1, comment_written_account_id=comment_author_id)
         self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_comment_management.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
-        self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=10, account_username="ArticleAuthor")
+        self.mock_comment_repo.get_all_by_article_id.return_value = [fake_comment]
+
+        fake_accounts = [
+            create_test_account(account_id=article_author_id, account_username="ArticleAuthor"),
+            create_test_account(account_id=comment_author_id, account_username="CommentAuthor")
+        ]
+
+        self.mock_account_repo.get_by_ids.return_value = fake_accounts
         result = self.service.get_article_with_comments(article_id=1)
         assert not isinstance(result, str)
-        article_view = result.article_with_author
-        assert article_view.article.article_title == "Composed Article"
-        assert article_view.author_name == "ArticleAuthor"
-        assert result.threaded_comments.threads == {"root": []}
+        assert result.article_with_author.article.article_id == 1
+        assert result.article_with_author.author_name == "ArticleAuthor"
+        assert "root" in result.threaded_comments.threads
+        root_comments = result.threaded_comments.threads["root"]
+        assert len(root_comments) == 1
+        assert root_comments[0].comment.comment_id == 101
+        assert root_comments[0].author_name == "CommentAuthor"
         self.mock_article_repo.get_by_id.assert_called_once_with(1)
-        self.mock_comment_management.get_comments_for_article.assert_called_once_with(1)
+        self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(1)
+        called_author_ids = self.mock_account_repo.get_by_ids.call_args[0][0]
+        assert set(called_author_ids) == {article_author_id, comment_author_id}
 
     def test_get_article_with_comments_article_not_found(self):
         self.mock_article_repo.get_by_id.return_value = None
         result = self.service.get_article_with_comments(article_id=999)
         assert result == "Article not found."
 
-    def test_get_article_with_comments_handles_comment_error(self):
-        fake_article = create_test_article(article_id=1, article_author_id=10)
-        self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_comment_management.get_comments_for_article.return_value = "Critial logic failure"
-        self.mock_account_repo.get_by_id.return_value = create_test_account(account_id=10, account_username="ArticleAuthor")
-        result = self.service.get_article_with_comments(article_id=1)
-        assert not isinstance(result, str)
-        assert result.article_with_author.article.article_id == 1
-        assert result.threaded_comments.threads == {"root": []}
-        assert result.article_with_author.author_name == "ArticleAuthor"
-
     def test_get_article_with_comments_unknown_author(self):
         fake_article = create_test_article(article_id=1, article_author_id=999)
         self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_comment_management.get_comments_for_article.return_value = CommentThreadView(threads={"root": []})
-        self.mock_account_repo.get_by_id.return_value = None
+        self.mock_comment_repo.get_all_by_article_id.return_value = []
+        self.mock_account_repo.get_by_ids.return_value = []
         result = self.service.get_article_with_comments(article_id=1)
         assert not isinstance(result, str)
         assert result.article_with_author.author_name == "Unknown"
+        self.mock_account_repo.get_by_ids.assert_called_once()
