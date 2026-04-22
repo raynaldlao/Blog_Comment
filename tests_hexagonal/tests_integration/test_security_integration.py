@@ -81,7 +81,11 @@ class TestXSS:
         assert "persist" in response.data.decode()
 
     def test_secure_cookie_policy_in_production(self, db_session):
-        """Checks if SESSION_COOKIE_SECURE would be respected if debug is off."""
+        """
+        Checks if SESSION_COOKIE_SECURE would be respected if debug is off.
+        Note: client.post might not show 'Secure' header if not using https:// in URL,
+        but we check if the config is set.
+        """
         from blog_comment_application import create_app
         prod_app = create_app(db_session)
         prod_app.config["DEBUG"] = False
@@ -92,6 +96,24 @@ class TestXSS:
         set_cookie = response.headers.get("Set-Cookie")
         if set_cookie:
             assert prod_app.config["SESSION_COOKIE_SECURE"] is True
+
+    def test_session_invalidation_on_secret_key_rotation(self, client, db_session):
+        """
+        Verifies that rotating the SECRET_KEY invalidates all existing session cookies.
+        This is a critical security recovery procedure.
+        """
+        auth = AccountModel(account_username="rotate_user", account_email="r@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "rotate_user", "password": "p"})
+        response_before = client.get("/profile")
+        assert "rotate_user" in response_before.data.decode()
+        with client.application.app_context():
+            client.application.config["SECRET_KEY"] = "NEW_COMPROMISED_KEY_FIX"
+
+        response_after = client.get("/profile", follow_redirects=True)
+        assert "rotate_user" not in response_after.data.decode()
+        assert "Login" in response_after.data.decode()
 
 class TestSQLi:
     """Tests focused on preventing SQL Injection vulnerabilities."""
