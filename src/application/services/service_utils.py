@@ -1,5 +1,5 @@
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 
 from src.application.domain.comment import Comment, CommentThreadView, CommentWithAuthor
 

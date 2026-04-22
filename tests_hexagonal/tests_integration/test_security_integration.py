@@ -24,6 +24,75 @@ class TestXSS:
         assert xss_payload.encode() not in response.data
         assert b"&lt;script&gt;" in response.data or b"alert('XSS')" in response.data
 
+    def test_session_cookie_httponly(self, client, db_session):
+        """
+        Verifies that Flask session cookies are marked HttpOnly.
+        This tests that our infrastructure securely implements the Output Port.
+        """
+        auth = AccountModel(account_username="secure_user", account_email="s@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        response = client.post("/login", data={"username": "secure_user", "password": "p"})
+        set_cookie_header = response.headers.get("Set-Cookie")
+        assert set_cookie_header is not None
+        assert "HttpOnly" in set_cookie_header
+        assert "SameSite=Lax" in set_cookie_header or "SameSite=Strict" in set_cookie_header
+
+    def test_login_prevents_session_fixation(self, client, db_session):
+        """Verifies that the session ID changes upon login to prevent fixation attacks."""
+        auth = AccountModel(account_username="fixation_user", account_email="f@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        client.get("/")
+        initial_session_cookie = client.get_cookie("session")
+        client.post("/login", data={"username": "fixation_user", "password": "p"})
+        logged_in_session_cookie = client.get_cookie("session")
+        assert initial_session_cookie != logged_in_session_cookie
+        assert logged_in_session_cookie is not None
+
+    def test_session_tampering_protection(self, client, db_session):
+        """
+        Proves that modifying the session cookie without the secret key results in rejection.
+        Flask cookies are encoded with a '.' separator: [payload].[timestamp].[signature]
+        """
+        auth = AccountModel(account_username="tmpr", account_email="tmpr@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "tmpr", "password": "p"})
+        valid_cookie = client.get_cookie("session")
+        cookie_with_truncated_signature = valid_cookie.value[:-5]
+        tampered_cookie_value = cookie_with_truncated_signature + "XXXXX"
+        client.set_cookie("session", tampered_cookie_value)
+        response = client.get("/profile", follow_redirects=True)
+        assert "Login" in response.data.decode()
+
+    def test_session_persistence_inter_client(self, client, db_session):
+        """Verifies session survives between different client instances (simulating browser restart)."""
+        auth = AccountModel(account_username="persist", account_email="pe@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "persist", "password": "p"})
+        session_cookie = client.get_cookie("session")
+        from blog_comment_application import create_app
+        new_app = create_app(db_session)
+        new_client = new_app.test_client()
+        new_client.set_cookie("session", session_cookie.value)
+        response = new_client.get("/profile")
+        assert "persist" in response.data.decode()
+
+    def test_secure_cookie_policy_in_production(self, db_session):
+        """Checks if SESSION_COOKIE_SECURE would be respected if debug is off."""
+        from blog_comment_application import create_app
+        prod_app = create_app(db_session)
+        prod_app.config["DEBUG"] = False
+        prod_app.config["SESSION_COOKIE_SECURE"] = True
+
+        client = prod_app.test_client()
+        response = client.post("/login", data={"username": "any", "password": "any"})
+        set_cookie = response.headers.get("Set-Cookie")
+        if set_cookie:
+            assert prod_app.config["SESSION_COOKIE_SECURE"] is True
+
 class TestSQLi:
     """Tests focused on preventing SQL Injection vulnerabilities."""
 

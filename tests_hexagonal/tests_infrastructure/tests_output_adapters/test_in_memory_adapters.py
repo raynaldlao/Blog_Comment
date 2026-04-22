@@ -158,18 +158,25 @@ class TestInMemoryCommentRepository:
 class TestInMemoryAccountSessionRepository:
     def test_store_and_retrieve(self):
         repo = InMemoryAccountSessionRepository()
-        repo.store_value("user_id", 42)
-        assert repo.retrieve_value("user_id") == 42
-        assert repo.retrieve_value("notfound") is None
+        account = Account(1, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save_account(account)
+        assert repo.get_account() == account
 
     def test_invalidate(self):
         repo = InMemoryAccountSessionRepository()
-        repo.store_value("user_id", 42)
-        repo.invalidate()
-        assert repo.retrieve_value("user_id") is None
+        account = Account(1, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save_account(account)
+        repo.clear()
+        assert repo.get_account() is None
 
-    def test_overwrite_existing_key(self):
+    def test_overwrite_existing_account(self):
         repo = InMemoryAccountSessionRepository()
-        repo.store_value("role", "user")
-        repo.store_value("role", "admin")
-        assert repo.retrieve_value("role") == "admin"
+        account1 = Account(1, "user1", "pass", "em", AccountRole.USER, datetime.now())
+        account2 = Account(2, "user2", "pass", "em", AccountRole.ADMIN, datetime.now())
+        repo.save_account(account1)
+        repo.save_account(account2)
+        assert repo.get_account() == account2
+
+    def test_get_account_empty_returns_none(self):
+        repo = InMemoryAccountSessionRepository()
+        assert repo.get_account() is None

@@ -4,7 +4,6 @@ from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.application.services.account_session_service import AccountSessionService
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
 from src.application.services.login_service import LoginService
@@ -13,7 +12,6 @@ from src.infrastructure.config import infra_config
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
-from src.infrastructure.input_adapters.flask.flask_handler import FlaskHandler
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
@@ -49,11 +47,12 @@ def _create_output_adapters(db_session):
     Returns:
         dict: A dictionary containing initialized repository adapters.
     """
+    account_repo = SqlAlchemyAccountAdapter(db_session)
     return {
-        "account_repo": SqlAlchemyAccountAdapter(db_session),
+        "account_repo": account_repo,
         "article_repo": SqlAlchemyArticleAdapter(db_session),
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
-        "session_repo": FlaskSessionAdapter(),
+        "session_repo": FlaskSessionAdapter(account_repo),
     }
 
 
@@ -73,14 +72,13 @@ def _create_services(repositories):
     article_repo = repositories["article_repo"]
     comment_repo = repositories["comment_repo"]
 
-    session_service = AccountSessionService(session_repo, account_repo)
-    login_service = LoginService(account_repo, session_service)
+    login_service = LoginService(account_repo, session_repo)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
     article_service = ArticleService(article_repo, account_repo, comment_repo)
 
     return {
         "registration_service": registration_service,
-        "session_service": session_service,
+        "session_repo": session_repo,
         "login_service": login_service,
         "comment_service": comment_service,
         "article_service": article_service,
@@ -99,6 +97,7 @@ def _init_web_facade_flask():
     static_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/static")
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key")
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     return app
 
 
@@ -117,7 +116,7 @@ def _init_web_adapters(services):
         "comment_adapter": CommentAdapter(services["comment_service"]),
         "login_adapter": LoginAdapter(services["login_service"]),
         "registration_adapter": RegistrationAdapter(services["registration_service"]),
-        "account_session_adapter": AccountSessionAdapter(services["session_service"]),
+        "account_session_adapter": AccountSessionAdapter(services["login_service"]),
     }
 
 
@@ -189,7 +188,7 @@ def create_app(db_session=None) -> Flask:
     app = _init_web_facade_flask()
     web_adapters = _init_web_adapters(services)
     _register_web_routes(app, web_adapters)
-    FlaskHandler.register_before_request_handler(app, services["session_service"])
+    web_adapters["account_session_adapter"].register_before_request_handler(app)
     return app
 
 

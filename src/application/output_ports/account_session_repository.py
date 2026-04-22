@@ -1,43 +1,38 @@
 from abc import ABC, abstractmethod
 
+from src.application.domain.account import Account
+
 
 class AccountSessionRepository(ABC):
     """
-    Interface for persistence of session data.
-
-    This encapsulates how session information is physically stored,
-    allowing the application to remain decoupled from infrastructure details.
-    By specifying native types (str, int, etc.), it ensures that only
-    serializable primitives cross the boundary.
+    Interface for persistence and retrieval of the current user session.
+    Acts as an Output Port, allowing the domain to mandate session state
+    changes without knowing about HTTP or Cookies.
     """
 
     @abstractmethod
-    def store_value(self, key: str, value: str | int | float | bool | dict | list) -> None:
+    def save_account(self, account: Account) -> None:
         """
-        Stores a primitive value in the current session.
+        Stores the authenticated account in the current session.
 
         Args:
-            key (str): The string identifier for the session variable.
-            value (str | int | float | bool | dict | list): The primitive data to store.
+            account (Account): The domain entity to associate with the current session.
         """
         pass
 
     @abstractmethod
-    def retrieve_value(self, key: str) -> str | int | float | bool | dict | list | None:
+    def get_account(self) -> Account | None:
         """
-        Retrieves a primitive value from the current session.
-
-        Args:
-            key (str): The string identifier for the session variable.
+        Retrieves the currently connected domain Account.
 
         Returns:
-            str | int | float | bool | dict | list | None: The stored data if found, otherwise None.
+            Account | None: The domain account if a session is active, otherwise None.
         """
         pass
 
     @abstractmethod
-    def invalidate(self) -> None:
+    def clear(self) -> None:
         """
-        Wipes all current session data from storage.
+        Wipes the current session data, logging the user out.
         """
         pass

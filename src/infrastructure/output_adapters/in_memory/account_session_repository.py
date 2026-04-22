@@ -1,5 +1,4 @@
-from typing import Any
-
+from src.application.domain.account import Account
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 
 
@@ -11,34 +10,30 @@ class InMemoryAccountSessionRepository(AccountSessionRepository):
 
     def __init__(self):
         """
-        Initializes an empty session data dictionary.
+        Initializes an empty session state.
         """
-        self._session_data: dict[str, Any] = {}
+        self._current_account: Account | None = None
 
-    def store_value(self, key: str, value: str | int | float | bool | dict | list) -> None:
+    def save_account(self, account: Account) -> None:
         """
-        Assigns a primitive value to a session key using a local dictionary.
-
-        Args:
-            key (str): Identifier for the storage key.
-            value (str | int | float | bool | dict | list): Data to store.
-        """
-        self._session_data[key] = value
-
-    def retrieve_value(self, key: str) -> str | int | float | bool | dict | list | None:
-        """
-        Gets a value from a session key from the local dictionary.
+        Stores the authenticated account in the current session.
 
         Args:
-            key (str): Identifier for the storage key.
+            account (Account): The domain entity to associate with the current session.
+        """
+        self._current_account = account
+
+    def get_account(self) -> Account | None:
+        """
+        Retrieves the currently connected domain Account.
 
         Returns:
-            str | int | float | bool | dict | list | None: The stored data or None.
+            Account | None: The domain account if a session is active, otherwise None.
         """
-        return self._session_data.get(key)
+        return self._current_account
 
-    def invalidate(self) -> None:
+    def clear(self) -> None:
         """
-        Wipes the entire internal session dictionary.
+        Wipes the current session data, logging the user out.
         """
-        self._session_data.clear()
+        self._current_account = None

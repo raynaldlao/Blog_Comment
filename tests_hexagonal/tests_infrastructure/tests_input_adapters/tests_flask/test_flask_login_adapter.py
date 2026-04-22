@@ -1,7 +1,7 @@
 from unittest.mock import Mock
 
-from src.application.input_ports.account_session_management import AccountSessionManagement
 from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.services.login_service import LoginService
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
@@ -14,11 +14,11 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_repo = Mock(spec=AccountRepository, autospec=True)
-        self.mock_session = Mock(spec=AccountSessionManagement, autospec=True)
+        self.mock_session_repo = Mock(spec=AccountSessionRepository, autospec=True)
 
         self.service = LoginService(
             account_repository=self.mock_repo,
-            session_service=self.mock_session
+            session_repository=self.mock_session_repo
         )
 
         self.adapter = LoginAdapter(login_service=self.service)
@@ -44,7 +44,7 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 302
         assert response.location.endswith("/articles")
         self.mock_repo.find_by_username.assert_called_once_with("leia")
-        self.mock_session.start_session.assert_called_once_with(account)
+        self.mock_session_repo.save_account.assert_called_once_with(account)
 
     def test_post_login_invalid_credentials(self):
         self.mock_repo.find_by_username.return_value = None
@@ -56,7 +56,7 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
 
         assert b"Invalid username or password." in response.data
         self.mock_repo.find_by_username.assert_called_once()
-        self.mock_session.start_session.assert_not_called()
+        self.mock_session_repo.save_account.assert_not_called()
 
     def test_post_login_validation_error(self):
         response = self.client.post("/login", data={"username": ""}, follow_redirects=True)
