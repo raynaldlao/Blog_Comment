@@ -58,15 +58,15 @@ class TestProfile:
         db_session.add(art)
         db_session.commit()
         client.post("/login", data={"username": "old_name", "password": "p"}, follow_redirects=True)
-        res1 = client.get("/")
-        assert b"old_name" in res1.data
-        res2 = client.get(f"/articles/{art.article_id}")
-        assert b"old_name" in res2.data
+        response_1 = client.get("/")
+        assert b"old_name" in response_1.data
+        response_2 = client.get(f"/articles/{art.article_id}")
+        assert b"old_name" in response_2.data
         auth.account_username = "new_legend"
         db_session.commit()
-        res3 = client.get("/")
-        assert b"new_legend" in res3.data
-        assert b"old_name" not in res3.data
+        response_3 = client.get("/")
+        assert b"new_legend" in response_3.data
+        assert b"old_name" not in response_3.data
 
 class TestConcurrency:
     """Grouped tests for high-concurrency race condition scenarios."""

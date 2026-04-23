@@ -90,7 +90,6 @@ class TestXSS:
         prod_app = create_app(db_session)
         prod_app.config["DEBUG"] = False
         prod_app.config["SESSION_COOKIE_SECURE"] = True
-
         client = prod_app.test_client()
         response = client.post("/login", data={"username": "any", "password": "any"})
         set_cookie = response.headers.get("Set-Cookie")

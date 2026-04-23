@@ -29,7 +29,6 @@ class ArticleServiceTestBase:
 class TestCreateArticle(ArticleServiceTestBase):
     def test_create_article_success(self):
         fake_account = create_test_account(account_role=AccountRole.ADMIN)
-
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.create_article(

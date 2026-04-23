@@ -38,10 +38,10 @@ class TestWorkflows:
         }, follow_redirects=True)
 
         assert article_title.encode() in create_response.data
-
         article_record = db_session.query(ArticleModel).filter_by(article_title=article_title).first()
         article_id = article_record.article_id
         comment_content = "First amazing comment!"
+
         comment_response = client.post(f"/articles/{article_id}/comments", data={
             "content": comment_content
         }, follow_redirects=True)

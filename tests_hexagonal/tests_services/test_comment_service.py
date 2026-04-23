@@ -29,7 +29,6 @@ class TestCreateComment(CommentServiceTestBase):
     def test_create_comment_success(self):
         fake_account = create_test_account(account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
-
         fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
 

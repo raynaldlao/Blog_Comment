@@ -31,7 +31,6 @@ class TestFlaskSessionAdapterLifecycle(BaseTestFlaskSessionAdapter):
     def test_flask_session_queries_fresh_data_from_repo(self):
         account_v1 = create_test_account(account_role=AccountRole.USER)
         account_v2 = create_test_account(account_id=account_v1.account_id, account_role=AccountRole.ADMIN)
-
         with self.app.test_request_context():
             self.adapter.save_account(account_v1)
             self.mock_repo.get_by_id.return_value = account_v2

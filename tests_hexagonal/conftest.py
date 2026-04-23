@@ -24,6 +24,10 @@ def db_setup(db_engine):
 
 @pytest.fixture(scope="function")
 def db_session(db_engine, db_setup):
+    """
+    Creates a new, clean SQLAlchemy scoped session for each test.
+    Automatically truncates all tables before yielding to ensure test isolation.
+    """
     session_factory = sessionmaker(bind=db_engine)
     session = scoped_session(session_factory)
     mapped_session = cast(Session, session)
