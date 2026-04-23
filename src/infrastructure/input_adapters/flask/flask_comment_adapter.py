@@ -9,7 +9,7 @@ from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 
 class CommentAdapter:
     """
-    Flask Input Adapter (Controller) for Comment operations.
+    Flask Input Adapter for Comment operations.
     Handles creation, replying, deletion, and listing of comments.
     """
 

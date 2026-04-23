@@ -8,7 +8,7 @@ from src.infrastructure.input_adapters.dto.login_request import LoginRequest
 
 class LoginAdapter(MethodView):
     """
-    Flask Input Adapter (Controller) for Authentication (Login) operations.
+    Flask Input Adapter for Authentication operations.
     Translates web requests into domain operations and renders HTML templates.
     """
 

@@ -8,7 +8,7 @@ from src.infrastructure.input_adapters.dto.registration_request import Registrat
 
 class RegistrationAdapter(MethodView):
     """
-    Flask Input Adapter (Controller) for Registration operations.
+    Flask Input Adapter for Registration operations.
     Translates web requests into domain operations and renders HTML templates.
     """
 

@@ -8,7 +8,7 @@ from src.infrastructure.input_adapters.dto.account_response import AccountRespon
 
 class AccountSessionAdapter(MethodView):
     """
-    Flask Input Adapter (Controller) for Account Session, Profile,
+    Flask Input Adapter for Account Session, Profile,
     and global request identity resolution.
 
     Centralizes ALL session-related Web actions into a single infrastructure

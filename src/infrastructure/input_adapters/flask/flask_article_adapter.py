@@ -12,7 +12,7 @@ from src.infrastructure.input_adapters.dto.comment_response import CommentRespon
 
 class ArticleAdapter:
     """
-    Flask Input Adapter (Controller) for Article operations.
+    Flask Input Adapter for Article operations.
     Translates web requests into domain operations and renders HTML templates.
 
     This adapter adheres strictly to Rule #6 (1 Adapter = 1 Port) by depending
