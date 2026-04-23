@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Blog Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="login-card">
+    <h1>Welcome Back</h1>
+
+    <div class="login-card">
+        <h2>Connexion</h2>
+
+        <form action="{{ url_for('auth.login') }}" method="POST">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Mot de passe" required>
+            </div>
+            <button type="submit">Se connecter</button>
+        </form>
+
+        <hr>
+
+        <div class="footer">
+            <h3>Pas encore de compte ?</h3>
+            <a href="{{ url_for('registration.register') }}" class="btn-secondary">Créer un compte</a>
+            
+            <p style="margin-top: 20px;">
+                <a href="{{ url_for('article.list_articles') }}">Retour à l'accueil</a>
+            </p>
+        </div>
+    </div>
+{% endblock %}

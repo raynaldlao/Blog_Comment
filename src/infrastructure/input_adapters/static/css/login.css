@@ -1,0 +1,21 @@
+.login-card, .reg-card {
+    width: 300px;
+    margin: 50px auto;
+}
+
+.footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-secondary {
+    display: block;
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    padding: 5px 0;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    color: black;
+    margin-top: 10px;
+}

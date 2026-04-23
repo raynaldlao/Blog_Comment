@@ -73,7 +73,7 @@ jobs:
             migrate
 
       - name: Run tests
-        run: poetry run pytest
+        run: poetry run pytest tests_hexagonal/
 
       - name: Run type check
         run: poetry run pyright

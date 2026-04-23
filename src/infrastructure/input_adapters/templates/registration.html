@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Blog Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/registration.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="reg-card">
+    <h1>Join the Blog</h1>
+    <p class="subtitle">Create your account to start writing</p>
+
+    <div class="reg-card">
+        <h2>Créer un compte</h2>
+
+        <form action="{{ url_for('registration.register_action') }}" method="POST">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+            </div>
+            <div class="form-group">
+                <input type="email" name="email" placeholder="Adresse e-mail" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Mot de passe" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="confirm_password" placeholder="Confirmer le mot de passe" required>
+            </div>
+            <button type="submit">S’inscrire</button>
+        </form>
+
+        <hr>
+
+        <div class="footer">
+            <h3>Déjà un compte ?</h3>
+            <a href="{{ url_for('auth.login') }}" class="btn-secondary">Se connecter au lieu de cela</a>
+            
+            <p style="margin-top: 20px;">
+                <a href="{{ url_for('article.list_articles') }}">Retour à l'accueil</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

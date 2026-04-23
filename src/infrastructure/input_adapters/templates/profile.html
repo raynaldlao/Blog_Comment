@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Blog Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-card">
+    <div class="profile-header">
+        <div class="avatar-placeholder">
+            {{ user.account_username[0]|upper }}
+        </div>
+        <h1>{{ user.account_username }}</h1>
+        <span class="role-badge">{{ user.account_role }}</span>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ user.account_email }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Member Since</span>
+            <span class="info-value">
+                {% if user.account_created_at %}
+                    {{ user.account_created_at.strftime('%B %d, %Y') }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Status</span>
+            <span class="info-value">Active</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('article.list_articles') }}" class="btn btn-primary">Go to Home</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sign Out</a>
+    </div>
+
+    <a href="{{ url_for('article.list_articles') }}" class="back-link">Return to articles list</a>
+</div>
+{% endblock %}

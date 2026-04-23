@@ -3,6 +3,7 @@ from unittest.mock import patch
 from app.constants import Role, SessionKey
 from app.models.comment_model import Comment
 from tests.factories import make_account, make_article, make_comment
+from tests_hexagonal.exceptions_tests import ExceptionTest
 
 
 def test_create_comment_unauthorized(client):
@@ -92,12 +93,12 @@ def test_create_reply_atomicity_failure(client, db_session):
         sess[SessionKey.USER_ID] = user.account_id
 
     with patch("database.database_setup.db_session.commit") as mock_commit:
-        mock_commit.side_effect = Exception("Atomic Failure")
+        mock_commit.side_effect = ExceptionTest("Atomic Failure")
         try:
             client.post(
                 f"/comments/reply/{parent.comment_id}", data={"content": "My answer"}
             )
-        except Exception:
+        except ExceptionTest:
             pass
 
     db_session.remove()
