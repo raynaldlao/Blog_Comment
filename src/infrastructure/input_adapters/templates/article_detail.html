@@ -32,7 +32,7 @@
                 <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" style="font-size: 0.9em;">[Modifier]</a>
             {% endif %}
             
-            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role.name == 'ADMIN' or current_user.account_role == 'ADMIN') %}
+            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
                 <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" style="display:inline; margin-left: 10px;">
                     <button type="submit" 
                             style="background: none; border: none; color: red; cursor: pointer; font-size: 0.9em; padding: 0; text-decoration: underline;" 
@@ -53,7 +53,7 @@
                     <div class="comment-root">
                         <strong>{{ root_comment.author_username }}</strong> : {{ root_comment.comment_content }}
                         
-                        {% if current_user and (current_user.account_role.name == 'ADMIN' or current_user.account_role == 'ADMIN') %}
+                        {% if current_user and current_user.account_role == 'admin' %}
                             <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
                                 <button type="submit" style="background: none; border: none; color: red; cursor: pointer; font-size: 0.8em; padding: 0;" onclick="return confirm('Delete this comment?');">[Supprimer]</button>
                             </form>
@@ -73,7 +73,7 @@
                                 <div class="comment-reply">
                                     <strong>{{ reply.author_username }}</strong> : {{ reply.comment_content }}
                                     
-                                    {% if current_user and (current_user.account_role.name == 'ADMIN' or current_user.account_role == 'ADMIN') %}
+                                    {% if current_user and current_user.account_role == 'admin' %}
                                         <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
                                             <button type="submit" style="background: none; border: none; color: red; cursor: pointer; font-size: 0.8em; padding: 0;" onclick="return confirm('Delete this response?');">[Supprimer]</button>
                                         </form>

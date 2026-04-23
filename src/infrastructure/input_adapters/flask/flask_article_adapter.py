@@ -100,7 +100,7 @@ class ArticleAdapter:
             flash("You must be signed in to author an article.")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+        if user.account_role not in ["admin", "author"]:
             flash("Insufficient permissions: Only authors or admins can create articles.")
             return redirect(url_for("article.list_articles"))
 
@@ -119,7 +119,7 @@ class ArticleAdapter:
             flash("You must be signed in to author an article.")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+        if user.account_role not in ["admin", "author"]:
             flash("Insufficient permissions: Only authors or admins can create articles.")
             return redirect(url_for("article.list_articles"))
 
@@ -163,7 +163,7 @@ class ArticleAdapter:
             flash("You must be signed in to edit an article.")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+        if user.account_role not in ["admin", "author"]:
             flash("Insufficient permissions: Only authors or admins can create articles.")
             return redirect(url_for("article.list_articles"))
 
@@ -192,7 +192,7 @@ class ArticleAdapter:
             flash("You must be signed in to edit an article.")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+        if user.account_role not in ["admin", "author"]:
             flash("Insufficient permissions: Only authors or admins can create articles.")
             return redirect(url_for("article.list_articles"))
 
@@ -236,7 +236,7 @@ class ArticleAdapter:
             flash("You must be signed in to delete an article.")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["ADMIN", "AUTHOR", "admin", "author"]:
+        if user.account_role not in ["admin", "author"]:
             flash("Insufficient permissions: Only authors or admins can create articles.")
             return redirect(url_for("article.list_articles"))
 
