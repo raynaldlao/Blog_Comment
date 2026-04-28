@@ -93,14 +93,31 @@
     padding-top: var(--spacing-xl);
     border-top: 1px solid var(--outline);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+}
+
+.pagination-prev,
+.pagination-info,
+.pagination-next {
+    flex: 1;
 }
 
 .pagination-info {
     font-family: var(--font-mono);
     font-size: 13px;
     color: var(--on-surface-variant);
+    text-align: center;
+}
+
+.pagination-next {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.pagination-prev {
+    display: flex;
+    justify-content: flex-start;
 }
 
 .active-page,
