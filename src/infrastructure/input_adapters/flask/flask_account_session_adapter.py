@@ -1,7 +1,6 @@
 from flask import flash, redirect, render_template, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
-
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 

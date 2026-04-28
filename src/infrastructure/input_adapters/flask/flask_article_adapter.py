@@ -1,9 +1,10 @@
+import math
 
-from flask import flash, redirect, render_template, request, url_for
-from flask import g as global_request_context
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
+from flask import flash, redirect, render_template, request, url_for
+from flask import g as global_request_context
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
 from src.infrastructure.input_adapters.dto.article_response import ArticleResponse
@@ -46,6 +47,7 @@ class ArticleAdapter:
 
         has_next = (page * 10) < total_count
         has_prev = page > 1
+        total_pages = math.ceil(total_count / 10)
         user = global_request_context.get("current_user")
 
         return render_template(
@@ -54,7 +56,8 @@ class ArticleAdapter:
             current_user=user,
             page=page,
             has_next=has_next,
-            has_prev=has_prev
+            has_prev=has_prev,
+            total_pages=total_pages
         )
 
     def read_article(self, article_id: int) -> str | Response:

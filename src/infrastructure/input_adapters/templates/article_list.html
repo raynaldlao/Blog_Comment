@@ -44,7 +44,11 @@
     </div>
     
     <div class="pagination-info">
-        <p>Page <span class="active-page">{{ page }}</p>
+        {% for p in range(1, total_pages + 1) %}
+            <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
+                {{ p }}
+            </a>
+        {% endfor %}
     </div>
     
     <div class="pagination-next">

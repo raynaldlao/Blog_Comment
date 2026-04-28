@@ -1,8 +1,8 @@
-from flask import flash, redirect, request, url_for
-from flask import g as global_request_context
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
+from flask import flash, redirect, request, url_for
+from flask import g as global_request_context
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 

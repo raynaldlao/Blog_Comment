@@ -1,7 +1,7 @@
-from flask import flash, redirect, render_template, request, url_for
-from flask.views import MethodView
 from pydantic import ValidationError
 
+from flask import flash, redirect, render_template, request, url_for
+from flask.views import MethodView
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.infrastructure.input_adapters.dto.registration_request import RegistrationRequest
 

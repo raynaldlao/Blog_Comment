@@ -120,10 +120,35 @@
     justify-content: flex-start;
 }
 
-.active-page,
-.total-pages {
-    color: #fff;
+.page-link-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 var(--spacing-xs);
+    border-radius: var(--radius-default);
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-variant);
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 13px;
     font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.page-link-num:hover {
+    border-color: var(--primary);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.page-link-num.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
 }
 
 .pagination-link {
