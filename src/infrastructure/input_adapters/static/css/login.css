@@ -1,21 +1,16 @@
-.login-card, .reg-card {
-    width: 300px;
-    margin: 50px auto;
+.login-card,
+.reg-card {
+    width: 400px;
+    margin: var(--spacing-xl) auto;
+    background: var(--surface-container);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-variant);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 .footer {
-    margin-top: 20px;
+    margin-top: var(--spacing-lg);
     text-align: center;
-}
-
-.btn-secondary {
-    display: block;
-    width: 100%;
-    text-align: center;
-    text-decoration: none;
-    padding: 5px 0;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    color: black;
-    margin-top: 10px;
+    color: var(--on-surface-variant);
 }
