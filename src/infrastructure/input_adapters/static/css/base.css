@@ -195,12 +195,17 @@ body {
     line-height: 1.5;
     margin: 0;
     padding: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .main-container {
     max-width: var(--container-max-width);
     margin: 0 auto;
     padding: 0 var(--spacing-margin);
+    flex: 1;
+    width: 100%;
 }
 
 nav {
