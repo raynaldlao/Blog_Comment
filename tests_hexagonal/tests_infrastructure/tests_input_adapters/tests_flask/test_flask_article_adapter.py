@@ -298,3 +298,47 @@ class TestArticleValidation(ArticleAdapterTestBase):
         self.adapter.article_service.get_article_with_comments = Mock(return_value=detail)
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Delete Error" in response.data
+
+class TestArticlePagination(ArticleAdapterTestBase):
+    def test_pagination_multiple_pages(self):
+        self.mock_article_repo.count_all.return_value = 11
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'class="page-link-num' in response.data
+        assert b"page-link-num active" in response.data
+        assert b"/?page=2" in response.data
+
+    def test_pagination_exact_single_page(self):
+        self.mock_article_repo.count_all.return_value = 10
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"/?page=2" not in response.data
+        assert response.data.count(b'class="page-link-num') == 1
+
+    def test_pagination_empty_state(self):
+        self.mock_article_repo.count_all.return_value = 0
+        self.mock_article_repo.get_paginated.return_value = []
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"No articles found in the database." in response.data
+        assert b'class="page-link-num' not in response.data
+
+    def test_pagination_truncated(self):
+        self.mock_article_repo.count_all.return_value = 120
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'page=1"' in response.data
+        assert b'page=10"' in response.data
+        assert b'page=11"' not in response.data
+        assert b"..." in response.data
+        assert b"prompt" in response.data
+        assert b'page=12"' in response.data

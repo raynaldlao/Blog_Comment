@@ -94,30 +94,24 @@
     border-top: 1px solid var(--outline);
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    flex-wrap: nowrap;
 }
 
 .pagination-prev,
 .pagination-info,
 .pagination-next {
-    flex: 1;
+    display: flex;
+    align-items: center;
 }
 
 .pagination-info {
+    margin: 0 var(--spacing-xl);
     font-family: var(--font-mono);
     font-size: 13px;
     color: var(--on-surface-variant);
-    text-align: center;
-}
-
-.pagination-next {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.pagination-prev {
-    display: flex;
-    justify-content: flex-start;
+    white-space: nowrap;
 }
 
 .page-link-num {
