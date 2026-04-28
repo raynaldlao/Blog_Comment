@@ -97,6 +97,14 @@
     justify-content: center;
     gap: var(--spacing-sm);
     flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+
+.editorial-pagination::-webkit-scrollbar {
+    display: none;
 }
 
 .pagination-prev,
@@ -136,6 +144,39 @@
     border-color: var(--primary);
     color: #fff;
     transform: translateY(-1px);
+}
+
+/* Responsive Pagination (Stacking) */
+@media (max-width: 768px) {
+    .editorial-pagination {
+        overflow-x: visible;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-bottom: var(--spacing-sm);
+    }
+
+    .pagination-info {
+        order: -1;
+        width: 100%;
+        margin: 0 0 var(--spacing-xl) 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-xs);
+        white-space: normal;
+    }
+
+    .pagination-info .page-link-num {
+        margin: 0;
+    }
+
+    .pagination-prev {
+        order: 2;
+    }
+
+    .pagination-next {
+        order: 3;
+    }
 }
 
 .page-link-num.active {
