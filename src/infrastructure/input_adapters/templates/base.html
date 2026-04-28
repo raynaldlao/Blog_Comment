@@ -9,21 +9,76 @@
     {% else %}
     <meta name="description" content="A premium blog platform built with Hexagonal Architecture.">
     {% endif %}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
-<body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+<body class="technical-grid">
+    <!-- Progress Bar -->
+    <div class="progress-bar" style="width: 100%; opacity: 0.3;"></div>
 
-    {% block content %}{% endblock %}
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="/" class="logo" style="text-decoration: none;">DevJournal</a>
+            <div class="nav-links">
+                {% if current_user %}
+                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary">New Article</a>
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary">Profile</a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-secondary">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary">Sign In</a>
+                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-container" style="padding-top: 100px; padding-bottom: 80px;">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-container">
+            <a href="/" class="mobile-nav-item" style="text-decoration: none; color: var(--primary); font-family: var(--font-mono); font-size: 10px; display: flex; flex-direction: column; align-items: center;">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+                <span>Home</span>
+            </a>
+            <a href="{{ url_for('auth.profile') }}" class="mobile-nav-item" style="text-decoration: none; color: var(--on-surface-variant); font-family: var(--font-mono); font-size: 10px; display: flex; flex-direction: column; align-items: center;">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span>Profile</span>
+            </a>
+            {% if current_user and current_user.account_role in ['admin', 'author'] %}
+            <a href="{{ url_for('article.render_create_page') }}" class="mobile-nav-item" style="text-decoration: none; color: var(--on-surface-variant); font-family: var(--font-mono); font-size: 10px; display: flex; flex-direction: column; align-items: center;">
+                <span class="material-symbols-outlined">add_box</span>
+                <span>New</span>
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Simple Footer -->
+    <footer style="background-color: #070e1d; border-top: 1px solid var(--outline-variant); padding: 48px 0; margin-top: 80px;">
+        <div class="main-container" style="text-align: center;">
+            <p style="font-family: var(--font-primary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--on-surface-variant);">
+                © {{ now.year if now else '2026' }} DEVJOURNAL TECHNICAL SYSTEMS. ALL RIGHTS RESERVED.
+            </p>
+        </div>
+    </footer>
 </body>
 </html>

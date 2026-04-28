@@ -1,56 +1,59 @@
 {% extends "base.html" %}
 
-{% block title %}Latest Articles - Blog Management{% endblock %}
+{% block title %}Latest Articles - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
-<style>body { align-items: flex-start; padding: 0; }</style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <header style="margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h1>Blog Management</h1>
-        <div class="nav-links">
-            {% if current_user %}
-                <span>Hello, <strong>{{ current_user.account_username }}</strong></span>
-                <a href="{{ url_for('auth.profile') }}" style="margin-left: 15px;">[Profile]</a>
-                {% if current_user.account_role in ['admin', 'author'] %}
-                    <a href="{{ url_for('article.render_create_page') }}" style="margin-left: 15px;">[New Article]</a>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" style="margin-left: 15px;">[Logout]</a>
-            {% else %}
-                <a href="{{ url_for('auth.login') }}">Sign In</a>
-                <a href="{{ url_for('registration.register') }}" style="margin-left: 15px;">Sign Up</a>
-            {% endif %}
+<section class="editorial-list">
+    {% for article in articles %}
+        <article class="editorial-item group" onclick="location.href='{{ url_for('article.read_article', article_id=article.article_id) }}'">
+            <div class="item-content">
+                <div class="item-header">
+                    <h2 class="item-title">{{ article.article_title }}</h2>
+                    <p class="item-excerpt">
+                        {{ article.article_content[:200] }}{% if article.article_content|length > 200 %}...{% endif %}
+                    </p>
+                </div>
+                <div class="item-meta">
+                    <span class="meta-author">{{ article.author_username }}</span>
+                    <span class="meta-divider">•</span>
+                    <span class="meta-date">{{ article.article_created_at.strftime('%b %d, %Y') if article.article_created_at else 'RECENT' }}</span>
+                </div>
+            </div>
+        </article>
+    {% else %}
+        <div style="text-align: center; padding: 100px 0;">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--outline); margin-bottom: 20px;">folder_open</span>
+            <p style="color: var(--on-surface-variant); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em;">No articles found in the database.</p>
         </div>
-    </header>
+    {% endfor %}
+</section>
 
-
-    <div class="article-grid">
-        {% for article in articles %}
-            <article class="article-card">
-                <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="article-title">{{ article.article_title }}</a>
-                <div class="article-meta">
-                    Par <strong>{{ article.author_username }}</strong>
-                </div>
-                <div class="article-excerpt">
-                    {{ article.article_content[:150] }}{% if article.article_content|length > 150 %}...{% endif %}
-                </div>
-                <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="read-more">Lire la suite →</a>
-            </article>
-        {% else %}
-            <p style="text-align: center; color: #666; margin-top: 50px;">Aucun article disponible pour le moment.</p>
-        {% endfor %}
-    </div>
-
-    <div class="pagination">
+<!-- Pagination Component -->
+<nav class="editorial-pagination">
+    <div class="pagination-prev">
         {% if has_prev %}
-            <a href="{{ url_for('article.list_articles', page=page-1) }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);">&larr; Previous</a>
-        {% endif %}
-        {% if has_next %}
-            <a href="{{ url_for('article.list_articles', page=page+1) }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);">Next &rarr;</a>
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Previous</span>
+        </a>
         {% endif %}
     </div>
-</div>
+    
+    <div class="pagination-info">
+        <p>Page <span class="active-page">{{ page }}</span> of <span class="total-pages">5</span></p>
+    </div>
+    
+    <div class="pagination-next">
+        {% if has_next %}
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link">
+            <span>Next</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        {% endif %}
+    </div>
+</nav>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Blog Management{% endblock %}
+{% block title %}Sign In - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
@@ -8,30 +8,33 @@
 
 {% block content %}
 <div class="login-card">
-    <h1>Welcome Back</h1>
+    <h1 style="font-size: var(--font-headline-md); margin-bottom: var(--spacing-sm);">Welcome Back</h1>
+    <p style="color: var(--on-surface-variant); font-size: 14px; margin-bottom: var(--spacing-lg);">Access your developer journal accounts.</p>
 
-    <div class="login-card">
-        <h2>Connexion</h2>
-
-        <form action="{{ url_for('auth.login') }}" method="POST">
-            <div class="form-group">
-                <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-            </div>
-            <div class="form-group">
-                <input type="password" name="password" placeholder="Mot de passe" required>
-            </div>
-            <button type="submit">Se connecter</button>
-        </form>
-
-        <hr>
-
-        <div class="footer">
-            <h3>Pas encore de compte ?</h3>
-            <a href="{{ url_for('registration.register') }}" class="btn-secondary">Créer un compte</a>
-            
-            <p style="margin-top: 20px;">
-                <a href="{{ url_for('article.list_articles') }}">Retour à l'accueil</a>
-            </p>
+    <form action="{{ url_for('auth.login') }}" method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="dev_username" required>
         </div>
+        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" style="width: 100%;">Sign In</button>
+    </form>
+
+    <hr>
+
+    <div class="footer">
+        <p style="font-size: 14px; margin-bottom: var(--spacing-md);">New to the system?</p>
+        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary" style="width: 100%;">Create an account</a>
+        
+        <p style="margin-top: var(--spacing-lg);">
+            <a href="{{ url_for('article.list_articles') }}" class="pagination-link" style="justify-content: center;">
+                <span class="material-symbols-outlined">home</span>
+                <span>Return to home</span>
+            </a>
+        </p>
     </div>
+</div>
 {% endblock %}

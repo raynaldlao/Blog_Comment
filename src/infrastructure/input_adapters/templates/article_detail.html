@@ -1,107 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}{{ article.article_title }} - Blog Management{% endblock %}
+{% block title %}{{ article.article_title }} - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
-<style>body { align-items: flex-start; padding: 0; }</style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <header class="page-header" style="margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <a href="{{ url_for('article.list_articles') }}" class="logo">&larr; Back to Blog</a>
-        <div class="nav-links">
-            {% if current_user %}
-                <span>Hello, <strong>{{ current_user.account_username }}</strong></span>
-                <a href="{{ url_for('auth.profile') }}" style="margin-left: 15px;">[Profile]</a>
-                <a href="{{ url_for('auth.logout') }}" style="margin-left: 15px;">[Logout]</a>
+<div class="article-detail-view">
+    <header class="detail-header">
+        <a href="{{ url_for('article.list_articles') }}" class="pagination-link" style="margin-bottom: var(--spacing-lg);">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Back to feed</span>
+        </a>
+        <h1 class="item-title" style="font-size: var(--font-headline-lg); margin-top: var(--spacing-md);">{{ article.article_title }}</h1>
+        <div class="item-meta">
+            <span class="meta-author">{{ article.author_username }}</span>
+            <span class="meta-divider">•</span>
+            <span class="meta-date">{{ article.article_created_at.strftime('%b %d, %Y') if article.article_created_at else 'RECENT' }}</span>
+        </div>
+        
+        <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm);">
+            {% if current_user and current_user.account_id == article.article_author_id %}
+                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
+            {% endif %}
+            
+            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
+                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-secondary" style="color: var(--error);" onclick="return confirm('Are you sure?');">Delete</button>
+                </form>
             {% endif %}
         </div>
     </header>
 
+    <div class="detail-body">
+        {{ article.article_content | safe }}
+    </div>
 
-    <article class="article-detail-container">
-        <h1 class="detail-title">{{ article.article_title }}</h1>
-        <div class="detail-meta">
-            Par <strong>{{ article.author_username }}</strong>
-        </div>
+    <hr>
 
-        <div style="margin-bottom: 15px;">
-            {% if current_user and current_user.account_id == article.article_author_id %}
-                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" style="font-size: 0.9em;">[Modifier]</a>
-            {% endif %}
-            
-            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" style="display:inline; margin-left: 10px;">
-                    <button type="submit" 
-                            style="background: none; border: none; color: red; cursor: pointer; font-size: 0.9em; padding: 0; text-decoration: underline;" 
-                            onclick="return confirm('Are you sure you want to delete this article?');">[Supprimer l'article]</button>
-                </form>
-            {% endif %}
-        </div>
+    <section class="comments-section">
+        <h3 style="font-family: var(--font-mono); font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--spacing-lg);">Comments</h3>
 
-        <div class="detail-content">{{ article.article_content }}</div>
-
-        <hr>
-
-        <section class="comments-section">
-            <h3>Commentaires</h3>
-
-            <div id="comments-container">
-                {% for root_comment in threaded_comments.get('root', []) %}
-                    <div class="comment-root">
-                        <strong>{{ root_comment.author_username }}</strong> : {{ root_comment.comment_content }}
-                        
+        <div id="comments-container">
+            {% for root_comment in threaded_comments.get('root', []) %}
+                <div class="comment-root">
+                    <div class="comment-header">
+                        <span class="meta-author">{{ root_comment.author_username }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
                             <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
-                                <button type="submit" style="background: none; border: none; color: red; cursor: pointer; font-size: 0.8em; padding: 0;" onclick="return confirm('Delete this comment?');">[Supprimer]</button>
+                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 10px; font-family: var(--font-mono); text-transform: uppercase;" onclick="return confirm('Delete?');">[Delete]</button>
                             </form>
                         {% endif %}
+                    </div>
+                    <div class="comment-content" style="font-size: 14px; color: var(--on-surface);">
+                        {{ root_comment.comment_content }}
+                    </div>
+                    
+                    {% if current_user %}
+                    <div style="margin-top: var(--spacing-sm);">
+                        <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST" style="display: flex; gap: var(--spacing-xs);">
+                            <input type="text" name="content" required placeholder="Write a reply..." style="flex: 1; font-size: 13px;">
+                            <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
+                        </form>
+                    </div>
+                    {% endif %}
 
-                        {% if current_user %}
-                        <div style="margin-top: 10px;">
-                            <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST">
-                                <input type="text" name="content" required placeholder="Répondre..." style="width: 70%; padding: 5px;">
-                                <button type="submit" class="btn btn-sm" style="background: #eee; color: #333; border: 1px solid #ccc;">Répondre</button>
-                            </form>
-                        </div>
-                        {% endif %}
-
-                        <div class="replies-wrapper">
-                            {% for reply in threaded_comments.get(root_comment.comment_id, []) %}
-                                <div class="comment-reply">
-                                    <strong>{{ reply.author_username }}</strong> : {{ reply.comment_content }}
-                                    
+                    <div class="replies-wrapper">
+                        {% for reply in threaded_comments.get(root_comment.comment_id, []) %}
+                            <div class="comment-reply">
+                                <div class="comment-header">
+                                    <span class="meta-author" style="font-size: 12px;">{{ reply.author_username }}</span>
                                     {% if current_user and current_user.account_role == 'admin' %}
                                         <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
-                                            <button type="submit" style="background: none; border: none; color: red; cursor: pointer; font-size: 0.8em; padding: 0;" onclick="return confirm('Delete this response?');">[Supprimer]</button>
+                                            <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 10px; font-family: var(--font-mono); text-transform: uppercase;" onclick="return confirm('Delete?');">[Delete]</button>
                                         </form>
                                     {% endif %}
                                 </div>
-                            {% endfor %}
-                        </div>
+                                <div class="comment-content" style="font-size: 13px; color: var(--on-surface-variant);">
+                                    {{ reply.comment_content }}
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% else %}
-                    <p style="color: #666;">Aucun commentaire pour le moment.</p>
-                {% endfor %}
-            </div>
-
-            <hr>
-
-            {% if current_user %}
-            <div style="margin-top: 30px;">
-                <h4>Ajouter un commentaire</h4>
-                <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
-                    <textarea name="content" placeholder="Écrire un commentaire..." required style="margin-bottom: 10px;"></textarea>
-                    <button type="submit">Publier le commentaire</button>
-                </form>
-            </div>
+                </div>
             {% else %}
-            <p style="text-align: center; margin-top: 30px;">
-                <a href="{{ url_for('auth.login') }}">Connectez-vous</a> pour commenter.
-            </p>
-            {% endif %}
-        </section>
-    </article>
+                <p style="color: var(--on-surface-variant); font-size: 14px; font-style: italic;">No comments yet.</p>
+            {% endfor %}
+        </div>
+
+        <hr>
+
+        {% if current_user %}
+        <div style="margin-top: var(--spacing-xl);">
+            <h4 style="font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: var(--spacing-md);">Join the discussion</h4>
+            <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
+                <textarea name="content" placeholder="Share your thoughts..." required style="margin-bottom: var(--spacing-md); height: 100px; font-size: 14px;"></textarea>
+                <button type="submit" class="btn">Post Comment</button>
+            </form>
+        </div>
+        {% else %}
+        <p style="text-align: center; margin-top: var(--spacing-xl); color: var(--on-surface-variant); font-size: 14px;">
+            Please <a href="{{ url_for('auth.login') }}" style="color: var(--primary);">sign in</a> to join the conversation.
+        </p>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

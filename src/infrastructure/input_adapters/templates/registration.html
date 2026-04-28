@@ -1,45 +1,48 @@
 {% extends "base.html" %}
 
-{% block title %}Register - Blog Management{% endblock %}
+{% block title %}Sign Up - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/registration.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="reg-card">
-    <h1>Join the Blog</h1>
-    <p class="subtitle">Create your account to start writing</p>
+<div class="registration-card">
+    <h1 style="font-size: var(--font-headline-md); margin-bottom: var(--spacing-sm);">Join DevJournal</h1>
+    <p style="color: var(--on-surface-variant); font-size: 14px; margin-bottom: var(--spacing-lg);">Start your technical blog in seconds.</p>
 
-    <div class="reg-card">
-        <h2>Créer un compte</h2>
-
-        <form action="{{ url_for('registration.register_action') }}" method="POST">
-            <div class="form-group">
-                <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-            </div>
-            <div class="form-group">
-                <input type="email" name="email" placeholder="Adresse e-mail" required>
-            </div>
-            <div class="form-group">
-                <input type="password" name="password" placeholder="Mot de passe" required>
-            </div>
-            <div class="form-group">
-                <input type="password" name="confirm_password" placeholder="Confirmer le mot de passe" required>
-            </div>
-            <button type="submit">S’inscrire</button>
-        </form>
-
-        <hr>
-
-        <div class="footer">
-            <h3>Déjà un compte ?</h3>
-            <a href="{{ url_for('auth.login') }}" class="btn-secondary">Se connecter au lieu de cela</a>
-            
-            <p style="margin-top: 20px;">
-                <a href="{{ url_for('article.list_articles') }}">Retour à l'accueil</a>
-            </p>
+    <form action="{{ url_for('registration.register') }}" method="POST">
+        <div class="form-group">
+            <label for="username">Choose Username</label>
+            <input type="text" id="username" name="username" placeholder="dev_username" required>
         </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="dev@example.com" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required>
+        </div>
+        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" style="width: 100%;">Create Account</button>
+    </form>
+
+    <hr>
+
+    <div class="footer">
+        <p style="font-size: 14px; margin-bottom: var(--spacing-md);">Already have an account?</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="width: 100%;">Sign In instead</a>
+        
+        <p style="margin-top: var(--spacing-lg);">
+            <a href="{{ url_for('article.list_articles') }}" class="pagination-link" style="justify-content: center;">
+                <span class="material-symbols-outlined">home</span>
+                <span>Return to home</span>
+            </a>
+        </p>
     </div>
 </div>
 {% endblock %}

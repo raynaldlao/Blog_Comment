@@ -78,14 +78,97 @@
 
     /* Typography Tokens */
     --font-primary: 'Inter', system-ui, sans-serif;
-    --font-mono: 'Space Grotesk', monospace;
+    --font-mono: 'JetBrains Mono', 'Space Grotesk', monospace;
 
-    --font-headline-xl: 48px;
-    --font-headline-lg: 32px;
-    --font-headline-md: 24px;
-    --font-body-lg: 18px;
-    --font-body-md: 16px;
-    --font-body-sm: 14px;
+    --font-headline-xl: 42px;
+    --font-headline-lg: 30px;
+    --font-headline-md: 20px;
+    --font-body-lg: 17px;
+    --font-body-md: 15px;
+    --font-body-sm: 12px;
+}
+
+/* Radical Layout Structures */
+.top-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 50;
+    border-bottom: 1px solid var(--outline-variant);
+    background-color: rgba(12, 19, 34, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 var(--spacing-lg);
+    max-width: 80rem;
+    /* 7xl */
+    margin: 0 auto;
+    height: 64px;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    color: #fff;
+    font-family: var(--font-primary);
+}
+
+.progress-bar {
+    height: 1px;
+    width: 100%;
+    background-color: var(--primary-container);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    transform-origin: left;
+    transition: transform 0.2s ease;
+}
+
+.technical-grid {
+    background-image: radial-gradient(circle at 1px 1px, var(--outline-variant) 0.5px, transparent 0);
+    background-size: 40px 40px;
+}
+
+.mobile-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 50;
+    border-top: 1px solid var(--outline-variant);
+    background-color: rgba(12, 19, 34, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.mobile-nav-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 64px;
+}
+
+@media (max-width: 768px) {
+    .mobile-nav {
+        display: block;
+    }
+
+    .top-nav .nav-links {
+        display: none;
+    }
+}
+
+::selection {
+    background: rgba(124, 58, 237, 0.3);
 }
 
 /* Base Compatibility Variables */
