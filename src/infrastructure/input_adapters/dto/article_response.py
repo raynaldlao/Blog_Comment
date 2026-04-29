@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -13,7 +15,7 @@ class ArticleResponse(BaseModel):
     author_username: str = "Unknown"
     article_title: str
     article_content: str
-    article_published_at_formatted: str = ""
+    article_published_at: datetime | None = None
     meta_description: str = ""
 
     @classmethod
@@ -23,10 +25,6 @@ class ArticleResponse(BaseModel):
         The meta_description is generated from the first 155 characters of the
         article content, which is the optimal length for Google search display.
         """
-        formatted_date = ""
-        if article.article_published_at:
-            formatted_date = article.article_published_at.strftime("%B %d, %Y")
-
         plain_text = article.article_content.replace("\n", " ").strip()
         limit_character = 155
         if len(plain_text) > limit_character:
@@ -40,6 +38,6 @@ class ArticleResponse(BaseModel):
             author_username=author_username,
             article_title=article.article_title,
             article_content=article.article_content,
-            article_published_at_formatted=formatted_date,
+            article_published_at=article.article_published_at,
             meta_description=meta
         )

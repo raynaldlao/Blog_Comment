@@ -114,6 +114,39 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert response.status_code == 200
         assert b"Public View" in response.data
 
+    def test_list_articles_date_rendering(self):
+        from datetime import datetime
+        publication_date = datetime(2026, 4, 29)
+
+        article = create_test_article(
+            article_id=1,
+            article_author_id=1,
+            article_title="Date Test",
+            article_published_at=publication_date
+        )
+
+        self.mock_article_repo.get_paginated.return_value = [article]
+        self.mock_article_repo.count_all.return_value = 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"Apr 29, 2026" in response.data
+
+    def test_list_articles_no_date_hides_meta(self):
+        article = create_test_article(
+            article_id=1,
+            article_author_id=1,
+            article_title="No Date Article",
+        )
+
+        article.article_published_at = None
+        self.mock_article_repo.get_paginated.return_value = [article]
+        self.mock_article_repo.count_all.return_value = 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"meta-date" not in response.data
+
     def test_create_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
