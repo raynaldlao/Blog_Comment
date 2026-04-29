@@ -106,9 +106,20 @@
     align-items: center;
     padding: 0 var(--spacing-lg);
     max-width: 80rem;
-    /* 7xl */
     margin: 0 auto;
     height: 64px;
+    gap: var(--spacing-md);
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.nav-item-icon {
+    display: none;
+    font-size: 24px;
 }
 
 .logo {
@@ -118,6 +129,10 @@
     text-transform: uppercase;
     color: #fff;
     font-family: var(--font-primary);
+}
+
+.logo-mobile {
+    display: none;
 }
 
 .progress-bar {
@@ -137,33 +152,59 @@
     background-size: 40px 40px;
 }
 
-.mobile-nav {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    z-index: 50;
-    border-top: 1px solid var(--outline-variant);
-    background-color: rgba(12, 19, 34, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding-bottom: env(safe-area-inset-bottom);
-}
+@media (max-width: 400px) {
+    .logo-desktop {
+        display: none;
+    }
 
-.mobile-nav-container {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    height: 64px;
+    .logo-mobile {
+        display: inline !important;
+        font-size: 1.4rem;
+        font-weight: 900;
+        letter-spacing: -0.05em;
+    }
+
+    .nav-container {
+        gap: var(--spacing-xs);
+        padding: 0 var(--spacing-xs) !important;
+    }
+
+    .nav-links {
+        gap: 2px !important;
+    }
+
+    .nav-links .btn {
+        padding: 0 !important;
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+    }
+
+    .nav-item-icon {
+        font-size: 22px !important;
+    }
 }
 
 @media (max-width: 768px) {
-    .mobile-nav {
-        display: block;
+    .nav-container {
+        padding: 0 var(--spacing-md);
     }
 
-    .top-nav .nav-links {
+    .nav-links .btn span:not(.nav-item-icon) {
         display: none;
+    }
+
+    .nav-links .btn {
+        padding: var(--spacing-sm);
+        min-width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-item-icon {
+        display: block !important;
     }
 }
 
@@ -198,6 +239,12 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: var(--spacing-md);
+    }
 }
 
 .main-container {

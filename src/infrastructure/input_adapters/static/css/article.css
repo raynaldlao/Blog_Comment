@@ -179,6 +179,20 @@
     }
 }
 
+/* Micro-mobile fine-tuning (e.g. 360px) */
+@media (max-width: 360px) {
+    .page-link-num {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin: 0 1px;
+    }
+
+    .pagination-link {
+        font-size: 13px;
+    }
+}
+
 .page-link-num.active {
     background: var(--primary);
     border-color: var(--primary);
