@@ -9,7 +9,7 @@ class LoginManagementPort(ABC):
     """
 
     @abstractmethod
-    def authenticate_user(self, username: str, password: str) -> Account | None:
+    def authenticate_user(self, username: str, password: str) -> Account | str:
         """
         Validates the user's credentials.
 
@@ -18,7 +18,7 @@ class LoginManagementPort(ABC):
             password (str): The plaintext password provided by the user.
 
         Returns:
-            Account | None: The authenticated Account instance if
-            credentials match, None otherwise.
+            Account | str: The authenticated Account instance if
+            credentials match, or an error message string if it fails.
         """
         pass

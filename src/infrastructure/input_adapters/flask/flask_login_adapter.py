@@ -49,13 +49,13 @@ class LoginAdapter(MethodView):
                 flash(f"Validation Error ({location}): {error['msg']}")
             return redirect(url_for("auth.login"))
 
-        account = self.login_service.authenticate_user(
+        result = self.login_service.authenticate_user(
             username=login_data.username,
             password=login_data.password
         )
 
-        if account:
+        if not isinstance(result, str):
             return redirect(url_for("article.list_articles"))
 
-        flash("Invalid username or password.")
+        flash(result)
         return redirect(url_for("auth.login"))
