@@ -36,7 +36,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
     def test_get_registration_page(self):
         response = self.client.get("/register")
         assert response.status_code == 200
-        assert b"Join the Blog" in response.data
+        assert b"Join DevJournal" in response.data
 
     def test_post_registration_success(self):
         self.mock_repo.find_by_username.return_value = None

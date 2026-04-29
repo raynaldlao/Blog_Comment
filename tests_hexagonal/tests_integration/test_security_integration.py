@@ -64,7 +64,7 @@ class TestXSS:
         tampered_cookie_value = cookie_with_truncated_signature + "XXXXX"
         client.set_cookie("session", tampered_cookie_value)
         response = client.get("/profile", follow_redirects=True)
-        assert "Login" in response.data.decode()
+        assert "Welcome Back" in response.data.decode()
 
     def test_session_persistence_inter_client(self, client, db_session):
         """Verifies session survives between different client instances (simulating browser restart)."""
@@ -112,7 +112,7 @@ class TestXSS:
 
         response_after = client.get("/profile", follow_redirects=True)
         assert "rotate_user" not in response_after.data.decode()
-        assert "Login" in response_after.data.decode()
+        assert "Welcome Back" in response_after.data.decode()
 
 class TestSQLi:
     """Tests focused on preventing SQL Injection vulnerabilities."""

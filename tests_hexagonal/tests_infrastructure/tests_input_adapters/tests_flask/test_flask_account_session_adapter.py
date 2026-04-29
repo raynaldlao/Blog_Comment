@@ -31,6 +31,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
 
         self._register_dummy_route("/articles", "article.list_articles", "articles")
         self._register_dummy_route("/login", "auth.login", "login")
+        self._register_dummy_route("/register", "registration.register", "registration")
 
     def test_logout_clears_session(self):
         response = self.client.get("/logout", follow_redirects=True)
@@ -103,6 +104,9 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     def test_before_request_isolation_between_requests(self):
         self.app.add_url_rule("/req1", view_func=self._capture_handler, endpoint="req1")
         self.app.add_url_rule("/req2", view_func=self._capture_handler, endpoint="req2")
+        self._register_dummy_route("/register", "registration.register", "registration")
+        self._register_dummy_route("/login", "auth.login", "login")
+        self._register_dummy_route("/articles", "article.list_articles", "articles")
         admin_account = create_test_account(account_username="Admin", account_role=AccountRole.ADMIN)
         self.mock_session_service.get_current_account.return_value = admin_account
         self.adapter.register_before_request_handler(self.app)
