@@ -50,8 +50,14 @@
                         <span>Logout</span>
                     </a>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary">Sign In</a>
-                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary">Sign Up</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="Sign In">
+                        <span class="material-symbols-outlined nav-item-icon">person</span>
+                        <span>Sign In</span>
+                    </a>
+                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="Sign Up">
+                        <span class="material-symbols-outlined nav-item-icon">person_add</span>
+                        <span>Sign Up</span>
+                    </a>
                 {% endif %}
             </div>
         </div>
