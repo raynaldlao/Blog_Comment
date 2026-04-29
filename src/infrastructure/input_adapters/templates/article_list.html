@@ -7,6 +7,52 @@
 {% endblock %}
 
 {% block content %}
+<!-- Top Pagination Component -->
+<nav class="editorial-pagination top">
+    <div class="pagination-prev">
+        {% if has_prev %}
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Previous</span>
+        </a>
+        {% endif %}
+    </div>
+    
+    <div class="pagination-info">
+        {% if total_pages <= 11 %}
+            {% for p in range(1, total_pages + 1) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
+                    {{ p }}
+                </a>
+            {% endfor %}
+        {% else %}
+            {% for p in range(1, 11) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
+                    {{ p }}
+                </a>
+            {% endfor %}
+            <span class="page-link-num" 
+                  style="cursor: pointer;" 
+                  title="Click to jump to page"
+                  onclick="const p = prompt('Go to page (1 - {{ total_pages }}):'); if(p && !isNaN(p) && p > 0 && p <= {{ total_pages }}) window.location.href='{{ url_for('article.list_articles') }}?page=' + p">
+                ...
+            </span>
+            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == page %}active{% endif %}">
+                {{ total_pages }}
+            </a>
+        {% endif %}
+    </div>
+    
+    <div class="pagination-next">
+        {% if has_next %}
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link">
+            <span>Next</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        {% endif %}
+    </div>
+</nav>
+
 <section class="editorial-list">
     {% for article in articles %}
         <article class="editorial-item group" onclick="location.href='{{ url_for('article.read_article', article_id=article.article_id) }}'">
