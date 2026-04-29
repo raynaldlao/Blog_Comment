@@ -310,6 +310,8 @@ class TestArticlePagination(ArticleAdapterTestBase):
         assert b'class="page-link-num' in response.data
         assert b"page-link-num active" in response.data
         assert b"/?page=2" in response.data
+        assert response.data.count(b'class="editorial-pagination') == 2
+        assert b'class="editorial-pagination top' in response.data
 
     def test_pagination_exact_single_page(self):
         self.mock_article_repo.count_all.return_value = 10
@@ -319,7 +321,7 @@ class TestArticlePagination(ArticleAdapterTestBase):
         response = self.client.get("/")
         assert response.status_code == 200
         assert b"/?page=2" not in response.data
-        assert response.data.count(b'class="page-link-num') == 1
+        assert response.data.count(b'class="page-link-num') == 2
 
     def test_pagination_empty_state(self):
         self.mock_article_repo.count_all.return_value = 0
@@ -329,8 +331,8 @@ class TestArticlePagination(ArticleAdapterTestBase):
         assert b"No articles found in the database." in response.data
         assert b'class="page-link-num' not in response.data
 
-    def test_pagination_truncated(self):
-        self.mock_article_repo.count_all.return_value = 120
+    def test_pagination_truncated_start(self):
+        self.mock_article_repo.count_all.return_value = 150
         articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
         self.mock_article_repo.get_paginated.return_value = articles
         self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
@@ -338,7 +340,23 @@ class TestArticlePagination(ArticleAdapterTestBase):
         assert response.status_code == 200
         assert b'page=1"' in response.data
         assert b'page=10"' in response.data
-        assert b'page=11"' not in response.data
-        assert b"..." in response.data
-        assert b"prompt" in response.data
+        assert b'page=11"' in response.data
         assert b'page=12"' in response.data
+        assert b'page=13"' not in response.data
+        assert b"..." in response.data
+        assert b'page=15"' in response.data
+
+    def test_pagination_truncated_middle(self):
+        self.mock_article_repo.count_all.return_value = 1200
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/?page=50")
+        assert response.status_code == 200
+        assert b'page=1"' in response.data
+        assert b'page=44"' not in response.data
+        assert b'page=45"' in response.data
+        assert b'page=55"' in response.data
+        assert b'page=56"' not in response.data
+        assert b'page=120"' in response.data
+        assert response.data.count(b"...") >= 4
