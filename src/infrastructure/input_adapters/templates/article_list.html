@@ -6,6 +6,49 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 {% endblock %}
 
+{% macro render_pagination_info(current_page, total_pages) %}
+    <div class="pagination-info">
+        {% if total_pages <= 13 %}
+            {% for p in range(1, total_pages + 1) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+        {% else %}
+            <!-- First Page -->
+            <a href="{{ url_for('article.list_articles', page=1) }}" class="page-link-num {% if 1 == current_page %}active{% endif %}">1</a>
+            
+            <!-- Window Calculation -->
+            {% if current_page <= 7 %}
+                {% set start_p = 2 %}
+                {% set end_p = 12 %}
+            {% elif current_page >= total_pages - 6 %}
+                {% set start_p = total_pages - 11 %}
+                {% set end_p = total_pages - 1 %}
+            {% else %}
+                {% set start_p = current_page - 5 %}
+                {% set end_p = current_page + 5 %}
+            {% endif %}
+            
+            <!-- Left Dots -->
+            {% if start_p > 2 %}
+                <span class="page-link-num" style="cursor: pointer;" title="Jump to page" onclick="const p = prompt('Go to page (1 - {{ total_pages }}):'); if(p && !isNaN(p) && p > 0 && p <= {{ total_pages }}) window.location.href='{{ url_for('article.list_articles') }}?page=' + p">...</span>
+            {% endif %}
+            
+            <!-- Window Pages -->
+            {% for p in range(start_p, end_p + 1) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+            
+            <!-- Right Dots -->
+            {% if end_p < total_pages - 1 %}
+                <span class="page-link-num" style="cursor: pointer;" title="Jump to page" onclick="const p = prompt('Go to page (1 - {{ total_pages }}):'); if(p && !isNaN(p) && p > 0 && p <= {{ total_pages }}) window.location.href='{{ url_for('article.list_articles') }}?page=' + p">...</span>
+            {% endif %}
+            
+            <!-- Last Page -->
+            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
+        {% endif %}
+    </div>
+{% endmacro %}
+
 {% block content %}
 <!-- Top Pagination Component -->
 <nav class="editorial-pagination top">
@@ -18,30 +61,7 @@
         {% endif %}
     </div>
     
-    <div class="pagination-info">
-        {% if total_pages <= 11 %}
-            {% for p in range(1, total_pages + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
-                    {{ p }}
-                </a>
-            {% endfor %}
-        {% else %}
-            {% for p in range(1, 11) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
-                    {{ p }}
-                </a>
-            {% endfor %}
-            <span class="page-link-num" 
-                  style="cursor: pointer;" 
-                  title="Click to jump to page"
-                  onclick="const p = prompt('Go to page (1 - {{ total_pages }}):'); if(p && !isNaN(p) && p > 0 && p <= {{ total_pages }}) window.location.href='{{ url_for('article.list_articles') }}?page=' + p">
-                ...
-            </span>
-            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == page %}active{% endif %}">
-                {{ total_pages }}
-            </a>
-        {% endif %}
-    </div>
+    {{ render_pagination_info(page, total_pages) }}
     
     <div class="pagination-next">
         {% if has_next %}
@@ -89,30 +109,7 @@
         {% endif %}
     </div>
     
-    <div class="pagination-info">
-        {% if total_pages <= 11 %}
-            {% for p in range(1, total_pages + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
-                    {{ p }}
-                </a>
-            {% endfor %}
-        {% else %}
-            {% for p in range(1, 11) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == page %}active{% endif %}">
-                    {{ p }}
-                </a>
-            {% endfor %}
-            <span class="page-link-num" 
-                  style="cursor: pointer;" 
-                  title="Click to jump to page"
-                  onclick="const p = prompt('Go to page (1 - {{ total_pages }}):'); if(p && !isNaN(p) && p > 0 && p <= {{ total_pages }}) window.location.href='{{ url_for('article.list_articles') }}?page=' + p">
-                ...
-            </span>
-            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == page %}active{% endif %}">
-                {{ total_pages }}
-            </a>
-        {% endif %}
-    </div>
+    {{ render_pagination_info(page, total_pages) }}
     
     <div class="pagination-next">
         {% if has_next %}
