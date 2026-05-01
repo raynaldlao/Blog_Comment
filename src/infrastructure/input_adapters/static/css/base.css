@@ -147,10 +147,7 @@
     transition: transform 0.2s ease;
 }
 
-.technical-grid {
-    background-image: radial-gradient(circle at 1px 1px, var(--outline-variant) 0.5px, transparent 0);
-    background-size: 40px 40px;
-}
+
 
 @media (max-width: 400px) {
     .logo-desktop {
