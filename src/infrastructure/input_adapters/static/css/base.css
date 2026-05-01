@@ -149,7 +149,7 @@
 
 
 
-@media (max-width: 400px) {
+@media (max-width: 550px) {
     .logo-desktop {
         display: none;
     }
@@ -167,14 +167,14 @@
     }
 
     .nav-links {
-        gap: 2px !important;
+        gap: 4px !important;
     }
 
     .nav-links .btn {
         padding: 0 !important;
-        width: 36px !important;
-        height: 36px !important;
-        min-width: 36px !important;
+        width: 38px !important;
+        height: 38px !important;
+        min-width: 38px !important;
     }
 
     .nav-item-icon {
