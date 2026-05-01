@@ -30,7 +30,7 @@
             
             <!-- Left Dots -->
             {% if start_p > 2 %}
-                <span class="page-link-num" style="cursor: pointer;" title="Jump to page" onclick="openJumpModal()">...</span>
+                <span class="page-link-num jump-modal-trigger" style="cursor: pointer;" title="Jump to page">...</span>
             {% endif %}
             
             <!-- Window Pages -->
@@ -40,7 +40,7 @@
             
             <!-- Right Dots -->
             {% if end_p < total_pages - 1 %}
-                <span class="page-link-num" style="cursor: pointer;" title="Jump to page" onclick="openJumpModal()">...</span>
+                <span class="page-link-num jump-modal-trigger" style="cursor: pointer;" title="Jump to page">...</span>
             {% endif %}
             
             <!-- Last Page -->
@@ -123,8 +123,12 @@
     </div>
 </nav>
 
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+{% endblock %}
+
 <!-- Jump to Page Modal -->
-<dialog id="jump-modal">
+<dialog id="jump-modal" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}">
     <div class="modal-header">
         <h2 class="modal-title">Jump to page</h2>
     </div>
@@ -134,10 +138,10 @@
             <div class="stepper-container">
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="">
                 <div class="stepper-controls">
-                    <button class="stepper-btn up" onclick="stepPage(1)" title="Increase page">
+                    <button class="stepper-btn up" data-step="1" title="Increase page">
                         <span class="material-symbols-outlined">expand_less</span>
                     </button>
-                    <button class="stepper-btn down" onclick="stepPage(-1)" title="Decrease page">
+                    <button class="stepper-btn down" data-step="-1" title="Decrease page">
                         <span class="material-symbols-outlined">expand_more</span>
                     </button>
                 </div>
@@ -145,61 +149,10 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="modal-btn modal-btn-secondary" onclick="closeJumpModal()">Cancel</button>
-        <button class="modal-btn modal-btn-primary" onclick="executeJump()">Go</button>
+        <button class="modal-btn modal-btn-secondary" id="jump-cancel-btn">Cancel</button>
+        <button class="modal-btn modal-btn-primary" id="jump-execute-btn">Go</button>
     </div>
 </dialog>
 
-<script>
-    const jumpModal = document.getElementById('jump-modal');
-    const jumpInput = document.getElementById('jump-page-input');
-    const totalPages = {{ total_pages }};
 
-    function openJumpModal() {
-        jumpModal.showModal();
-        jumpInput.value = '';
-        setTimeout(() => jumpInput.focus(), 50);
-    }
-
-    function stepPage(delta) {
-        let current = parseInt(jumpInput.value) || 1;
-        let next = current + delta;
-        if (next >= 1 && next <= totalPages) {
-            jumpInput.value = next;
-        }
-    }
-
-    function closeJumpModal() {
-        jumpModal.close();
-    }
-
-    function executeJump() {
-        const val = parseInt(jumpInput.value);
-        if (val && val >= 1 && val <= totalPages) {
-            window.location.href = "{{ url_for('article.list_articles') }}?page=" + val;
-        } else {
-            // Visual feedback for error
-            jumpInput.style.borderColor = 'var(--error)';
-            setTimeout(() => { jumpInput.style.borderColor = 'var(--outline-variant)'; }, 500);
-        }
-    }
-
-    // Close on backdrop click
-    jumpModal.addEventListener('click', (e) => {
-        const rect = jumpModal.getBoundingClientRect();
-        const isInDialog = (rect.top <= e.clientY && e.clientY <= rect.top + rect.height &&
-                            rect.left <= e.clientX && e.clientX <= rect.left + rect.width);
-        if (!isInDialog) {
-            closeJumpModal();
-        }
-    });
-
-    // Handle Enter key on input
-    jumpInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            executeJump();
-        }
-    });
-</script>
 {% endblock %}

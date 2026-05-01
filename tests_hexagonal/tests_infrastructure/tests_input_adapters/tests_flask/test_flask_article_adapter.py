@@ -152,8 +152,10 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         self.mock_article_repo.count_all.return_value = 0
         response = self.client.get("/")
         assert response.status_code == 200
-        assert b'<dialog id="jump-modal">' in response.data
-        assert b"openJumpModal()" in response.data
+        assert b'<dialog id="jump-modal"' in response.data
+        assert b'pagination.js' in response.data
+        assert b'data-total-pages' in response.data
+        assert b'data-url' in response.data
 
     def test_create_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
