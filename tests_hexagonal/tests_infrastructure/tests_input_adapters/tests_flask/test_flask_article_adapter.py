@@ -147,6 +147,14 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert response.status_code == 200
         assert b"meta-date" not in response.data
 
+    def test_list_articles_contains_jump_modal(self):
+        self.mock_article_repo.get_paginated.return_value = []
+        self.mock_article_repo.count_all.return_value = 0
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'<dialog id="jump-modal">' in response.data
+        assert b"openJumpModal()" in response.data
+
     def test_create_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data

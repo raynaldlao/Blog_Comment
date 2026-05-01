@@ -199,7 +199,6 @@
     background: var(--primary);
     border-color: var(--primary);
     color: var(--on-primary);
-    box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
 }
 
 .pagination-link {
@@ -245,4 +244,183 @@
     font-size: var(--font-body-lg);
     line-height: 1.6;
     color: var(--on-surface);
+}
+
+/* Hide default spinners for numerical inputs */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
+/* Jump Modal Styles */
+#jump-modal {
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    padding: var(--spacing-xl);
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    position: fixed;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0;
+}
+
+#jump-modal::backdrop {
+    background: rgba(7, 14, 29, 0.8);
+    backdrop-filter: blur(8px);
+}
+
+.modal-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-title {
+    font-family: var(--font-primary);
+    font-size: var(--font-headline-md);
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-body {
+    margin-bottom: var(--spacing-xl);
+}
+
+.modal-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.modal-input-group label {
+    font-size: 13px;
+    color: var(--on-surface-variant);
+    font-family: var(--font-mono);
+}
+
+.stepper-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#jump-page-input {
+    background: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    padding: var(--spacing-md);
+    padding-right: 48px !important;
+    color: var(--on-surface);
+    font-family: var(--font-mono);
+    font-size: 24px;
+    text-align: center;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+#jump-page-input:focus {
+    border-color: var(--primary);
+}
+
+/* Stepper Controls */
+.stepper-controls {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 44px;
+    border-left: 1px solid var(--outline-variant);
+    background: transparent;
+    border-radius: 0 var(--radius-default) var(--radius-default) 0;
+    overflow: hidden;
+    transition: border-color 0.2s ease;
+}
+
+#jump-page-input:focus~.stepper-controls {
+    border-left-color: var(--primary);
+}
+
+.stepper-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    transition: color 0.15s ease;
+    user-select: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    line-height: 1;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.stepper-btn:hover {
+    color: var(--on-surface);
+    background: transparent !important;
+    transform: none !important;
+}
+
+.stepper-btn:active {
+    color: var(--primary);
+    background: transparent !important;
+    transform: none !important;
+}
+
+.stepper-btn span {
+    font-size: 24px;
+    display: block;
+}
+
+.stepper-btn.up {
+    border-bottom: 1px solid var(--outline-variant);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+}
+
+.modal-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-default);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+    box-shadow: none !important;
+}
+
+.modal-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--outline-variant);
+    color: var(--on-surface-variant);
+}
+
+.modal-btn-primary {
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: var(--on-primary);
+}
+
+.modal-btn:hover {
+    filter: brightness(1.1);
 }
