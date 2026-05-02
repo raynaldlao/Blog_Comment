@@ -151,7 +151,9 @@
 .top-nav {
     position: fixed;
     top: 0;
-    width: 100%;
+    left: 0;
+    right: 0;
+    width: 100vw;
     z-index: 50;
     border-bottom: 1px solid var(--outline-variant);
     background-color: color-mix(in srgb, var(--surface) 80%, transparent);
@@ -254,18 +256,13 @@
 
 
 @media (max-width: 768px) {
-    .top-nav {
-        padding-right: var(--spacing-sm);
-    }
-
     .nav-container {
-        padding: 0 var(--spacing-md) !important;
+        padding: 0 var(--spacing-lg) !important;
     }
 
     .nav-actions {
         gap: 0 !important;
         margin: 0 !important;
-        margin-right: var(--spacing-md) !important;
         padding: 0 !important;
     }
 
@@ -379,7 +376,6 @@ body {
 nav {
     margin-bottom: var(--spacing-xl);
     padding: var(--spacing-md) 0;
-    border-bottom: 1px solid var(--outline-variant);
 }
 
 nav a {
