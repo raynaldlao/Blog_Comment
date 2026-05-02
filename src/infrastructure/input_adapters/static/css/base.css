@@ -532,3 +532,23 @@ hr {
     border-top: 1px solid var(--outline-variant);
     margin: var(--spacing-xl) 0;
 }
+
+/* Flash Messages Animation */
+@keyframes flash-fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.flash-messages .alert {
+    animation: flash-fade-out 3s forwards;
+    transition: opacity 0.3s ease;
+}
