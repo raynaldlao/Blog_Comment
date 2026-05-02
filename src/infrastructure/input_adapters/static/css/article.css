@@ -13,7 +13,7 @@
     flex-direction: column;
     gap: var(--spacing-lg);
     padding: var(--spacing-xl) 0;
-    border-bottom: 1px solid rgba(74, 68, 85, 0.3);
+    border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 30%, transparent);
     cursor: pointer;
     transition: border-color 0.3s ease;
 }
@@ -43,7 +43,7 @@
     font-family: var(--font-primary);
     font-size: var(--font-headline-md);
     font-weight: 600;
-    color: #fff;
+    color: var(--on-surface);
     margin: 0;
     transition: color 0.3s ease;
 }
@@ -79,12 +79,13 @@
 }
 
 .meta-author {
-    color: #fff;
+    color: var(--on-surface);
     font-weight: 600;
 }
 
 .meta-divider {
-    opacity: 0.3;
+    opacity: 0.8;
+    font-weight: 800;
 }
 
 /* Pagination */
@@ -213,7 +214,7 @@
 }
 
 .pagination-link:hover {
-    color: #fff;
+    color: var(--on-surface);
 }
 
 .pagination-link span.material-symbols-outlined {
@@ -268,7 +269,7 @@ input[type=number] {
     padding: var(--spacing-xl);
     width: 90%;
     max-width: 320px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
     position: fixed;
     top: 50% !important;
     left: 50% !important;
@@ -277,7 +278,7 @@ input[type=number] {
 }
 
 #jump-modal::backdrop {
-    background: rgba(7, 14, 29, 0.8);
+    background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
     backdrop-filter: blur(8px);
 }
 
@@ -410,9 +411,14 @@ input[type=number] {
 }
 
 .modal-btn-secondary {
-    background: transparent;
-    border: 1px solid var(--outline-variant);
-    color: var(--on-surface-variant);
+    background: transparent !important;
+    border: 1px solid var(--outline);
+    color: var(--primary);
+}
+
+.modal-btn-secondary:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
+    border-color: var(--primary);
 }
 
 .modal-btn-primary {
