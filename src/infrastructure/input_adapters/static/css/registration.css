@@ -1,5 +1,5 @@
 .reg-card {
-    width: 400px;
+    width: 25rem;
     margin: var(--spacing-xl) auto;
     background: var(--surface-container);
     padding: var(--spacing-xl);

@@ -59,14 +59,14 @@
     --on-error-container: #ffdad6;
 
     /* Spacing Scale */
-    --spacing-base: 4px;
-    --spacing-xs: 4px;
-    --spacing-sm: 8px;
-    --spacing-md: 16px;
-    --spacing-lg: 24px;
-    --spacing-xl: 40px;
-    --spacing-gutter: 24px;
-    --spacing-margin: 32px;
+    --spacing-base: 0.25rem;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2.5rem;
+    --spacing-gutter: 1.5rem;
+    --spacing-margin: 2rem;
 
     /* Corner Radius */
     --radius-sm: 0.125rem;
@@ -80,12 +80,12 @@
     --font-primary: 'Inter', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'Space Grotesk', monospace;
 
-    --font-headline-xl: 42px;
-    --font-headline-lg: 30px;
-    --font-headline-md: 20px;
-    --font-body-lg: 17px;
-    --font-body-md: 15px;
-    --font-body-sm: 12px;
+    --font-headline-xl: 2.625rem;
+    --font-headline-lg: 1.875rem;
+    --font-headline-md: 1.25rem;
+    --font-body-lg: 1.0625rem;
+    --font-body-md: 0.9375rem;
+    --font-body-sm: 0.75rem;
 }
 
 [data-theme="light"] {
@@ -168,7 +168,7 @@
     padding: 0 var(--spacing-lg);
     max-width: 80rem;
     margin: 0 auto;
-    height: 64px;
+    height: 4rem;
     gap: var(--spacing-md);
 }
 
@@ -187,12 +187,12 @@
 
 .nav-item-icon {
     display: none;
-    font-size: 24px;
+    font-size: 1.5rem;
 }
 
 #theme-toggle-btn .nav-item-icon {
     display: block;
-    font-size: 20px;
+    font-size: 1.25rem;
 }
 
 #theme-toggle-btn,
@@ -255,7 +255,8 @@
 
 
 
-@media (max-width: 768px) {
+@media (max-width: 48em) {
+
     .nav-container {
         padding: 0 var(--spacing-lg);
     }
@@ -282,9 +283,9 @@
     .nav-actions>#theme-toggle-btn,
     .nav-links .btn {
         padding: 0;
-        width: 44px;
-        height: 44px;
-        min-width: 44px;
+        width: 2.75rem;
+        height: 2.75rem;
+        min-width: 2.75rem;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -302,7 +303,8 @@
     }
 }
 
-@media (max-width: 550px) {
+@media (max-width: 34.375em) {
+
     .logo-desktop {
         display: none;
     }
@@ -316,13 +318,13 @@
 
     .nav-actions>#theme-toggle-btn,
     .nav-links .btn {
-        width: 38px;
-        height: 38px;
-        min-width: 38px;
+        width: 2.375rem;
+        height: 2.375rem;
+        min-width: 2.375rem;
     }
 
     .nav-item-icon {
-        font-size: 22px;
+        font-size: 1.375rem;
     }
 }
 
@@ -359,7 +361,8 @@ body {
     min-height: 100vh;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 30em) {
+
     body {
         padding: var(--spacing-md);
     }
@@ -455,7 +458,7 @@ label {
     margin-bottom: var(--spacing-sm);
     color: var(--text-muted);
     font-family: var(--font-mono);
-    font-size: 14px;
+    font-size: 0.875rem;
     font-weight: 500;
     letter-spacing: 0.02em;
 }
@@ -482,7 +485,7 @@ textarea:focus {
 }
 
 textarea {
-    height: 120px;
+    height: 7.5rem;
 }
 
 /* Buttons */

@@ -1,6 +1,6 @@
 .profile-card {
     background: var(--surface-container);
-    max-width: 500px;
+    max-width: 31.25rem;
     width: 100%;
     border-radius: var(--radius-md);
     border: 1px solid var(--outline-variant);
@@ -15,8 +15,8 @@
 }
 
 .avatar-placeholder {
-    width: 80px;
-    height: 80px;
+    width: 5rem;
+    height: 5rem;
     background: var(--surface-container-high);
     color: var(--primary);
     border: 1px solid var(--outline);
