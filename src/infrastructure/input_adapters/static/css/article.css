@@ -256,8 +256,8 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 input[type=number] {
-    -moz-appearance: textfield !important;
-    appearance: textfield !important;
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* Jump Modal Styles */
@@ -271,9 +271,9 @@ input[type=number] {
     max-width: 320px;
     box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
     position: fixed;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     margin: 0;
 }
 
@@ -320,7 +320,7 @@ input[type=number] {
     border: 1px solid var(--outline-variant);
     border-radius: var(--radius-default);
     padding: var(--spacing-md);
-    padding-right: 48px !important;
+    padding-right: 48px;
     color: var(--on-surface);
     font-family: var(--font-mono);
     font-size: 24px;
@@ -367,21 +367,21 @@ input[type=number] {
     background: transparent;
     padding: 0;
     line-height: 1;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    outline: none !important;
+    border-radius: 0;
+    box-shadow: none;
+    outline: none;
 }
 
 .stepper-btn:hover {
     color: var(--on-surface);
-    background: transparent !important;
-    transform: none !important;
+    background: transparent;
+    transform: none;
 }
 
 .stepper-btn:active {
     color: var(--primary);
-    background: transparent !important;
-    transform: none !important;
+    background: transparent;
+    transform: none;
 }
 
 .stepper-btn span {
@@ -407,17 +407,17 @@ input[type=number] {
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: var(--font-primary);
-    box-shadow: none !important;
+    box-shadow: none;
 }
 
 .modal-btn-secondary {
-    background: transparent !important;
+    background: transparent;
     border: 1px solid var(--outline);
     color: var(--primary);
 }
 
 .modal-btn-secondary:hover {
-    background: color-mix(in srgb, var(--primary) 8%, transparent) !important;
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
     border-color: var(--primary);
 }
 
