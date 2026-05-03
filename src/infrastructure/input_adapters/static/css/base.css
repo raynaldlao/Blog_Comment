@@ -159,6 +159,7 @@
     background-color: color-mix(in srgb, var(--surface) 80%, transparent);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    padding: var(--spacing-md) 0;
 }
 
 .nav-container {
@@ -354,7 +355,6 @@ body {
     font-family: var(--font-primary);
     font-size: var(--font-body-md);
     line-height: 1.5;
-    margin: 0;
     padding: var(--spacing-lg);
     display: flex;
     flex-direction: column;
@@ -374,21 +374,6 @@ body {
     padding: 0 var(--spacing-margin);
     flex: 1;
     width: 100%;
-}
-
-nav {
-    margin-bottom: var(--spacing-xl);
-    padding: var(--spacing-md) 0;
-}
-
-nav a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-nav a:hover {
-    color: var(--on-surface);
 }
 
 h1 {

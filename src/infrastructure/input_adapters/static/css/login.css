@@ -1,5 +1,4 @@
-.login-card,
-.reg-card {
+.login-card {
     width: 25rem;
     margin: var(--spacing-xl) auto;
     background: var(--surface-container);
