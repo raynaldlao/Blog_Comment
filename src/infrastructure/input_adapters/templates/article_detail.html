@@ -9,25 +9,25 @@
 {% block content %}
 <div class="article-detail-view">
     <header class="detail-header">
-        <a href="{{ url_for('article.list_articles') }}" class="pagination-link" style="margin-bottom: var(--spacing-lg);">
+        <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
             <span class="material-symbols-outlined">arrow_back</span>
             <span>Back to feed</span>
         </a>
-        <h1 class="item-title" style="font-size: var(--font-headline-lg); margin-top: var(--spacing-md);">{{ article.article_title }}</h1>
+        <h1 class="item-title detail-title">{{ article.article_title }}</h1>
         <div class="item-meta">
             <span class="meta-author">{{ article.author_username }}</span>
             <span class="meta-divider">•</span>
             <span class="meta-date">{{ article.article_created_at.strftime('%b %d, %Y') if article.article_created_at else 'RECENT' }}</span>
         </div>
         
-        <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-sm);">
+        <div class="detail-actions">
             {% if current_user and current_user.account_id == article.article_author_id %}
                 <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
             {% endif %}
             
             {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-secondary" style="color: var(--error);" onclick="return confirm('Are you sure?');">Delete</button>
+                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" class="detail-delete-form">
+                    <button type="submit" class="btn btn-sm btn-secondary detail-delete-btn" onclick="return confirm('Are you sure?');">Delete</button>
                 </form>
             {% endif %}
         </div>
@@ -40,7 +40,7 @@
     <hr>
 
     <section class="comments-section">
-        <h3 style="font-family: var(--font-mono); font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: var(--spacing-lg);">Comments</h3>
+        <h3 class="comments-title">Comments</h3>
 
         <div id="comments-container">
             {% for root_comment in threaded_comments.get('root', []) %}
@@ -48,19 +48,19 @@
                     <div class="comment-header">
                         <span class="meta-author">{{ root_comment.author_username }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
-                            <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
-                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 10px; font-family: var(--font-mono); text-transform: uppercase;" onclick="return confirm('Delete?');">[Delete]</button>
+                            <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" class="comment-delete-form">
+                                <button type="submit" class="comment-delete-btn" onclick="return confirm('Delete?');">[Delete]</button>
                             </form>
                         {% endif %}
                     </div>
-                    <div class="comment-content" style="font-size: 14px; color: var(--on-surface);">
+                    <div class="comment-content comment-content-text">
                         {{ root_comment.comment_content }}
                     </div>
                     
                     {% if current_user %}
-                    <div style="margin-top: var(--spacing-sm);">
-                        <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST" style="display: flex; gap: var(--spacing-xs);">
-                            <input type="text" name="content" required placeholder="Write a reply..." style="flex: 1; font-size: 13px;">
+                    <div class="comment-reply-wrapper">
+                        <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST" class="comment-reply-form">
+                            <input type="text" name="content" required placeholder="Write a reply..." class="comment-reply-input">
                             <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
                         </form>
                     </div>
@@ -70,14 +70,14 @@
                         {% for reply in threaded_comments.get(root_comment.comment_id, []) %}
                             <div class="comment-reply">
                                 <div class="comment-header">
-                                    <span class="meta-author" style="font-size: 12px;">{{ reply.author_username }}</span>
+                                    <span class="meta-author comment-reply-author">{{ reply.author_username }}</span>
                                     {% if current_user and current_user.account_role == 'admin' %}
-                                        <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" style="display:inline; margin-left: 10px;">
-                                            <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 10px; font-family: var(--font-mono); text-transform: uppercase;" onclick="return confirm('Delete?');">[Delete]</button>
+                                        <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" class="comment-delete-form">
+                                            <button type="submit" class="comment-delete-btn" onclick="return confirm('Delete?');">[Delete]</button>
                                         </form>
                                     {% endif %}
                                 </div>
-                                <div class="comment-content" style="font-size: 13px; color: var(--on-surface-variant);">
+                                <div class="comment-content comment-reply-text">
                                     {{ reply.comment_content }}
                                 </div>
                             </div>
@@ -85,23 +85,23 @@
                     </div>
                 </div>
             {% else %}
-                <p style="color: var(--on-surface-variant); font-size: 14px; font-style: italic;">No comments yet.</p>
+                <p class="comment-empty">No comments yet.</p>
             {% endfor %}
         </div>
 
         <hr>
 
         {% if current_user %}
-        <div style="margin-top: var(--spacing-xl);">
-            <h4 style="font-family: var(--font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: var(--spacing-md);">Join the discussion</h4>
+        <div class="comment-join-section">
+            <h4 class="comment-join-title">Join the discussion</h4>
             <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
-                <textarea name="content" placeholder="Share your thoughts..." required style="margin-bottom: var(--spacing-md); height: 100px; font-size: 14px;"></textarea>
+                <textarea name="content" placeholder="Share your thoughts..." required class="comment-post-textarea"></textarea>
                 <button type="submit" class="btn">Post Comment</button>
             </form>
         </div>
         {% else %}
-        <p style="text-align: center; margin-top: var(--spacing-xl); color: var(--on-surface-variant); font-size: 14px;">
-            Please <a href="{{ url_for('auth.login') }}" style="color: var(--primary);">sign in</a> to join the conversation.
+        <p class="comment-auth-prompt">
+            Please <a href="{{ url_for('auth.login') }}" class="comment-auth-link">sign in</a> to join the conversation.
         </p>
         {% endif %}
     </section>

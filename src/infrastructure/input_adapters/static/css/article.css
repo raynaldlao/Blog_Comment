@@ -430,3 +430,124 @@ input[type=number] {
 .modal-btn:hover {
     filter: brightness(1.1);
 }
+
+/* Base structural overrides for details */
+.detail-back-link {
+    margin-bottom: var(--spacing-lg);
+}
+
+.detail-title {
+    font-size: var(--font-headline-lg);
+    margin-top: var(--spacing-md);
+}
+
+.detail-actions {
+    margin-top: var(--spacing-md);
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.detail-delete-form {
+    display: inline;
+}
+
+.detail-delete-btn {
+    color: var(--error);
+}
+
+/* Comments Section */
+.comments-title {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--spacing-lg);
+}
+
+.comment-delete-form {
+    display: inline;
+    margin-left: 0.625rem;
+}
+
+.comment-delete-btn {
+    background: none;
+    border: none;
+    color: var(--error);
+    cursor: pointer;
+    font-size: 0.625rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 0;
+}
+
+.comment-delete-btn:hover {
+    filter: brightness(1.2);
+}
+
+.comment-content-text {
+    font-size: 0.875rem;
+    color: var(--on-surface);
+}
+
+.comment-reply-wrapper {
+    margin-top: var(--spacing-sm);
+}
+
+.comment-reply-form {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.comment-reply-input {
+    flex: 1;
+    font-size: 0.8125rem;
+}
+
+.comment-reply-author {
+    font-size: 0.75rem;
+}
+
+.comment-reply-text {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+}
+
+.comment-empty {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
+.comment-join-section {
+    margin-top: var(--spacing-xl);
+}
+
+.comment-join-title {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.comment-post-textarea {
+    margin-bottom: var(--spacing-md);
+    height: 6.25rem;
+    font-size: 0.875rem;
+}
+
+.comment-auth-prompt {
+    text-align: center;
+    margin-top: var(--spacing-xl);
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+}
+
+.comment-auth-link {
+    color: var(--primary);
+}
+
+.comment-auth-link:hover {
+    text-decoration: underline;
+}
