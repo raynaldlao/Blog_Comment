@@ -6,7 +6,7 @@
     border: 1px solid var(--outline-variant);
     padding: var(--spacing-xl);
     margin: var(--spacing-xl) auto;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--on-surface) 10%, transparent);
 }
 
 .profile-header {

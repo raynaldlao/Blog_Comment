@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 <style>
     body { align-items: flex-start; padding: 0; }
-    .form-container { background: var(--glass-bg); backdrop-filter: blur(10px); border-radius: 1.5rem; padding: 3rem; max-width: 800px; width: 100%; margin: 0 auto; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); animation: fadeIn 0.6s ease-out; }
+    .form-container { background: color-mix(in srgb, var(--surface-container) 80%, transparent); backdrop-filter: blur(10px); border-radius: var(--radius-lg); padding: 3rem; max-width: 800px; width: 100%; margin: 0 auto; box-shadow: 0 10px 25px color-mix(in srgb, var(--on-surface) 10%, transparent); animation: fadeIn 0.6s ease-out; }
     .header-h1 { color: var(--text-color); font-size: 2rem; margin-bottom: 2rem; }
 </style>
 {% endblock %}
@@ -39,8 +39,8 @@
                 <label for="content">Content</label>
                 <textarea id="content" name="content" placeholder="Share your thoughts here..." required minlength="10"></textarea>
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
-                <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm" style="background: white; color: #718096; border: 1px solid #e2e8f0; margin-top:0;">Cancel</a>
+            <div style="display: flex; justify-content: flex-end; gap: var(--spacing-md); margin-top: 2rem;">
+                <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" style="margin-top:0;">Cancel</a>
                 <button type="submit" class="btn btn-sm" style="width: auto; margin-top:0;">Publish Article</button>
             </div>
         </form>
