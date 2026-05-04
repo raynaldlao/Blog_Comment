@@ -1,14 +1,14 @@
-.reg-card {
+.account-card {
     width: 25rem;
     margin: var(--spacing-xl) auto;
     background: var(--surface-container);
     padding: var(--spacing-xl);
     border-radius: var(--radius-md);
     border: 1px solid var(--outline-variant);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--on-surface) 10%, transparent);
 }
 
-.footer {
+.account-footer {
     margin-top: var(--spacing-lg);
     text-align: center;
     color: var(--on-surface-variant);

@@ -3,11 +3,11 @@
 {% block title %}Sign Up - DevJournal{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/registration.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="registration-card">
+<div class="account-card">
     <h1 style="font-size: var(--font-headline-md); margin-bottom: var(--spacing-sm);">Join DevJournal</h1>
     <p style="color: var(--on-surface-variant); font-size: 14px; margin-bottom: var(--spacing-lg);">Start your technical blog in seconds.</p>
 
@@ -33,7 +33,7 @@
 
     <hr>
 
-    <div class="footer">
+    <div class="account-footer">
         <p style="font-size: 14px; margin-bottom: var(--spacing-md);">Already have an account?</p>
         <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="width: 100%;">Sign In instead</a>
         
