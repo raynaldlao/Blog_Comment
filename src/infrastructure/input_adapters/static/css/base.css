@@ -32,25 +32,6 @@
     --on-primary-fixed: #25005a;
     --on-primary-fixed-variant: #5a00c6;
 
-    /* Secondary Palette */
-    --secondary: #62df7d;
-    --on-secondary: #003914;
-    --secondary-container: #1ca64d;
-    --on-secondary-container: #003111;
-    --secondary-fixed: #7ffc97;
-    --secondary-fixed-dim: #62df7d;
-    --on-secondary-fixed: #002109;
-    --on-secondary-fixed-variant: #005320;
-
-    /* Tertiary Palette */
-    --tertiary: #c0c7d6;
-    --on-tertiary: #2a313d;
-    --tertiary-container: #606775;
-    --on-tertiary-container: #dfe6f6;
-    --tertiary-fixed: #dce2f3;
-    --tertiary-fixed-dim: #c0c7d6;
-    --on-tertiary-fixed: #151c27;
-    --on-tertiary-fixed-variant: #404754;
 
     /* Error Palette */
     --error: #ffb4ab;
@@ -120,25 +101,7 @@
     --on-primary-fixed: #2e1065;
     --on-primary-fixed-variant: #4c1d95;
 
-    /* Secondary Palette */
-    --secondary: #16a34a;
-    --on-secondary: #ffffff;
-    --secondary-container: #dcfce7;
-    --on-secondary-container: #14532d;
-    --secondary-fixed: #dcfce7;
-    --secondary-fixed-dim: #bbf7d0;
-    --on-secondary-fixed: #052e16;
-    --on-secondary-fixed-variant: #14532d;
 
-    /* Tertiary Palette */
-    --tertiary: #475569;
-    --on-tertiary: #ffffff;
-    --tertiary-container: #f1f5f9;
-    --on-tertiary-container: #0f172a;
-    --tertiary-fixed: #f1f5f9;
-    --tertiary-fixed-dim: #e2e8f0;
-    --on-tertiary-fixed: #020617;
-    --on-tertiary-fixed-variant: #1e293b;
 
     /* Error Palette */
     --error: #dc2626;
@@ -411,13 +374,13 @@ h4 {
 }
 
 a {
-    color: var(--primary);
+    color: var(--on-surface);
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
 a:hover {
-    color: var(--secondary);
+    color: var(--primary);
 }
 
 /* Flash Messages */
