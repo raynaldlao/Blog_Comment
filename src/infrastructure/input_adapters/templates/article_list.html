@@ -30,7 +30,7 @@
             
             <!-- Left Dots -->
             {% if start_p > 2 %}
-                <span class="page-link-num jump-modal-trigger" style="cursor: pointer;" title="Jump to page">...</span>
+                <span class="page-link-num jump-modal-trigger" title="Jump to page">...</span>
             {% endif %}
             
             <!-- Window Pages -->
@@ -40,7 +40,7 @@
             
             <!-- Right Dots -->
             {% if end_p < total_pages - 1 %}
-                <span class="page-link-num jump-modal-trigger" style="cursor: pointer;" title="Jump to page">...</span>
+                <span class="page-link-num jump-modal-trigger" title="Jump to page">...</span>
             {% endif %}
             
             <!-- Last Page -->
@@ -93,9 +93,9 @@
             </div>
         </article>
     {% else %}
-        <div style="text-align: center; padding: 100px 0;">
-            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--outline); margin-bottom: 20px;">folder_open</span>
-            <p style="color: var(--on-surface-variant); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em;">No articles found in the database.</p>
+        <div class="empty-state">
+            <span class="material-symbols-outlined empty-state-icon">folder_open</span>
+            <p class="empty-state-text">No articles found in the database.</p>
         </div>
     {% endfor %}
 </section>

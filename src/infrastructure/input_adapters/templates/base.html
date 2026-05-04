@@ -19,12 +19,12 @@
 </head>
 <body>
     <!-- Progress Bar -->
-    <div class="progress-bar" style="width: 100%; opacity: 0.3;"></div>
+    <div class="progress-bar opacity-30"></div>
 
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
-            <a href="/" class="logo" style="text-decoration: none;">
+            <a href="/" class="logo text-decoration-none">
                 <span class="logo-desktop">DevJournal</span>
                 <span class="logo-mobile">DJ</span>
             </a>
@@ -71,7 +71,7 @@
     </nav>
     
     <!-- Main Content Area -->
-    <main class="main-container" style="padding-top: 100px; padding-bottom: 80px;">
+    <main class="main-container main-wrapper">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="flash-messages">
@@ -86,9 +86,9 @@
     </main>
 
     <!-- Simple Footer -->
-    <footer style="background-color: var(--surface-container-lowest); border-top: 1px solid var(--outline-variant); padding: 48px 0; margin-top: auto;">
-        <div class="main-container" style="text-align: center;">
-            <p style="font-family: var(--font-primary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--on-surface-variant);">
+    <footer class="footer">
+        <div class="main-container">
+            <p class="footer-copy">
                 © {{ now.year if now else '2026' }} DEVJOURNAL TECHNICAL SYSTEMS. ALL RIGHTS RESERVED.
             </p>
         </div>

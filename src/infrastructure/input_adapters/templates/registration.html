@@ -8,8 +8,10 @@
 
 {% block content %}
 <div class="account-card">
-    <h1 style="font-size: var(--font-headline-md); margin-bottom: var(--spacing-sm);">Join DevJournal</h1>
-    <p style="color: var(--on-surface-variant); font-size: 14px; margin-bottom: var(--spacing-lg);">Start your technical blog in seconds.</p>
+    <div class="account-header">
+        <h1 class="account-title">Join DevJournal</h1>
+        <p class="account-subtitle">Start your technical blog in seconds.</p>
+    </div>
 
     <form action="{{ url_for('registration.register') }}" method="POST">
         <div class="form-group">
@@ -24,21 +26,21 @@
             <label for="password">Password</label>
             <input type="password" id="password" name="password" placeholder="••••••••" required>
         </div>
-        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+        <div class="form-group account-form-group">
             <label for="confirm_password">Confirm Password</label>
             <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
         </div>
-        <button type="submit" style="width: 100%;">Create Account</button>
+        <button type="submit" class="account-btn-full">Create Account</button>
     </form>
 
     <hr>
 
     <div class="account-footer">
-        <p style="font-size: 14px; margin-bottom: var(--spacing-md);">Already have an account?</p>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary" style="width: 100%;">Sign In instead</a>
+        <p class="account-subtitle">Already have an account?</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary account-btn-full">Sign In instead</a>
         
-        <p style="margin-top: var(--spacing-lg);">
-            <a href="{{ url_for('article.list_articles') }}" class="pagination-link" style="justify-content: center;">
+        <p class="account-header">
+            <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
                 <span class="material-symbols-outlined">home</span>
                 <span>Return to home</span>
             </a>

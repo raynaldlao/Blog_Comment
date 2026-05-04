@@ -303,7 +303,7 @@
     --text-muted: var(--on-surface-variant);
     --card-bg: var(--surface-container);
     --accent-color: var(--primary);
-    --container-max-width: 1280px;
+    --container-max-width: 80rem;
 }
 
 * {
@@ -502,4 +502,34 @@ hr {
 .flash-messages .alert {
     animation: flash-fade-out 3s forwards;
     transition: opacity 0.3s ease;
+}
+
+/* Global Layout Utilities */
+.main-wrapper {
+    padding-top: 6.25rem;
+    padding-bottom: 5rem;
+}
+
+.footer {
+    background-color: var(--surface-container-lowest);
+    border-top: 1px solid var(--outline-variant);
+    padding: 3rem 0;
+    margin-top: auto;
+    text-align: center;
+}
+
+.footer-copy {
+    font-family: var(--font-primary);
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--on-surface-variant);
+}
+
+.text-decoration-none {
+    text-decoration: none;
+}
+
+.opacity-30 {
+    opacity: 0.3;
 }

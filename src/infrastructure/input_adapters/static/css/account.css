@@ -13,3 +13,30 @@
     text-align: center;
     color: var(--on-surface-variant);
 }
+
+.account-header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-title {
+    font-size: var(--font-headline-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.account-subtitle {
+    color: var(--on-surface-variant);
+    font-size: 0.875rem;
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-btn-full {
+    width: 100%;
+}
+
+.account-form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-link-center {
+    justify-content: center;
+}
