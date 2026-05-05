@@ -32,7 +32,7 @@
 .role-badge {
     display: inline-block;
     padding: var(--spacing-xs) var(--spacing-sm);
-    background: var(--primary-container);
+    background: var(--primary);
     color: var(--on-primary);
     border-radius: var(--radius-default);
     font-size: 0.75rem;
