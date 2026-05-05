@@ -557,7 +557,7 @@ input[type=number] {
     background: color-mix(in srgb, var(--surface-container) 80%, transparent);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-lg);
-    padding: 3rem;
+    padding: var(--spacing-2xl);
     max-width: 50rem;
     width: 100%;
     margin: 0 auto;
@@ -569,11 +569,11 @@ input[type=number] {
     display: flex;
     justify-content: flex-end;
     gap: var(--spacing-md);
-    margin-top: 2rem;
+    margin-top: var(--spacing-margin);
 }
 
-.article-form-btn {
-    margin-top: 0 !important;
+.article-form-actions .article-form-btn {
+    margin-top: 0;
 }
 
 /* Empty State */

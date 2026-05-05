@@ -48,6 +48,8 @@
     --spacing-xl: 2.5rem;
     --spacing-gutter: 1.5rem;
     --spacing-margin: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
 
     /* Corner Radius */
     --radius-sm: 0.125rem;
@@ -89,6 +91,8 @@
     --background: #f8f9fa;
     --on-background: #0f172a;
     --surface-variant: #e2e8f0;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
 
     /* Primary Palette */
     --primary: #7c3aed;
@@ -513,7 +517,7 @@ hr {
 .footer {
     background-color: var(--surface-container-lowest);
     border-top: 1px solid var(--outline-variant);
-    padding: 3rem 0;
+    padding: var(--spacing-2xl) 0;
     margin-top: auto;
     text-align: center;
 }

@@ -15,16 +15,6 @@
     <div class="article-form-container">
         <h1 class="header-h1">Write your story</h1>
 
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for message in messages %}
-                        <div class="alert">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
         <form action="{{ url_for('article.create_article') }}" method="POST">
             <div class="form-group">
                 <label for="article-create-title">Article Title</label>
