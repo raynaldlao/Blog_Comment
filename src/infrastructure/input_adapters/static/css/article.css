@@ -429,6 +429,7 @@ input[type=number] {
 
 .modal-btn:hover {
     border-color: var(--primary);
+    filter: brightness(1.15);
 }
 
 /* Base structural overrides for details */

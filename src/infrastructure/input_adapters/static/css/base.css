@@ -450,6 +450,7 @@ button,
 button:hover,
 .btn:hover {
     border-color: var(--primary);
+    filter: brightness(1.15);
     text-decoration: none;
     z-index: 1;
 }
@@ -462,6 +463,7 @@ button:hover,
 
 .btn-secondary:hover {
     border-color: var(--primary);
+    filter: brightness(1.15);
 }
 
 .btn-sm {
