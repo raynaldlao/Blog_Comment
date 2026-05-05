@@ -15,20 +15,20 @@
 
     <form action="{{ url_for('registration.register') }}" method="POST">
         <div class="form-group">
-            <label for="username">Choose Username</label>
-            <input type="text" id="username" name="username" placeholder="dev_username" required>
+            <label for="registration-username">Choose Username</label>
+            <input type="text" id="registration-username" name="username" placeholder="dev_username" required>
         </div>
         <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="dev@example.com" required>
+            <label for="registration-email">Email Address</label>
+            <input type="email" id="registration-email" name="email" placeholder="dev@example.com" required>
         </div>
         <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="••••••••" required>
+            <label for="registration-password">Password</label>
+            <input type="password" id="registration-password" name="password" placeholder="••••••••" required>
         </div>
         <div class="form-group account-form-group">
-            <label for="confirm_password">Confirm Password</label>
-            <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" required>
+            <label for="registration-confirm-password">Confirm Password</label>
+            <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="••••••••" required>
         </div>
         <button type="submit" class="account-btn-full">Create Account</button>
     </form>
