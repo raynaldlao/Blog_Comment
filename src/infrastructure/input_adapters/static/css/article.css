@@ -550,7 +550,9 @@ input[type=number] {
 }
 
 .comment-auth-link {
-    color: var(--primary);
+    color: color-mix(in srgb, var(--primary), var(--on-surface) 15%);
+    font-weight: 600;
+    text-decoration: underline;
 }
 
 .comment-auth-link:hover {
