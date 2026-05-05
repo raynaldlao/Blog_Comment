@@ -26,9 +26,9 @@
             if (val && val >= 1 && val <= totalPages) {
                 window.location.href = `${baseUrl}?page=${val}`;
             } else {
-                jumpInput.style.borderColor = 'var(--error)';
+                jumpInput.classList.add('input-error');
                 setTimeout(() => {
-                    jumpInput.style.borderColor = 'var(--outline-variant)';
+                    jumpInput.classList.remove('input-error');
                 }, 500);
             }
         };

@@ -600,6 +600,10 @@ input[type=number] {
     cursor: pointer;
 }
 
+#jump-page-input#jump-page-input.input-error {
+    border-color: var(--error);
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

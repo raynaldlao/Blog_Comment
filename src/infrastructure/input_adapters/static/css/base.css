@@ -91,8 +91,6 @@
     --background: #f8f9fa;
     --on-background: #0f172a;
     --surface-variant: #e2e8f0;
-    --spacing-2xl: 3rem;
-    --spacing-3xl: 4rem;
 
     /* Primary Palette */
     --primary: #7c3aed;
@@ -300,15 +298,6 @@
     background: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
-/* Base Compatibility Variables */
-:root {
-    --bg-color: var(--background);
-    --text-color: var(--on-background);
-    --text-muted: var(--on-surface-variant);
-    --card-bg: var(--surface-container);
-    --accent-color: var(--primary);
-    --container-max-width: 80rem;
-}
 
 * {
     box-sizing: border-box;
@@ -317,8 +306,8 @@
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--background);
+    color: var(--on-background);
     font-family: var(--font-primary);
     font-size: var(--font-body-md);
     line-height: 1.5;
@@ -336,7 +325,7 @@ body {
 }
 
 .main-container {
-    max-width: var(--container-max-width);
+    max-width: 80rem;
     margin: 0 auto;
     padding: 0 var(--spacing-margin);
     flex: 1;
@@ -408,7 +397,7 @@ a:hover {
 label {
     display: block;
     margin-bottom: var(--spacing-sm);
-    color: var(--text-muted);
+    color: var(--on-surface-variant);
     font-family: var(--font-mono);
     font-size: 0.875rem;
     font-weight: 500;
@@ -424,7 +413,7 @@ textarea {
     background: var(--surface-container-lowest);
     border: 1px solid var(--outline);
     border-radius: var(--radius-default);
-    color: var(--text-color);
+    color: var(--on-background);
     font-family: var(--font-primary);
     outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -469,7 +458,7 @@ button:hover,
 .btn-secondary {
     background: transparent;
     border: 1px solid var(--outline);
-    color: var(--text-color);
+    color: var(--on-background);
 }
 
 .btn-secondary:hover {
