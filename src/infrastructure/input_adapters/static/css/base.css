@@ -140,13 +140,13 @@
 
 .nav-links {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0;
 }
 
 .nav-actions {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: 0;
     margin-right: var(--spacing-md);
 }
@@ -166,6 +166,13 @@
     border-radius: 0;
     margin-left: -1px;
     position: relative;
+}
+
+.nav-links .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
 }
 
 #theme-toggle-btn {
