@@ -433,7 +433,7 @@ textarea {
 button,
 .btn {
     padding: var(--spacing-sm) var(--spacing-xl);
-    background: var(--primary-container);
+    background: var(--primary);
     color: var(--on-primary);
     border: 1px solid color-mix(in srgb, var(--outline) 20%, transparent);
     border-radius: var(--radius-default);
@@ -449,7 +449,7 @@ button,
 
 button:hover,
 .btn:hover {
-    background: var(--primary);
+    background: color-mix(in srgb, var(--primary) 85%, var(--on-primary));
     transform: translateY(-1px);
     text-decoration: none;
     z-index: 1;
