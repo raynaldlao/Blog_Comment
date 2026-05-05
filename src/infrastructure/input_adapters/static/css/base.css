@@ -449,8 +449,7 @@ button,
 
 button:hover,
 .btn:hover {
-    background: color-mix(in srgb, var(--primary) 85%, var(--on-primary));
-    transform: translateY(-1px);
+    border-color: var(--primary);
     text-decoration: none;
     z-index: 1;
 }
@@ -462,7 +461,6 @@ button:hover,
 }
 
 .btn-secondary:hover {
-    background: var(--surface-container);
     border-color: var(--primary);
 }
 

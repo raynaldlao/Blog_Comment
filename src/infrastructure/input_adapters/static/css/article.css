@@ -428,7 +428,7 @@ input[type=number] {
 }
 
 .modal-btn:hover {
-    filter: brightness(1.1);
+    border-color: var(--primary);
 }
 
 /* Base structural overrides for details */
