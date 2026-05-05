@@ -136,7 +136,7 @@
         <div class="modal-input-group">
             <label for="jump-page-input">Enter page number (1 - {{ total_pages }})</label>
             <div class="stepper-container">
-                <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="">
+                <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
                     <button class="stepper-btn up" data-step="1" title="Increase page">
                         <span class="material-symbols-outlined">expand_less</span>
