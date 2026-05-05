@@ -223,12 +223,12 @@
     transition: transform 0.2s ease;
 }
 
-.pagination-link:hover span.material-symbols-outlined {
-    transform: translateX(0.25rem);
+.pagination-link:hover span.material-symbols-outlined:first-child {
+    transform: translateX(-0.25rem);
 }
 
-.pagination-prev .pagination-link:hover span.material-symbols-outlined {
-    transform: translateX(-0.25rem);
+.pagination-link:hover span.material-symbols-outlined:last-child {
+    transform: translateX(0.25rem);
 }
 
 /* Article Detail Adaptation */
