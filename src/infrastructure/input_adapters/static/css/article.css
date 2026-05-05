@@ -481,7 +481,12 @@ input[type=number] {
 }
 
 .comment-delete-btn:hover {
-    filter: brightness(1.2);
+    background: color-mix(in srgb, var(--error) 10%, transparent);
+    color: var(--error);
+    border-radius: var(--radius-xs);
+    filter: brightness(1.1);
+    box-shadow: none;
+    transform: none;
 }
 
 .comment-content-text {
