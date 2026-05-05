@@ -1,5 +1,6 @@
 .account-card {
-    width: 25rem;
+    max-width: 25rem;
+    width: 100%;
     margin: var(--spacing-xl) auto;
     background: var(--surface-container);
     padding: var(--spacing-xl);
@@ -47,4 +48,33 @@
 
 .account-footer-link {
     margin-top: var(--spacing-xl);
+}
+
+/* Mobile Optimizations (360x780 and smaller) */
+@media (max-width: 30em) {
+    .account-card {
+        margin: var(--spacing-md) auto;
+        padding: var(--spacing-lg) var(--spacing-md);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+    }
+
+    .account-title {
+        font-size: var(--font-headline-sm);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .account-subtitle {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .account-form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .account-footer-link {
+        margin-top: var(--spacing-lg);
+    }
 }
