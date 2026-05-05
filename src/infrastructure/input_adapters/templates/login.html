@@ -31,12 +31,12 @@
         <p class="account-subtitle">New to the system?</p>
         <a href="{{ url_for('registration.register') }}" class="btn btn-secondary account-btn-full">Create an account</a>
         
-        <p class="account-header">
+        <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
                 <span class="material-symbols-outlined">home</span>
                 <span>Return to home</span>
             </a>
-        </p>
+        </div>
     </div>
 </div>
 {% endblock %}
