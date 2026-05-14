@@ -607,7 +607,7 @@ input[type=number] {
     cursor: pointer;
 }
 
-#jump-page-input#jump-page-input.input-error {
+#jump-page-input.input-error {
     border-color: var(--error);
 }
 
