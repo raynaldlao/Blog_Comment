@@ -436,6 +436,13 @@ textarea {
     height: 7.5rem;
 }
 
+input,
+textarea,
+button,
+.btn {
+    font-size: 1rem;
+}
+
 /* Buttons */
 button,
 .btn {
