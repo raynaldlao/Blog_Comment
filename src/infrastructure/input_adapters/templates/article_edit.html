@@ -9,7 +9,10 @@
 {% block content %}
 <div class="container">
     <header class="page-header">
-        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="logo">&larr; Back to Article</a>
+        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="pagination-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Back to articles</span>
+        </a>
     </header>
 
     <div class="article-form-container">
