@@ -75,7 +75,7 @@
 
 <section class="editorial-list">
     {% for article in articles %}
-        <article class="editorial-item group" onclick="location.href='{{ url_for('article.read_article', article_id=article.article_id) }}'">
+        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="editorial-item group">
             <div class="item-content">
                 <div class="item-header">
                     <h2 class="item-title">{{ article.article_title }}</h2>
@@ -91,7 +91,7 @@
                     {% endif %}
                 </div>
             </div>
-        </article>
+        </a>
     {% else %}
         <div class="empty-state">
             <span class="material-symbols-outlined empty-state-icon">folder_open</span>
