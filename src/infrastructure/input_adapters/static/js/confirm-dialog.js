@@ -15,19 +15,26 @@
         if (!dialog || !messageEl || !confirmBtn || !cancelBtn) return;
 
         let targetFormId = null;
+        let lastFocusedElement = null;
 
         const close = () => {
             dialog.close();
             targetFormId = null;
+            if (lastFocusedElement) {
+                lastFocusedElement.focus();
+                lastFocusedElement = null;
+            }
         };
 
         document.addEventListener("click", (e) => {
             const trigger = e.target.closest(".confirm-trigger");
             if (!trigger) return;
 
+            lastFocusedElement = trigger;
             targetFormId = trigger.dataset.formId;
             messageEl.textContent = trigger.dataset.confirmMessage;
             dialog.showModal();
+            cancelBtn.focus();
         });
 
         confirmBtn.addEventListener("click", () => {
@@ -45,7 +52,7 @@
         });
 
         dialog.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") targetFormId = null;
+            if (e.key === "Escape") close();
         });
     });
 })();
