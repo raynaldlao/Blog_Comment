@@ -611,6 +611,33 @@ input[type=number] {
     border-color: var(--error);
 }
 
+/* Confirm Dialog */
+#confirm-dialog {
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    padding: var(--spacing-xl);
+    width: 90%;
+    max-width: 25rem;
+    box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#confirm-dialog::backdrop {
+    background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+#confirm-dialog .modal-body p {
+    color: var(--on-surface-variant);
+    font-size: var(--font-body-md);
+    line-height: 1.5;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
