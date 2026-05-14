@@ -24,6 +24,57 @@ class TestXSS:
         assert xss_payload.encode() not in response.data
         assert b"&lt;script&gt;" in response.data or b"alert('XSS')" in response.data
 
+    def test_article_detail_escapes_xss(self, client, db_session):
+        """
+        Verifies that article content is HTML-escaped on the detail page.
+
+        Creates an article with a script payload and checks that the
+        rendered detail page contains escaped entities rather than raw HTML.
+        """
+        auth = AccountModel(
+            account_username="xss_detail", account_email="xss_d@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "xss_detail", "password": "p"}, follow_redirects=True)
+
+        xss_payload = '<script>alert("xss")</script>'
+        client.post("/articles/new", data={
+            "title": "XSS Detail Test",
+            "content": xss_payload
+        }, follow_redirects=True)
+
+        article = db_session.query(ArticleModel).filter_by(article_title="XSS Detail Test").first()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert "&lt;script&gt;alert(&#34;xss&#34;)&lt;/script&gt;" in response.text
+
+    def test_article_detail_preserves_newlines(self, client, db_session):
+        """
+        Verifies that newlines in article content are rendered as <br> tags.
+
+        Creates an article with multi-line content and checks that the
+        rendered detail page contains <br> elements for each newline.
+        """
+        auth = AccountModel(
+            account_username="nl_detail", account_email="nl_d@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "nl_detail", "password": "p"}, follow_redirects=True)
+
+        client.post("/articles/new", data={
+            "title": "Newline Test Detail",
+            "content": "line1\nline2\nline3"
+        }, follow_redirects=True)
+
+        article = db_session.query(ArticleModel).filter_by(article_title="Newline Test Detail").first()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert "<br>" in response.text
+
     def test_session_cookie_httponly(self, client, db_session):
         """
         Verifies that Flask session cookies are marked HttpOnly.
