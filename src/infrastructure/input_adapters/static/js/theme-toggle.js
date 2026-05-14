@@ -9,6 +9,7 @@
         try {
             return localStorage.getItem(STORAGE_KEY);
         } catch (e) {
+            console.warn("DevJournal : Unable to read theme from localStorage.", e);
             return null;
         }
     };
@@ -17,6 +18,7 @@
         try {
             localStorage.setItem(STORAGE_KEY, theme);
         } catch (e) {
+            console.warn("DevJournal : Unable to save theme to localStorage.", e);
         }
     };
 
