@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
@@ -168,3 +170,20 @@ class TestWorkflows:
         assert b"Reply line 1" in response.data
         assert b"Reply line 2" in response.data
         assert b"<br>" in response.data
+
+    def test_footer_displays_current_year(self, client, db_session):
+        """
+        Verify the footer displays the current year dynamically via the
+        inject_current_year context processor.
+        """
+        author = AccountModel(
+            account_username="year_test", account_email="y@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        response = client.get("/")
+        assert response.status_code == 200
+        current_year_str = str(datetime.now(UTC).year).encode()
+        assert current_year_str in response.data
