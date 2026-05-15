@@ -222,18 +222,6 @@
     display: none;
 }
 
-.progress-bar {
-    height: 1px;
-    width: 100%;
-    background-color: var(--primary-container);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: var(--z-overlay);
-    transform-origin: left;
-    transition: transform 0.2s ease;
-}
-
 @media (max-width: 48em) {
 
     .nav-container {
