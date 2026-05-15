@@ -54,7 +54,7 @@
                         {% endif %}
                     </div>
                     <div class="comment-content comment-content-text">
-                        {{ root_comment.comment_content }}
+                        {{ root_comment.comment_content | nl2br }}
                     </div>
                     
                     {% if current_user %}
@@ -78,7 +78,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="comment-content comment-reply-text">
-                                    {{ reply.comment_content }}
+                                    {{ reply.comment_content | nl2br }}
                                 </div>
                             </div>
                         {% endfor %}

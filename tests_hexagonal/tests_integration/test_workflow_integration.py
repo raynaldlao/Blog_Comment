@@ -106,3 +106,65 @@ class TestWorkflows:
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
         assert b"Level 3" not in response.data
+
+    def test_comment_with_newlines_renders_br_tag(self, client, db_session):
+        """
+        Verifies that a root comment containing newlines renders <br> tags
+        in the article detail page via the nl2br filter.
+        """
+        author = AccountModel(
+            account_username="newline_author", account_email="nl@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(article_title="Newline Test", article_content="...", article_author_id=author.account_id)
+        db_session.add(article)
+        db_session.commit()
+
+        client.post("/login", data={"username": "newline_author", "password": "p"}, follow_redirects=True)
+
+        multi_line_comment = "Line 1\nLine 2\nLine 3"
+        client.post(f"/articles/{article.article_id}/comments", data={
+            "content": multi_line_comment
+        }, follow_redirects=True)
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Line 1" in response.data
+        assert b"Line 2" in response.data
+        assert b"Line 3" in response.data
+        assert b"<br>" in response.data
+
+    def test_reply_with_newlines_renders_br_tag(self, client, db_session):
+        """
+        Verifies that a reply comment containing newlines renders <br> tags
+        in the article detail page via the nl2br filter.
+        """
+        author = AccountModel(
+            account_username="reply_nl", account_email="rnl@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(article_title="Reply Newline", article_content="...", article_author_id=author.account_id)
+        db_session.add(article)
+        db_session.commit()
+        client.post("/login", data={"username": "reply_nl", "password": "p"}, follow_redirects=True)
+
+        client.post(f"/articles/{article.article_id}/comments", data={
+            "content": "Root comment"
+        }, follow_redirects=True)
+
+        root_comment = db_session.query(CommentModel).filter_by(comment_article_id=article.article_id).first()
+        multi_line_reply = "Reply line 1\nReply line 2"
+
+        client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
+            "content": multi_line_reply
+        }, follow_redirects=True)
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Reply line 1" in response.data
+        assert b"Reply line 2" in response.data
+        assert b"<br>" in response.data
