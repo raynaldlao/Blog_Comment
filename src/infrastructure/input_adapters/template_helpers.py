@@ -41,6 +41,36 @@ def inject_current_year() -> dict[str, int]:
 
 
 def date_format_filter(date: datetime | None, format: str = "%b %d, %Y") -> str:
+    """
+    Jinja2 filter that formats a datetime into a human-readable date string.
+
+    Args:
+        date: A datetime object to format, or None.
+        format: A strftime format string (default: ``"%b %d, %Y"``).
+
+    Returns:
+        The formatted date string (e.g. ``"Apr 29, 2026"``).
+        Returns ``"RECENT"`` if the input is None.
+    """
     if date is None:
         return "RECENT"
     return date.strftime(format)
+
+
+def date_iso_filter(date: datetime | None) -> str:
+    """
+    Jinja2 filter that formats a datetime as an ISO 8601 date string.
+
+    Suitable for use in the ``datetime`` attribute of HTML ``<time>``
+    elements to provide machine-readable dates.
+
+    Args:
+        date: A datetime object to format, or None.
+
+    Returns:
+        The date formatted as ``"YYYY-MM-DD"`` (e.g. ``"2026-05-16"``).
+        Returns an empty string if the input is None.
+    """
+    if date is None:
+        return ""
+    return date.strftime("%Y-%m-%d")

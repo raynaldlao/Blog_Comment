@@ -5,7 +5,7 @@ from datetime import datetime
 from jinja2 import Environment
 from markupsafe import Markup
 
-from src.infrastructure.input_adapters.template_helpers import date_format_filter, nl2br_filter
+from src.infrastructure.input_adapters.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
 
 
 class TestNl2brFilter:
@@ -131,3 +131,38 @@ class TestDateFormatFilter:
         template = env.from_string("{{ value | date_format }}")
         result = template.render(value=datetime(2026, 4, 29))
         assert result == "Apr 29, 2026"
+
+
+class TestDateIsoFilter:
+    """Tests for the date_iso Jinja2 filter."""
+
+    def test_formats_date_to_iso_format(self):
+        """Verify a valid datetime is formatted as YYYY-MM-DD."""
+        result = date_iso_filter(datetime(2026, 5, 16))
+        assert result == "2026-05-16"
+
+    def test_pads_single_digit_month_and_day(self):
+        """Verify single-digit months and days are zero-padded."""
+        result = date_iso_filter(datetime(2026, 1, 1))
+        assert result == "2026-01-01"
+
+    def test_returns_empty_string_for_none(self):
+        """Verify None input returns an empty string."""
+        result = date_iso_filter(None)
+        assert result == ""
+
+    def test_formats_date_through_jinja2(self):
+        """Verify the filter works correctly inside a Jinja2 template."""
+        env = Environment()
+        env.filters["date_iso"] = date_iso_filter
+        template = env.from_string("{{ value | date_iso }}")
+        result = template.render(value=datetime(2026, 5, 16))
+        assert result == "2026-05-16"
+
+    def test_returns_empty_for_none_through_jinja2(self):
+        """Verify None renders as empty string through Jinja2."""
+        env = Environment()
+        env.filters["date_iso"] = date_iso_filter
+        template = env.from_string("{{ value | date_iso }}")
+        result = template.render(value=None)
+        assert result == ""

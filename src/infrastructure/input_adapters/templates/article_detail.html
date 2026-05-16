@@ -20,7 +20,7 @@
         <div class="item-meta">
             <span class="meta-author">{{ article.author_username }}</span>
             <span class="meta-divider">•</span>
-            <span class="meta-date">{{ article.article_published_at|date_format }}</span>
+            <time datetime="{{ article.article_published_at|date_iso }}" class="meta-date">{{ article.article_published_at|date_format }}</time>
         </div>
         
         <div class="detail-actions">
