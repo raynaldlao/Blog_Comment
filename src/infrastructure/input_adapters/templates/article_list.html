@@ -74,10 +74,14 @@
 
 <section class="editorial-list">
     {% for article in articles %}
-        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="editorial-item group">
+        <article class="editorial-item">
             <div class="item-content">
                 <div class="item-header">
-                    <h2 class="item-title">{{ article.article_title }}</h2>
+                    <h2 class="item-title">
+                        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="article-title-link">
+                            {{ article.article_title }}
+                        </a>
+                    </h2>
                     <p class="item-excerpt">
                         {{ article.article_content[:200] }}{% if article.article_content|length > 200 %}...{% endif %}
                     </p>
@@ -86,11 +90,11 @@
                     <span class="meta-author">{{ article.author_username }}</span>
                     {% if article.article_published_at %}
                     <span class="meta-divider">•</span>
-                    <time datetime="{{ article.article_published_at|date_iso }}" class="meta-date">{{ article.article_published_at|date_format }}</time>
+                    <span class="meta-date">{{ article.article_published_at|date_format }}</span>
                     {% endif %}
                 </div>
             </div>
-        </a>
+        </article>
     {% else %}
         <div class="empty-state">
             <span class="material-symbols-outlined empty-state-icon">folder_open</span>

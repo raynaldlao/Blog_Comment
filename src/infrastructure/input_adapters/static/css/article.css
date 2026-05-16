@@ -15,6 +15,7 @@
     padding: var(--spacing-xl) 0;
     border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 30%, transparent);
     transition: border-color 0.3s ease;
+    position: relative;
 }
 
 .editorial-item:last-child {
@@ -23,6 +24,12 @@
 
 .editorial-item:hover {
     border-bottom-color: var(--primary);
+}
+
+.article-title-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
 }
 
 .item-content {
