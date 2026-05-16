@@ -230,6 +230,11 @@
     transform: translateX(0.25rem);
 }
 
+.pagination-link--hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
 /* Article Detail Adaptation */
 .article-detail-view {
     max-width: 56rem;

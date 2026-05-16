@@ -53,23 +53,19 @@
 <!-- Top Pagination Component -->
 <nav class="editorial-pagination top">
     <div class="pagination-prev">
-        {% if has_prev %}
-        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link">
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             <span class="material-symbols-outlined">arrow_back</span>
             <span>Previous</span>
         </a>
-        {% endif %}
     </div>
     
     {{ render_pagination_info(page, total_pages) }}
     
     <div class="pagination-next">
-        {% if has_next %}
-        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link">
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
             <span class="material-symbols-outlined">arrow_forward</span>
         </a>
-        {% endif %}
     </div>
 </nav>
 
@@ -103,23 +99,19 @@
 <!-- Pagination Component -->
 <nav class="editorial-pagination">
     <div class="pagination-prev">
-        {% if has_prev %}
-        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link">
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             <span class="material-symbols-outlined">arrow_back</span>
             <span>Previous</span>
         </a>
-        {% endif %}
     </div>
     
     {{ render_pagination_info(page, total_pages) }}
     
     <div class="pagination-next">
-        {% if has_next %}
-        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link">
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
             <span class="material-symbols-outlined">arrow_forward</span>
         </a>
-        {% endif %}
     </div>
 </nav>
 

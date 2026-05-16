@@ -383,7 +383,7 @@ class TestArticlePagination(ArticleAdapterTestBase):
         self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
         response = self.client.get("/")
         assert response.status_code == 200
-        assert b"/?page=2" not in response.data
+        assert b"pagination-link--hidden" in response.data
         assert response.data.count(b'class="page-link-num') == 2
 
     def test_pagination_empty_state(self):
@@ -422,4 +422,15 @@ class TestArticlePagination(ArticleAdapterTestBase):
         assert b'page=55"' in response.data
         assert b'page=56"' not in response.data
         assert b'page=120"' in response.data
-        assert response.data.count(b"...") >= 4
+
+    def test_pagination_prev_next_visibility_bound(self):
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.count_all.return_value = 50
+        self.mock_article_repo.get_paginated.return_value = articles
+        response = self.client.get("/")
+        assert response.data.count(b"pagination-link--hidden") == 2
+        response = self.client.get("/?page=3")
+        assert response.data.count(b"pagination-link--hidden") == 0
+        response = self.client.get("/?page=5")
+        assert response.data.count(b"pagination-link--hidden") == 2
