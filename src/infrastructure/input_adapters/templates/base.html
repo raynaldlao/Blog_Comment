@@ -4,11 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Blog Management{% endblock %}</title>
-    {% if article and article.meta_description %}
-    <meta name="description" content="{{ article.meta_description }}">
-    {% else %}
-    <meta name="description" content="A premium blog platform built with Hexagonal Architecture.">
-    {% endif %}
+    {% block extra_head %}{% endblock %}
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}{{ article.article_title }} - DevJournal{% endblock %}
+{% block extra_head %}
+<meta name="description" content="{{ article.meta_description }}">
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">

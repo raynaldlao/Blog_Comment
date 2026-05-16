@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block title %}Latest Articles - DevJournal{% endblock %}
+{% block extra_head %}
+<meta name="description" content="DevJournal - Personal thoughts on software development, programming and technology.">
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
