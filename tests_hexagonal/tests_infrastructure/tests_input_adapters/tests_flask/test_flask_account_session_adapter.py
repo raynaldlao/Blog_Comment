@@ -36,6 +36,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_logout_clears_session(self):
         response = self.client.get("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
+        assert b"alert-info" in response.data
         self.mock_session_service.terminate_session.assert_called_once()
 
     def test_get_profile_success(self):
@@ -51,6 +52,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_current_account.return_value = None
         response = self.client.get("/profile", follow_redirects=True)
         assert b"Please sign in to view your profile." in response.data
+        assert b"alert-error" in response.data
         assert b"login" in response.data
 
 

@@ -73,7 +73,7 @@ class ArticleAdapter:
         """
         result = self.article_service.get_article_with_comments(article_id)
         if isinstance(result, str):
-            flash(f"Error: {result}")
+            flash(f"Error: {result}", "error")
             return redirect(url_for("article.list_articles"))
 
         detail = result
@@ -100,11 +100,11 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to author an article.")
+            flash("You must be signed in to author an article.", "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.")
+            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
         return render_template("article_create.html", current_user=user)
@@ -119,11 +119,11 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to author an article.")
+            flash("You must be signed in to author an article.", "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.")
+            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
         try:
@@ -133,7 +133,7 @@ class ArticleAdapter:
             )
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}")
+                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}", "error")
             return redirect(url_for("article.render_create_page"))
 
         result = self.article_service.create_article(
@@ -144,10 +144,10 @@ class ArticleAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
             return redirect(url_for("article.render_create_page"))
 
-        flash("Your article has been successfully published!")
+        flash("Your article has been successfully published!", "success")
         return redirect(url_for("article.read_article", article_id=result.article_id))
 
     def render_edit_page(self, article_id: int) -> str | Response:
@@ -163,16 +163,16 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to edit an article.")
+            flash("You must be signed in to edit an article.", "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.")
+            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
         domain_article = self.article_service.get_by_id(article_id)
         if not domain_article:
-            flash("Error: The requested article could not be found.")
+            flash("Error: The requested article could not be found.", "error")
             return redirect(url_for("article.list_articles"))
 
         username = self.article_service.get_author_name(domain_article.article_author_id)
@@ -192,11 +192,11 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to edit an article.")
+            flash("You must be signed in to edit an article.", "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.")
+            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
         try:
@@ -206,7 +206,7 @@ class ArticleAdapter:
             )
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}")
+                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}", "error")
             return redirect(url_for("article.render_edit_page", article_id=article_id))
 
         result = self.article_service.update_article(
@@ -217,10 +217,10 @@ class ArticleAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
             return redirect(url_for("article.render_edit_page", article_id=article_id))
 
-        flash("Your article has been successfully updated!")
+        flash("Your article has been successfully updated!", "success")
         return redirect(url_for("article.read_article", article_id=article_id))
 
     def delete_article(self, article_id: int) -> Response:
@@ -236,11 +236,11 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to delete an article.")
+            flash("You must be signed in to delete an article.", "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.")
+            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
         result = self.article_service.delete_article(
@@ -249,8 +249,8 @@ class ArticleAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        flash("Article has been successfully deleted.")
+        flash("Article has been successfully deleted.", "success")
         return redirect(url_for("article.list_articles"))

@@ -31,7 +31,24 @@ class FlaskInputAdapterTestBase:
             str: The response body containing the label and flashed messages.
         """
         label = self._dummy_labels.get(request.endpoint, request.endpoint)
-        return f"{label} {get_flashed_messages()}"
+        messages = get_flashed_messages(with_categories=True)
+        html = f"<html><body><p>{label}</p>"
+        for category, message in messages:
+            html += f'<div class="alert alert-{category}">{message}</div>'
+        html += "</body></html>"
+        return html
+
+    def _register_dummy_route(self, rule, endpoint, label=None) -> None:
+        """
+        Registers a dummy route using a class-level handler.
+
+        Args:
+            rule (str): The URL rule (e.g. "/articles").
+            endpoint (str): The Flask endpoint name.
+            label (str): Optional label returned in the response.
+        """
+        self._dummy_labels[endpoint] = label or endpoint
+        self.app.add_url_rule(rule, view_func=self._dummy_view_handler, endpoint=endpoint)
 
     def setup_method(self) -> None:
         """
@@ -62,15 +79,3 @@ class FlaskInputAdapterTestBase:
             account (Account): The domain entity to inject.
         """
         self._test_user = account
-
-    def _register_dummy_route(self, rule, endpoint, label=None) -> None:
-        """
-        Registers a dummy route using a class-level handler.
-
-        Args:
-            rule (str): The URL rule (e.g. "/articles").
-            endpoint (str): The Flask endpoint name.
-            label (str): Optional label returned in the response.
-        """
-        self._dummy_labels[endpoint] = label or endpoint
-        self.app.add_url_rule(rule, view_func=self._dummy_view_handler, endpoint=endpoint)

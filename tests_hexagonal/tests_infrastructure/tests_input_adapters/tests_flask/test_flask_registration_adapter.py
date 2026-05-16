@@ -50,6 +50,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"Registration successful. Please sign in." in response.data
+        assert b"alert-success" in response.data
         assert response.request.path == "/login"
         self.mock_repo.save.assert_called_once()
 
@@ -62,6 +63,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"Passwords do not match." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_email_taken(self):
@@ -77,6 +79,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"This email is already taken." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_username_taken(self):
@@ -91,6 +94,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"This username is already taken." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_invalid_email(self):
@@ -102,4 +106,5 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"email: value is not a valid email address" in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()

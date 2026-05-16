@@ -48,7 +48,7 @@ class RegistrationAdapter(MethodView):
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(f"{location}: {error['msg']}")
+                flash(f"{location}: {error['msg']}", "error")
             return redirect(url_for("registration.register"))
 
         result = self.registration_service.create_account(
@@ -58,8 +58,8 @@ class RegistrationAdapter(MethodView):
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
             return redirect(url_for("registration.register"))
 
-        flash("Registration successful. Please sign in.")
+        flash("Registration successful. Please sign in.", "success")
         return redirect(url_for("auth.login"))

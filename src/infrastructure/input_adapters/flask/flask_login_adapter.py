@@ -46,7 +46,7 @@ class LoginAdapter(MethodView):
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(f"Validation Error ({location}): {error['msg']}")
+                flash(f"Validation Error ({location}): {error['msg']}", "error")
             return redirect(url_for("auth.login"))
 
         account = self.login_service.authenticate_user(
@@ -57,5 +57,5 @@ class LoginAdapter(MethodView):
         if account:
             return redirect(url_for("article.list_articles"))
 
-        flash("Invalid username or password.")
+        flash("Invalid username or password.", "error")
         return redirect(url_for("auth.login"))

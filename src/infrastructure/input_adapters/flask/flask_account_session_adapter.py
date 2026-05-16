@@ -55,7 +55,7 @@ class AccountSessionAdapter(MethodView):
             Response: A Flask redirect response.
         """
         self.session_service.terminate_session()
-        flash("You have been logged out.")
+        flash("You have been logged out.", "info")
         return redirect(url_for("article.list_articles"))
 
     def display_profile(self):
@@ -69,7 +69,7 @@ class AccountSessionAdapter(MethodView):
         account = self.session_service.get_current_account()
 
         if not account:
-            flash("Please sign in to view your profile.")
+            flash("Please sign in to view your profile.", "error")
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)

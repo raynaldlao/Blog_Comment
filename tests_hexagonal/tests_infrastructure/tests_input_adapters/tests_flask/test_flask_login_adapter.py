@@ -55,9 +55,11 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"Invalid username or password." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.find_by_username.assert_called_once()
         self.mock_session_repo.save_account.assert_not_called()
 
     def test_post_login_validation_error(self):
         response = self.client.post("/login", data={"username": ""}, follow_redirects=True)
         assert b"Validation Error" in response.data or b"field required" in response.data.lower()
+        assert b"alert-error" in response.data

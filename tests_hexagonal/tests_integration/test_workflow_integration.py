@@ -118,6 +118,7 @@ class TestWorkflows:
             account_username="newline_author", account_email="nl@t.com",
             account_password="p", account_role="author"
         )
+
         db_session.add(author)
         db_session.commit()
         article = ArticleModel(article_title="Newline Test", article_content="...", article_author_id=author.account_id)
@@ -147,6 +148,7 @@ class TestWorkflows:
             account_username="reply_nl", account_email="rnl@t.com",
             account_password="p", account_role="author"
         )
+
         db_session.add(author)
         db_session.commit()
         article = ArticleModel(article_title="Reply Newline", article_content="...", article_author_id=author.account_id)
@@ -187,3 +189,49 @@ class TestWorkflows:
         assert response.status_code == 200
         current_year_str = str(datetime.now(UTC).year).encode()
         assert current_year_str in response.data
+
+    def test_success_flash_after_article_creation(self, client, db_session):
+        """
+        Verifies that a successfully created article shows a success flash message
+        with the alert-success CSS class in the redirected response.
+        """
+        author = AccountModel(
+            account_username="flash_author", account_email="fa@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={"username": "flash_author", "password": "p"}, follow_redirects=True)
+
+        response = client.post("/articles/new", data={
+            "title": "Flash Test Article",
+            "content": "Testing flash success category."
+        }, follow_redirects=True)
+
+        assert b"Your article has been successfully published!" in response.data
+        assert b"alert-success" in response.data
+
+    def test_error_flash_on_validation_failure(self, client, db_session):
+        """
+        Verifies that a validation error shows an error flash message
+        with the alert-error CSS class.
+        """
+        author = AccountModel(
+            account_username="val_author", account_email="va@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={"username": "val_author", "password": "p"}, follow_redirects=True)
+
+        response = client.post("/articles/new", data={
+            "title": "Valid Title",
+            "content": ""
+        }, follow_redirects=True)
+
+        assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data

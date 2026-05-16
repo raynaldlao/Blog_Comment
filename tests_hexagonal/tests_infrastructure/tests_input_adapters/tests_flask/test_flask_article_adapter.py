@@ -160,22 +160,27 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
     def test_create_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_render_create_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/new", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_delete_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_render_edit_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/1/edit", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_update_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
 
 class TestArticleUserAccess(ArticleAdapterTestBase):
@@ -184,30 +189,35 @@ class TestArticleUserAccess(ArticleAdapterTestBase):
         self._prepare_user_context(user)
         response = self.client.get("/articles/new", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_access_edit_page(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.get("/articles/1/edit", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_update_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_delete_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_create_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
 
@@ -225,6 +235,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Your article has been successfully published!" in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_create_article_service_error(self):
@@ -240,6 +251,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
             follow_redirects=True
         )
         assert b"Service Error Message" in response.data
+        assert b"alert-error" in response.data
 
     def test_author_can_edit_own_article(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -254,6 +266,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Your article has been successfully updated!" in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_cannot_edit_others_article(self):
@@ -269,6 +282,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Unauthorized" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
     def test_read_article_not_found(self):
@@ -277,6 +291,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         self.mock_article_repo.get_by_id.return_value = None
         response = self.client.get("/articles/999", follow_redirects=True)
         assert b"Error: Article not found." in response.data
+        assert b"alert-error" in response.data
 
     def test_render_edit_page_not_found(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -285,6 +300,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
 
         response = self.client.get("/articles/999/edit", follow_redirects=True)
         assert b"Error: The requested article could not be found." in response.data
+        assert b"alert-error" in response.data
 
 
 class TestArticleAdminAccess(ArticleAdapterTestBase):
@@ -295,6 +311,7 @@ class TestArticleAdminAccess(ArticleAdapterTestBase):
         self.mock_article_repo.get_by_id.return_value = article
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Article has been successfully deleted." in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.delete.assert_called_once()
 
 
@@ -310,6 +327,7 @@ class TestArticleValidation(ArticleAdapterTestBase):
         )
 
         assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
     def test_update_article_validation_error(self):
@@ -325,6 +343,7 @@ class TestArticleValidation(ArticleAdapterTestBase):
         )
 
         assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data
 
     def test_delete_article_service_error(self):
         from src.application.domain.article import ArticleDetailView, ArticleWithAuthor
@@ -341,6 +360,7 @@ class TestArticleValidation(ArticleAdapterTestBase):
         self.adapter.article_service.get_article_with_comments = Mock(return_value=detail)
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Delete Error" in response.data
+        assert b"alert-error" in response.data
 
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):
