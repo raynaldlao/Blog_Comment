@@ -38,3 +38,9 @@ def inject_current_year() -> dict[str, int]:
         mapped to the current UTC year (e.g. ``{"current_year": 2026}``).
     """
     return {"current_year": datetime.now(UTC).year}
+
+
+def date_format_filter(date: datetime | None, format: str = "%b %d, %Y") -> str:
+    if date is None:
+        return "RECENT"
+    return date.strftime(format)

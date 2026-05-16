@@ -87,7 +87,7 @@
                     <span class="meta-author">{{ article.author_username }}</span>
                     {% if article.article_published_at %}
                     <span class="meta-divider">•</span>
-                    <span class="meta-date">{{ article.article_published_at.strftime('%b %d, %Y') }}</span>
+                    <span class="meta-date">{{ article.article_published_at|date_format }}</span>
                     {% endif %}
                 </div>
             </div>

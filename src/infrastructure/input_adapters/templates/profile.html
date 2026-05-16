@@ -25,7 +25,7 @@
             <span class="info-label">Member Since</span>
             <span class="info-value">
                 {% if user.account_created_at %}
-                    {{ user.account_created_at.strftime('%B %d, %Y') }}
+                    {{ user.account_created_at|date_format }}
                 {% else %}
                     N/A
                 {% endif %}

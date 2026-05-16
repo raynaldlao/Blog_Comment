@@ -1,9 +1,11 @@
 """Unit tests for template helper functions (filters, context processors)."""
 
+from datetime import datetime
+
 from jinja2 import Environment
 from markupsafe import Markup
 
-from src.infrastructure.input_adapters.template_helpers import nl2br_filter
+from src.infrastructure.input_adapters.template_helpers import date_format_filter, nl2br_filter
 
 
 class TestNl2brFilter:
@@ -94,3 +96,38 @@ class TestNl2brThroughJinja2:
         assert "hello<br>" in result or "hello<br />" in result
         assert "&lt;br&gt;" not in result
         assert "&lt;br /&gt;" not in result
+
+
+class TestDateFormatFilter:
+    """Unit tests for the date_format Jinja2 filter."""
+
+    def test_formats_date_with_default_format(self):
+        """Verify a valid datetime is formatted as '%b %d, %Y' by default."""
+        result = date_format_filter(datetime(2026, 4, 29))
+        assert result == "Apr 29, 2026"
+
+    def test_returns_recent_for_none_date(self):
+        """Verify None input returns the fallback string 'RECENT'."""
+        result = date_format_filter(None)
+        assert result == "RECENT"
+
+    def test_uses_custom_format(self):
+        """Verify a custom strftime format is respected when passed explicitly."""
+        result = date_format_filter(datetime(2026, 4, 29), "%Y-%m-%d")
+        assert result == "2026-04-29"
+
+    def test_returns_recent_for_none_date_through_jinja2(self):
+        """Verify the filter renders 'RECENT' when the value is None in a Jinja2 template."""
+        env = Environment()
+        env.filters["date_format"] = date_format_filter
+        template = env.from_string("{{ value | date_format }}")
+        result = template.render(value=None)
+        assert result == "RECENT"
+
+    def test_formats_date_through_jinja2(self):
+        """Verify the filter renders a formatted date when used in a Jinja2 template."""
+        env = Environment()
+        env.filters["date_format"] = date_format_filter
+        template = env.from_string("{{ value | date_format }}")
+        result = template.render(value=datetime(2026, 4, 29))
+        assert result == "Apr 29, 2026"

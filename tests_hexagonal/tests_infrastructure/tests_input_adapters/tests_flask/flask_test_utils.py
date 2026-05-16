@@ -3,7 +3,7 @@ import os
 from flask import Flask, get_flashed_messages, request
 from flask import g as global_request_context
 
-from src.infrastructure.input_adapters.template_helpers import nl2br_filter
+from src.infrastructure.input_adapters.template_helpers import date_format_filter, nl2br_filter
 
 
 class FlaskInputAdapterTestBase:
@@ -57,6 +57,7 @@ class FlaskInputAdapterTestBase:
         """
         self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR)
         self.app.jinja_env.filters["nl2br"] = nl2br_filter
+        self.app.jinja_env.filters["date_format"] = date_format_filter
         self.app.config["SECRET_KEY"] = "test_secret"
         self.app.config["SERVER_NAME"] = "localhost"
         self.app.config["TESTING"] = True
