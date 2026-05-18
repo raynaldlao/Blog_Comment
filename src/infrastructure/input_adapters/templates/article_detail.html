@@ -30,7 +30,7 @@
             
             {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
                 <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" class="detail-delete-form" id="delete-article-form">
-                    <button type="button" class="btn btn-sm btn-secondary detail-delete-btn confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-form">Delete</button>
+                    <button type="submit" class="btn btn-sm btn-secondary detail-delete-btn confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-form">Delete</button>
                 </form>
             {% endif %}
         </div>
@@ -52,7 +52,7 @@
                         <span class="meta-author">{{ root_comment.author_username }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
                             <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" class="comment-delete-form" id="delete-comment-{{ root_comment.comment_id }}">
-                                <button type="button" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ root_comment.comment_id }}">[Delete]</button>
+                                <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ root_comment.comment_id }}">[Delete]</button>
                             </form>
                         {% endif %}
                     </div>
@@ -76,7 +76,7 @@
                                     <span class="meta-author comment-reply-author">{{ reply.author_username }}</span>
                                     {% if current_user and current_user.account_role == 'admin' %}
                                         <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" class="comment-delete-form" id="delete-comment-{{ reply.comment_id }}">
-                                            <button type="button" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ reply.comment_id }}">[Delete]</button>
+                                            <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ reply.comment_id }}">[Delete]</button>
                                         </form>
                                     {% endif %}
                                 </div>

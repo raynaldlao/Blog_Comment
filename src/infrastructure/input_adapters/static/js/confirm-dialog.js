@@ -30,6 +30,7 @@
             const trigger = e.target.closest(".confirm-trigger");
             if (!trigger) return;
 
+            e.preventDefault();
             lastFocusedElement = trigger;
             targetFormId = trigger.dataset.formId;
             messageEl.textContent = trigger.dataset.confirmMessage;
