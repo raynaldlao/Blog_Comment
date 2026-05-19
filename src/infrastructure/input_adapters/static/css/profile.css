@@ -76,6 +76,11 @@
 .actions .btn {
     flex: 1;
     text-decoration: none;
+    color: var(--on-primary);
+}
+
+.actions .btn.btn-secondary {
+    color: var(--on-background);
 }
 
 .back-link {
