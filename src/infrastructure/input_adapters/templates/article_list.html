@@ -90,7 +90,7 @@
                     <span class="meta-author">{{ article.author_username }}</span>
                     {% if article.article_published_at %}
                     <span class="meta-divider">•</span>
-                    <span class="meta-date">{{ article.article_published_at|date_format }}</span>
+                    <time datetime="{{ article.article_published_at|date_iso }}" class="meta-date">{{ article.article_published_at|date_format }}</time>
                     {% endif %}
                 </div>
             </div>
