@@ -66,6 +66,9 @@
     --font-body-lg: 1.0625rem;
     --font-body-md: 0.9375rem;
     --font-body-sm: 0.75rem;
+    --font-body-base: 0.875rem;
+    --font-body-xs: 0.625rem;
+    --font-headline-sm: 1.125rem;
 
     /* Z-Index Scale */
     --z-base: 1;
@@ -162,7 +165,7 @@
 
 #theme-toggle-btn .nav-item-icon {
     display: block;
-    font-size: 1.25rem;
+    font-size: var(--font-headline-md);
 }
 
 #theme-toggle-btn,
@@ -198,7 +201,7 @@
 }
 
 .logo {
-    font-size: 1.25rem;
+    font-size: var(--font-headline-md);
     font-weight: 800;
     letter-spacing: -0.05em;
     text-transform: uppercase;
@@ -425,7 +428,7 @@ label {
     margin-bottom: var(--spacing-sm);
     color: var(--on-surface-variant);
     font-family: var(--font-primary);
-    font-size: 0.875rem;
+    font-size: var(--font-body-base);
     font-weight: 500;
     letter-spacing: 0.02em;
 }
@@ -472,7 +475,7 @@ button,
     border-radius: var(--radius-default);
     cursor: pointer;
     font-family: var(--font-primary);
-    font-size: 0.95rem;
+    font-size: var(--font-body-md);
     font-weight: 600;
     display: inline-block;
     transition: all 0.2s ease;
@@ -553,7 +556,7 @@ hr {
 
 .footer-copy {
     font-family: var(--font-primary);
-    font-size: 0.625rem;
+    font-size: var(--font-body-xs);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--on-surface-variant);

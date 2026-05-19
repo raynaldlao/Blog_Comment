@@ -26,7 +26,7 @@
 
 .account-subtitle {
     color: var(--on-surface-variant);
-    font-size: 0.875rem;
+    font-size: var(--font-body-base);
     margin-bottom: var(--spacing-lg);
 }
 

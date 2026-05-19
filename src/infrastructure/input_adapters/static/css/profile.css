@@ -35,7 +35,7 @@
     background: var(--primary);
     color: var(--on-primary);
     border-radius: var(--radius-default);
-    font-size: 0.75rem;
+    font-size: var(--font-body-sm);
     font-family: var(--font-mono);
     font-weight: 600;
     text-transform: uppercase;
@@ -56,14 +56,14 @@
 .info-label {
     color: var(--on-surface-variant);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: var(--font-body-base);
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
 
 .info-value {
     color: var(--on-surface);
-    font-size: 0.9rem;
+    font-size: var(--font-body-base);
     font-weight: 600;
 }
 
@@ -88,7 +88,7 @@
     text-align: center;
     margin-top: var(--spacing-lg);
     color: var(--primary);
-    font-size: 0.9rem;
+    font-size: var(--font-body-base);
     text-decoration: none;
 }
 
