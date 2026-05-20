@@ -80,7 +80,7 @@
             }
         });
 
-        jumpInput.addEventListener('keypress', (e) => {
+        jumpInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 executeJump();
