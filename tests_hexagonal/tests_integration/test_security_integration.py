@@ -99,7 +99,7 @@ class TestXSS:
 
         response = client.get(f"/articles/{article.article_id}")
         assert response.status_code == 200
-        assert b"<script>" not in response.data
+        assert b"<script>alert(1)</script>" not in response.data
         assert b"&lt;script&gt;" in response.data
         assert b"<br>" in response.data
         assert b"clean line" in response.data

@@ -22,19 +22,12 @@
         }
     };
 
-    const getSystemTheme = () => {
-        return window.matchMedia('(prefers-color-scheme: light)').matches ? THEME_LIGHT : THEME_DARK;
-    };
-
-
-    const applyTheme = (theme) => {
-        document.documentElement.dataset.theme = theme;
-    };
-
-    const stored = getStoredTheme();
-    applyTheme(stored || getSystemTheme());
 
     document.addEventListener('DOMContentLoaded', () => {
+        const applyTheme = (theme) => {
+            document.documentElement.dataset.theme = theme;
+        };
+
         const toggleBtn = document.getElementById('theme-toggle-btn');
         const iconElement = toggleBtn ? toggleBtn.querySelector('.material-symbols-outlined') : null;
 

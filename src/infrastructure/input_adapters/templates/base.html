@@ -9,8 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     
+    <script>
+        // Must run synchronously BEFORE the first paint to prevent FOUC.
+        // Do NOT remove or move to the defer script at the bottom.
+        // This is the ONLY code that MUST block rendering.
+        try {
+            var t = localStorage.getItem('blog_theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark';
+            document.documentElement.dataset.theme = t;
+        } catch (e) {}
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-    <script src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -87,6 +96,7 @@
         </div>
     </footer>
     <script src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
