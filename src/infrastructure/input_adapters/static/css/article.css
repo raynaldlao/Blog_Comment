@@ -366,6 +366,18 @@ input[type=number] {
     border-left-color: var(--primary);
 }
 
+#jump-page-input:focus~.stepper-controls .stepper-btn.up {
+    border-bottom-color: var(--primary);
+}
+
+#jump-page-input.input-error~.stepper-controls {
+    border-left-color: var(--error);
+}
+
+#jump-page-input.input-error~.stepper-controls .stepper-btn.up {
+    border-bottom-color: var(--error);
+}
+
 .stepper-btn {
     flex: 1;
     display: flex;
@@ -373,7 +385,7 @@ input[type=number] {
     justify-content: center;
     cursor: pointer;
     color: var(--on-surface-variant);
-    transition: color 0.15s ease;
+    transition: color 0.15s ease, border-color 0.2s ease;
     user-select: none;
     border: none;
     background: transparent;
