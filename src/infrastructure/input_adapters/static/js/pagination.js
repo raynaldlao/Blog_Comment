@@ -12,8 +12,9 @@
         const openJumpModal = () => {
             jumpModal.showModal();
             jumpInput.value = '';
-            setTimeout(() => jumpInput.focus(), 50);
         };
+
+        jumpModal.addEventListener('focus', () => jumpInput.focus(), { once: true });
 
         jumpInput.addEventListener('input', function () {
             this.value = this.value.replace(/[^0-9]/g, '');
