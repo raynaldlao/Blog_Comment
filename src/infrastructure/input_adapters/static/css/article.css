@@ -358,7 +358,6 @@ input[type=number] {
     border-left: 1px solid var(--outline-variant);
     background: transparent;
     border-radius: 0 var(--radius-default) var(--radius-default) 0;
-    overflow: hidden;
     transition: border-color 0.2s ease;
 }
 
@@ -393,7 +392,12 @@ input[type=number] {
     line-height: 1;
     border-radius: 0;
     box-shadow: none;
-    outline: none;
+}
+
+.stepper-btn:focus-visible {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    color: var(--primary);
+    z-index: 1;
 }
 
 .stepper-btn:hover {
@@ -415,6 +419,11 @@ input[type=number] {
 
 .stepper-btn.up {
     border-bottom: 1px solid var(--outline-variant);
+    border-top-right-radius: var(--radius-default);
+}
+
+.stepper-btn.down {
+    border-bottom-right-radius: var(--radius-default);
 }
 
 .modal-footer {
