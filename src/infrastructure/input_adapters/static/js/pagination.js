@@ -6,6 +6,7 @@
         if (!jumpModal) return;
 
         const jumpInput = document.getElementById('jump-page-input');
+        if (!jumpInput) return;
         const totalPages = parseInt(jumpModal.dataset.totalPages, 10);
         const baseUrl = jumpModal.dataset.url;
 
