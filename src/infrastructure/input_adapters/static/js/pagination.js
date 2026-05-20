@@ -16,8 +16,20 @@
 
         jumpModal.addEventListener('focus', () => jumpInput.focus(), { once: true });
 
-        jumpInput.addEventListener('input', function () {
-            this.value = this.value.replace(/[^0-9]/g, '');
+        jumpInput.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key.length > 1) return;
+
+            if (!/^\d$/.test(e.key)) {
+                e.preventDefault();
+            }
+        });
+
+        jumpInput.addEventListener('paste', (e) => {
+            const data = e.clipboardData.getData('text');
+            if (!/^\d+$/.test(data)) {
+                e.preventDefault();
+            }
         });
 
         const closeJumpModal = () => jumpModal.close();
