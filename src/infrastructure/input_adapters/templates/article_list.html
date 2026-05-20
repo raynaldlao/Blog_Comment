@@ -9,6 +9,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 {% endblock %}
 
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+{% endblock %}
+
 {% macro render_pagination_info(current_page, total_pages) %}
     <div class="pagination-info">
         {% if total_pages <= 13 %}
@@ -121,10 +125,6 @@
         </a>
     </div>
 </nav>
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/pagination.js') }}"></script>
-{% endblock %}
 
 <!-- Jump to Page Modal -->
 <dialog id="jump-modal" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}">

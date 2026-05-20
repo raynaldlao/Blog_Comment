@@ -53,7 +53,7 @@
             const stepperBtn = e.target.closest('.stepper-btn');
             if (stepperBtn) {
                 const delta = parseInt(stepperBtn.dataset.step, 10);
-                const current = parseInt(jumpInput.value, 10) || 1;
+                const current = parseInt(jumpInput.value, 10) || 0;
                 const next = current + delta;
 
                 if (next >= 1 && next <= totalPages) {
