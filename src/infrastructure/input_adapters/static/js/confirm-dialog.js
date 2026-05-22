@@ -41,7 +41,13 @@
         confirmBtn.addEventListener("click", () => {
             if (targetFormId) {
                 const form = document.getElementById(targetFormId);
-                if (form) form.requestSubmit();
+                if (form) {
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                    } else {
+                        form.submit();
+                    }
+                }
             }
             dialog.close();
         });
