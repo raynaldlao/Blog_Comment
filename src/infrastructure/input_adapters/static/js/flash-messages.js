@@ -7,8 +7,8 @@
             alerts.forEach(function (alert) {
                 alert.addEventListener('animationend', function (e) {
                     if (e.animationName === 'flash-fade-out') {
+                        const container = alert.parentElement;
                         alert.remove();
-                        const container = document.querySelector('.flash-messages');
                         if (container && container.children.length === 0) {
                             container.remove();
                         }
