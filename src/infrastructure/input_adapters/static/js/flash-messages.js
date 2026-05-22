@@ -1,5 +1,6 @@
-(function () {
-    "use strict";
+"use strict";
+
+(() => {
     try {
         const initFlashDismiss = function () {
             const alerts = document.querySelectorAll('.flash-messages .alert');
