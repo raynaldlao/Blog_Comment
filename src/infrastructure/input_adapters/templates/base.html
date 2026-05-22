@@ -95,7 +95,7 @@
             </p>
         </div>
     </footer>
-    <script src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
     <script defer src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>

@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/pagination.js') }}"></script>
 {% endblock %}
 
 {% macro render_pagination_info(current_page, total_pages) %}
