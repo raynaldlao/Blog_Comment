@@ -39,8 +39,7 @@
 
         updateIcon(document.documentElement.dataset.theme);
 
-        toggleBtn.addEventListener('click', (e) => {
-            e.preventDefault();
+        toggleBtn.addEventListener('click', () => {
             const current = document.documentElement.dataset.theme;
             const target = current === THEME_LIGHT ? THEME_DARK : THEME_LIGHT;
 
