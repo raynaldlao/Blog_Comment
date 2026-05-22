@@ -2,18 +2,28 @@
 
 (() => {
     try {
-        const initFlashDismiss = function () {
+        const removeAlert = (alert) => {
+            const container = alert.parentElement;
+            alert.remove();
+            if (container && container.children.length === 0) {
+                container.remove();
+            }
+        };
+
+        const initFlashDismiss = () => {
             const alerts = document.querySelectorAll('.flash-messages .alert');
-            alerts.forEach(function (alert) {
-                alert.addEventListener('animationend', function (e) {
-                    if (e.animationName === 'flash-fade-out') {
-                        const container = alert.parentElement;
-                        alert.remove();
-                        if (container && container.children.length === 0) {
-                            container.remove();
-                        }
-                    }
+            alerts.forEach((alert) => {
+                let removed = false;
+                const safeRemove = () => {
+                    if (removed) return;
+                    removed = true;
+                    removeAlert(alert);
+                };
+
+                alert.addEventListener('animationend', (e) => {
+                    if (e.animationName === 'flash-fade-out') safeRemove();
                 });
+                setTimeout(safeRemove, 3500);
             });
         };
 
