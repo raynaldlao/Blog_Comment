@@ -30,14 +30,14 @@
             <label for="registration-confirm-password">Confirm Password</label>
             <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="account-btn-full">Create Account</button>
+        <button type="submit" class="full-width">Create Account</button>
     </form>
 
     <hr>
 
     <div class="account-footer">
         <p class="account-subtitle">Already have an account?</p>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary account-btn-full">Sign In instead</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary full-width">Sign In instead</a>
         
         <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">

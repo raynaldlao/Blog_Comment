@@ -22,14 +22,14 @@
             <label for="login-password">Password</label>
             <input type="password" id="login-password" name="password" placeholder="••••••••" required>
         </div>
-        <button type="submit" class="account-btn-full">Sign In</button>
+        <button type="submit" class="full-width">Sign In</button>
     </form>
 
     <hr>
 
     <div class="account-footer">
         <p class="account-subtitle">New to the system?</p>
-        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary account-btn-full">Create an account</a>
+        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary full-width">Create an account</a>
         
         <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">

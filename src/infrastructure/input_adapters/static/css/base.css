@@ -546,6 +546,11 @@ hr {
     padding-bottom: 5rem;
 }
 
+/* Utility: full-width elements */
+.full-width {
+    width: 100%;
+}
+
 .footer {
     background-color: var(--surface-container-lowest);
     border-top: 1px solid var(--outline-variant);
