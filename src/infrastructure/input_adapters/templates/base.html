@@ -73,7 +73,7 @@
     </nav>
     
     <!-- Main Content Area -->
-    <main class="main-container main-wrapper">
+    <main class="main-layout main-offset">
         {% with messages = get_flashed_messages(with_categories=True) %}
             {% if messages %}
                 <div class="flash-messages">
@@ -89,7 +89,7 @@
 
     <!-- Simple Footer -->
     <footer class="footer">
-        <div class="main-container">
+        <div class="main-layout">
             <p class="footer-copy">
                 © {{ current_year }} DevJournal. All rights reserved.
             </p>

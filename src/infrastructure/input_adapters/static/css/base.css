@@ -324,7 +324,7 @@ body {
     }
 }
 
-.main-container {
+.main-layout {
     max-width: 80rem;
     margin: 0 auto;
     padding: 0 var(--spacing-margin);
@@ -540,8 +540,8 @@ hr {
     transition: opacity 0.3s ease;
 }
 
-/* Global Layout Utilities */
-.main-wrapper {
+/* Vertical offset to clear fixed nav */
+.main-offset {
     padding-top: 6.25rem;
     padding-bottom: 5rem;
 }
