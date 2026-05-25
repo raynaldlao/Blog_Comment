@@ -125,7 +125,6 @@
     top: 0;
     left: 0;
     right: 0;
-    width: 100vw;
     z-index: var(--z-nav);
     border-bottom: 1px solid var(--outline-variant);
     background-color: color-mix(in srgb, var(--surface) 80%, transparent);
