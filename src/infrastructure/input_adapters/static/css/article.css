@@ -444,39 +444,6 @@ input[type=number] {
     gap: var(--spacing-md);
 }
 
-.modal-btn {
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border-radius: var(--radius-default);
-    font-size: var(--font-body-base);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-primary);
-    box-shadow: none;
-}
-
-.modal-btn-secondary {
-    background: transparent;
-    border: 1px solid var(--outline);
-    color: var(--primary);
-}
-
-.modal-btn-secondary:hover {
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
-    border-color: var(--primary);
-}
-
-.modal-btn-primary {
-    background: var(--primary);
-    border: 1px solid var(--primary);
-    color: var(--on-primary);
-}
-
-.modal-btn:hover {
-    border-color: var(--primary);
-    filter: brightness(1.15);
-}
-
 /* Base structural overrides for details */
 .detail-back-link {
     margin-bottom: var(--spacing-lg);

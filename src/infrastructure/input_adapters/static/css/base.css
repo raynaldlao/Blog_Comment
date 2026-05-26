@@ -514,6 +514,23 @@ a:focus-visible {
     font-size: 0.85em;
 }
 
+/* Dialog buttons — compact variant for modals */
+.btn-dialog {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-body-base);
+    box-shadow: none;
+}
+.btn-dialog.btn-secondary {
+    color: var(--primary);
+}
+.btn-dialog.btn-secondary:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: var(--primary);
+}
+.btn-dialog.btn-primary {
+    border-color: var(--primary);
+}
+
 hr {
     border: 0;
     border-top: 1px solid var(--outline-variant);
