@@ -73,4 +73,4 @@ class AccountSessionAdapter(MethodView):
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)
-        return render_template("profile.html", user=user_dto)
+        return render_template("profile.html", user=user_dto, current_user=user_dto)

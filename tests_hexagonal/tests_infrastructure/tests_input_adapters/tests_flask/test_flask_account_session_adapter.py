@@ -26,12 +26,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.app.add_url_rule(
             "/profile",
             view_func=self.adapter.display_profile,
-            endpoint="profile.profile"
+            endpoint="auth.profile"
         )
 
         self._register_dummy_route("/articles", "article.list_articles", "articles")
         self._register_dummy_route("/login", "auth.login", "login")
         self._register_dummy_route("/register", "registration.register", "registration")
+        self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
     def test_logout_clears_session(self):
         response = self.client.get("/logout", follow_redirects=True)
@@ -46,7 +47,18 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"leia" in response.data
         assert b"leia@galaxy.com" in response.data
+        assert b"Profile" in response.data
+        assert b"Logout" in response.data
+        assert b"Sign In" not in response.data
+        assert b"Sign Up" not in response.data
         self.mock_session_service.get_current_account.assert_called_once()
+
+    def test_get_profile_author_nav(self):
+        fake_author = create_test_account(account_role=AccountRole.AUTHOR)
+        self.mock_session_service.get_current_account.return_value = fake_author
+        response = self.client.get("/profile")
+        assert response.status_code == 200
+        assert b"New article" in response.data
 
     def test_get_profile_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None

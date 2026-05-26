@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 
 from flask import flash, redirect, render_template, request, url_for
+from flask import g as global_request_context
 from flask.views import MethodView
 from src.application.input_ports.login_management import LoginManagementPort
 from src.infrastructure.input_adapters.dto.login_request import LoginRequest
@@ -28,7 +29,8 @@ class LoginAdapter(MethodView):
         Returns:
             str: The rendered HTML for the login page.
         """
-        return render_template("login.html")
+        user = global_request_context.get("current_user")
+        return render_template("login.html", current_user=user)
 
     def authenticate(self):
         """

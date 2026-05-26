@@ -1,6 +1,7 @@
 from pydantic import ValidationError
 
 from flask import flash, redirect, render_template, request, url_for
+from flask import g as global_request_context
 from flask.views import MethodView
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.infrastructure.input_adapters.dto.registration_request import RegistrationRequest
@@ -28,7 +29,8 @@ class RegistrationAdapter(MethodView):
         Returns:
             str: The rendered HTML for the registration page.
         """
-        return render_template("registration.html")
+        user = global_request_context.get("current_user")
+        return render_template("registration.html", current_user=user)
 
     def register(self):
         """

@@ -235,3 +235,37 @@ class TestWorkflows:
 
         assert b"Validation Error" in response.data
         assert b"alert-error" in response.data
+
+    def test_nav_consistency_across_pages_integ(self, client, db_session):
+        """
+        End-to-end verification that the navigation bar correctly reflects
+        authentication state on login, registration, and profile pages.
+        """
+        author = AccountModel(
+            account_username="nav_author", account_email="nav@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={
+            "username": "nav_author", "password": "p"
+        }, follow_redirects=True)
+
+        for page in ("/login", "/register", "/profile"):
+            response = client.get(page)
+            assert response.status_code == 200
+            assert b"New article" in response.data
+            assert b"Profile" in response.data
+            assert b"Logout" in response.data
+            if page == "/profile":
+                assert b"Sign In" not in response.data
+                assert b"Sign Up" not in response.data
+
+        client.get("/logout", follow_redirects=True)
+
+        response = client.get("/login")
+        assert response.status_code == 200
+        assert b"New article" not in response.data
+        assert b"Sign In" in response.data
+        assert b"Sign Up" in response.data
