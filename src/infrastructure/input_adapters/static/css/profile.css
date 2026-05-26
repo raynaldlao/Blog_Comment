@@ -91,7 +91,3 @@
     font-size: var(--font-body-base);
     text-decoration: none;
 }
-
-.back-link:hover {
-    color: var(--primary);
-}
