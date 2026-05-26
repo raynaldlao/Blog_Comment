@@ -423,13 +423,11 @@ input[type=number] {
 .stepper-btn:hover {
     color: var(--on-surface);
     background: transparent;
-    transform: none;
 }
 
 .stepper-btn:active {
     color: var(--primary);
     background: transparent;
-    transform: none;
 }
 
 .stepper-btn span {
