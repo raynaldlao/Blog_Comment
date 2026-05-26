@@ -284,15 +284,15 @@ input[type=number] {
     appearance: textfield;
 }
 
-/* Jump Modal Styles */
-#jump-modal {
+/* Shared dialog (modal) styles */
+.dialog {
     border: 1px solid var(--outline-variant);
     border-radius: var(--radius-lg);
     background: var(--surface-container-high);
     color: var(--on-surface);
     padding: var(--spacing-xl);
     width: 90%;
-    max-width: 20rem;
+    max-width: 25rem;
     box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
     position: fixed;
     top: 50%;
@@ -301,9 +301,17 @@ input[type=number] {
     z-index: var(--z-modal);
 }
 
-#jump-modal::backdrop {
+.dialog-sm {
+    max-width: 20rem;
+}
+
+.dialog::backdrop {
     background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
     backdrop-filter: blur(8px);
+}
+
+.dialog .modal-footer {
+    margin-top: var(--spacing-xl);
 }
 
 .modal-header {
@@ -627,32 +635,6 @@ input[type=number] {
 #jump-page-input.input-error:focus {
     border-color: var(--error);
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 20%, transparent);
-}
-
-/* Confirm Dialog */
-#confirm-dialog {
-    border: 1px solid var(--outline-variant);
-    border-radius: var(--radius-lg);
-    background: var(--surface-container-high);
-    color: var(--on-surface);
-    padding: var(--spacing-xl);
-    width: 90%;
-    max-width: 25rem;
-    box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: var(--z-modal);
-}
-
-#confirm-dialog::backdrop {
-    background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
-    backdrop-filter: blur(8px);
-}
-
-#confirm-dialog .modal-footer {
-    margin-top: var(--spacing-xl);
 }
 
 @keyframes fadeIn {
