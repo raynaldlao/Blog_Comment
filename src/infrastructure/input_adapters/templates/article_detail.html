@@ -45,8 +45,7 @@
     <section class="comments-section">
         <h3 class="comments-title">Comments</h3>
 
-        <div id="comments-container">
-            {% for root_comment in threaded_comments.get('root', []) %}
+        {% for root_comment in threaded_comments.get('root', []) %}
                 <div class="comment-root">
                     <div class="comment-header">
                         <span class="meta-author">{{ root_comment.author_username }}</span>
@@ -94,7 +93,6 @@
             {% else %}
                 <p class="comment-empty">No comments yet.</p>
             {% endfor %}
-        </div>
 
         <hr>
 
