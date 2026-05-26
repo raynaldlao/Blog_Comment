@@ -73,7 +73,12 @@
 }
 
 .actions .btn.btn-secondary {
-    color: var(--on-background);
+    color: var(--primary);
+}
+
+.actions .btn.btn-secondary:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: var(--primary);
 }
 
 .back-link {
