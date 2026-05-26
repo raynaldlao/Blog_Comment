@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <header class="page-header">
+    <header>
         <a href="{{ url_for('article.list_articles') }}" class="pagination-link">
             <span class="material-symbols-outlined">arrow_back</span>
             <span>Back to articles</span>
@@ -15,7 +15,7 @@
     </header>
 
     <div class="article-form-container">
-        <h1 class="header-h1">Write your story</h1>
+        <h1>Write your story</h1>
 
         <form action="{{ url_for('article.create_article') }}" method="POST">
             <div class="form-group">

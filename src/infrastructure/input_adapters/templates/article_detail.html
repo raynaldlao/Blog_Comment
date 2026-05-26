@@ -20,7 +20,7 @@
         <div class="item-meta">
             <span class="meta-author">{{ article.author_username }}</span>
             <span class="meta-divider">•</span>
-            <time datetime="{{ article.article_published_at|date_iso }}" class="meta-date">{{ article.article_published_at|date_format }}</time>
+            <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
         </div>
         
         <div class="detail-actions">
@@ -56,14 +56,15 @@
                             </form>
                         {% endif %}
                     </div>
-                    <div class="comment-content comment-content-text">
+                    <div class="comment-content-text">
                         {{ root_comment.comment_content | nl2br }}
                     </div>
                     
                     {% if current_user %}
                     <div class="comment-reply-wrapper">
-                        <form action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=root_comment.comment_id) }}" method="POST" class="comment-reply-form">
-                            <input type="text" name="content" required placeholder="Write a reply..." class="comment-reply-input">
+                        <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST" class="comment-reply-form">
+                            <input type="hidden" name="parent_id" value="{{ root_comment.comment_id }}">
+                            <input type="text" class="comment-input" name="content" placeholder="Write a reply..." required minlength="1" maxlength="500" inputmode="text">
                             <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
                         </form>
                     </div>
@@ -82,7 +83,7 @@
                                         </form>
                                     {% endif %}
                                 </div>
-                                <div class="comment-content comment-reply-text">
+                                <div class="comment-reply-text">
                                     {{ reply.comment_content | nl2br }}
                                 </div>
                             </div>
@@ -117,7 +118,7 @@
     <div class="modal-header">
         <h2 class="modal-title">Confirm</h2>
     </div>
-    <p id="confirm-message" class="confirm-message"></p>
+    <p id="confirm-message"></p>
     <div class="modal-footer">
         <button class="btn btn-dialog btn-secondary" id="confirm-cancel-btn" autofocus>Cancel</button>
         <button class="btn btn-dialog btn-primary" id="confirm-yes-btn">Delete</button>

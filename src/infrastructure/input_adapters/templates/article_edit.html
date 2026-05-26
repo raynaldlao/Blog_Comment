@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-    <header class="page-header">
+    <header>
         <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="pagination-link">
             <span class="material-symbols-outlined">arrow_back</span>
             <span>Back to articles</span>
@@ -15,7 +15,7 @@
     </header>
 
     <div class="article-form-container">
-        <h1 class="header-h1">Edit Article</h1>
+        <h1>Edit Article</h1>
 
         <form action="{{ url_for('article.update_article', article_id=article.article_id) }}" method="POST">
             <div class="form-group">
