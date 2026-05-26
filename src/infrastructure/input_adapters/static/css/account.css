@@ -1,12 +1,5 @@
 .account-card {
     max-width: 25rem;
-    width: 100%;
-    margin: var(--spacing-xl) auto;
-    background: var(--surface-container);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--outline-variant);
-    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--on-surface) 10%, transparent);
 }
 
 .account-footer {

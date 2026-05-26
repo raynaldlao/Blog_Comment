@@ -569,6 +569,17 @@ hr {
     width: 100%;
 }
 
+/* Shared card for account/profile pages */
+.user-card {
+    background: var(--surface-container);
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--outline-variant);
+    padding: var(--spacing-xl);
+    margin: var(--spacing-xl) auto;
+    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--on-surface) 10%, transparent);
+}
+
 .footer {
     background-color: var(--surface-container-lowest);
     border-top: 1px solid var(--outline-variant);
