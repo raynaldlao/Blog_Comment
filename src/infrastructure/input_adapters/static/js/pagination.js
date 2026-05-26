@@ -1,11 +1,19 @@
 "use strict";
 
 (() => {
+    const JUMP_MODAL_ID = 'jump-modal';
+    const JUMP_PAGE_INPUT_ID = 'jump-page-input';
+    const JUMP_EXECUTE_BTN_ID = 'jump-execute-btn';
+    const JUMP_CANCEL_BTN_ID = 'jump-cancel-btn';
+    const JUMP_TRIGGER_SELECTOR = '.jump-modal-trigger';
+    const STEPPER_SELECTOR = '.stepper-btn';
+    const INPUT_ERROR_CLASS = 'input-error';
+
     document.addEventListener('DOMContentLoaded', () => {
-        const jumpModal = document.getElementById('jump-modal');
+        const jumpModal = document.getElementById(JUMP_MODAL_ID);
         if (!jumpModal) return;
 
-        const jumpInput = document.getElementById('jump-page-input');
+        const jumpInput = document.getElementById(JUMP_PAGE_INPUT_ID);
         if (!jumpInput) return;
         const totalPages = parseInt(jumpModal.dataset.totalPages, 10);
         const baseUrl = jumpModal.dataset.url;
@@ -40,30 +48,30 @@
             if (val && val >= 1 && val <= totalPages) {
                 window.location.href = `${baseUrl}?page=${val}`;
             } else {
-                jumpInput.classList.add('input-error');
+                jumpInput.classList.add(INPUT_ERROR_CLASS);
                 setTimeout(() => {
-                    jumpInput.classList.remove('input-error');
+                    jumpInput.classList.remove(INPUT_ERROR_CLASS);
                 }, 500);
             }
         };
 
         document.addEventListener('click', (e) => {
-            if (e.target.closest('.jump-modal-trigger')) {
+            if (e.target.closest(JUMP_TRIGGER_SELECTOR)) {
                 openJumpModal();
                 return;
             }
 
             const id = e.target.id;
-            if (id === 'jump-execute-btn') {
+            if (id === JUMP_EXECUTE_BTN_ID) {
                 executeJump();
                 return;
             }
-            if (id === 'jump-cancel-btn') {
+            if (id === JUMP_CANCEL_BTN_ID) {
                 closeJumpModal();
                 return;
             }
 
-            const stepperBtn = e.target.closest('.stepper-btn');
+            const stepperBtn = e.target.closest(STEPPER_SELECTOR);
             if (stepperBtn) {
                 const delta = parseInt(stepperBtn.dataset.step, 10);
                 const current = parseInt(jumpInput.value, 10) || 0;
