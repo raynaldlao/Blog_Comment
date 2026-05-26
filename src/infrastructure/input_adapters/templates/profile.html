@@ -42,6 +42,9 @@
         <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Sign Out</a>
     </div>
 
-    <a href="{{ url_for('article.list_articles') }}" class="back-link">Return to articles list</a>
+    <a href="{{ url_for('article.list_articles') }}" class="back-link">
+        <span class="material-symbols-outlined">home</span>
+        <span>Return to home</span>
+    </a>
 </div>
 {% endblock %}

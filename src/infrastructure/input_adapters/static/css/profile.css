@@ -82,10 +82,22 @@
 }
 
 .back-link {
-    display: block;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
     margin-top: var(--spacing-lg);
-    color: var(--primary);
+    color: var(--on-surface);
     font-size: var(--font-body-base);
     text-decoration: none;
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.back-link:hover {
+    color: var(--primary);
+}
+
+.back-link .material-symbols-outlined {
+    font-size: 1.25rem;
 }
