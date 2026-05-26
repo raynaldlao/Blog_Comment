@@ -26,15 +26,18 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.app.add_url_rule(
             "/profile",
             view_func=self.adapter.display_profile,
-            endpoint="profile.profile"
+            endpoint="auth.profile"
         )
 
         self._register_dummy_route("/articles", "article.list_articles", "articles")
         self._register_dummy_route("/login", "auth.login", "login")
+        self._register_dummy_route("/register", "registration.register", "registration")
+        self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
     def test_logout_clears_session(self):
         response = self.client.get("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
+        assert b"alert-info" in response.data
         self.mock_session_service.terminate_session.assert_called_once()
 
     def test_get_profile_success(self):
@@ -44,12 +47,24 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"leia" in response.data
         assert b"leia@galaxy.com" in response.data
+        assert b"Profile" in response.data
+        assert b"Logout" in response.data
+        assert b"Sign In" not in response.data
+        assert b"Sign Up" not in response.data
         self.mock_session_service.get_current_account.assert_called_once()
+
+    def test_get_profile_author_nav(self):
+        fake_author = create_test_account(account_role=AccountRole.AUTHOR)
+        self.mock_session_service.get_current_account.return_value = fake_author
+        response = self.client.get("/profile")
+        assert response.status_code == 200
+        assert b"New article" in response.data
 
     def test_get_profile_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None
         response = self.client.get("/profile", follow_redirects=True)
         assert b"Please sign in to view your profile." in response.data
+        assert b"alert-error" in response.data
         assert b"login" in response.data
 
 
@@ -103,6 +118,9 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     def test_before_request_isolation_between_requests(self):
         self.app.add_url_rule("/req1", view_func=self._capture_handler, endpoint="req1")
         self.app.add_url_rule("/req2", view_func=self._capture_handler, endpoint="req2")
+        self._register_dummy_route("/register", "registration.register", "registration")
+        self._register_dummy_route("/login", "auth.login", "login")
+        self._register_dummy_route("/articles", "article.list_articles", "articles")
         admin_account = create_test_account(account_username="Admin", account_role=AccountRole.ADMIN)
         self.mock_session_service.get_current_account.return_value = admin_account
         self.adapter.register_before_request_handler(self.app)

@@ -53,7 +53,7 @@ def test_create_article_success(client, db_session):
         data={"title": "Nouveau Titre", "content": "Contenu"},
         follow_redirects=True,
     )
-    assert b"Article published!" in response.data
+    assert b"Article published !" in response.data
     article = db_session.query(Article).filter_by(article_title="Nouveau Titre").first()
     assert article is not None
 

@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Profile - Blog Management{% endblock %}
+{% block title %}Profile - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-card">
+<div class="user-card profile-card">
     <div class="profile-header">
         <div class="avatar-placeholder">
             {{ user.account_username[0]|upper }}
@@ -25,7 +25,7 @@
             <span class="info-label">Member Since</span>
             <span class="info-value">
                 {% if user.account_created_at %}
-                    {{ user.account_created_at.strftime('%B %d, %Y') }}
+                    {{ user.account_created_at|date_format }}
                 {% else %}
                     N/A
                 {% endif %}
@@ -38,10 +38,13 @@
     </div>
 
     <div class="actions">
-        <a href="{{ url_for('article.list_articles') }}" class="btn btn-primary">Go to Home</a>
-        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline">Sign Out</a>
+        <a href="{{ url_for('article.list_articles') }}" class="btn">Go to Home</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-secondary">Sign Out</a>
     </div>
 
-    <a href="{{ url_for('article.list_articles') }}" class="back-link">Return to articles list</a>
+    <a href="{{ url_for('article.list_articles') }}" class="back-link">
+        <span class="material-symbols-outlined">home</span>
+        <span>Return to home</span>
+    </a>
 </div>
 {% endblock %}

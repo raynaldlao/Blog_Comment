@@ -1,7 +1,6 @@
 from flask import flash, redirect, render_template, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
-
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
@@ -56,7 +55,7 @@ class AccountSessionAdapter(MethodView):
             Response: A Flask redirect response.
         """
         self.session_service.terminate_session()
-        flash("You have been logged out.")
+        flash("You have been logged out.", "info")
         return redirect(url_for("article.list_articles"))
 
     def display_profile(self):
@@ -70,8 +69,8 @@ class AccountSessionAdapter(MethodView):
         account = self.session_service.get_current_account()
 
         if not account:
-            flash("Please sign in to view your profile.")
+            flash("Please sign in to view your profile.", "error")
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)
-        return render_template("profile.html", user=user_dto)
+        return render_template("profile.html", user=user_dto, current_user=user_dto)

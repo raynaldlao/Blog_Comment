@@ -1,8 +1,8 @@
-from flask import flash, redirect, request, url_for
-from flask import g as global_request_context
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
+from flask import flash, redirect, request, url_for
+from flask import g as global_request_context
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 
@@ -34,14 +34,14 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to post a comment.")
+            flash("You must be signed in to post a comment.", "error")
             return redirect(url_for("auth.login"))
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error: {error['msg']}")
+                flash(f"Validation Error: {error['msg']}", "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_comment(
@@ -51,9 +51,9 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
         else:
-            flash("Comment added.")
+            flash("Comment added.", "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -70,14 +70,14 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to reply.")
+            flash("You must be signed in to reply.", "error")
             return redirect(url_for("auth.login"))
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error: {error['msg']}")
+                flash(f"Validation Error: {error['msg']}", "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_reply(
@@ -87,9 +87,9 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
         else:
-            flash("Reply added.")
+            flash("Reply added.", "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -106,7 +106,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to delete comments.")
+            flash("You must be signed in to delete comments.", "error")
             return redirect(url_for("auth.login"))
 
         result = self.comment_service.delete_comment(
@@ -115,10 +115,10 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result)
+            flash(result, "error")
         elif result is True:
-            flash("Comment deleted.")
+            flash("Comment deleted.", "success")
         else:
-            flash("Unauthorized or error.")
+            flash("Unauthorized or error.", "error")
 
         return redirect(url_for("article.read_article", article_id=article_id))

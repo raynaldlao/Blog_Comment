@@ -21,3 +21,6 @@ __pycache__/
 
 # 📦 Poetry (config locale)
 poetry.toml
+
+# 🤖 Agent instructions
+AGENTS.md

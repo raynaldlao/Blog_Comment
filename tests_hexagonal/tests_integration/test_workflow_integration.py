@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
@@ -106,3 +108,164 @@ class TestWorkflows:
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
         assert b"Level 3" not in response.data
+
+    def test_comment_with_newlines_renders_br_tag(self, client, db_session):
+        """
+        Verifies that a root comment containing newlines renders <br> tags
+        in the article detail page via the nl2br filter.
+        """
+        author = AccountModel(
+            account_username="newline_author", account_email="nl@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(article_title="Newline Test", article_content="...", article_author_id=author.account_id)
+        db_session.add(article)
+        db_session.commit()
+
+        client.post("/login", data={"username": "newline_author", "password": "p"}, follow_redirects=True)
+
+        multi_line_comment = "Line 1\nLine 2\nLine 3"
+        client.post(f"/articles/{article.article_id}/comments", data={
+            "content": multi_line_comment
+        }, follow_redirects=True)
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Line 1" in response.data
+        assert b"Line 2" in response.data
+        assert b"Line 3" in response.data
+        assert b"<br>" in response.data
+
+    def test_reply_with_newlines_renders_br_tag(self, client, db_session):
+        """
+        Verifies that a reply comment containing newlines renders <br> tags
+        in the article detail page via the nl2br filter.
+        """
+        author = AccountModel(
+            account_username="reply_nl", account_email="rnl@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(article_title="Reply Newline", article_content="...", article_author_id=author.account_id)
+        db_session.add(article)
+        db_session.commit()
+        client.post("/login", data={"username": "reply_nl", "password": "p"}, follow_redirects=True)
+
+        client.post(f"/articles/{article.article_id}/comments", data={
+            "content": "Root comment"
+        }, follow_redirects=True)
+
+        root_comment = db_session.query(CommentModel).filter_by(comment_article_id=article.article_id).first()
+        multi_line_reply = "Reply line 1\nReply line 2"
+
+        client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
+            "content": multi_line_reply
+        }, follow_redirects=True)
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Reply line 1" in response.data
+        assert b"Reply line 2" in response.data
+        assert b"<br>" in response.data
+
+    def test_footer_displays_current_year(self, client, db_session):
+        """
+        Verify the footer displays the current year dynamically via the
+        inject_current_year context processor.
+        """
+        author = AccountModel(
+            account_username="year_test", account_email="y@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        response = client.get("/")
+        assert response.status_code == 200
+        current_year_str = str(datetime.now(UTC).year).encode()
+        assert current_year_str in response.data
+
+    def test_success_flash_after_article_creation(self, client, db_session):
+        """
+        Verifies that a successfully created article shows a success flash message
+        with the alert-success CSS class in the redirected response.
+        """
+        author = AccountModel(
+            account_username="flash_author", account_email="fa@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={"username": "flash_author", "password": "p"}, follow_redirects=True)
+
+        response = client.post("/articles/new", data={
+            "title": "Flash Test Article",
+            "content": "Testing flash success category."
+        }, follow_redirects=True)
+
+        assert b"Your article has been successfully published!" in response.data
+        assert b"alert-success" in response.data
+
+    def test_error_flash_on_validation_failure(self, client, db_session):
+        """
+        Verifies that a validation error shows an error flash message
+        with the alert-error CSS class.
+        """
+        author = AccountModel(
+            account_username="val_author", account_email="va@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={"username": "val_author", "password": "p"}, follow_redirects=True)
+
+        response = client.post("/articles/new", data={
+            "title": "Valid Title",
+            "content": ""
+        }, follow_redirects=True)
+
+        assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data
+
+    def test_nav_consistency_across_pages_integ(self, client, db_session):
+        """
+        End-to-end verification that the navigation bar correctly reflects
+        authentication state on login, registration, and profile pages.
+        """
+        author = AccountModel(
+            account_username="nav_author", account_email="nav@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+
+        client.post("/login", data={
+            "username": "nav_author", "password": "p"
+        }, follow_redirects=True)
+
+        for page in ("/login", "/register", "/profile"):
+            response = client.get(page)
+            assert response.status_code == 200
+            assert b"New article" in response.data
+            assert b"Profile" in response.data
+            assert b"Logout" in response.data
+            if page == "/profile":
+                assert b"Sign In" not in response.data
+                assert b"Sign Up" not in response.data
+
+        client.get("/logout", follow_redirects=True)
+
+        response = client.get("/login")
+        assert response.status_code == 200
+        assert b"New article" not in response.data
+        assert b"Sign In" in response.data
+        assert b"Sign Up" in response.data

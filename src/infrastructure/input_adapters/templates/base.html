@@ -3,27 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Blog Management{% endblock %}</title>
-    {% if article and article.meta_description %}
-    <meta name="description" content="{{ article.meta_description }}">
-    {% else %}
-    <meta name="description" content="A premium blog platform built with Hexagonal Architecture.">
-    {% endif %}
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>{% block title %}DevJournal{% endblock %}</title>
+    {% block extra_head %}{% endblock %}
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script>
+        // Must run synchronously BEFORE the first paint to prevent FOUC.
+        // Do NOT remove or move to the defer script at the bottom.
+        // This is the ONLY code that MUST block rendering.
+        try {
+            var t = localStorage.getItem('blog_theme');
+            if (!t) t = window.matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark';
+            document.documentElement.dataset.theme = t;
+        } catch (e) {}
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% for message in messages %}
-                    <div class="alert">{{ message }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="{{ url_for('article.list_articles') }}" class="logo">
+                <span class="logo-desktop">DevJournal</span>
+                <span class="logo-mobile">DJ</span>
+            </a>
+            <div class="nav-actions">
+                <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="Toggle Theme">
+                    <span class="material-symbols-outlined nav-item-icon">dark_mode</span>
+                </button>
 
-    {% block content %}{% endblock %}
+                <div class="nav-links">
+                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="Home">
+                    <span class="material-symbols-outlined nav-item-icon">home</span>
+                    <span>Home</span>
+                </a>
+                
+                {% if current_user %}
+                    {% if current_user.account_role in ['admin', 'author'] %}
+                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="New Article">
+                        <span class="material-symbols-outlined nav-item-icon">add_box</span>
+                        <span>New article</span>
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="Profile">
+                        <span class="material-symbols-outlined nav-item-icon">account_circle</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-secondary" title="Logout">
+                        <span class="material-symbols-outlined nav-item-icon">logout</span>
+                        <span>Logout</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="Sign In">
+                        <span class="material-symbols-outlined nav-item-icon">person</span>
+                        <span>Sign In</span>
+                    </a>
+                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="Sign Up">
+                        <span class="material-symbols-outlined nav-item-icon">person_add</span>
+                        <span>Sign Up</span>
+                    </a>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Area -->
+    <main class="main-layout main-offset">
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="footer">
+        <div class="main-layout">
+            <p class="footer-copy">
+                © {{ current_year }} DevJournal. All rights reserved.
+            </p>
+        </div>
+    </footer>
+    <script defer src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

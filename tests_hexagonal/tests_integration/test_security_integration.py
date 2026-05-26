@@ -24,6 +24,86 @@ class TestXSS:
         assert xss_payload.encode() not in response.data
         assert b"&lt;script&gt;" in response.data or b"alert('XSS')" in response.data
 
+    def test_article_detail_escapes_xss(self, client, db_session):
+        """
+        Verifies that article content is HTML-escaped on the detail page.
+
+        Creates an article with a script payload and checks that the
+        rendered detail page contains escaped entities rather than raw HTML.
+        """
+        auth = AccountModel(
+            account_username="xss_detail", account_email="xss_d@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "xss_detail", "password": "p"}, follow_redirects=True)
+
+        xss_payload = '<script>alert("xss")</script>'
+        client.post("/articles/new", data={
+            "title": "XSS Detail Test",
+            "content": xss_payload
+        }, follow_redirects=True)
+
+        article = db_session.query(ArticleModel).filter_by(article_title="XSS Detail Test").first()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert "&lt;script&gt;alert(&#34;xss&#34;)&lt;/script&gt;" in response.text
+
+    def test_article_detail_preserves_newlines(self, client, db_session):
+        """
+        Verifies that newlines in article content are rendered as <br> tags.
+
+        Creates an article with multi-line content and checks that the
+        rendered detail page contains <br> elements for each newline.
+        """
+        auth = AccountModel(
+            account_username="nl_detail", account_email="nl_d@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "nl_detail", "password": "p"}, follow_redirects=True)
+
+        client.post("/articles/new", data={
+            "title": "Newline Test Detail",
+            "content": "line1\nline2\nline3"
+        }, follow_redirects=True)
+
+        article = db_session.query(ArticleModel).filter_by(article_title="Newline Test Detail").first()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert "<br>" in response.text
+
+    def test_comment_xss_with_newlines_escaped(self, client, db_session):
+        """
+        Verifies that a comment containing both XSS payload and newlines
+        is properly escaped while still converting newlines to <br> tags.
+        """
+        auth = AccountModel(
+            account_username="xss_comment", account_email="xc@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        article = ArticleModel(article_title="XSS Comment Test", article_content="...", article_author_id=auth.account_id)
+        db_session.add(article)
+        db_session.commit()
+
+        client.post("/login", data={"username": "xss_comment", "password": "p"}, follow_redirects=True)
+
+        malicious_comment = "<script>alert(1)</script>\nclean line"
+        client.post(f"/articles/{article.article_id}/comments", data={
+            "content": malicious_comment
+        }, follow_redirects=True)
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"<script>alert(1)</script>" not in response.data
+        assert b"&lt;script&gt;" in response.data
+        assert b"<br>" in response.data
+        assert b"clean line" in response.data
+
     def test_session_cookie_httponly(self, client, db_session):
         """
         Verifies that Flask session cookies are marked HttpOnly.
@@ -64,7 +144,7 @@ class TestXSS:
         tampered_cookie_value = cookie_with_truncated_signature + "XXXXX"
         client.set_cookie("session", tampered_cookie_value)
         response = client.get("/profile", follow_redirects=True)
-        assert "Login" in response.data.decode()
+        assert "Welcome Back" in response.data.decode()
 
     def test_session_persistence_inter_client(self, client, db_session):
         """Verifies session survives between different client instances (simulating browser restart)."""
@@ -112,7 +192,7 @@ class TestXSS:
 
         response_after = client.get("/profile", follow_redirects=True)
         assert "rotate_user" not in response_after.data.decode()
-        assert "Login" in response_after.data.decode()
+        assert "Welcome Back" in response_after.data.decode()
 
 class TestSQLi:
     """Tests focused on preventing SQL Injection vulnerabilities."""
