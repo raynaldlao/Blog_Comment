@@ -16,19 +16,19 @@
     <form action="{{ url_for('registration.register') }}" method="POST">
         <div class="form-group">
             <label for="registration-username">Choose Username</label>
-            <input type="text" id="registration-username" name="username" placeholder="dev_username" required>
+            <input type="text" id="registration-username" name="username" placeholder="dev_username" autocomplete="username" required>
         </div>
         <div class="form-group">
             <label for="registration-email">Email Address</label>
-            <input type="email" id="registration-email" name="email" placeholder="dev@example.com" required>
+            <input type="email" id="registration-email" name="email" placeholder="dev@example.com" autocomplete="email" required>
         </div>
         <div class="form-group">
             <label for="registration-password">Password</label>
-            <input type="password" id="registration-password" name="password" placeholder="••••••••" required>
+            <input type="password" id="registration-password" name="password" placeholder="••••••••" autocomplete="new-password" required>
         </div>
         <div class="form-group account-form-group">
             <label for="registration-confirm-password">Confirm Password</label>
-            <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="••••••••" required>
+            <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="••••••••" autocomplete="new-password" required>
         </div>
         <button type="submit" class="full-width">Create Account</button>
     </form>

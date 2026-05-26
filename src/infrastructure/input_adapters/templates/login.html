@@ -16,11 +16,11 @@
     <form action="{{ url_for('auth.login') }}" method="POST">
         <div class="form-group">
             <label for="login-username">Username</label>
-            <input type="text" id="login-username" name="username" placeholder="dev_username" required>
+            <input type="text" id="login-username" name="username" placeholder="dev_username" autocomplete="username" required>
         </div>
         <div class="form-group account-form-group">
             <label for="login-password">Password</label>
-            <input type="password" id="login-password" name="password" placeholder="••••••••" required>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
         </div>
         <button type="submit" class="full-width">Sign In</button>
     </form>
