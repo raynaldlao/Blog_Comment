@@ -1,42 +1,29 @@
+/* Material 3 color tokens intentionally omitted — unused.
+   If a full Material 3 migration is started later, regenerate
+   from the spec: https://m3.material.io/styles/color/tokens */
+
 :root {
     color-scheme: light;
 
     /* Brand & Surface Colors */
     --surface: #ffffff;
-    --surface-dim: #f8f9fa;
-    --surface-bright: #ffffff;
     --surface-container-lowest: #ffffff;
-    --surface-container-low: #f8f9fa;
     --surface-container: #f1f5f9;
     --surface-container-high: #e2e8f0;
-    --surface-container-highest: #cbd5e1;
     --on-surface: #0f172a;
     --on-surface-variant: #475569;
-    --inverse-surface: #1e293b;
-    --inverse-on-surface: #f8fafc;
     --outline: #cbd5e1;
     --outline-variant: #94a3b8;
-    --surface-tint: #7c3aed;
     --background: #f8f9fa;
     --on-background: #0f172a;
-    --surface-variant: #e2e8f0;
 
     /* Primary Palette */
     --primary: #7c3aed;
     --on-primary: #ffffff;
-    --primary-container: #ede9fe;
-    --on-primary-container: #4c1d95;
-    --inverse-primary: #a78bfa;
-    --primary-fixed: #ede9fe;
-    --primary-fixed-dim: #ddd6fe;
-    --on-primary-fixed: #2e1065;
-    --on-primary-fixed-variant: #4c1d95;
 
     /* Error Palette */
     --error: #dc2626;
-    --on-error: #ffffff;
     --error-container: #fee2e2;
-    --on-error-container: #7f1d1d;
 
     /* Success & Info Palettes */
     --success: #166534;
@@ -59,7 +46,6 @@
     --radius-default: 0.25rem;
     --radius-md: 0.375rem;
     --radius-lg: 0.5rem;
-    --radius-xl: 0.75rem;
     --radius-full: 9999px;
 
     /* Typography Tokens */
@@ -79,9 +65,7 @@
     /* Z-Index Scale */
     --z-base: 1;
     --z-nav: 50;
-    --z-overlay: 60;
     --z-modal: 100;
-    --z-toast: 110;
 }
 
 [data-theme="dark"] {
@@ -89,40 +73,23 @@
 
     /* Brand & Surface Colors */
     --surface: #0c1322;
-    --surface-dim: #0c1322;
-    --surface-bright: #323949;
     --surface-container-lowest: #070e1d;
-    --surface-container-low: #141b2b;
     --surface-container: #191f2f;
     --surface-container-high: #232a3a;
-    --surface-container-highest: #2e3545;
     --on-surface: #dce2f7;
     --on-surface-variant: #ccc3d8;
-    --inverse-surface: #dce2f7;
-    --inverse-on-surface: #293040;
     --outline: #958da1;
     --outline-variant: #4a4455;
-    --surface-tint: #d2bbff;
     --background: #0c1322;
     --on-background: #dce2f7;
-    --surface-variant: #2e3545;
 
     /* Primary Palette */
     --primary: #d2bbff;
     --on-primary: #3f008e;
-    --primary-container: #7c3aed;
-    --on-primary-container: #ede0ff;
-    --inverse-primary: #732ee4;
-    --primary-fixed: #eaddff;
-    --primary-fixed-dim: #d2bbff;
-    --on-primary-fixed: #25005a;
-    --on-primary-fixed-variant: #5a00c6;
 
     /* Error Palette */
     --error: #ffb4ab;
-    --on-error: #690005;
     --error-container: #93000a;
-    --on-error-container: #ffdad6;
 
     /* Success & Info Palettes */
     --success: #4ade80;
