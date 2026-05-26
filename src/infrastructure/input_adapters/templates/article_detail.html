@@ -69,8 +69,10 @@
                     </div>
                     {% endif %}
 
+                    {% set replies = threaded_comments.get(root_comment.comment_id, []) %}
+                    {% if replies %}
                     <div class="replies-wrapper">
-                        {% for reply in threaded_comments.get(root_comment.comment_id, []) %}
+                        {% for reply in replies %}
                             <div class="comment-reply">
                                 <div class="comment-header">
                                     <span class="meta-author comment-reply-author">{{ reply.author_username }}</span>
@@ -86,6 +88,7 @@
                             </div>
                         {% endfor %}
                     </div>
+                    {% endif %}
                 </div>
             {% else %}
                 <p class="comment-empty">No comments yet.</p>
