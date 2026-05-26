@@ -417,7 +417,7 @@ input[type=number] {
 .stepper-btn:focus-visible {
     background: color-mix(in srgb, var(--primary) 10%, transparent);
     color: var(--primary);
-    z-index: 1;
+    z-index: var(--z-base);
 }
 
 .stepper-btn:hover {
