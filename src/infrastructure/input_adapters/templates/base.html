@@ -26,7 +26,7 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
-            <a href="/" class="logo">
+            <a href="{{ url_for('article.list_articles') }}" class="logo">
                 <span class="logo-desktop">DevJournal</span>
                 <span class="logo-mobile">DJ</span>
             </a>
@@ -36,7 +36,7 @@
                 </button>
 
                 <div class="nav-links">
-                    <a href="/" class="btn btn-sm btn-secondary" title="Home">
+                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="Home">
                     <span class="material-symbols-outlined nav-item-icon">home</span>
                     <span>Home</span>
                 </a>
