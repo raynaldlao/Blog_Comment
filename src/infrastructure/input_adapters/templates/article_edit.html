@@ -7,7 +7,6 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
     <header class="page-header">
         <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="pagination-link">
             <span class="material-symbols-outlined">arrow_back</span>
@@ -33,5 +32,4 @@
             </div>
         </form>
     </div>
-</div>
 {% endblock %}
