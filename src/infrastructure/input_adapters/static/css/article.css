@@ -626,6 +626,11 @@ input[type=number] {
     cursor: pointer;
 }
 
+.jump-modal-trigger:hover,
+.jump-modal-trigger:focus-visible {
+    color: var(--primary);
+}
+
 #jump-page-input.input-error {
     border-color: var(--error);
 }
