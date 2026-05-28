@@ -3,6 +3,7 @@ from unittest.mock import Mock
 from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
+from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.login_service import LoginService
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
@@ -16,10 +17,14 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
         super().setup_method()
         self.mock_repo = Mock(spec=AccountRepository, autospec=True)
         self.mock_session_repo = Mock(spec=AccountSessionRepository, autospec=True)
+        self.mock_hasher = Mock(spec=PasswordHasherRepository, autospec=True)
+        self.mock_hasher.verify.return_value = True
+        self.mock_hasher.check_needs_rehash.return_value = False
 
         self.service = LoginService(
             account_repository=self.mock_repo,
-            session_repository=self.mock_session_repo
+            session_repository=self.mock_session_repo,
+            password_hasher_repository=self.mock_hasher
         )
 
         self.adapter = LoginAdapter(login_service=self.service)

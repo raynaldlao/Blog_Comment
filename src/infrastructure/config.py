@@ -55,5 +55,65 @@ class InfraConfig:
         """
         return self._get_env("TEST_DATABASE_URL")
 
+    @property
+    def argon2_time_cost(self) -> int:
+        """
+        Retrieves the Argon2 time cost from environment.
+
+        Returns:
+            int: The Argon2 time cost.
+        """
+        return int(self._get_env("ARGON2_TIME_COST"))
+
+    @property
+    def argon2_memory_cost(self) -> int:
+        """
+        Retrieves the Argon2 memory cost from environment.
+
+        Returns:
+            int: The Argon2 memory cost in KiB.
+        """
+        return int(self._get_env("ARGON2_MEMORY_COST"))
+
+    @property
+    def argon2_parallelism(self) -> int:
+        """
+        Retrieves the Argon2 parallelism from environment.
+
+        Returns:
+            int: The Argon2 parallelism.
+        """
+        return int(self._get_env("ARGON2_PARALLELISM"))
+
+    @property
+    def test_argon2_time_cost(self) -> int:
+        """
+        Retrieves the test Argon2 time cost from environment.
+
+        Returns:
+            int: The Argon2 time cost for tests.
+        """
+        return int(self._get_env("TEST_ARGON2_TIME_COST"))
+
+    @property
+    def test_argon2_memory_cost(self) -> int:
+        """
+        Retrieves the test Argon2 memory cost from environment.
+
+        Returns:
+            int: The Argon2 memory cost in KiB for tests.
+        """
+        return int(self._get_env("TEST_ARGON2_MEMORY_COST"))
+
+    @property
+    def test_argon2_parallelism(self) -> int:
+        """
+        Retrieves the test Argon2 parallelism from environment.
+
+        Returns:
+            int: The Argon2 parallelism for tests.
+        """
+        return int(self._get_env("TEST_ARGON2_PARALLELISM"))
+
 
 infra_config = InfraConfig()

@@ -20,6 +20,7 @@ from src.infrastructure.input_adapters.template_helpers import (
     inject_current_year,
     nl2br_filter,
 )
+from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
@@ -45,13 +46,13 @@ def _setup_database(db_session=None):
 
 def _create_output_adapters(db_session):
     """
-    Instantiates the persistence adapters (repositories).
+    Instantiates the persistence and security adapters.
 
     Args:
         db_session: The SQLAlchemy session to be injected into adapters.
 
     Returns:
-        dict: A dictionary containing initialized repository adapters.
+        dict: A dictionary containing initialized output adapters.
     """
     account_repo = SqlAlchemyAccountAdapter(db_session)
     return {
@@ -59,6 +60,11 @@ def _create_output_adapters(db_session):
         "article_repo": SqlAlchemyArticleAdapter(db_session),
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
+        "password_hasher_repository": Argon2PasswordHasherAdapter(
+            time_cost=infra_config.argon2_time_cost,
+            memory_cost=infra_config.argon2_memory_cost,
+            parallelism=infra_config.argon2_parallelism,
+        ),
     }
 
 
@@ -72,13 +78,14 @@ def _create_services(repositories):
     Returns:
         dict: A dictionary containing initialized core services.
     """
-    registration_service = RegistrationService(repositories["account_repo"])
+    password_hasher_repository = repositories["password_hasher_repository"]
+    registration_service = RegistrationService(repositories["account_repo"], password_hasher_repository)
     session_repo = repositories["session_repo"]
     account_repo = repositories["account_repo"]
     article_repo = repositories["article_repo"]
     comment_repo = repositories["comment_repo"]
 
-    login_service = LoginService(account_repo, session_repo)
+    login_service = LoginService(account_repo, session_repo, password_hasher_repository)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
     article_service = ArticleService(article_repo, account_repo, comment_repo)
 

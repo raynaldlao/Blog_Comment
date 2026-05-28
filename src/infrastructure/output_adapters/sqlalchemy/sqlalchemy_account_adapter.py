@@ -1,5 +1,10 @@
+from typing import cast
+
+from psycopg2.errors import UniqueViolation
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.application.application_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
@@ -103,16 +108,48 @@ class SqlAlchemyAccountAdapter(AccountRepository):
 
     def save(self, account: Account) -> None:
         """
-        Persists a domain account entity into the database.
+        Saves a domain account entity to the database.
+
+        If the account has an existing positive ID, updates the corresponding
+        record; otherwise creates a new one. The account ID is updated in place
+        after insertion.
 
         Args:
             account (Account): The domain entity to save.
+
+        Raises:
+            AccountAlreadyExistsError: If a unique constraint violation occurs
+                on the username or email column.
+            RuntimeError: If an unexpected unique constraint violation occurs.
         """
-        model = AccountModel()
+        if account.account_id and account.account_id > 0:
+            model = self._session.get(AccountModel, account.account_id)
+            if not model:
+                model = AccountModel()
+        else:
+            model = AccountModel()
+
         model.account_username = account.account_username
         model.account_password = account.account_password
         model.account_email = account.account_email
         model.account_role = account.account_role.value
         self._session.add(model)
-        self._session.commit()
+        try:
+            self._session.commit()
+        except IntegrityError as e:
+            self._session.rollback()
+            constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
+
+            if constraint_name == "accounts_account_username_key":
+                raise AccountAlreadyExistsError(
+                    "This username is already taken."
+                ) from None
+            elif constraint_name == "accounts_account_email_key":
+                raise AccountAlreadyExistsError(
+                    "This email is already taken."
+                ) from None
+            else:
+                raise RuntimeError(
+                    f"Unexpected unique constraint violation: {constraint_name}"
+                ) from None
         account.account_id = model.account_id

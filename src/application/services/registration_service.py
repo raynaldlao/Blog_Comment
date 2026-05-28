@@ -1,6 +1,8 @@
+from src.application.application_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 
 
 class RegistrationService(RegistrationManagementPort):
@@ -9,15 +11,18 @@ class RegistrationService(RegistrationManagementPort):
     Implements the RegistrationManagementPort.
     """
 
-    def __init__(self, account_repository: AccountRepository):
+    def __init__(self, account_repository: AccountRepository, password_hasher_repository: PasswordHasherRepository):
         """
-        Initialize the service with an AccountRepository (Dependency Injection).
+        Initialize the service with an AccountRepository and a PasswordHasherRepository
+        (Dependency Injection).
 
         Args:
             account_repository (AccountRepository): The repository port
             for account data access.
+            password_hasher_repository (PasswordHasherRepository): The port for password hashing operations.
         """
         self.account_repository = account_repository
+        self.password_hasher_repository = password_hasher_repository
 
     def create_account(self, username: str, password: str, email: str) -> Account | str:
         """
@@ -31,7 +36,8 @@ class RegistrationService(RegistrationManagementPort):
 
         Returns:
             Account | str: The newly created Account domain entity, or an
-            error message string if creation fails.
+            error message string if the username or email is already taken
+            (including race conditions detected at the database level).
         """
 
         if self.account_repository.find_by_username(username):
@@ -42,14 +48,19 @@ class RegistrationService(RegistrationManagementPort):
             # TODO: Raise EmailAlreadyTakenException
             return "This email is already taken."
 
+        hashed_password = self.password_hasher_repository.hash(password)
+
         new_account = Account(
             account_id=0,
             account_username=username,
-            account_password=password,
+            account_password=hashed_password,
             account_email=email,
             account_role=AccountRole.USER,
             account_created_at=None,
         )
 
-        self.account_repository.save(new_account)
+        try:
+            self.account_repository.save(new_account)
+        except AccountAlreadyExistsError:
+            return "This username or email is already taken."
         return new_account
