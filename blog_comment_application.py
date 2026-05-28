@@ -14,7 +14,7 @@ from src.infrastructure.input_adapters.flask.flask_article_adapter import Articl
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
-from src.infrastructure.output_adapters.security.argon2_password_hasher import Argon2PasswordHasher
+from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
@@ -54,7 +54,7 @@ def _create_output_adapters(db_session):
         "article_repo": SqlAlchemyArticleAdapter(db_session),
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
-        "password_hasher_repository": Argon2PasswordHasher(
+        "password_hasher_repository": Argon2PasswordHasherAdapter(
             time_cost=infra_config.argon2_time_cost,
             memory_cost=infra_config.argon2_memory_cost,
             parallelism=infra_config.argon2_parallelism,

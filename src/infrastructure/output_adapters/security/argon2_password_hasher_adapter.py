@@ -6,7 +6,7 @@ from argon2.exceptions import InvalidHashError, VerifyMismatchError
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 
 
-class Argon2PasswordHasher(PasswordHasherRepository):
+class Argon2PasswordHasherAdapter(PasswordHasherRepository):
     """
     Argon2-based implementation of the PasswordHasherRepository port.
     Uses argon2-cffi for secure password hashing and verification.
