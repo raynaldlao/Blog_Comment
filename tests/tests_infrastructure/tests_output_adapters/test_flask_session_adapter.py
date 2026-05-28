@@ -6,8 +6,8 @@ from flask import Flask
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
-from tests_hexagonal.exceptions_tests import ExceptionTest
-from tests_hexagonal.test_domain_factories import create_test_account
+from tests.exceptions_tests import ExceptionTest
+from tests.test_domain_factories import create_test_account
 
 
 class BaseTestFlaskSessionAdapter:

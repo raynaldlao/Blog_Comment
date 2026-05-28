@@ -5,8 +5,8 @@ from flask import g as global_request_context
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
-from tests_hexagonal.test_domain_factories import create_test_account
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+from tests.test_domain_factories import create_test_account
+from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

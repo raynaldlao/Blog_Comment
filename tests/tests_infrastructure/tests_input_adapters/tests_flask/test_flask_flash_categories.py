@@ -2,7 +2,7 @@
 
 from flask import flash, render_template
 
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

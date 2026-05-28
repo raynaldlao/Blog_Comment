@@ -7,8 +7,8 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.article_service import ArticleService
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
-from tests_hexagonal.test_domain_factories import create_test_account, create_test_article
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+from tests.test_domain_factories import create_test_account, create_test_article
+from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

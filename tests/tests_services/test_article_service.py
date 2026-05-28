@@ -7,7 +7,7 @@ from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.article_service import ArticleService
-from tests_hexagonal.test_domain_factories import (
+from tests.test_domain_factories import (
     create_test_account,
     create_test_article,
     create_test_comment,

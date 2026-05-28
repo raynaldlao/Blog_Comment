@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, sessionmaker
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
-from tests_hexagonal.db_utils import truncate_all_tables
+from tests.db_utils import truncate_all_tables
 
 
 class SqlAlchemyTestBase:

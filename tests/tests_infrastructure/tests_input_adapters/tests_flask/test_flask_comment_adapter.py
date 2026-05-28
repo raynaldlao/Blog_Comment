@@ -3,8 +3,8 @@ from unittest.mock import Mock
 from src.application.domain.account import AccountRole
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
-from tests_hexagonal.test_domain_factories import create_test_account
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+from tests.test_domain_factories import create_test_account
+from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

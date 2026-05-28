@@ -6,8 +6,8 @@ from src.application.output_ports.account_session_repository import AccountSessi
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.login_service import LoginService
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
-from tests_hexagonal.test_domain_factories import create_test_account
-from tests_hexagonal.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
+from tests.test_domain_factories import create_test_account
+from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
 

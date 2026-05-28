@@ -2,7 +2,7 @@ from datetime import datetime
 
 from src.application.domain.account import AccountRole
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
-from tests_hexagonal.test_domain_factories import create_test_account
+from tests.test_domain_factories import create_test_account
 
 
 def test_account_response_creation():
