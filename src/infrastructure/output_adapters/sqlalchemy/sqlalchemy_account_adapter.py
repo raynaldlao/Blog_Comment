@@ -1,5 +1,7 @@
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from src.application.application_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
@@ -111,6 +113,11 @@ class SqlAlchemyAccountAdapter(AccountRepository):
 
         Args:
             account (Account): The domain entity to save.
+
+        Raises:
+            AccountAlreadyExistsError: If a unique constraint violation occurs
+                on the username or email column.
+            RuntimeError: If an unexpected unique constraint violation occurs.
         """
         if account.account_id and account.account_id > 0:
             model = self._session.get(AccountModel, account.account_id)
@@ -124,5 +131,22 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.account_email = account.account_email
         model.account_role = account.account_role.value
         self._session.add(model)
-        self._session.commit()
+        try:
+            self._session.commit()
+        except IntegrityError as e:
+            self._session.rollback()
+            constraint_name = e.orig.diag.constraint_name if e.orig and e.orig.diag else None
+
+            if constraint_name == "accounts_account_username_key":
+                raise AccountAlreadyExistsError(
+                    "This username is already taken."
+                ) from None
+            elif constraint_name == "accounts_account_email_key":
+                raise AccountAlreadyExistsError(
+                    "This email is already taken."
+                ) from None
+            else:
+                raise RuntimeError(
+                    f"Unexpected unique constraint violation: {constraint_name}"
+                ) from None
         account.account_id = model.account_id

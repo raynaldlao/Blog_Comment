@@ -1,3 +1,4 @@
+from src.application.application_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -35,7 +36,8 @@ class RegistrationService(RegistrationManagementPort):
 
         Returns:
             Account | str: The newly created Account domain entity, or an
-            error message string if creation fails.
+            error message string if the username or email is already taken
+            (including race conditions detected at the database level).
         """
 
         if self.account_repository.find_by_username(username):
@@ -57,5 +59,8 @@ class RegistrationService(RegistrationManagementPort):
             account_created_at=None,
         )
 
-        self.account_repository.save(new_account)
+        try:
+            self.account_repository.save(new_account)
+        except AccountAlreadyExistsError:
+            return "This username or email is already taken."
         return new_account
