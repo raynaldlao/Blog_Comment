@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.registration_service import RegistrationService
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
 from tests_hexagonal.test_domain_factories import create_test_account
@@ -13,7 +14,13 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_repo = Mock(spec=AccountRepository, autospec=True)
-        self.service = RegistrationService(account_repository=self.mock_repo)
+        self.mock_hasher = Mock(spec=PasswordHasherRepository, autospec=True)
+        self.mock_hasher.hash.return_value = "hashed_password"
+
+        self.service = RegistrationService(
+            account_repository=self.mock_repo,
+            password_hasher_repository=self.mock_hasher
+        )
         self.adapter = RegistrationAdapter(registration_service=self.service)
 
         self.app.add_url_rule(

@@ -2,6 +2,7 @@ from unittest.mock import MagicMock
 
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
+from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.registration_service import RegistrationService
 from tests_hexagonal.test_domain_factories import create_test_account
 
@@ -9,7 +10,13 @@ from tests_hexagonal.test_domain_factories import create_test_account
 class TestRegistrationService:
     def setup_method(self):
         self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
-        self.service = RegistrationService(account_repository=self.mock_repo)
+        self.mock_hasher = MagicMock(spec=PasswordHasherRepository, autospec=True)
+        self.mock_hasher.hash.return_value = "$argon2id$v=19$m=19456,t=2,p=1$<hash>"
+
+        self.service = RegistrationService(
+            account_repository=self.mock_repo,
+            password_hasher_repository=self.mock_hasher
+        )
 
     def test_create_account_success(self):
         self.mock_repo.find_by_username.return_value = None
