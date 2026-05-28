@@ -106,3 +106,23 @@ class TestWorkflows:
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
         assert b"Level 3" not in response.data
+
+    def test_registration_login_profile_flow_integ(self, client, db_session):
+        client.post("/register", data={
+            "username": "new_user",
+            "email": "new_user@test.com",
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
+        }, follow_redirects=True)
+
+        user = db_session.query(AccountModel).filter_by(account_username="new_user").first()
+        assert user is not None
+        assert user.account_password.startswith("$argon2id$")
+
+        login_response = client.post("/login", data={
+            "username": "new_user",
+            "password": "Str0ng!Pass"
+        }, follow_redirects=True)
+
+        assert login_response.status_code == 200
+        assert b"Profile" in login_response.data or b"new_user" in login_response.data

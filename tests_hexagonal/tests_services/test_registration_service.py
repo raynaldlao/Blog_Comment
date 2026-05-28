@@ -35,6 +35,7 @@ class TestRegistrationService:
         assert result.account_username == "leia"
         assert result.account_email == "leia@galaxy.com"
         assert result.account_role == AccountRole.USER
+        self.mock_hasher.hash.assert_called_once_with("password123")
 
     def test_create_account_username_taken(self):
         existing_account = create_test_account(

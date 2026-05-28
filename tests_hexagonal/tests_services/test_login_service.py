@@ -36,6 +36,24 @@ class TestLoginService:
         assert result is not None
         assert result.account_username == "leia"
 
+    def test_authenticate_user_with_rehash(self):
+        fake_account = create_test_account()
+        self.mock_repo.find_by_username.return_value = fake_account
+        self.mock_hasher.verify.return_value = True
+        self.mock_hasher.check_needs_rehash.return_value = True
+        self.mock_hasher.hash.return_value = "$argon2id$v=19$m=19456,t=2,p=1$new_hash"
+
+        result = self.service.authenticate_user(
+            username=fake_account.account_username,
+            password="password123"
+        )
+
+        self.mock_hasher.check_needs_rehash.assert_called_once()
+        self.mock_hasher.hash.assert_called_once_with("password123")
+        assert result.account_password == "$argon2id$v=19$m=19456,t=2,p=1$new_hash"
+        self.mock_repo.save.assert_called_once_with(result)
+        self.mock_session_repo.save_account.assert_called_once_with(result)
+
     def test_authenticate_user_wrong_password(self):
         fake_account = create_test_account()
         self.mock_repo.find_by_username.return_value = fake_account
