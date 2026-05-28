@@ -14,13 +14,13 @@ from src.infrastructure.input_adapters.flask.flask_article_adapter import Articl
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
-from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
 from src.infrastructure.input_adapters.template_helpers import (
     date_format_filter,
     date_iso_filter,
     inject_current_year,
     nl2br_filter,
 )
+from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
