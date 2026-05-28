@@ -1,3 +1,6 @@
+from typing import cast
+
+from psycopg2.errors import UniqueViolation
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -135,7 +138,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             self._session.commit()
         except IntegrityError as e:
             self._session.rollback()
-            constraint_name = e.orig.diag.constraint_name if e.orig and e.orig.diag else None
+            constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
 
             if constraint_name == "accounts_account_username_key":
                 raise AccountAlreadyExistsError(

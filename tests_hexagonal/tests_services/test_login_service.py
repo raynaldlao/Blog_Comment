@@ -1,5 +1,6 @@
 from unittest.mock import MagicMock
 
+from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
@@ -33,7 +34,7 @@ class TestLoginService:
 
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
         self.mock_session_repo.save_account.assert_called_once_with(fake_account)
-        assert result is not None
+        assert isinstance(result, Account)
         assert result.account_username == "leia"
 
     def test_authenticate_user_with_rehash(self):
@@ -50,6 +51,7 @@ class TestLoginService:
 
         self.mock_hasher.check_needs_rehash.assert_called_once()
         self.mock_hasher.hash.assert_called_once_with("password123")
+        assert isinstance(result, Account)
         assert result.account_password == "$argon2id$v=19$m=19456,t=2,p=1$new_hash"
         self.mock_repo.save.assert_called_once_with(result)
         self.mock_session_repo.save_account.assert_called_once_with(result)
