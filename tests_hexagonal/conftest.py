@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
 from blog_comment_application import create_app
-from src.infrastructure.config import infra_config
+from config.env_config import env_config
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry import SqlAlchemyModel
 from tests_hexagonal.db_utils import truncate_all_tables
 
@@ -13,7 +13,7 @@ from tests_hexagonal.db_utils import truncate_all_tables
 @pytest.fixture(scope="session")
 def db_engine():
     """Permanent engine for the test session."""
-    engine = create_engine(infra_config.test_database_url)
+    engine = create_engine(env_config.test_database_url)
     return engine
 
 @pytest.fixture(scope="session")

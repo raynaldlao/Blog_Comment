@@ -3,18 +3,17 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
 load_dotenv(BASE_DIR / ".env.test")
 
 
-class InfraConfig:
+class EnvConfig:
     """
-    Configuration manager for the infrastructure layer.
+    Configuration manager for environment variables.
 
-    Handles loading environment variables from .env and .env.test files
-    to ensure total isolation from the legacy app/ configuration.
+    Handles loading environment variables from .env and .env.test files.
     """
 
     def _get_env(self, name: str) -> str:
@@ -116,4 +115,4 @@ class InfraConfig:
         return int(self._get_env("TEST_ARGON2_PARALLELISM"))
 
 
-infra_config = InfraConfig()
+env_config = EnvConfig()

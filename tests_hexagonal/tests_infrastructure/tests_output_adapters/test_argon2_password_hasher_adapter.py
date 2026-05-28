@@ -1,4 +1,4 @@
-from src.infrastructure.config import infra_config
+from config.env_config import env_config
 from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import (
     Argon2PasswordHasherAdapter,
 )
@@ -7,9 +7,9 @@ from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter 
 class TestArgon2PasswordHasherAdapter:
     def setup_method(self):
         self.hasher = Argon2PasswordHasherAdapter(
-            time_cost=infra_config.test_argon2_time_cost,
-            memory_cost=infra_config.test_argon2_memory_cost,
-            parallelism=infra_config.test_argon2_parallelism,
+            time_cost=env_config.test_argon2_time_cost,
+            memory_cost=env_config.test_argon2_memory_cost,
+            parallelism=env_config.test_argon2_parallelism,
         )
 
     def test_hash_returns_string_and_starts_with_argon2id(self):
