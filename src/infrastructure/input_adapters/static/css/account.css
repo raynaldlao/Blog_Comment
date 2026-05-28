@@ -1,0 +1,78 @@
+.account-card {
+    max-width: 25rem;
+}
+
+.account-card .btn.btn-secondary {
+    color: var(--primary);
+}
+
+.account-card .btn.btn-secondary:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: var(--primary);
+}
+
+.account-footer {
+    margin-top: var(--spacing-lg);
+    text-align: center;
+    color: var(--on-surface-variant);
+}
+
+.account-header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-title {
+    font-size: var(--font-headline-md);
+    margin-bottom: var(--spacing-sm);
+}
+
+.account-subtitle {
+    color: var(--on-surface-variant);
+    font-size: var(--font-body-base);
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.account-link-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    text-decoration: none;
+}
+
+.account-footer-link {
+    margin-top: var(--spacing-xl);
+}
+
+/* Mobile Optimizations (360x780 and smaller) */
+@media (max-width: 30em) {
+    .account-card {
+        margin: var(--spacing-md) auto;
+        padding: var(--spacing-lg) var(--spacing-md);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
+    }
+
+    .account-title {
+        font-size: var(--font-headline-sm);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .account-subtitle {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .account-form-group {
+        margin-bottom: var(--spacing-md);
+    }
+
+    .account-footer-link {
+        margin-top: var(--spacing-lg);
+    }
+}

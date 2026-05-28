@@ -90,7 +90,7 @@ def create_article() -> str | Response:
             author_id=user_id,
         )
         db_session.commit()
-        flash("Article published!")
+        flash("Article published !")
         return redirect(url_for("article.list_articles"))
 
     return render_template("article_form.html", article=None)

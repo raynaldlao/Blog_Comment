@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from src.application.domain.account import AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.registration_service import RegistrationService
@@ -39,11 +40,30 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
 
         self._register_dummy_route("/login", "auth.login", "login_page")
         self._register_dummy_route("/", "article.list_articles", "home_page")
+        self._register_dummy_route("/profile", "auth.profile", "profile")
+        self._register_dummy_route("/logout", "auth.logout", "logout")
+        self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
     def test_get_registration_page(self):
         response = self.client.get("/register")
         assert response.status_code == 200
-        assert b"Join the Blog" in response.data
+        assert b"Join DevJournal" in response.data
+
+    def test_get_registration_page_authenticated(self):
+        user = create_test_account()
+        self.set_current_user(user)
+        response = self.client.get("/register")
+        assert response.status_code == 200
+        assert b"Join DevJournal" in response.data
+        assert b"Profile" in response.data
+        assert b"Logout" in response.data
+
+    def test_get_registration_page_authenticated_author(self):
+        author = create_test_account(account_role=AccountRole.AUTHOR)
+        self.set_current_user(author)
+        response = self.client.get("/register")
+        assert response.status_code == 200
+        assert b"New article" in response.data
 
     def test_post_registration_success(self):
         self.mock_repo.find_by_username.return_value = None
@@ -57,6 +77,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"Registration successful. Please sign in." in response.data
+        assert b"alert-success" in response.data
         assert response.request.path == "/login"
         self.mock_repo.save.assert_called_once()
 
@@ -69,6 +90,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"Passwords do not match." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_email_taken(self):
@@ -84,6 +106,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"This email is already taken." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_username_taken(self):
@@ -98,6 +121,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"This username is already taken." in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
     def test_post_registration_invalid_email(self):
@@ -109,4 +133,5 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         }, follow_redirects=True)
 
         assert b"email: value is not a valid email address" in response.data
+        assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()

@@ -1,56 +1,157 @@
 {% extends "base.html" %}
 
-{% block title %}Latest Articles - Blog Management{% endblock %}
+{% block title %}Latest Articles - DevJournal{% endblock %}
+{% block extra_head %}
+<meta name="description" content="DevJournal - Personal thoughts on software development, programming and technology.">
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
-<style>body { align-items: flex-start; padding: 0; }</style>
 {% endblock %}
 
-{% block content %}
-<div class="container">
-    <header style="margin-top: 40px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <h1>Blog Management</h1>
-        <div class="nav-links">
-            {% if current_user %}
-                <span>Hello, <strong>{{ current_user.account_username }}</strong></span>
-                <a href="{{ url_for('auth.profile') }}" style="margin-left: 15px;">[Profile]</a>
-                {% if current_user.account_role in ['admin', 'author'] %}
-                    <a href="{{ url_for('article.render_create_page') }}" style="margin-left: 15px;">[New Article]</a>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" style="margin-left: 15px;">[Logout]</a>
-            {% else %}
-                <a href="{{ url_for('auth.login') }}">Sign In</a>
-                <a href="{{ url_for('registration.register') }}" style="margin-left: 15px;">Sign Up</a>
-            {% endif %}
-        </div>
-    </header>
+{% block extra_js %}
+<script defer src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+{% endblock %}
 
-
-    <div class="article-grid">
-        {% for article in articles %}
-            <article class="article-card">
-                <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="article-title">{{ article.article_title }}</a>
-                <div class="article-meta">
-                    Par <strong>{{ article.author_username }}</strong>
-                </div>
-                <div class="article-excerpt">
-                    {{ article.article_content[:150] }}{% if article.article_content|length > 150 %}...{% endif %}
-                </div>
-                <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="read-more">Lire la suite →</a>
-            </article>
+{% macro render_pagination_info(current_page, total_pages) %}
+    <div class="pagination-info">
+        {% if total_pages <= 13 %}
+            {% for p in range(1, total_pages + 1) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
         {% else %}
-            <p style="text-align: center; color: #666; margin-top: 50px;">Aucun article disponible pour le moment.</p>
-        {% endfor %}
+            <!-- First Page -->
+            <a href="{{ url_for('article.list_articles', page=1) }}" class="page-link-num {% if 1 == current_page %}active{% endif %}">1</a>
+            
+            <!-- Window Calculation -->
+            {% if current_page <= 7 %}
+                {% set start_p = 2 %}
+                {% set end_p = 12 %}
+            {% elif current_page >= total_pages - 6 %}
+                {% set start_p = total_pages - 11 %}
+                {% set end_p = total_pages - 1 %}
+            {% else %}
+                {% set start_p = current_page - 5 %}
+                {% set end_p = current_page + 5 %}
+            {% endif %}
+            
+            <!-- Left Dots -->
+            {% if start_p > 2 %}
+                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
+            {% endif %}
+            
+            <!-- Window Pages -->
+            {% for p in range(start_p, end_p + 1) %}
+                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+            {% endfor %}
+            
+            <!-- Right Dots -->
+            {% if end_p < total_pages - 1 %}
+                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
+            {% endif %}
+            
+            <!-- Last Page -->
+            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
+        {% endif %}
     </div>
+{% endmacro %}
 
-    <div class="pagination">
-        {% if has_prev %}
-            <a href="{{ url_for('article.list_articles', page=page-1) }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);">&larr; Previous</a>
-        {% endif %}
-        {% if has_next %}
-            <a href="{{ url_for('article.list_articles', page=page+1) }}" class="btn btn-sm" style="background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);">Next &rarr;</a>
-        {% endif %}
+{% block content %}
+<!-- Top Pagination Component -->
+<nav class="editorial-pagination top">
+    <div class="pagination-prev">
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Previous</span>
+        </a>
     </div>
-</div>
+    
+    {{ render_pagination_info(page, total_pages) }}
+    
+    <div class="pagination-next">
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
+            <span>Next</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+    </div>
+</nav>
+
+<section class="editorial-list">
+    {% for article in articles %}
+        <article class="editorial-item">
+            <div class="item-content">
+                <div class="item-header">
+                    <h2 class="item-title">
+                        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="article-title-link">
+                            {{ article.article_title }}
+                        </a>
+                    </h2>
+                    <p class="item-excerpt">
+                        {{ article.article_content[:200] }}{% if article.article_content|length > 200 %}...{% endif %}
+                    </p>
+                </div>
+                <div class="item-meta">
+                    <span class="meta-author">{{ article.author_username }}</span>
+                    {% if article.article_published_at %}
+                    <span class="meta-divider">•</span>
+                    <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+    {% else %}
+        <div class="empty-state">
+            <span class="material-symbols-outlined empty-state-icon">folder_open</span>
+            <p class="empty-state-text">No articles found in the database.</p>
+        </div>
+    {% endfor %}
+</section>
+
+<!-- Pagination Component -->
+<nav class="editorial-pagination">
+    <div class="pagination-prev">
+        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
+            <span class="material-symbols-outlined">arrow_back</span>
+            <span>Previous</span>
+        </a>
+    </div>
+    
+    {{ render_pagination_info(page, total_pages) }}
+    
+    <div class="pagination-next">
+        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
+            <span>Next</span>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Jump to Page Modal -->
+<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}">
+    <div class="modal-header">
+        <h2 class="modal-title">Jump to page</h2>
+    </div>
+    <div class="modal-body">
+        <div class="modal-input-group">
+            <label for="jump-page-input">Enter page number (1 - {{ total_pages }})</label>
+            <div class="stepper-container">
+                <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
+                <div class="stepper-controls">
+                    <button class="stepper-btn up" data-step="1" title="Increase page">
+                        <span class="material-symbols-outlined">expand_less</span>
+                    </button>
+                    <button class="stepper-btn down" data-step="-1" title="Decrease page">
+                        <span class="material-symbols-outlined">expand_more</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-dialog btn-secondary" id="jump-cancel-btn">Cancel</button>
+        <button class="btn btn-dialog btn-primary" id="jump-execute-btn">Go</button>
+    </div>
+</dialog>
+
+
 {% endblock %}

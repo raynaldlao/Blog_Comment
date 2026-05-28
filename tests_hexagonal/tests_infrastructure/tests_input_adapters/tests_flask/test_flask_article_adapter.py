@@ -114,25 +114,73 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert response.status_code == 200
         assert b"Public View" in response.data
 
+    def test_list_articles_date_rendering(self):
+        from datetime import datetime
+        publication_date = datetime(2026, 4, 29)
+
+        article = create_test_article(
+            article_id=1,
+            article_author_id=1,
+            article_title="Date Test",
+            article_published_at=publication_date
+        )
+
+        self.mock_article_repo.get_paginated.return_value = [article]
+        self.mock_article_repo.count_all.return_value = 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"Apr 29, 2026" in response.data
+
+    def test_list_articles_no_date_hides_meta(self):
+        article = create_test_article(
+            article_id=1,
+            article_author_id=1,
+            article_title="No Date Article",
+        )
+
+        article.article_published_at = None
+        self.mock_article_repo.get_paginated.return_value = [article]
+        self.mock_article_repo.count_all.return_value = 1
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"meta-date" not in response.data
+
+    def test_list_articles_contains_jump_modal(self):
+        self.mock_article_repo.get_paginated.return_value = []
+        self.mock_article_repo.count_all.return_value = 0
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'<dialog id="jump-modal"' in response.data
+        assert b"pagination.js" in response.data
+        assert b"data-total-pages" in response.data
+        assert b"data-url" in response.data
+
     def test_create_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_render_create_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/new", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_delete_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_render_edit_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/1/edit", follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
     def test_update_article_redirects_anonymous_to_login(self):
         response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"You must be signed in" in response.data
+        assert b"alert-error" in response.data
 
 
 class TestArticleUserAccess(ArticleAdapterTestBase):
@@ -141,30 +189,35 @@ class TestArticleUserAccess(ArticleAdapterTestBase):
         self._prepare_user_context(user)
         response = self.client.get("/articles/new", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_access_edit_page(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.get("/articles/1/edit", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_update_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_delete_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
 
     def test_user_cannot_create_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
         response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
         assert b"Insufficient permissions" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
 
@@ -182,6 +235,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Your article has been successfully published!" in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_create_article_service_error(self):
@@ -197,6 +251,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
             follow_redirects=True
         )
         assert b"Service Error Message" in response.data
+        assert b"alert-error" in response.data
 
     def test_author_can_edit_own_article(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -211,6 +266,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Your article has been successfully updated!" in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_cannot_edit_others_article(self):
@@ -226,6 +282,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert b"Unauthorized" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
     def test_read_article_not_found(self):
@@ -234,6 +291,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         self.mock_article_repo.get_by_id.return_value = None
         response = self.client.get("/articles/999", follow_redirects=True)
         assert b"Error: Article not found." in response.data
+        assert b"alert-error" in response.data
 
     def test_render_edit_page_not_found(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -242,6 +300,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
 
         response = self.client.get("/articles/999/edit", follow_redirects=True)
         assert b"Error: The requested article could not be found." in response.data
+        assert b"alert-error" in response.data
 
 
 class TestArticleAdminAccess(ArticleAdapterTestBase):
@@ -252,6 +311,7 @@ class TestArticleAdminAccess(ArticleAdapterTestBase):
         self.mock_article_repo.get_by_id.return_value = article
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Article has been successfully deleted." in response.data
+        assert b"alert-success" in response.data
         self.mock_article_repo.delete.assert_called_once()
 
 
@@ -267,6 +327,7 @@ class TestArticleValidation(ArticleAdapterTestBase):
         )
 
         assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data
         self.mock_article_repo.save.assert_not_called()
 
     def test_update_article_validation_error(self):
@@ -282,6 +343,7 @@ class TestArticleValidation(ArticleAdapterTestBase):
         )
 
         assert b"Validation Error" in response.data
+        assert b"alert-error" in response.data
 
     def test_delete_article_service_error(self):
         from src.application.domain.article import ArticleDetailView, ArticleWithAuthor
@@ -298,3 +360,77 @@ class TestArticleValidation(ArticleAdapterTestBase):
         self.adapter.article_service.get_article_with_comments = Mock(return_value=detail)
         response = self.client.post("/articles/1/delete", follow_redirects=True)
         assert b"Delete Error" in response.data
+        assert b"alert-error" in response.data
+
+class TestArticlePagination(ArticleAdapterTestBase):
+    def test_pagination_multiple_pages(self):
+        self.mock_article_repo.count_all.return_value = 11
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'class="page-link-num' in response.data
+        assert b"page-link-num active" in response.data
+        assert b"/?page=2" in response.data
+        assert response.data.count(b'class="editorial-pagination') == 2
+        assert b'class="editorial-pagination top' in response.data
+
+    def test_pagination_exact_single_page(self):
+        self.mock_article_repo.count_all.return_value = 10
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"pagination-link--hidden" in response.data
+        assert response.data.count(b'class="page-link-num') == 2
+
+    def test_pagination_empty_state(self):
+        self.mock_article_repo.count_all.return_value = 0
+        self.mock_article_repo.get_paginated.return_value = []
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b"No articles found in the database." in response.data
+        assert b'class="page-link-num' not in response.data
+
+    def test_pagination_truncated_start(self):
+        self.mock_article_repo.count_all.return_value = 150
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/")
+        assert response.status_code == 200
+        assert b'page=1"' in response.data
+        assert b'page=10"' in response.data
+        assert b'page=11"' in response.data
+        assert b'page=12"' in response.data
+        assert b'page=13"' not in response.data
+        assert b"..." in response.data
+        assert b'page=15"' in response.data
+
+    def test_pagination_truncated_middle(self):
+        self.mock_article_repo.count_all.return_value = 1200
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.get_paginated.return_value = articles
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        response = self.client.get("/?page=50")
+        assert response.status_code == 200
+        assert b'page=1"' in response.data
+        assert b'page=44"' not in response.data
+        assert b'page=45"' in response.data
+        assert b'page=55"' in response.data
+        assert b'page=56"' not in response.data
+        assert b'page=120"' in response.data
+
+    def test_pagination_prev_next_visibility_bound(self):
+        self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1)]
+        articles = [create_test_article(article_id=i, article_author_id=1) for i in range(10)]
+        self.mock_article_repo.count_all.return_value = 50
+        self.mock_article_repo.get_paginated.return_value = articles
+        response = self.client.get("/")
+        assert response.data.count(b"pagination-link--hidden") == 2
+        response = self.client.get("/?page=3")
+        assert response.data.count(b"pagination-link--hidden") == 0
+        response = self.client.get("/?page=5")
+        assert response.data.count(b"pagination-link--hidden") == 2

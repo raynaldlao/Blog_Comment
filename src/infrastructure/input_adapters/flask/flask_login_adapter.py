@@ -1,7 +1,8 @@
-from flask import flash, redirect, render_template, request, url_for
-from flask.views import MethodView
 from pydantic import ValidationError
 
+from flask import flash, redirect, render_template, request, url_for
+from flask import g as global_request_context
+from flask.views import MethodView
 from src.application.input_ports.login_management import LoginManagementPort
 from src.infrastructure.input_adapters.dto.login_request import LoginRequest
 
@@ -28,7 +29,8 @@ class LoginAdapter(MethodView):
         Returns:
             str: The rendered HTML for the login page.
         """
-        return render_template("login.html")
+        user = global_request_context.get("current_user")
+        return render_template("login.html", current_user=user)
 
     def authenticate(self):
         """
@@ -46,7 +48,7 @@ class LoginAdapter(MethodView):
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(f"Validation Error ({location}): {error['msg']}")
+                flash(f"Validation Error ({location}): {error['msg']}", "error")
             return redirect(url_for("auth.login"))
 
         result = self.login_service.authenticate_user(
@@ -57,5 +59,5 @@ class LoginAdapter(MethodView):
         if not isinstance(result, str):
             return redirect(url_for("article.list_articles"))
 
-        flash(result)
+        flash("Invalid username or password.", "error")
         return redirect(url_for("auth.login"))

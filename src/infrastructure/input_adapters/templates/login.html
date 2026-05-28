@@ -1,37 +1,42 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Blog Management{% endblock %}
+{% block title %}Sign In - DevJournal{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
 {% endblock %}
 
 {% block content %}
-<div class="login-card">
-    <h1>Welcome Back</h1>
+<div class="user-card account-card">
+    <div class="account-header">
+        <h1 class="account-title">Welcome Back</h1>
+        <p class="account-subtitle">Access your developer journal accounts.</p>
+    </div>
 
-    <div class="login-card">
-        <h2>Connexion</h2>
+    <form action="{{ url_for('auth.login') }}" method="POST">
+        <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" name="username" placeholder="dev_username" autocomplete="username" required>
+        </div>
+        <div class="form-group account-form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="full-width">Sign In</button>
+    </form>
 
-        <form action="{{ url_for('auth.login') }}" method="POST">
-            <div class="form-group">
-                <input type="text" name="username" placeholder="Nom d'utilisateur" required>
-            </div>
-            <div class="form-group">
-                <input type="password" name="password" placeholder="Mot de passe" required>
-            </div>
-            <button type="submit">Se connecter</button>
-        </form>
+    <hr>
 
-        <hr>
-
-        <div class="footer">
-            <h3>Pas encore de compte ?</h3>
-            <a href="{{ url_for('registration.register') }}" class="btn-secondary">Créer un compte</a>
-            
-            <p style="margin-top: 20px;">
-                <a href="{{ url_for('article.list_articles') }}">Retour à l'accueil</a>
-            </p>
+    <div class="account-footer">
+        <p class="account-subtitle">New to the system ?</p>
+        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary full-width">Create an account</a>
+        
+        <div class="account-footer-link">
+            <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
+                <span class="material-symbols-outlined">home</span>
+                <span>Return to home</span>
+            </a>
         </div>
     </div>
+</div>
 {% endblock %}
