@@ -103,12 +103,22 @@ class SqlAlchemyAccountAdapter(AccountRepository):
 
     def save(self, account: Account) -> None:
         """
-        Persists a domain account entity into the database.
+        Saves a domain account entity to the database.
+
+        If the account has an existing positive ID, updates the corresponding
+        record; otherwise creates a new one. The account ID is updated in place
+        after insertion.
 
         Args:
             account (Account): The domain entity to save.
         """
-        model = AccountModel()
+        if account.account_id and account.account_id > 0:
+            model = self._session.get(AccountModel, account.account_id)
+            if not model:
+                model = AccountModel()
+        else:
+            model = AccountModel()
+
         model.account_username = account.account_username
         model.account_password = account.account_password
         model.account_email = account.account_email

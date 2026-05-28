@@ -34,7 +34,11 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
 
     def authenticate_user(self, username: str, password: str) -> Account | str:
         """
-        Validates the user's credentials.
+        Authenticates a user by verifying credentials.
+
+        If successful, the account is saved in the session.
+        If the existing password hash uses outdated parameters,
+        it is seamlessly upgraded to the current Argon2 settings.
 
         Args:
             username (str): The username provided by the user.
@@ -49,12 +53,16 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         if not account:
             return "Invalid username or password."
 
-        verification_result = self.password_hasher_repository.verify(password, account.account_password)
-        if verification_result is True:
+        if self.password_hasher_repository.verify(password, account.account_password):
+            if self.password_hasher_repository.check_needs_rehash(account.account_password):
+                new_hash = self.password_hasher_repository.hash(password)
+                account.account_password = new_hash
+                self.account_repository.save(account)
+
             self.session_repository.save_account(account)
             return account
 
-        return verification_result
+        return "Invalid username or password."
 
     def get_current_account(self) -> Account | None:
         """

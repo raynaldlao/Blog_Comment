@@ -22,7 +22,7 @@ class PasswordHasherRepository(ABC):
         pass
 
     @abstractmethod
-    def verify(self, password: str, hashed_password: str) -> bool | str:
+    def verify(self, password: str, hashed_password: str) -> bool:
         """
         Verifies a plaintext password against a hashed password.
 
@@ -31,6 +31,20 @@ class PasswordHasherRepository(ABC):
             hashed_password (str): The stored hash to verify against.
 
         Returns:
-            bool | str: True if the password matches, or an error message string if it fails.
+            bool: True if the password matches, False otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def check_needs_rehash(self, hashed_password: str) -> bool:
+        """
+        Checks if the given hash needs to be re-hashed according to current
+        security parameters.
+
+        Args:
+            hashed_password (str): The hash to check.
+
+        Returns:
+            bool: True if it needs re-hashing, False otherwise.
         """
         pass

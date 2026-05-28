@@ -54,7 +54,11 @@ def _create_output_adapters(db_session):
         "article_repo": SqlAlchemyArticleAdapter(db_session),
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
-        "password_hasher_repository": Argon2PasswordHasher(),
+        "password_hasher_repository": Argon2PasswordHasher(
+            time_cost=infra_config.argon2_time_cost,
+            memory_cost=infra_config.argon2_memory_cost,
+            parallelism=infra_config.argon2_parallelism,
+        ),
     }
 
 
