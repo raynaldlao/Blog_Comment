@@ -80,7 +80,7 @@ jobs:
             migrate
 
       - name: Run tests
-        run: poetry run pytest tests_hexagonal/
+        run: poetry run pytest tests/
 
       - name: Run type check
         run: poetry run pyright

@@ -1,93 +1,51 @@
-from collections.abc import Generator
-from typing import Any
+from typing import cast
 
 import pytest
-from flask import Flask
-from flask.testing import FlaskClient
-from sqlalchemy import text
-from sqlalchemy.engine import Connection
-from sqlalchemy.orm import Session, scoped_session
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
 
-from app import initialize_flask_application
-from app.models.account_model import Account
-from app.models.article_model import Article
-from app.models.comment_model import Comment
-from config.configuration_variables import env_vars
-from database.database_setup import Base, database_engine
-from database.database_setup import db_session as app_db_session
+from blog_comment_application import create_app
+from config.env_config import env_config
+from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry import SqlAlchemyModel
+from tests.db_utils import truncate_all_tables
 
 
-def truncate_all_tables(connection: Connection) -> None:
-    """
-    Truncates all tables in the database to ensure a clean state for tests.
+@pytest.fixture(scope="session")
+def db_engine():
+    """Permanent engine for the test session."""
+    engine = create_engine(env_config.test_database_url)
+    return engine
 
-    Args:
-        connection (Connection): SQLAlchemy connection object.
-    """
-    tables = Base.metadata.sorted_tables
-    table_names = ", ".join(f'"{t.name}"' for t in tables)
-    if table_names:
-        connection.execute(text(f"TRUNCATE {table_names} RESTART IDENTITY CASCADE;"))
-
+@pytest.fixture(scope="session")
+def db_setup(db_engine):
+    """Ensures all tables are created once per session."""
+    SqlAlchemyModel.metadata.create_all(db_engine)
+    yield
 
 @pytest.fixture(scope="function")
-def app() -> Generator[Flask, Any, None]:
+def db_session(db_engine, db_setup):
     """
-    Pytest fixture that initializes the Flask application for testing.
-
-    Yields:
-        Flask: The Flask application instance.
+    Creates a new, clean SQLAlchemy scoped session for each test.
+    Automatically truncates all tables before yielding to ensure test isolation.
     """
-    flask_app = initialize_flask_application()
-    flask_app.config.update({"TESTING": True, "SECRET_KEY": env_vars.test_secret_key})
-    yield flask_app
-
+    session_factory = sessionmaker(bind=db_engine)
+    session = scoped_session(session_factory)
+    mapped_session = cast(Session, session)
+    truncate_all_tables(mapped_session)
+    yield mapped_session
+    session.remove()
 
 @pytest.fixture(scope="function")
-def client(app: Flask) -> FlaskClient:
+def app_with_db(db_session):
     """
-    Pytest fixture that provides a test client for the Flask application.
-
-    Args:
-        app (Flask): The Flask application instance.
-
-    Returns:
-        FlaskClient: A test client.
+    Creates a Flask app instance injected with the test database session.
     """
-    return app.test_client()
+    app = create_app(db_session=db_session)
+    app.config["TESTING"] = True
 
+    return app
 
 @pytest.fixture(scope="function")
-def db_session(app) -> Generator[scoped_session[Session], None, None]:
-    """
-    Pytest fixture that provides a clean database session for each test function.
-    Truncates all tables before yielding the session.
-
-    Args:
-        app (Flask): The Flask application instance.
-
-    Yields:
-        Session: A scoped SQLAlchemy session.
-    """
-    # Explicitly referencing models to satisfy linters and ensure metadata is populated
-    _ = (Account, Article, Comment)
-
-    if (
-        database_engine.url.render_as_string(hide_password=False)
-        != env_vars.test_database_url
-    ):
-        pytest.exit(
-            "SECURITY ERROR: The current database URL does not match"
-            " the configured TEST database URL."
-        )
-
-    app_db_session.remove()
-    with database_engine.connect() as connection:
-        truncate_all_tables(connection)
-        connection.commit()
-
-    try:
-        yield app_db_session
-    finally:
-        app_db_session.rollback()
-        app_db_session.remove()
+def client(app_with_db):
+    """A Flask test client."""
+    return app_with_db.test_client()

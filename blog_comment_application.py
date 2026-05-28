@@ -4,11 +4,11 @@ from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from config.env_config import env_config
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
 from src.application.services.login_service import LoginService
 from src.application.services.registration_service import RegistrationService
-from src.infrastructure.config import infra_config
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
@@ -38,7 +38,7 @@ def _setup_database(db_session=None):
         Session: A configured SQLAlchemy database session.
     """
     if db_session is None:
-        engine = create_engine(infra_config.database_url)
+        engine = create_engine(env_config.database_url)
         session_factory = sessionmaker(bind=engine)
         db_session = session_factory()
     return db_session
@@ -61,9 +61,9 @@ def _create_output_adapters(db_session):
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
         "password_hasher_repository": Argon2PasswordHasherAdapter(
-            time_cost=infra_config.argon2_time_cost,
-            memory_cost=infra_config.argon2_memory_cost,
-            parallelism=infra_config.argon2_parallelism,
+            time_cost=env_config.argon2_time_cost,
+            memory_cost=env_config.argon2_memory_cost,
+            parallelism=env_config.argon2_parallelism,
         ),
     }
 

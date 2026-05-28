@@ -4,7 +4,7 @@ import sys
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from src.infrastructure.config import infra_config
+from config.env_config import env_config
 
 """
 Infrastructure-specific database configuration and session management.
@@ -15,9 +15,9 @@ database setup. It automatically switches between production and test databases.
 """
 
 if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-    db_url = infra_config.test_database_url
+    db_url = env_config.test_database_url
 else:
-    db_url = infra_config.database_url
+    db_url = env_config.database_url
 
 sqlalchemy_engine = create_engine(db_url)
 sqlalchemy_session_factory = sessionmaker(bind=sqlalchemy_engine)
