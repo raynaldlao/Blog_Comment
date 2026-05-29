@@ -18,6 +18,7 @@
         <h1>Edit Article</h1>
 
         <form action="{{ url_for('article.update_article', article_id=article.article_id) }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="article-edit-title">Article Title</label>
                 <input type="text" id="article-edit-title" name="title" value="{{ article.article_title }}" required minlength="3" maxlength="150">

@@ -30,6 +30,7 @@
             
             {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
                 <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" class="detail-delete-form" id="delete-article-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-secondary detail-delete-btn confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-form">Delete</button>
                 </form>
             {% endif %}
@@ -51,6 +52,7 @@
                         <span class="meta-author">{{ root_comment.author_username }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
                             <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=root_comment.comment_id) }}" method="POST" class="comment-delete-form" id="delete-comment-{{ root_comment.comment_id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ root_comment.comment_id }}">[Delete]</button>
                             </form>
                         {% endif %}
@@ -62,6 +64,7 @@
                     {% if current_user %}
                     <div class="comment-reply-wrapper">
                         <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST" class="comment-reply-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="parent_id" value="{{ root_comment.comment_id }}">
                             <input type="text" class="comment-input" name="content" placeholder="Write a reply..." required minlength="1" maxlength="500" inputmode="text">
                             <button type="submit" class="btn btn-sm btn-secondary">Reply</button>
@@ -78,6 +81,7 @@
                                     <span class="meta-author comment-reply-author">{{ reply.author_username }}</span>
                                     {% if current_user and current_user.account_role == 'admin' %}
                                         <form action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=reply.comment_id) }}" method="POST" class="comment-delete-form" id="delete-comment-{{ reply.comment_id }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ reply.comment_id }}">[Delete]</button>
                                         </form>
                                     {% endif %}
@@ -100,6 +104,7 @@
         <div class="comment-join-section">
             <h4 class="comment-join-title">Join the discussion</h4>
             <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <textarea name="content" placeholder="Share your thoughts..." required class="comment-post-textarea"></textarea>
                 <button type="submit" class="btn">Post Comment</button>
             </form>
