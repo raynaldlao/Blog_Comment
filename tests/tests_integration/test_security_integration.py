@@ -253,3 +253,46 @@ class TestAccessControl:
         """
         response = client.get("/articles/99999", follow_redirects=True)
         assert b"Article not found" in response.data
+
+
+class TestCSRF:
+    """Tests focused on CSRF token presence in rendered forms."""
+
+    def test_login_page_contains_csrf_field(self, client):
+        """
+        Verifies that the login form renders a CSRF token field.
+
+        The hidden input ``csrf_token`` must be present in the login
+        page HTML so that POST submissions include a valid token.
+        """
+        response = client.get("/login")
+        assert b"csrf_token" in response.data
+        assert b'name="csrf_token"' in response.data
+
+    def test_register_page_contains_csrf_field(self, client):
+        """
+        Verifies that the registration form renders a CSRF token field.
+
+        Ensures the ``csrf_token`` hidden input is injected into the
+        registration template to protect account creation.
+        """
+        response = client.get("/register")
+        assert b"csrf_token" in response.data
+
+    def test_create_article_page_contains_csrf_field(self, client, db_session):
+        """
+        Verifies that the article creation form renders a CSRF token field.
+
+        Creates an authenticated author session first, then checks that
+        the article creation page includes the ``csrf_token`` hidden input.
+        """
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
+
+        auth = AccountModel(
+            account_username="csrf_author", account_email="csrf@t.com", account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "csrf_author", "password": "p"})
+        response = client.get("/articles/new")
+        assert b"csrf_token" in response.data
