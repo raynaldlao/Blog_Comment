@@ -62,6 +62,7 @@ class FlaskInputAdapterTestBase:
         self.app.config["SECRET_KEY"] = "test_secret"
         self.app.config["SERVER_NAME"] = "localhost"
         self.app.config["TESTING"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = False
         self._test_user = None
         self._dummy_labels = {}
         self.app.before_request(self._inject_test_user_hook)
