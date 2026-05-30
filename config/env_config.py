@@ -55,6 +55,26 @@ class EnvConfig:
         return self._get_env("TEST_DATABASE_URL")
 
     @property
+    def secret_key(self) -> str:
+        """
+        Retrieves the Flask SECRET_KEY from the environment.
+
+        Returns:
+            str: The secret key used for signing session cookies and CSRF tokens.
+        """
+        return self._get_env("SECRET_KEY")
+
+    @property
+    def test_secret_key(self) -> str:
+        """
+        Retrieves the test SECRET_KEY from the environment.
+
+        Returns:
+            str: The secret key used for signing session cookies in tests.
+        """
+        return self._get_env("TEST_SECRET_KEY")
+
+    @property
     def argon2_time_cost(self) -> int:
         """
         Retrieves the Argon2 time cost from environment.
