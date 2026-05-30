@@ -31,6 +31,74 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 
 
+class CSPConfig:
+    """Configures Content Security Policy headers and violation reporting.
+
+    Computes the SHA-256 hash of the inline theme script at startup,
+    injects the Content-Security-Policy header into every response,
+    and provides an endpoint for receiving CSP violation reports from
+    the browser.
+    """
+
+    def __init__(self):
+        self._script_hash = self._compute_inline_script_hash()
+
+    @staticmethod
+    def _compute_inline_script_hash() -> str:
+        """Reads and hashes the inline theme script from base.html.
+
+        Returns:
+            str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
+        """
+        template_path = Path(__file__).parent / "src/infrastructure/input_adapters/templates/base.html"
+        content = template_path.read_text()
+        start = content.index("<script>\n") + len("<script>\n")
+        end = content.index("</script>", start)
+        digest = hashlib.sha256(content[start:end].encode()).digest()
+        return "'sha256-" + base64.b64encode(digest).decode() + "'"
+
+    def add_header(self, response: Response) -> Response:
+        """Injects the Content-Security-Policy and Reporting-Endpoints headers.
+
+        Restricts resource loading to same-origin, Google Fonts, and the
+        inline theme script (via SHA-256 hash). Configures CSP violation
+        reporting via both report-uri (legacy) and report-to (modern).
+
+        Args:
+            response: The Flask response object to modify.
+
+        Returns:
+            Response: The modified Flask response with CSP and reporting
+                headers set.
+        """
+        response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self';"
+            f"script-src 'self' {self._script_hash};"
+            "style-src 'self' https://fonts.googleapis.com;"
+            "font-src 'self' https://fonts.gstatic.com;"
+            "img-src 'self' data:;"
+            "base-uri 'self';"
+            "form-action 'self';"
+            "report-uri /csp-report;"
+            "report-to csp-endpoint"
+        )
+        return response
+
+    def handle_report(self) -> tuple[str, int]:
+        """Logs incoming CSP violation reports and returns 204 No Content.
+
+        Registered as a POST endpoint at /csp-report. The CSP report payload
+        is read from Flask's request context (no explicit parameters).
+
+        Returns:
+            tuple: An empty response with HTTP 204 (No Content).
+        """
+        from flask import current_app, request
+        current_app.logger.warning("CSP violation: %s", request.get_json())
+        return "", 204
+
+
 def _setup_database(db_session=None):
     """
     Initializes the database connection and session.
@@ -188,53 +256,12 @@ def _register_web_routes(app, adapters):
     app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
 
 
-def _compute_inline_script_hash() -> str:
-    """
-    Reads the inline theme script from base.html and returns its SHA-256 hash.
-
-    Computes the hash from the exact content between <script> and </script>
-    tags in the base template. Recalculated at each application startup to
-    stay synchronized with the template.
-
-    Returns:
-        str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
-    """
-    template_path = Path(__file__).parent / "src/infrastructure/input_adapters/templates/base.html"
-    content = template_path.read_text()
-    start = content.index("<script>\n") + len("<script>\n")
-    end = content.index("</script>", start)
-    digest = hashlib.sha256(content[start:end].encode()).digest()
-    return "'sha256-" + base64.b64encode(digest).decode() + "'"
-
-
-def _add_csp_header(response: Response, script_hash: str) -> Response:
-    response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self';"
-        f"script-src 'self' {script_hash};"
-        "style-src 'self';"
-        "font-src 'self' https://fonts.gstatic.com;"
-        "img-src 'self' data:;"
-        "base-uri 'self';"
-        "form-action 'self';"
-        "report-uri /csp-report;"
-        "report-to csp-endpoint"
-    )
-    return response
-
-
-def _handle_csp_report():
-    from flask import current_app, request
-    current_app.logger.warning("CSP violation: %s", request.get_json())
-    return "", 204
-
-
 def _init_web_security(app: Flask) -> None:
     csrf_protect = CSRFProtect(app)
-    script_hash = _compute_inline_script_hash()
-    app.after_request(lambda response: _add_csp_header(response, script_hash))
-    csrf_protect.exempt(_handle_csp_report)
-    app.add_url_rule("/csp-report", view_func=_handle_csp_report, methods=["POST"])
+    csp = CSPConfig()
+    app.after_request(csp.add_header)
+    csrf_protect.exempt(csp.handle_report)
+    app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
 
 
 def create_app(db_session=None) -> Flask:
