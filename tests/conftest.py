@@ -42,7 +42,7 @@ def app_with_db(db_session):
     """
     app = create_app(db_session=db_session)
     app.config["TESTING"] = True
-
+    app.config["WTF_CSRF_ENABLED"] = False
     return app
 
 @pytest.fixture(scope="function")

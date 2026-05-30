@@ -14,6 +14,7 @@
     </div>
 
     <form action="{{ url_for('registration.register') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="registration-username">Choose Username</label>
             <input type="text" id="registration-username" name="username" placeholder="dev_username" autocomplete="username" required>

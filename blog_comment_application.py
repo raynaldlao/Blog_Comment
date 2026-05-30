@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -184,6 +185,25 @@ def _register_web_routes(app, adapters):
     app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
 
 
+def _init_web_security(app: Flask) -> None:
+    """
+    Initializes Flask-WTF CSRF protection for the application.
+
+    Registers a before_request handler that validates a CSRF token
+    on all POST, PUT, DELETE, and PATCH requests. The token must be
+    present in the request form data as 'csrf_token' or in the
+    X-CSRFToken header.
+
+    Args:
+        app (Flask): The Flask application instance to secure.
+            Must have ``secret_key`` configured before calling.
+
+    Returns:
+        None
+    """
+    CSRFProtect(app)
+
+
 def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
@@ -199,6 +219,7 @@ def create_app(db_session=None) -> Flask:
     repositories = _create_output_adapters(db_session)
     services = _create_services(repositories)
     app = _init_web_facade_flask()
+    _init_web_security(app)
     app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter

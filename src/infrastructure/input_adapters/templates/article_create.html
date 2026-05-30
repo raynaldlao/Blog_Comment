@@ -18,6 +18,7 @@
         <h1>Write your story</h1>
 
         <form action="{{ url_for('article.create_article') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="article-create-title">Article Title</label>
                 <input type="text" id="article-create-title" name="title" placeholder="A catchy title..." required minlength="3" maxlength="150">

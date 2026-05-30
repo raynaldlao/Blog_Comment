@@ -2,6 +2,7 @@ import os
 
 from flask import Flask, get_flashed_messages, request
 from flask import g as global_request_context
+from flask_wtf.csrf import CSRFProtect
 
 from src.infrastructure.input_adapters.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
 
@@ -62,6 +63,8 @@ class FlaskInputAdapterTestBase:
         self.app.config["SECRET_KEY"] = "test_secret"
         self.app.config["SERVER_NAME"] = "localhost"
         self.app.config["TESTING"] = True
+        self.app.config["WTF_CSRF_ENABLED"] = False
+        CSRFProtect(self.app)
         self._test_user = None
         self._dummy_labels = {}
         self.app.before_request(self._inject_test_user_hook)
