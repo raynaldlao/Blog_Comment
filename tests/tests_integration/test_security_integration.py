@@ -316,3 +316,18 @@ class TestCSP:
         response = client.get("/login")
         csp = response.headers["Content-Security-Policy"]
         assert expected_hash in csp
+
+    def test_csp_report_endpoint(self, client):
+        """Verifies that CSP violation reports can be submitted."""
+        response = client.post("/csp-report", json={"csp-report": {"test": True}})
+        assert response.status_code == 204
+
+    def test_csp_reporting_endpoints_header(self, client):
+        """Verifies the Reporting-Endpoints header is present and correct."""
+        response = client.get("/login")
+        assert response.headers.get("Reporting-Endpoints") == 'csp-endpoint="/csp-report"'
+
+    def test_csp_report_endpoint_rejects_get(self, client):
+        """Verifies that only POST is accepted on /csp-report."""
+        response = client.get("/csp-report")
+        assert response.status_code == 405
