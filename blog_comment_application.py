@@ -110,7 +110,7 @@ def _init_web_facade_flask():
     template_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/templates")
     static_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/static")
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-    app.secret_key = os.getenv("SECRET_KEY", "dev_secret_key")
+    app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     return app
 
