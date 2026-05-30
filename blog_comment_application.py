@@ -1,6 +1,9 @@
+import base64
+import hashlib
 import os
+from pathlib import Path
 
-from flask import Flask
+from flask import Flask, Response
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -185,23 +188,67 @@ def _register_web_routes(app, adapters):
     app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
 
 
+def _compute_inline_script_hash() -> str:
+    """
+    Reads the inline theme script from base.html and returns its SHA-256 hash.
+
+    Computes the hash from the exact content between <script> and </script>
+    tags in the base template. Recalculated at each application startup to
+    stay synchronized with the template.
+
+    Returns:
+        str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
+    """
+    template_path = Path(__file__).parent / "src/infrastructure/input_adapters/templates/base.html"
+    content = template_path.read_text()
+    start = content.index("<script>\n") + len("<script>\n")
+    end = content.index("</script>", start)
+    digest = hashlib.sha256(content[start:end].encode()).digest()
+    return "'sha256-" + base64.b64encode(digest).decode() + "'"
+
+
+def _add_csp_header(response: Response, script_hash: str) -> Response:
+    """
+    Injects the Content-Security-Policy header into the HTTP response.
+
+    Restricts resource loading to same-origin, Google Fonts, and the
+    inline theme script (via SHA-256 hash).
+
+    Args:
+        response (Response): The Flask response object to modify.
+        script_hash (str): The CSP-compatible SHA-256 hash of the
+            inline theme script in ``'sha256-<base64>'`` format.
+
+    Returns:
+        Response: The modified Flask response with the CSP header set.
+    """
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self';"
+        f"script-src 'self' {script_hash};"
+        "style-src 'self' https://fonts.googleapis.com;"
+        "font-src 'self' https://fonts.gstatic.com;"
+        "img-src 'self' data:;"
+        "base-uri 'self';"
+        "form-action 'self'"
+    )
+    return response
+
+
 def _init_web_security(app: Flask) -> None:
     """
     Initializes Flask-WTF CSRF protection for the application.
 
     Registers a before_request handler that validates a CSRF token
-    on all POST, PUT, DELETE, and PATCH requests. The token must be
-    present in the request form data as 'csrf_token' or in the
-    X-CSRFToken header.
+    on all POST, PUT, DELETE, and PATCH requests and an after_request
+    handler that injects the Content-Security-Policy header.
 
     Args:
         app (Flask): The Flask application instance to secure.
             Must have ``secret_key`` configured before calling.
-
-    Returns:
-        None
     """
     CSRFProtect(app)
+    script_hash = _compute_inline_script_hash()
+    app.after_request(lambda response: _add_csp_header(response, script_hash))
 
 
 def create_app(db_session=None) -> Flask:
