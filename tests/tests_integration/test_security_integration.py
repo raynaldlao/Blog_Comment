@@ -296,3 +296,23 @@ class TestCSRF:
         client.post("/login", data={"username": "csrf_author", "password": "p"})
         response = client.get("/articles/new")
         assert b"csrf_token" in response.data
+
+
+class TestCSP:
+    """Tests focused on Content Security Policy headers."""
+
+    def test_csp_hash_matches_inline_script(self, client):
+        """Verifies that the CSP hash matches the actual inline script content."""
+        import base64
+        import hashlib
+        from pathlib import Path
+
+        project_root = Path(__file__).parents[2]
+        template_path = project_root / "src/infrastructure/input_adapters/templates/base.html"
+        content = template_path.read_text()
+        start = content.index("<script>\n") + len("<script>\n")
+        end = content.index("</script>", start)
+        expected_hash = "'sha256-" + base64.b64encode(hashlib.sha256(content[start:end].encode()).digest()).decode() + "'"
+        response = client.get("/login")
+        csp = response.headers["Content-Security-Policy"]
+        assert expected_hash in csp
