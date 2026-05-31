@@ -25,7 +25,7 @@ class CSPConfig:
         Returns:
             str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
         """
-        template_path = Path(__file__).parent.parent / "src/infrastructure/input_adapters/templates/base.html"
+        template_path = Path(__file__).parent.parent / "frontend/templates/base.html"
         content = template_path.read_text()
         start = content.index("<script>") + len("<script>")
         end = content.index("</script>", start)

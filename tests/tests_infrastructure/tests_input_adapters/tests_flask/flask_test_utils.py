@@ -14,7 +14,7 @@ class FlaskInputAdapterTestBase:
     and common test configuration to eliminate duplication.
     """
 
-    TEMPLATE_DIR = os.path.abspath("src/infrastructure/input_adapters/templates")
+    TEMPLATE_DIR = os.path.abspath("frontend/templates")
 
     def _inject_test_user_hook(self) -> None:
         """
