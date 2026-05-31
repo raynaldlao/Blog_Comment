@@ -4,7 +4,7 @@ from flask import Flask, get_flashed_messages, request
 from flask import g as global_request_context
 from flask_wtf.csrf import CSRFProtect
 
-from src.infrastructure.input_adapters.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
+from utils.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
 
 
 class FlaskInputAdapterTestBase:
@@ -14,7 +14,7 @@ class FlaskInputAdapterTestBase:
     and common test configuration to eliminate duplication.
     """
 
-    TEMPLATE_DIR = os.path.abspath("src/infrastructure/input_adapters/templates")
+    TEMPLATE_DIR = os.path.abspath("frontend/templates")
 
     def _inject_test_user_hook(self) -> None:
         """
