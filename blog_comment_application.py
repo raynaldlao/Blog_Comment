@@ -83,22 +83,6 @@ def _create_services(repositories: dict) -> dict:
     }
 
 
-def _init_web_facade_flask() -> Flask:
-    """
-    Initializes the Flask application instance (Web Facade).
-
-    Returns:
-        Flask: The initialized Flask application object.
-    """
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    template_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/templates")
-    static_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/static")
-    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
-    app.secret_key = env_config.secret_key
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    return app
-
-
 def _init_web_adapters(services: dict) -> dict:
     """
     Instantiates the input adapters for the Web interface.
@@ -116,6 +100,22 @@ def _init_web_adapters(services: dict) -> dict:
         "registration_adapter": RegistrationAdapter(services["registration_service"]),
         "account_session_adapter": AccountSessionAdapter(services["login_service"]),
     }
+
+
+def _init_web_facade_flask() -> Flask:
+    """
+    Initializes the Flask application instance (Web Facade).
+
+    Returns:
+        Flask: The initialized Flask application object.
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    template_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/templates")
+    static_dir = os.path.join(base_dir, "src/infrastructure/input_adapters/static")
+    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+    app.secret_key = env_config.secret_key
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    return app
 
 
 def create_app(db_session=None) -> Flask:
