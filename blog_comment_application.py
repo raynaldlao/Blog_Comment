@@ -16,17 +16,17 @@ from src.infrastructure.input_adapters.flask.flask_article_adapter import Articl
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
-from src.infrastructure.input_adapters.template_helpers import (
-    date_format_filter,
-    date_iso_filter,
-    inject_current_year,
-    nl2br_filter,
-)
 from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
+from utils.template_helpers import (
+    date_format_filter,
+    date_iso_filter,
+    inject_current_year,
+    nl2br_filter,
+)
 
 
 def _create_output_adapters(db_session: Session) -> dict:
@@ -118,6 +118,27 @@ def _init_web_facade_flask() -> Flask:
     return app
 
 
+def _init_template_utils(app: Flask) -> None:
+    """
+    Registers custom Jinja2 filters and context processors on the Flask app.
+
+    Provides the following filters to all templates:
+        - ``nl2br``: Escapes HTML and converts newlines to ``<br>`` tags.
+        - ``date_format``: Formats a ``datetime`` as a human-readable string.
+        - ``date_iso``: Formats a ``datetime`` as an ISO 8601 date string.
+
+    Injects the current UTC year into the template context as
+    ``current_year`` via ``inject_current_year``.
+
+    Args:
+        app: The Flask application instance to configure.
+    """
+    app.jinja_env.filters["nl2br"] = nl2br_filter
+    app.jinja_env.filters["date_format"] = date_format_filter
+    app.jinja_env.filters["date_iso"] = date_iso_filter
+    app.context_processor(inject_current_year)
+
+
 def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
@@ -134,10 +155,7 @@ def create_app(db_session=None) -> Flask:
     services = _create_services(repositories)
     app = _init_web_facade_flask()
     init_web_security(app)
-    app.jinja_env.filters["nl2br"] = nl2br_filter
-    app.jinja_env.filters["date_format"] = date_format_filter
-    app.jinja_env.filters["date_iso"] = date_iso_filter
-    app.context_processor(inject_current_year)
+    _init_template_utils(app)
     web_adapters = _init_web_adapters(services)
     register_web_routes(app, web_adapters)
     web_adapters["account_session_adapter"].register_before_request_handler(app)

@@ -193,6 +193,28 @@ class TestWorkflows:
         assert b"Reply line 2" in response.data
         assert b"<br>" in response.data
 
+    def test_article_detail_displays_iso_date(self, client, db_session):
+        """
+        Verifies the ``date_iso`` filter renders the correct ISO 8601
+        ``datetime`` attribute on ``<time>`` elements in article detail.
+        """
+        author = AccountModel(
+            account_username="iso_author", account_email="iso@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(
+            article_title="ISO Date Test", article_content="...",
+            article_author_id=author.account_id,
+            article_published_at=datetime(2026, 4, 29)
+        )
+        db_session.add(article)
+        db_session.commit()
+
+        response = client.get(f"/articles/{article.article_id}")
+        assert b'datetime="2026-04-29"' in response.data
+
     def test_footer_displays_current_year(self, client, db_session):
         """
         Verify the footer displays the current year dynamically via the
