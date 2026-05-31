@@ -5,9 +5,9 @@ from pathlib import Path
 
 from flask import Flask, Response
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
+from config.database import setup_database
 from config.env_config import env_config
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
@@ -114,23 +114,6 @@ def _add_nosniff(response: Response) -> Response:
     """
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
-
-
-def _setup_database(db_session: Session | None = None) -> Session:
-    """
-    Initializes the database connection and session.
-
-    Args:
-        db_session: Optional existing SQLAlchemy session (e.g., for testing).
-
-    Returns:
-        Session: A configured SQLAlchemy database session.
-    """
-    if db_session is None:
-        engine = create_engine(env_config.database_url)
-        session_factory = sessionmaker(bind=engine)
-        db_session = session_factory()
-    return db_session
 
 
 def _create_output_adapters(db_session: Session) -> dict:
@@ -311,7 +294,7 @@ def create_app(db_session=None) -> Flask:
     Returns:
         Flask: The configured Flask application (Web Facade).
     """
-    db_session = _setup_database(db_session)
+    db_session = setup_database(db_session)
     repositories = _create_output_adapters(db_session)
     services = _create_services(repositories)
     app = _init_web_facade_flask()
