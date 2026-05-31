@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from config.database import setup_database
 from config.env_config import env_config
 from flask_setup.middleware import init_web_security
+from flask_setup.routes import register_web_routes
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
 from src.application.services.login_service import LoginService
@@ -117,67 +118,6 @@ def _init_web_adapters(services: dict) -> dict:
     }
 
 
-def _register_article_routes(app: Flask, adapters: dict) -> None:
-    art = adapters["article_adapter"]
-    app.add_url_rule("/", view_func=art.list_articles, endpoint="article.list_articles")
-    app.add_url_rule("/articles/<int:article_id>", view_func=art.read_article, endpoint="article.read_article")
-    app.add_url_rule("/articles/new", view_func=art.render_create_page, methods=["GET"], endpoint="article.render_create_page")
-    app.add_url_rule("/articles/new", view_func=art.create_article, methods=["POST"], endpoint="article.create_article")
-    app.add_url_rule(
-        "/articles/<int:article_id>/edit", view_func=art.render_edit_page, methods=["GET"], endpoint="article.render_edit_page"
-    )
-    app.add_url_rule(
-        "/articles/<int:article_id>/edit", view_func=art.update_article, methods=["POST"], endpoint="article.update_article"
-    )
-    app.add_url_rule(
-        "/articles/<int:article_id>/delete", view_func=art.delete_article, methods=["POST"], endpoint="article.delete_article"
-    )
-
-
-def _register_comment_routes(app: Flask, adapters: dict) -> None:
-    com = adapters["comment_adapter"]
-    app.add_url_rule(
-        "/articles/<int:article_id>/comments", view_func=com.create_comment, methods=["POST"], endpoint="comment.create_comment"
-    )
-    app.add_url_rule(
-        "/articles/<int:article_id>/comments/<int:parent_comment_id>/reply",
-        view_func=com.reply_to_comment,
-        methods=["POST"],
-        endpoint="comment.reply_to_comment",
-    )
-    app.add_url_rule(
-        "/articles/<int:article_id>/comments/<int:comment_id>/delete",
-        view_func=com.delete_comment,
-        methods=["POST"],
-        endpoint="comment.delete_comment",
-    )
-
-
-def _register_auth_routes(app: Flask, adapters: dict) -> None:
-    log = adapters["login_adapter"]
-    reg = adapters["registration_adapter"]
-    acc = adapters["account_session_adapter"]
-    app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
-    app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
-    app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
-    app.add_url_rule("/register", view_func=reg.register, methods=["POST"], endpoint="registration.register_action")
-    app.add_url_rule("/profile", view_func=acc.display_profile, endpoint="auth.profile")
-    app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
-
-
-def _register_web_routes(app: Flask, adapters: dict) -> None:
-    """
-    Registers the URL rules for the Web interface facade.
-
-    Args:
-        app (Flask): The Flask application instance.
-        adapters (dict): A dictionary of initialized Web adapters.
-    """
-    _register_article_routes(app, adapters)
-    _register_comment_routes(app, adapters)
-    _register_auth_routes(app, adapters)
-
-
 def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
@@ -199,7 +139,7 @@ def create_app(db_session=None) -> Flask:
     app.jinja_env.filters["date_iso"] = date_iso_filter
     app.context_processor(inject_current_year)
     web_adapters = _init_web_adapters(services)
-    _register_web_routes(app, web_adapters)
+    register_web_routes(app, web_adapters)
     web_adapters["account_session_adapter"].register_before_request_handler(app)
     return app
 
