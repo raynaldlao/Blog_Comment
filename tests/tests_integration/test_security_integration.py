@@ -331,3 +331,12 @@ class TestCSP:
         """Verifies that only POST is accepted on /csp-report."""
         response = client.get("/csp-report")
         assert response.status_code == 405
+
+
+class TestSecurityHeaders:
+    """Tests focused on generic HTTP security headers."""
+
+    def test_x_content_type_options_header(self, client):
+        """Verifies the X-Content-Type-Options header is set to nosniff."""
+        response = client.get("/login")
+        assert response.headers.get("X-Content-Type-Options") == "nosniff"

@@ -99,6 +99,23 @@ class CSPConfig:
         return "", 204
 
 
+def _add_nosniff(response: Response) -> Response:
+    """Sets the X-Content-Type-Options header to nosniff.
+
+    Prevents the browser from MIME-type sniffing, forcing it to
+    honour the declared Content-Type header. Mitigates MIME
+    confusion attacks.
+
+    Args:
+        response: The Flask response object to modify.
+
+    Returns:
+        The modified Flask response with X-Content-Type-Options set.
+    """
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
+
+
 def _setup_database(db_session=None):
     """
     Initializes the database connection and session.
@@ -257,9 +274,18 @@ def _register_web_routes(app, adapters):
 
 
 def _init_web_security(app: Flask) -> None:
+    """Configures web security middleware for the Flask application.
+
+    Sets up CSRF protection, Content-Security-Policy headers with
+    violation reporting, and the X-Content-Type-Options nosniff header.
+
+    Args:
+        app: The Flask application instance to secure.
+    """
     csrf_protect = CSRFProtect(app)
     csp = CSPConfig()
     app.after_request(csp.add_header)
+    app.after_request(_add_nosniff)
     csrf_protect.exempt(csp.handle_report)
     app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
 
