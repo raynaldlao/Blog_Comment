@@ -310,7 +310,7 @@ class TestCSP:
         project_root = Path(__file__).parents[2]
         template_path = project_root / "src/infrastructure/input_adapters/templates/base.html"
         content = template_path.read_text()
-        start = content.index("<script>\n") + len("<script>\n")
+        start = content.index("<script>") + len("<script>")
         end = content.index("</script>", start)
         expected_hash = "'sha256-" + base64.b64encode(hashlib.sha256(content[start:end].encode()).digest()).decode() + "'"
         response = client.get("/login")

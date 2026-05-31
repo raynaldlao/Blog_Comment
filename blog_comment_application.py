@@ -6,7 +6,7 @@ from pathlib import Path
 from flask import Flask, Response
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from config.env_config import env_config
 from src.application.services.article_service import ArticleService
@@ -52,12 +52,12 @@ class CSPConfig:
         """
         template_path = Path(__file__).parent / "src/infrastructure/input_adapters/templates/base.html"
         content = template_path.read_text()
-        start = content.index("<script>\n") + len("<script>\n")
+        start = content.index("<script>") + len("<script>")
         end = content.index("</script>", start)
         digest = hashlib.sha256(content[start:end].encode()).digest()
         return "'sha256-" + base64.b64encode(digest).decode() + "'"
 
-    def add_header(self, response: Response) -> Response:
+    def add_headers(self, response: Response) -> Response:
         """Injects the Content-Security-Policy and Reporting-Endpoints headers.
 
         Restricts resource loading to same-origin, Google Fonts, and the
@@ -116,7 +116,7 @@ def _add_nosniff(response: Response) -> Response:
     return response
 
 
-def _setup_database(db_session=None):
+def _setup_database(db_session: Session | None = None) -> Session:
     """
     Initializes the database connection and session.
 
@@ -133,7 +133,7 @@ def _setup_database(db_session=None):
     return db_session
 
 
-def _create_output_adapters(db_session):
+def _create_output_adapters(db_session: Session) -> dict:
     """
     Instantiates the persistence and security adapters.
 
@@ -157,7 +157,7 @@ def _create_output_adapters(db_session):
     }
 
 
-def _create_services(repositories):
+def _create_services(repositories: dict) -> dict:
     """
     Instantiates the core application services.
 
@@ -187,7 +187,7 @@ def _create_services(repositories):
     }
 
 
-def _init_web_facade_flask():
+def _init_web_facade_flask() -> Flask:
     """
     Initializes the Flask application instance (Web Facade).
 
@@ -203,7 +203,7 @@ def _init_web_facade_flask():
     return app
 
 
-def _init_web_adapters(services):
+def _init_web_adapters(services: dict) -> dict:
     """
     Instantiates the input adapters for the Web interface.
 
@@ -222,14 +222,7 @@ def _init_web_adapters(services):
     }
 
 
-def _register_web_routes(app, adapters):
-    """
-    Registers the URL rules for the Web interface facade.
-
-    Args:
-        app (Flask): The Flask application instance.
-        adapters (dict): A dictionary of initialized Web adapters.
-    """
+def _register_article_routes(app: Flask, adapters: dict) -> None:
     art = adapters["article_adapter"]
     app.add_url_rule("/", view_func=art.list_articles, endpoint="article.list_articles")
     app.add_url_rule("/articles/<int:article_id>", view_func=art.read_article, endpoint="article.read_article")
@@ -245,6 +238,8 @@ def _register_web_routes(app, adapters):
         "/articles/<int:article_id>/delete", view_func=art.delete_article, methods=["POST"], endpoint="article.delete_article"
     )
 
+
+def _register_comment_routes(app: Flask, adapters: dict) -> None:
     com = adapters["comment_adapter"]
     app.add_url_rule(
         "/articles/<int:article_id>/comments", view_func=com.create_comment, methods=["POST"], endpoint="comment.create_comment"
@@ -262,6 +257,8 @@ def _register_web_routes(app, adapters):
         endpoint="comment.delete_comment",
     )
 
+
+def _register_auth_routes(app: Flask, adapters: dict) -> None:
     log = adapters["login_adapter"]
     reg = adapters["registration_adapter"]
     acc = adapters["account_session_adapter"]
@@ -271,6 +268,19 @@ def _register_web_routes(app, adapters):
     app.add_url_rule("/register", view_func=reg.register, methods=["POST"], endpoint="registration.register_action")
     app.add_url_rule("/profile", view_func=acc.display_profile, endpoint="auth.profile")
     app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
+
+
+def _register_web_routes(app: Flask, adapters: dict) -> None:
+    """
+    Registers the URL rules for the Web interface facade.
+
+    Args:
+        app (Flask): The Flask application instance.
+        adapters (dict): A dictionary of initialized Web adapters.
+    """
+    _register_article_routes(app, adapters)
+    _register_comment_routes(app, adapters)
+    _register_auth_routes(app, adapters)
 
 
 def _init_web_security(app: Flask) -> None:
@@ -284,7 +294,7 @@ def _init_web_security(app: Flask) -> None:
     """
     csrf_protect = CSRFProtect(app)
     csp = CSPConfig()
-    app.after_request(csp.add_header)
+    app.after_request(csp.add_headers)
     app.after_request(_add_nosniff)
     csrf_protect.exempt(csp.handle_report)
     app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
