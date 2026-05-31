@@ -1,6 +1,9 @@
+import base64
+import hashlib
 import os
+from pathlib import Path
 
-from flask import Flask
+from flask import Flask, Response
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -26,6 +29,74 @@ from src.infrastructure.output_adapters.session.flask_session_adapter import Fla
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
+
+
+class CSPConfig:
+    """Configures Content Security Policy headers and violation reporting.
+
+    Computes the SHA-256 hash of the inline theme script at startup,
+    injects the Content-Security-Policy header into every response,
+    and provides an endpoint for receiving CSP violation reports from
+    the browser.
+    """
+
+    def __init__(self):
+        self._script_hash = self._compute_inline_script_hash()
+
+    @staticmethod
+    def _compute_inline_script_hash() -> str:
+        """Reads and hashes the inline theme script from base.html.
+
+        Returns:
+            str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
+        """
+        template_path = Path(__file__).parent / "src/infrastructure/input_adapters/templates/base.html"
+        content = template_path.read_text()
+        start = content.index("<script>\n") + len("<script>\n")
+        end = content.index("</script>", start)
+        digest = hashlib.sha256(content[start:end].encode()).digest()
+        return "'sha256-" + base64.b64encode(digest).decode() + "'"
+
+    def add_header(self, response: Response) -> Response:
+        """Injects the Content-Security-Policy and Reporting-Endpoints headers.
+
+        Restricts resource loading to same-origin, Google Fonts, and the
+        inline theme script (via SHA-256 hash). Configures CSP violation
+        reporting via both report-uri (legacy) and report-to (modern).
+
+        Args:
+            response: The Flask response object to modify.
+
+        Returns:
+            Response: The modified Flask response with CSP and reporting
+                headers set.
+        """
+        response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self';"
+            f"script-src 'self' {self._script_hash};"
+            "style-src 'self' https://fonts.googleapis.com;"
+            "font-src 'self' https://fonts.gstatic.com;"
+            "img-src 'self' data:;"
+            "base-uri 'self';"
+            "form-action 'self';"
+            "report-uri /csp-report;"
+            "report-to csp-endpoint"
+        )
+        return response
+
+    def handle_report(self) -> tuple[str, int]:
+        """Logs incoming CSP violation reports and returns 204 No Content.
+
+        Registered as a POST endpoint at /csp-report. The CSP report payload
+        is read from Flask's request context (no explicit parameters).
+
+        Returns:
+            tuple: An empty response with HTTP 204 (No Content).
+        """
+        from flask import current_app, request
+        current_app.logger.warning("CSP violation: %s", request.get_json())
+        return "", 204
 
 
 def _setup_database(db_session=None):
@@ -186,22 +257,11 @@ def _register_web_routes(app, adapters):
 
 
 def _init_web_security(app: Flask) -> None:
-    """
-    Initializes Flask-WTF CSRF protection for the application.
-
-    Registers a before_request handler that validates a CSRF token
-    on all POST, PUT, DELETE, and PATCH requests. The token must be
-    present in the request form data as 'csrf_token' or in the
-    X-CSRFToken header.
-
-    Args:
-        app (Flask): The Flask application instance to secure.
-            Must have ``secret_key`` configured before calling.
-
-    Returns:
-        None
-    """
-    CSRFProtect(app)
+    csrf_protect = CSRFProtect(app)
+    csp = CSPConfig()
+    app.after_request(csp.add_header)
+    csrf_protect.exempt(csp.handle_report)
+    app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
 
 
 def create_app(db_session=None) -> Flask:
