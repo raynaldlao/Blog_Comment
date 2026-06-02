@@ -304,7 +304,7 @@ class TestWorkflows:
                 assert b"Sign In" not in response.data
                 assert b"Sign Up" not in response.data
 
-        client.get("/logout", follow_redirects=True)
+        client.post("/logout", follow_redirects=True)
 
         response = client.get("/login")
         assert response.status_code == 200
