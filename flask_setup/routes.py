@@ -46,7 +46,7 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
     app.add_url_rule("/register", view_func=reg.register, methods=["POST"], endpoint="registration.register_action")
     app.add_url_rule("/profile", view_func=acc.display_profile, endpoint="auth.profile")
-    app.add_url_rule("/logout", view_func=acc.logout, endpoint="auth.logout")
+    app.add_url_rule("/logout", view_func=acc.logout, methods=["POST"], endpoint="auth.logout")
 
 
 def register_web_routes(app: Flask, adapters: dict) -> None:

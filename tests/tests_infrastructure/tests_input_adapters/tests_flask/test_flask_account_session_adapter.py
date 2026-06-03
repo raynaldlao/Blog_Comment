@@ -20,6 +20,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.app.add_url_rule(
             "/logout",
             view_func=self.adapter.logout,
+            methods=["POST"],
             endpoint="auth.logout"
         )
 
@@ -35,10 +36,14 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
     def test_logout_clears_session(self):
-        response = self.client.get("/logout", follow_redirects=True)
+        response = self.client.post("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
         assert b"alert-info" in response.data
         self.mock_session_service.terminate_session.assert_called_once()
+
+    def test_logout_get_returns_method_not_allowed(self):
+        response = self.client.get("/logout")
+        assert response.status_code == 405
 
     def test_get_profile_success(self):
         fake_user = create_test_account()
