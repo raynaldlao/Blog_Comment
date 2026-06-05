@@ -17,11 +17,11 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="registration-username">Choose Username</label>
-            <input type="text" id="registration-username" name="username" placeholder="dev_username" autocomplete="username" required>
+            <input type="text" id="registration-username" name="username" placeholder="dev_username" autocomplete="username" value="{{ username or '' }}" required>
         </div>
         <div class="form-group">
             <label for="registration-email">Email Address</label>
-            <input type="email" id="registration-email" name="email" placeholder="dev@example.com" autocomplete="email" required>
+            <input type="email" id="registration-email" name="email" placeholder="dev@example.com" autocomplete="email" value="{{ email or '' }}" required>
         </div>
         <div class="form-group">
             <label for="registration-password">Password</label>

@@ -40,16 +40,19 @@ class LoginAdapter(MethodView):
         Returns:
             Response: Redirects to the articles list on success, or back to login on failure.
         """
+        user = global_request_context.get("current_user")
+        submitted_username = request.form.get("username", "")
+
         try:
             login_data = LoginRequest(
-                username=request.form.get("username", ""),
+                username=submitted_username,
                 password=request.form.get("password", "")
             )
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
                 flash(f"Validation Error ({location}): {error['msg']}", "error")
-            return redirect(url_for("auth.login"))
+            return render_template("login.html", current_user=user, username=submitted_username)
 
         result = self.login_service.authenticate_user(
             username=login_data.username,
@@ -60,4 +63,4 @@ class LoginAdapter(MethodView):
             return redirect(url_for("article.list_articles"))
 
         flash("Invalid username or password.", "error")
-        return redirect(url_for("auth.login"))
+        return render_template("login.html", current_user=user, username=login_data.username)
