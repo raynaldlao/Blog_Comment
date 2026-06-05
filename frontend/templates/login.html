@@ -21,7 +21,10 @@
         </div>
         <div class="form-group account-form-group">
             <label for="login-password">Password</label>
-            <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <div class="password-wrapper">
+                <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                <button type="button" class="password-toggle material-symbols-outlined" aria-label="Toggle password visibility" aria-pressed="false">visibility</button>
+            </div>
         </div>
         <button type="submit" class="full-width">Sign In</button>
     </form>
