@@ -350,3 +350,22 @@ class TestSecurityHeaders:
         """Verifies the Referrer-Policy header is set to strict-origin-when-cross-origin."""
         response = client.get("/login")
         assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
+
+    def test_session_permanent_enabled(self, client):
+        """Verifies that SESSION_PERMANENT is enabled (required for server-side timeout)."""
+        assert client.application.config["SESSION_PERMANENT"] is True
+
+    def test_session_lifetime_config(self, client):
+        """Verifies that PERMANENT_SESSION_LIFETIME is set to 30 minutes."""
+        from datetime import timedelta
+        assert client.application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(minutes=30)
+
+    def test_session_cookie_has_no_expiry(self, client, db_session):
+        """Verifies the Set-Cookie header has no Expires or Max-Age (browser-session only)."""
+        auth = AccountModel(account_username="sess_user", account_email="su@t.com", account_password="p", account_role="user")
+        db_session.add(auth)
+        db_session.commit()
+        response = client.post("/login", data={"username": "sess_user", "password": "p"})
+        set_cookie = response.headers.get("Set-Cookie", "")
+        assert "Expires=" not in set_cookie
+        assert "Max-Age=" not in set_cookie
