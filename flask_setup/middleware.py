@@ -92,6 +92,22 @@ def _add_nosniff(response: Response) -> Response:
     return response
 
 
+def _add_x_frame_options(response: Response) -> Response:
+    """Sets the X-Frame-Options header to DENY.
+
+    Prevents the site from being embedded in third-party iframes,
+    mitigating clickjacking attacks.
+
+    Args:
+        response: The Flask response object to modify.
+
+    Returns:
+        The modified Flask response with X-Frame-Options set.
+    """
+    response.headers["X-Frame-Options"] = "DENY"
+    return response
+
+
 def init_web_security(app: Flask) -> None:
     """Configures web security middleware for the Flask application.
 
@@ -105,5 +121,6 @@ def init_web_security(app: Flask) -> None:
     csp = CSPConfig()
     app.after_request(csp.add_headers)
     app.after_request(_add_nosniff)
+    app.after_request(_add_x_frame_options)
     csrf_protect.exempt(csp.handle_report)
     app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])

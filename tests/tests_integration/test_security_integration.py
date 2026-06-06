@@ -340,3 +340,8 @@ class TestSecurityHeaders:
         """Verifies the X-Content-Type-Options header is set to nosniff."""
         response = client.get("/login")
         assert response.headers.get("X-Content-Type-Options") == "nosniff"
+
+    def test_x_frame_options_header(self, client):
+        """Verifies the X-Frame-Options header is set to DENY."""
+        response = client.get("/login")
+        assert response.headers.get("X-Frame-Options") == "DENY"
