@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from flask import Flask
 from sqlalchemy.orm import Session
@@ -115,6 +116,8 @@ def _init_web_facade_flask() -> Flask:
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_PERMANENT"] = True
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
     return app
 
 
@@ -164,4 +167,4 @@ def create_app(db_session=None) -> Flask:
 
 if __name__ == "__main__":
     application = create_app()
-    application.run(debug=True)
+    application.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")

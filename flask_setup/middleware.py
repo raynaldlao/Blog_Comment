@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 
 from flask import Flask, Response
+from flask.sessions import SecureCookieSessionInterface
 from flask_wtf.csrf import CSRFProtect
 
 
@@ -125,6 +126,17 @@ def _add_referrer_policy(response: Response) -> Response:
     return response
 
 
+class NonPersistentSessionInterface(SecureCookieSessionInterface):
+    """Session interface that removes the cookie Expires header.
+
+    The cookie is treated as a browser-session cookie (deleted on browser close)
+    while keeping the server-side timeout via PERMANENT_SESSION_LIFETIME.
+    """
+
+    def get_expiration_time(self, app, session):
+        return None
+
+
 def init_web_security(app: Flask) -> None:
     """Configures web security middleware for the Flask application.
 
@@ -134,6 +146,7 @@ def init_web_security(app: Flask) -> None:
     Args:
         app: The Flask application instance to secure.
     """
+    app.session_interface = NonPersistentSessionInterface()
     csrf_protect = CSRFProtect(app)
     csp = CSPConfig()
     app.after_request(csp.add_headers)
