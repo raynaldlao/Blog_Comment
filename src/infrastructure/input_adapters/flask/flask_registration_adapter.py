@@ -40,10 +40,14 @@ class RegistrationAdapter(MethodView):
         Returns:
             Response: Redirects to login on success, or back to registration on failure.
         """
+        user = global_request_context.get("current_user")
+        submitted_username = request.form.get("username", "")
+        submitted_email = request.form.get("email", "")
+
         try:
             reg_data = RegistrationRequest(
-                username=request.form.get("username", ""),
-                email=request.form.get("email", ""),
+                username=submitted_username,
+                email=submitted_email,
                 password=request.form.get("password", ""),
                 confirm_password=request.form.get("confirm_password", "")
             )
@@ -51,7 +55,7 @@ class RegistrationAdapter(MethodView):
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
                 flash(f"{location}: {error['msg']}", "error")
-            return redirect(url_for("registration.register"))
+            return render_template("registration.html", current_user=user, username=submitted_username, email=submitted_email)
 
         result = self.registration_service.create_account(
             username=reg_data.username,
@@ -61,7 +65,7 @@ class RegistrationAdapter(MethodView):
 
         if isinstance(result, str):
             flash(result, "error")
-            return redirect(url_for("registration.register"))
+            return render_template("registration.html", current_user=user, username=reg_data.username, email=reg_data.email)
 
         flash("Registration successful. Please sign in.", "success")
         return redirect(url_for("auth.login"))
