@@ -345,3 +345,8 @@ class TestSecurityHeaders:
         """Verifies the X-Frame-Options header is set to DENY."""
         response = client.get("/login")
         assert response.headers.get("X-Frame-Options") == "DENY"
+
+    def test_referrer_policy_header(self, client):
+        """Verifies the Referrer-Policy header is set to strict-origin-when-cross-origin."""
+        response = client.get("/login")
+        assert response.headers.get("Referrer-Policy") == "strict-origin-when-cross-origin"
