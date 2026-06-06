@@ -167,4 +167,4 @@ def create_app(db_session=None) -> Flask:
 
 if __name__ == "__main__":
     application = create_app()
-    application.run(debug=True)
+    application.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")
