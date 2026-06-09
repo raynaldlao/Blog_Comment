@@ -1,16 +1,24 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { useCreateBlockNote } from '@blocknote/react';
-import { BlockNoteView } from '@blocknote/mantine';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-
-function App() {
-  const editor = useCreateBlockNote();
-  return <BlockNoteView editor={editor} />;
-}
+import ArticleEditor from './ArticleEditor';
+import ArticleViewer from './ArticleViewer';
 
 const root = document.getElementById('root');
-if (root) {
-  ReactDOM.createRoot(root).render(<App />);
+const page = root?.dataset.page;
+
+let Component;
+if (page === 'create' || page === 'edit') {
+  Component = ArticleEditor;
+} else if (page === 'view') {
+  Component = ArticleViewer;
+}
+
+if (root && Component) {
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <Component />
+    </React.StrictMode>,
+  );
 }

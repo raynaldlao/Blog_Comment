@@ -264,7 +264,7 @@ class TestCSRF:
         client.post("/login", data={"username": "page_author", "password": "p"})
         response = client.get("/articles/new")
         assert response.status_code == 200
-        assert b"Write your story" in response.data
+        assert b'data-page="create"' in response.data
         assert b'id="root"' in response.data
 
 
