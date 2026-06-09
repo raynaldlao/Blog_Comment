@@ -1,36 +1,29 @@
 import {
-  BasicTextStyleButton,
-  BlockTypeSelect,
-  ColorStyleButton,
-  CreateLinkButton,
-  FileCaptionButton,
-  FileReplaceButton,
-  FormattingToolbar,
-  NestBlockButton,
-  TextAlignButton,
-  UnnestBlockButton,
+  useComponentsContext,
+  getFormattingToolbarItems,
 } from '@blocknote/react';
 
 import JustifyButton from './JustifyButton';
 
 export default function CustomFormattingToolbar() {
+  const Components = useComponentsContext();
+  if (!Components) {
+    return null;
+  }
+
+  const items = getFormattingToolbarItems();
+  const filtered = items.filter(
+    (item) => item.key !== 'nestBlockButton' && item.key !== 'unnestBlockButton',
+  );
+  const rightIdx = filtered.findIndex(
+    (item) => item.props?.textAlignment === 'right',
+  );
+
   return (
-    <FormattingToolbar>
-      <BlockTypeSelect key="blockTypeSelect" />
-      <FileCaptionButton key="fileCaptionButton" />
-      <FileReplaceButton key="fileReplaceButton" />
-      <BasicTextStyleButton basicTextStyle="bold" key="boldStyleButton" />
-      <BasicTextStyleButton basicTextStyle="italic" key="italicStyleButton" />
-      <BasicTextStyleButton basicTextStyle="underline" key="underlineStyleButton" />
-      <BasicTextStyleButton basicTextStyle="strike" key="strikeStyleButton" />
-      <TextAlignButton textAlignment="left" key="textAlignLeftButton" />
-      <TextAlignButton textAlignment="center" key="textAlignCenterButton" />
-      <TextAlignButton textAlignment="right" key="textAlignRightButton" />
-      <JustifyButton key="justifyButton" />
-      <ColorStyleButton key="colorStyleButton" />
-      <NestBlockButton key="nestBlockButton" />
-      <UnnestBlockButton key="unnestBlockButton" />
-      <CreateLinkButton key="createLinkButton" />
-    </FormattingToolbar>
+    <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
+      {filtered.slice(0, rightIdx + 1)}
+      <JustifyButton />
+      {filtered.slice(rightIdx + 1)}
+    </Components.FormattingToolbar.Root>
   );
 }
