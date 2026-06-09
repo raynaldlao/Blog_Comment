@@ -23,9 +23,11 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 from utils.template_helpers import (
+    ViteManifest,
     date_format_filter,
     date_iso_filter,
     inject_current_year,
+    inject_vite_assets,
     nl2br_filter,
 )
 
@@ -133,13 +135,19 @@ def _init_template_utils(app: Flask) -> None:
     Injects the current UTC year into the template context as
     ``current_year`` via ``inject_current_year``.
 
+    Injects Vite asset URLs (``vite_js_url``, ``vite_css_urls``) for the
+    BlockNote React frontend build.
+
     Args:
         app: The Flask application instance to configure.
     """
+    ViteManifest.init(app.static_folder)
+
     app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
     app.context_processor(inject_current_year)
+    app.context_processor(inject_vite_assets)
 
 
 def create_app(db_session=None) -> Flask:
