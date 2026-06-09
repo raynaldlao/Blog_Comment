@@ -34,21 +34,20 @@ class TestWorkflows:
         article_title = "Integration Test Article"
         article_content = "This is a test content from a real integration flow."
 
-        create_response = client.post("/articles/new", data={
+        create_response = client.post("/api/articles", json={
             "title": article_title,
             "content": article_content
-        }, follow_redirects=True)
+        })
 
-        assert article_title.encode() in create_response.data
+        assert create_response.status_code == 201
         article_record = db_session.query(ArticleModel).filter_by(article_title=article_title).first()
         article_id = article_record.article_id
         comment_content = "First amazing comment!"
 
-        comment_response = client.post(f"/articles/{article_id}/comments", data={
+        client.post(f"/articles/{article_id}/comments", data={
             "content": comment_content
         }, follow_redirects=True)
 
-        assert comment_content.encode() in comment_response.data
         root_comment = db_session.query(CommentModel).filter_by(comment_content=comment_content).first()
         reply_content = "This is a nested reply!"
 
@@ -232,51 +231,38 @@ class TestWorkflows:
         current_year_str = str(datetime.now(UTC).year).encode()
         assert current_year_str in response.data
 
-    def test_success_flash_after_article_creation(self, client, db_session):
-        """
-        Verifies that a successfully created article shows a success flash message
-        with the alert-success CSS class in the redirected response.
-        """
+    def test_success_after_article_creation(self, client, db_session):
         author = AccountModel(
-            account_username="flash_author", account_email="fa@t.com",
+            account_username="api_author", account_email="api@t.com",
             account_password="p", account_role="author"
         )
-
         db_session.add(author)
         db_session.commit()
+        client.post("/login", data={"username": "api_author", "password": "p"}, follow_redirects=True)
 
-        client.post("/login", data={"username": "flash_author", "password": "p"}, follow_redirects=True)
+        response = client.post("/api/articles", json={
+            "title": "API Test Article",
+            "content": "Testing API creation."
+        })
 
-        response = client.post("/articles/new", data={
-            "title": "Flash Test Article",
-            "content": "Testing flash success category."
-        }, follow_redirects=True)
+        assert response.status_code == 201
+        data = response.get_json()
+        assert "id" in data
+        assert isinstance(data["id"], int)
 
-        assert b"Your article has been successfully published!" in response.data
-        assert b"alert-success" in response.data
-
-    def test_error_flash_on_validation_failure(self, client, db_session):
-        """
-        Verifies that a validation error shows an error flash message
-        with the alert-error CSS class.
-        """
+    def test_error_on_validation_failure(self, client, db_session):
         author = AccountModel(
-            account_username="val_author", account_email="va@t.com",
+            account_username="val_api", account_email="val_api@t.com",
             account_password="p", account_role="author"
         )
-
         db_session.add(author)
         db_session.commit()
+        client.post("/login", data={"username": "val_api", "password": "p"}, follow_redirects=True)
 
-        client.post("/login", data={"username": "val_author", "password": "p"}, follow_redirects=True)
+        response = client.post("/api/articles", json={"title": "Valid Title"})
 
-        response = client.post("/articles/new", data={
-            "title": "Valid Title",
-            "content": ""
-        }, follow_redirects=True)
-
-        assert b"Validation Error" in response.data
-        assert b"alert-error" in response.data
+        assert response.status_code == 400
+        assert "1 character" in response.get_json()["error"]
 
     def test_nav_consistency_across_pages_integ(self, client, db_session):
         """

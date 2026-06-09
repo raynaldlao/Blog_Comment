@@ -27,19 +27,10 @@
             {% if current_user and current_user.account_id == article.article_author_id %}
                 <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
             {% endif %}
-            
-            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" class="detail-delete-form" id="delete-article-form">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-secondary detail-delete-btn confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-form">Delete</button>
-                </form>
-            {% endif %}
         </div>
     </header>
 
-    <div class="detail-body">
-        {{ article.article_content | nl2br }}
-    </div>
+    <div id="root" data-article-id="{{ article.article_id }}"></div>
 
     <hr>
 

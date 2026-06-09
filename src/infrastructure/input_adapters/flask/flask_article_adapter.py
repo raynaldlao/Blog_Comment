@@ -3,7 +3,7 @@ import math
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
@@ -109,46 +109,93 @@ class ArticleAdapter:
 
         return render_template("article_create.html", current_user=user)
 
-    def create_article(self) -> Response:
-        """
-        Processes the submission of a new article.
-        Validates input via ArticleRequest DTO and passes IDs to the domain service.
+    def api_get_article(self, article_id: int):
+        article = self.article_service.get_by_id(article_id)
+        if not article:
+            return {"error": "Article not found."}, 404
 
-        Returns:
-            Response: A redirect to the new article's detail page or back to the form on error.
-        """
+        username = self.article_service.get_author_name(article.article_author_id)
+        return jsonify({
+            "id": article.article_id,
+            "title": article.article_title,
+            "content": article.article_content,
+            "author_id": article.article_author_id,
+            "author_username": username,
+            "published_at": article.article_published_at,
+        })
+
+    def api_create_article(self):
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to author an article.", "error")
-            return redirect(url_for("auth.login"))
-
+            return {"error": "Unauthorized."}, 401
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
-            return redirect(url_for("article.list_articles"))
+            return {"error": "Insufficient permissions."}, 403
+
+        data = request.get_json(silent=True)
+        if not data:
+            return {"error": "Invalid JSON body."}, 400
 
         try:
             req_data = ArticleRequest(
-                title=request.form.get("title", ""),
-                content=request.form.get("content", ""),
+                title=data.get("title", ""),
+                content=data.get("content", ""),
             )
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}", "error")
-            return redirect(url_for("article.render_create_page"))
+                return {"error": f"({error['loc'][0]}): {error['msg']}"}, 400
+            return {"error": "Validation error."}, 400
 
         result = self.article_service.create_article(
-            title=req_data.title,
-            content=req_data.content,
-            author_id=user.account_id,
-            author_role=user.account_role,
+            title=req_data.title, content=req_data.content, author_id=user.account_id, author_role=user.account_role,
         )
-
         if isinstance(result, str):
-            flash(result, "error")
-            return redirect(url_for("article.render_create_page"))
+            return {"error": result}, 403
 
-        flash("Your article has been successfully published!", "success")
-        return redirect(url_for("article.read_article", article_id=result.article_id))
+        return jsonify({"id": result.article_id}), 201
+
+    def api_update_article(self, article_id: int):
+        user = global_request_context.get("current_user")
+        if not user:
+            return {"error": "Unauthorized."}, 401
+        if user.account_role not in ["admin", "author"]:
+            return {"error": "Insufficient permissions."}, 403
+
+        data = request.get_json(silent=True)
+        if not data:
+            return {"error": "Invalid JSON body."}, 400
+
+        try:
+            req_data = ArticleRequest(
+                title=data.get("title", ""),
+                content=data.get("content", ""),
+            )
+        except ValidationError as e:
+            for error in e.errors():
+                return {"error": f"({error['loc'][0]}): {error['msg']}"}, 400
+            return {"error": "Validation error."}, 400
+
+        result = self.article_service.update_article(
+            article_id=article_id, user_id=user.account_id, title=req_data.title, content=req_data.content,
+        )
+        if isinstance(result, str):
+            return {"error": result}, 403
+
+        return {"ok": True}
+
+    def api_delete_article(self, article_id: int):
+        user = global_request_context.get("current_user")
+        if not user:
+            return {"error": "Unauthorized."}, 401
+        if user.account_role not in ["admin", "author"]:
+            return {"error": "Insufficient permissions."}, 403
+
+        result = self.article_service.delete_article(
+            article_id=article_id, user_id=user.account_id,
+        )
+        if isinstance(result, str):
+            return {"error": result}, 403
+
+        return {"ok": True}
 
     def render_edit_page(self, article_id: int) -> str | Response:
         """
@@ -178,79 +225,3 @@ class ArticleAdapter:
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
         return render_template("article_edit.html", article=article, current_user=user)
-
-    def update_article(self, article_id: int) -> Response:
-        """
-        Processes an article update request.
-        Passes the current user ID to the service for ownership verification.
-
-        Args:
-            article_id (int): ID of the article to update.
-
-        Returns:
-            Response: A redirect to the detail page or back to the edit form on error.
-        """
-        user = global_request_context.get("current_user")
-        if not user:
-            flash("You must be signed in to edit an article.", "error")
-            return redirect(url_for("auth.login"))
-
-        if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
-            return redirect(url_for("article.list_articles"))
-
-        try:
-            req_data = ArticleRequest(
-                title=request.form.get("title", ""),
-                content=request.form.get("content", ""),
-            )
-        except ValidationError as e:
-            for error in e.errors():
-                flash(f"Validation Error ({error['loc'][0]}): {error['msg']}", "error")
-            return redirect(url_for("article.render_edit_page", article_id=article_id))
-
-        result = self.article_service.update_article(
-            article_id=article_id,
-            user_id=user.account_id,
-            title=req_data.title,
-            content=req_data.content,
-        )
-
-        if isinstance(result, str):
-            flash(result, "error")
-            return redirect(url_for("article.render_edit_page", article_id=article_id))
-
-        flash("Your article has been successfully updated!", "success")
-        return redirect(url_for("article.read_article", article_id=article_id))
-
-    def delete_article(self, article_id: int) -> Response:
-        """
-        Processes an article deletion request.
-        Ownership or Admin permissions are verified at the domain service level.
-
-        Args:
-            article_id (int): ID of the article to delete.
-
-        Returns:
-            Response: A redirect to the articles list page.
-        """
-        user = global_request_context.get("current_user")
-        if not user:
-            flash("You must be signed in to delete an article.", "error")
-            return redirect(url_for("auth.login"))
-
-        if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
-            return redirect(url_for("article.list_articles"))
-
-        result = self.article_service.delete_article(
-            article_id=article_id,
-            user_id=user.account_id
-        )
-
-        if isinstance(result, str):
-            flash(result, "error")
-            return redirect(url_for("article.read_article", article_id=article_id))
-
-        flash("Article has been successfully deleted.", "success")
-        return redirect(url_for("article.list_articles"))

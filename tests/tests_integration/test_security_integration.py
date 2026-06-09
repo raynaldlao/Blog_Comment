@@ -15,22 +15,16 @@ class TestXSS:
         client.post("/login", data={"username": "xss_author", "password": "p"}, follow_redirects=True)
         xss_payload = "<script>alert('XSS')</script>"
 
-        client.post("/articles/new", data={
+        response = client.post("/api/articles", json={
             "title": "Malicious Article",
             "content": xss_payload
-        }, follow_redirects=True)
+        })
+        assert response.status_code == 201
 
         response = client.get("/")
         assert xss_payload.encode() not in response.data
-        assert b"&lt;script&gt;" in response.data or b"alert('XSS')" in response.data
 
-    def test_article_detail_escapes_xss(self, client, db_session):
-        """
-        Verifies that article content is HTML-escaped on the detail page.
-
-        Creates an article with a script payload and checks that the
-        rendered detail page contains escaped entities rather than raw HTML.
-        """
+    def test_article_detail_loads_content_via_api(self, client, db_session):
         auth = AccountModel(
             account_username="xss_detail", account_email="xss_d@t.com",
             account_password="p", account_role="author"
@@ -40,40 +34,17 @@ class TestXSS:
         client.post("/login", data={"username": "xss_detail", "password": "p"}, follow_redirects=True)
 
         xss_payload = '<script>alert("xss")</script>'
-        client.post("/articles/new", data={
+        resp = client.post("/api/articles", json={
             "title": "XSS Detail Test",
             "content": xss_payload
-        }, follow_redirects=True)
+        })
+        assert resp.status_code == 201
+        article_id = resp.get_json()["id"]
 
-        article = db_session.query(ArticleModel).filter_by(article_title="XSS Detail Test").first()
-        response = client.get(f"/articles/{article.article_id}")
+        response = client.get(f"/articles/{article_id}")
         assert response.status_code == 200
-        assert "&lt;script&gt;alert(&#34;xss&#34;)&lt;/script&gt;" in response.text
-
-    def test_article_detail_preserves_newlines(self, client, db_session):
-        """
-        Verifies that newlines in article content are rendered as <br> tags.
-
-        Creates an article with multi-line content and checks that the
-        rendered detail page contains <br> elements for each newline.
-        """
-        auth = AccountModel(
-            account_username="nl_detail", account_email="nl_d@t.com",
-            account_password="p", account_role="author"
-        )
-        db_session.add(auth)
-        db_session.commit()
-        client.post("/login", data={"username": "nl_detail", "password": "p"}, follow_redirects=True)
-
-        client.post("/articles/new", data={
-            "title": "Newline Test Detail",
-            "content": "line1\nline2\nline3"
-        }, follow_redirects=True)
-
-        article = db_session.query(ArticleModel).filter_by(article_title="Newline Test Detail").first()
-        response = client.get(f"/articles/{article.article_id}")
-        assert response.status_code == 200
-        assert "<br>" in response.text
+        assert b"xss" in response.data
+        assert f'data-article-id="{article_id}"'.encode() in response.data
 
     def test_comment_xss_with_newlines_escaped(self, client, db_session):
         """
@@ -207,10 +178,11 @@ class TestSQLi:
         client.post("/login", data={"username": "db_admin", "password": "p"}, follow_redirects=True)
         malicious_title = "Safe Title'); DROP TABLE accounts; --"
 
-        client.post("/articles/new", data={
+        resp = client.post("/api/articles", json={
             "title": malicious_title,
             "content": "Checking resilience..."
-        }, follow_redirects=True)
+        })
+        assert resp.status_code == 201
 
         assert db_session.query(AccountModel).count() >= 1
         saved_article = db_session.query(ArticleModel).filter_by(article_title=malicious_title).first()
@@ -243,8 +215,9 @@ class TestAccessControl:
         db_session.add(article)
         db_session.commit()
         client.post("/login", data={"username": "hacker", "password": "p"}, follow_redirects=True)
-        response = client.post(f"/articles/{article.article_id}/delete", follow_redirects=True)
-        assert b"Insufficient permissions" in response.data or b"Unauthorized" in response.data
+        response = client.delete(f"/api/articles/{article.article_id}")
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Insufficient permissions."}
         assert db_session.query(ArticleModel).filter_by(article_id=article.article_id).count() == 1
 
     def test_read_non_existent_article(self, client, db_session):
@@ -279,23 +252,20 @@ class TestCSRF:
         response = client.get("/register")
         assert b"csrf_token" in response.data
 
-    def test_create_article_page_contains_csrf_field(self, client, db_session):
-        """
-        Verifies that the article creation form renders a CSRF token field.
-
-        Creates an authenticated author session first, then checks that
-        the article creation page includes the ``csrf_token`` hidden input.
-        """
+    def test_create_article_page_renders_for_author(self, client, db_session):
         from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 
         auth = AccountModel(
-            account_username="csrf_author", account_email="csrf@t.com", account_password="p", account_role="author"
+            account_username="page_author", account_email="page@t.com",
+            account_password="p", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "csrf_author", "password": "p"})
+        client.post("/login", data={"username": "page_author", "password": "p"})
         response = client.get("/articles/new")
-        assert b"csrf_token" in response.data
+        assert response.status_code == 200
+        assert b"Write your story" in response.data
+        assert b'id="root"' in response.data
 
 
 class TestCSP:

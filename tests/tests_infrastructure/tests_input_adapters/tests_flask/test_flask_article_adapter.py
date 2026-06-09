@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 from src.application.domain.account import AccountRole
-from src.application.domain.comment import CommentThreadView
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
@@ -47,13 +46,6 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         )
 
         self.app.add_url_rule(
-            "/articles/new",
-            view_func=self.adapter.create_article,
-            methods=["POST"],
-            endpoint="article.create_article"
-        )
-
-        self.app.add_url_rule(
             "/articles/<int:article_id>/edit",
             view_func=self.adapter.render_edit_page,
             methods=["GET"],
@@ -61,17 +53,28 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         )
 
         self.app.add_url_rule(
-            "/articles/<int:article_id>/edit",
-            view_func=self.adapter.update_article,
+            "/api/articles",
+            view_func=self.adapter.api_create_article,
             methods=["POST"],
-            endpoint="article.update_article"
+            endpoint="article.api_create",
         )
-
         self.app.add_url_rule(
-            "/articles/<int:article_id>/delete",
-            view_func=self.adapter.delete_article,
-            methods=["POST"],
-            endpoint="article.delete_article"
+            "/api/articles/<int:article_id>",
+            view_func=self.adapter.api_get_article,
+            methods=["GET"],
+            endpoint="article.api_get",
+        )
+        self.app.add_url_rule(
+            "/api/articles/<int:article_id>",
+            view_func=self.adapter.api_update_article,
+            methods=["PUT"],
+            endpoint="article.api_update",
+        )
+        self.app.add_url_rule(
+            "/api/articles/<int:article_id>",
+            view_func=self.adapter.api_delete_article,
+            methods=["DELETE"],
+            endpoint="article.api_delete",
         )
 
         self._register_dummy_route("/login", "auth.login", "auth")
@@ -159,9 +162,9 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert b"data-url" in response.data
 
     def test_create_article_redirects_anonymous_to_login(self):
-        response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
-        assert b"You must be signed in" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.post("/api/articles", json={"title": "T", "content": "C"})
+        assert response.status_code == 401
+        assert response.get_json() == {"error": "Unauthorized."}
 
     def test_render_create_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/new", follow_redirects=True)
@@ -169,9 +172,9 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert b"alert-error" in response.data
 
     def test_delete_article_redirects_anonymous_to_login(self):
-        response = self.client.post("/articles/1/delete", follow_redirects=True)
-        assert b"You must be signed in" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.delete("/api/articles/1")
+        assert response.status_code == 401
+        assert response.get_json() == {"error": "Unauthorized."}
 
     def test_render_edit_page_redirects_anonymous_to_login(self):
         response = self.client.get("/articles/1/edit", follow_redirects=True)
@@ -179,9 +182,9 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         assert b"alert-error" in response.data
 
     def test_update_article_redirects_anonymous_to_login(self):
-        response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
-        assert b"You must be signed in" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.put("/api/articles/1", json={"title": "T", "content": "C"})
+        assert response.status_code == 401
+        assert response.get_json() == {"error": "Unauthorized."}
 
 
 class TestArticleUserAccess(ArticleAdapterTestBase):
@@ -202,23 +205,23 @@ class TestArticleUserAccess(ArticleAdapterTestBase):
     def test_user_cannot_update_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
-        response = self.client.post("/articles/1/edit", data={"title": "T", "content": "C"}, follow_redirects=True)
-        assert b"Insufficient permissions" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.put("/api/articles/1", json={"title": "T", "content": "C"})
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Insufficient permissions."}
 
     def test_user_cannot_delete_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
-        response = self.client.post("/articles/1/delete", follow_redirects=True)
-        assert b"Insufficient permissions" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.delete("/api/articles/1")
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Insufficient permissions."}
 
     def test_user_cannot_create_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)
-        response = self.client.post("/articles/new", data={"title": "T", "content": "C"}, follow_redirects=True)
-        assert b"Insufficient permissions" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.post("/api/articles", json={"title": "T", "content": "C"})
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Insufficient permissions."}
         self.mock_article_repo.save.assert_not_called()
 
 
@@ -226,17 +229,19 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
     def test_author_can_create_article_with_short_title(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
         self._prepare_user_context(author)
-        created_article = create_test_article(article_id=0, article_author_id=10, article_title="A")
-        self.mock_article_repo.get_by_id.return_value = created_article
+
+        def _save_side_effect(article):
+            article.article_id = 1
+
+        self.mock_article_repo.save.side_effect = _save_side_effect
 
         response = self.client.post(
-            "/articles/new",
-            data={"title": "A", "content": "Contenu suffisant."},
-            follow_redirects=True
+            "/api/articles",
+            json={"title": "A", "content": "Contenu suffisant."},
         )
 
-        assert b"Your article has been successfully published!" in response.data
-        assert b"alert-success" in response.data
+        assert response.status_code == 201
+        assert response.get_json() == {"id": 1}
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_create_article_service_error(self):
@@ -247,12 +252,11 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         mock_service.create_article.return_value = "Service Error Message"
 
         response = self.client.post(
-            "/articles/new",
-            data={"title": "A", "content": "Long enough content."},
-            follow_redirects=True
+            "/api/articles",
+            json={"title": "A", "content": "Long enough content."},
         )
-        assert b"Service Error Message" in response.data
-        assert b"alert-error" in response.data
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Service Error Message"}
 
     def test_author_can_edit_own_article(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
@@ -260,14 +264,13 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         article = create_test_article(article_id=1, article_author_id=10)
         self.mock_article_repo.get_by_id.return_value = article
 
-        response = self.client.post(
-            "/articles/1/edit",
-            data={"title": "Updated Title", "content": "New content is long enough."},
-            follow_redirects=True
+        response = self.client.put(
+            "/api/articles/1",
+            json={"title": "Updated Title", "content": "New content is long enough."},
         )
 
-        assert b"Your article has been successfully updated!" in response.data
-        assert b"alert-success" in response.data
+        assert response.status_code == 200
+        assert response.get_json() == {"ok": True}
         self.mock_article_repo.save.assert_called_once()
 
     def test_author_cannot_edit_others_article(self):
@@ -276,14 +279,13 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         other_article = create_test_article(article_id=1, article_author_id=99)
         self.mock_article_repo.get_by_id.return_value = other_article
 
-        response = self.client.post(
-            "/articles/1/edit",
-            data={"title": "Hack Attempt", "content": "I am not the author."},
-            follow_redirects=True
+        response = self.client.put(
+            "/api/articles/1",
+            json={"title": "Hack Attempt", "content": "I am not the author."},
         )
 
-        assert b"Unauthorized" in response.data
-        assert b"alert-error" in response.data
+        assert response.status_code == 403
+        assert "Unauthorized" in response.get_json()["error"]
         self.mock_article_repo.save.assert_not_called()
 
     def test_read_article_not_found(self):
@@ -310,9 +312,9 @@ class TestArticleAdminAccess(ArticleAdapterTestBase):
         self._prepare_user_context(admin)
         article = create_test_article(article_id=1, article_author_id=99)
         self.mock_article_repo.get_by_id.return_value = article
-        response = self.client.post("/articles/1/delete", follow_redirects=True)
-        assert b"Article has been successfully deleted." in response.data
-        assert b"alert-success" in response.data
+        response = self.client.delete("/api/articles/1")
+        assert response.status_code == 200
+        assert response.get_json() == {"ok": True}
         self.mock_article_repo.delete.assert_called_once()
 
 
@@ -322,13 +324,12 @@ class TestArticleValidation(ArticleAdapterTestBase):
         self._prepare_user_context(author)
 
         response = self.client.post(
-            "/articles/new",
-            data={"title": "Title Only"},
-            follow_redirects=True
+            "/api/articles",
+            json={"title": "Title Only"},
         )
 
-        assert b"Validation Error" in response.data
-        assert b"alert-error" in response.data
+        assert response.status_code == 400
+        assert "1 character" in response.get_json()["error"]
         self.mock_article_repo.save.assert_not_called()
 
     def test_update_article_validation_error(self):
@@ -337,31 +338,21 @@ class TestArticleValidation(ArticleAdapterTestBase):
         article = create_test_article(article_id=1, article_author_id=author.account_id)
         self.mock_article_repo.get_by_id.return_value = article
 
-        response = self.client.post(
-            "/articles/1/edit",
-            data={"title": ""},
-            follow_redirects=True
+        response = self.client.put(
+            "/api/articles/1",
+            json={"title": "", "content": ""},
         )
 
-        assert b"Validation Error" in response.data
-        assert b"alert-error" in response.data
+        assert response.status_code == 400
+        assert "1 character" in response.get_json()["error"]
 
     def test_delete_article_service_error(self):
-        from src.application.domain.article import ArticleDetailView, ArticleWithAuthor
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
         self._prepare_user_context(author)
-        article = create_test_article(article_id=1, article_author_id=10)
-
-        detail = ArticleDetailView(
-            article_with_author=ArticleWithAuthor(article=article, author_name=author.account_username),
-            threaded_comments=CommentThreadView(threads={"root": []})
-        )
-
         self.adapter.article_service.delete_article = Mock(return_value="Delete Error")
-        self.adapter.article_service.get_article_with_comments = Mock(return_value=detail)
-        response = self.client.post("/articles/1/delete", follow_redirects=True)
-        assert b"Delete Error" in response.data
-        assert b"alert-error" in response.data
+        response = self.client.delete("/api/articles/1")
+        assert response.status_code == 403
+        assert response.get_json() == {"error": "Delete Error"}
 
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):

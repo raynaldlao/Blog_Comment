@@ -6,15 +6,32 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
     app.add_url_rule("/", view_func=art.list_articles, endpoint="article.list_articles")
     app.add_url_rule("/articles/<int:article_id>", view_func=art.read_article, endpoint="article.read_article")
     app.add_url_rule("/articles/new", view_func=art.render_create_page, methods=["GET"], endpoint="article.render_create_page")
-    app.add_url_rule("/articles/new", view_func=art.create_article, methods=["POST"], endpoint="article.create_article")
     app.add_url_rule(
         "/articles/<int:article_id>/edit", view_func=art.render_edit_page, methods=["GET"], endpoint="article.render_edit_page"
     )
+
+
+def _register_article_api_routes(app: Flask, adapters: dict) -> None:
+    art = adapters["article_adapter"]
     app.add_url_rule(
-        "/articles/<int:article_id>/edit", view_func=art.update_article, methods=["POST"], endpoint="article.update_article"
+        "/api/articles/<int:article_id>",
+        view_func=art.api_get_article, methods=["GET"],
+        endpoint="article.api_get",
     )
     app.add_url_rule(
-        "/articles/<int:article_id>/delete", view_func=art.delete_article, methods=["POST"], endpoint="article.delete_article"
+        "/api/articles",
+        view_func=art.api_create_article, methods=["POST"],
+        endpoint="article.api_create",
+    )
+    app.add_url_rule(
+        "/api/articles/<int:article_id>",
+        view_func=art.api_update_article, methods=["PUT"],
+        endpoint="article.api_update",
+    )
+    app.add_url_rule(
+        "/api/articles/<int:article_id>",
+        view_func=art.api_delete_article, methods=["DELETE"],
+        endpoint="article.api_delete",
     )
 
 
@@ -51,5 +68,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
 
 def register_web_routes(app: Flask, adapters: dict) -> None:
     _register_article_routes(app, adapters)
+    _register_article_api_routes(app, adapters)
     _register_comment_routes(app, adapters)
     _register_auth_routes(app, adapters)
