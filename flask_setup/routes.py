@@ -13,26 +13,35 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
 
 def _register_article_api_routes(app: Flask, adapters: dict) -> None:
     art = adapters["article_adapter"]
+    csrf = app.extensions["csrf"]
+
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_get_article, methods=["GET"],
         endpoint="article.api_get",
     )
+    csrf.exempt(art.api_get_article)
+
     app.add_url_rule(
         "/api/articles",
         view_func=art.api_create_article, methods=["POST"],
         endpoint="article.api_create",
     )
+    csrf.exempt(art.api_create_article)
+
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_update_article, methods=["PUT"],
         endpoint="article.api_update",
     )
+    csrf.exempt(art.api_update_article)
+
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_delete_article, methods=["DELETE"],
         endpoint="article.api_delete",
     )
+    csrf.exempt(art.api_delete_article)
 
 
 def _register_comment_routes(app: Flask, adapters: dict) -> None:

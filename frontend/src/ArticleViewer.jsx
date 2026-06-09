@@ -2,6 +2,11 @@ import { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 
+function BlockNoteViewer({ initialContent }) {
+  const editor = useCreateBlockNote({ initialContent });
+  return <BlockNoteView editor={editor} editable={false} />;
+}
+
 export default function ArticleViewer() {
   const root = document.getElementById('root');
   const articleId = root?.dataset.articleId;
@@ -25,10 +30,6 @@ export default function ArticleViewer() {
     }
   }, [articleId]);
 
-  const editor = useCreateBlockNote({
-    initialContent: loaded && contentStr ? JSON.parse(contentStr) : undefined,
-  });
-
   if (!loaded) {
     return <div className="loading">Loading...</div>;
   }
@@ -37,5 +38,12 @@ export default function ArticleViewer() {
     return <div className="alert alert-error">{error}</div>;
   }
 
-  return <BlockNoteView editor={editor} editable={false} />;
+  let initialContent;
+  try {
+    initialContent = JSON.parse(contentStr);
+  } catch {
+    return <div className="alert alert-error">Unable to render article content.</div>;
+  }
+
+  return <BlockNoteViewer initialContent={initialContent} />;
 }

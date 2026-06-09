@@ -650,3 +650,47 @@ input[type=number] {
         transform: translateY(0);
     }
 }
+
+/* BlockNote Editor (Create/Edit) */
+.article-editor {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.article-editor-title {
+    width: 100%;
+    font-family: var(--font-primary);
+    font-size: var(--font-headline-lg);
+    font-weight: 700;
+    color: var(--on-surface);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--outline-variant);
+    padding: var(--spacing-sm) 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.article-editor-title:focus {
+    border-bottom-color: var(--primary);
+}
+
+.article-editor-title::placeholder {
+    color: var(--on-surface-variant);
+    opacity: 0.6;
+}
+
+.article-editor-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+}
+
+.article-editor .bn-editor {
+    min-height: 18.75rem;
+}
+
+.article-detail-view #root .bn-editor {
+    padding: 0;
+}

@@ -1,6 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
+
+function BlockNoteEditor({ initialContent, onReady }) {
+  const editor = useCreateBlockNote({ initialContent });
+
+  useEffect(() => {
+    if (onReady) onReady(editor);
+  }, []);
+
+  return <BlockNoteView editor={editor} />;
+}
 
 export default function ArticleEditor() {
   const root = document.getElementById('root');
@@ -12,6 +22,7 @@ export default function ArticleEditor() {
   const [contentStr, setContentStr] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const editorRef = useRef(null);
 
   useEffect(() => {
     if (page === 'edit' && articleId) {
@@ -29,10 +40,6 @@ export default function ArticleEditor() {
     }
   }, [page, articleId]);
 
-  const editor = useCreateBlockNote({
-    initialContent: loaded && contentStr ? JSON.parse(contentStr) : undefined,
-  });
-
   const handleSubmit = async () => {
     if (!title.trim()) {
       setError('Title is required.');
@@ -43,7 +50,7 @@ export default function ArticleEditor() {
 
     const url = page === 'create' ? '/api/articles' : `/api/articles/${articleId}`;
     const method = page === 'create' ? 'POST' : 'PUT';
-    const content = JSON.stringify(editor.document);
+    const content = JSON.stringify(editorRef.current.document);
 
     try {
       const res = await fetch(url, {
@@ -70,6 +77,13 @@ export default function ArticleEditor() {
     return <div className="loading">Loading...</div>;
   }
 
+  let initialContent;
+  try {
+    initialContent = contentStr ? JSON.parse(contentStr) : undefined;
+  } catch {
+    return <div className="alert alert-error">Unable to parse article content.</div>;
+  }
+
   return (
     <div className="article-editor">
       {error && <div className="alert alert-error">{error}</div>}
@@ -80,7 +94,7 @@ export default function ArticleEditor() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <BlockNoteView editor={editor} />
+      <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
       <div className="article-editor-actions">
         <button className="btn" onClick={handleSubmit} disabled={saving}>
           {saving ? 'Saving...' : page === 'create' ? 'Publish' : 'Save'}

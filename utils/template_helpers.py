@@ -9,10 +9,9 @@ class ViteManifest:
     """
     Reads the Vite build manifest to resolve hashed asset filenames.
 
-    Caches the manifest after the first read to avoid filesystem access
-    on every template render.
+    Reads the manifest file on every call so that rebuilds (which change
+    file hashes) take effect without restarting Flask.
     """
-    _manifest: dict | None = None
     _manifest_path: str | None = None
 
     @classmethod
@@ -21,14 +20,10 @@ class ViteManifest:
 
     @classmethod
     def _load(cls) -> dict:
-        if cls._manifest is not None:
-            return cls._manifest
         if cls._manifest_path and os.path.exists(cls._manifest_path):
             with open(cls._manifest_path) as f:
-                cls._manifest = json.load(f)
-        else:
-            cls._manifest = {}
-        return cls._manifest
+                return json.load(f)
+        return {}
 
     @classmethod
     def get(cls, entry: str = "src/main.jsx") -> dict:
@@ -44,11 +39,6 @@ class ViteManifest:
     def get_css(cls, entry: str = "src/main.jsx") -> list[str]:
         data = cls.get(entry)
         return data.get("css", [])
-
-    @classmethod
-    def reset(cls) -> None:
-        cls._manifest = None
-
 
 def nl2br_filter(text: str | None) -> str:
     """
