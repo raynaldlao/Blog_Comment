@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useCreateBlockNote } from '@blocknote/react';
+import { useCreateBlockNote, FormattingToolbarController } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
+import CustomFormattingToolbar from './CustomFormattingToolbar';
 
 function BlockNoteEditor({ initialContent, onReady }) {
   const editor = useCreateBlockNote({ initialContent });
@@ -9,7 +10,14 @@ function BlockNoteEditor({ initialContent, onReady }) {
     if (onReady) onReady(editor);
   }, []);
 
-  return <BlockNoteView editor={editor} />;
+  return (
+    <BlockNoteView
+      editor={editor}
+      formattingToolbar={false}
+    >
+      <FormattingToolbarController formattingToolbar={CustomFormattingToolbar} />
+    </BlockNoteView>
+  );
 }
 
 export default function ArticleEditor() {
