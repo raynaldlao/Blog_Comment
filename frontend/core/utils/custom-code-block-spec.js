@@ -215,9 +215,26 @@ export function createCustomCodeBlockSpec(options) {
 
   let widgetInstance = null;
 
+  function ensureCopyButton(dom, lang) {
+    if (dom.classList.contains('code-block-wrapper')) return;
+    dom.classList.add('code-block-wrapper');
+    const btn = document.createElement('button');
+    btn.className = 'code-copy-btn';
+    btn.textContent = 'Copy';
+    if (lang) btn.dataset.lang = lang;
+    dom.appendChild(btn);
+  }
+
   spec.implementation.render = (block, editor) => {
     const result = originalRender(block, editor);
     dbg('render() called for block', block.id, { hasExisting: widgetInstance !== null, time: Date.now() });
+
+    const selectEl = result.dom.querySelector('select');
+    const codeEl = result.dom.querySelector('code');
+    const lang = selectEl?.value
+        || Array.from(codeEl?.classList || []).find((c) => c.startsWith('language-'))?.replace('language-', '')
+        || '';
+    ensureCopyButton(result.dom, lang);
 
     if (!editor.isEditable) {
       return result;

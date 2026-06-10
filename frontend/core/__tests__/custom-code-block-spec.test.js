@@ -12,8 +12,21 @@ vi.mock('@blocknote/core', () => ({
   createCodeBlockSpec: vi.fn(() => mockSpec),
 }));
 
-function createMockBlock(id) {
-  return { id };
+function createMockBlock(id, lang) {
+  const block = { id };
+  if (lang) block.props = { language: lang };
+  return block;
+}
+
+function createMockViewerDom(lang) {
+  const outerDiv = document.createElement('div');
+  const pre = document.createElement('pre');
+  const code = document.createElement('code');
+  code.textContent = 'print("hello")';
+  if (lang) code.classList.add('language-' + lang);
+  pre.appendChild(code);
+  outerDiv.appendChild(pre);
+  return outerDiv;
 }
 
 function createMockEditor(isEditable) {
@@ -225,6 +238,83 @@ describe('createCustomCodeBlockSpec', () => {
     items[1].click();
 
     expect(select.value).toBe('js');
+  });
+
+  it('adds copy button in editable editor', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const btn = outerDiv.querySelector('.code-copy-btn');
+    expect(btn).not.toBeNull();
+    expect(btn.textContent).toBe('Copy');
+  });
+
+  it('adds copy button in non-editable viewer', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(false);
+
+    const outerDiv = createMockViewerDom();
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const btn = outerDiv.querySelector('.code-copy-btn');
+    expect(btn).not.toBeNull();
+    expect(btn.textContent).toBe('Copy');
+  });
+
+  it('sets data-lang on copy button from DOM code class', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(false);
+
+    const outerDiv = createMockViewerDom('python');
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const btn = outerDiv.querySelector('.code-copy-btn');
+    expect(btn.dataset.lang).toBe('python');
+  });
+
+  it('sets no data-lang when DOM has no language', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(false);
+
+    const outerDiv = createMockViewerDom();
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const btn = outerDiv.querySelector('.code-copy-btn');
+    expect(btn.dataset.lang).toBeUndefined();
+  });
+
+  it('does not duplicate copy button on re-render', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(false);
+
+    const outerDiv = createMockViewerDom();
+    mockRender.mockReturnValue({ dom: outerDiv });
+
+    spec.implementation.render(block, editor);
+    spec.implementation.render(block, editor);
+
+    const btns = outerDiv.querySelectorAll('.code-copy-btn');
+    expect(btns.length).toBe(1);
   });
 
   it('closes dropdown on Escape key', () => {
