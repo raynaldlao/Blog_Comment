@@ -3,6 +3,7 @@ import { useCreateBlockNote, FormattingToolbarController } from '@blocknote/reac
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
+import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
@@ -43,28 +44,17 @@ export default function ArticleForm() {
   const page = root?.dataset.page;
   const articleId = root?.dataset.articleId;
 
-  const [loaded, setLoaded] = useState(page !== 'edit');
+  const { loaded, contentStr, title: loadedTitle, error: loadError } = useArticle(
+    page === 'edit' ? articleId : null,
+  );
   const [title, setTitle] = useState('');
-  const [contentStr, setContentStr] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const editorRef = useRef(null);
 
   useEffect(() => {
-    if (page !== 'edit' || !articleId) return;
-    (async () => {
-      try {
-        const r = await fetch(`/api/articles/${articleId}`);
-        const data = await r.json();
-        setTitle(data.title);
-        setContentStr(data.content);
-      } catch {
-        setError('Failed to load article.');
-      } finally {
-        setLoaded(true);
-      }
-    })();
-  }, [page, articleId]);
+    if (loadedTitle) setTitle(loadedTitle);
+  }, [loadedTitle]);
 
   const handleSubmit = async () => {
     if (!title.trim()) {
@@ -103,6 +93,8 @@ export default function ArticleForm() {
     return <div className="loading">Loading...</div>;
   }
 
+  const displayError = error || loadError;
+
   let initialContent;
   try {
     initialContent = contentStr ? JSON.parse(contentStr) : undefined;
@@ -112,7 +104,7 @@ export default function ArticleForm() {
 
   return (
     <div className="article-editor">
-      {error && <div className="alert alert-error">{error}</div>}
+      {displayError && <div className="alert alert-error">{displayError}</div>}
       <input
         type="text"
         className="article-editor-title"

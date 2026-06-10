@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
+import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
@@ -29,24 +30,7 @@ export default function ArticleViewer() {
   const root = document.getElementById('root');
   const articleId = root?.dataset.articleId;
 
-  const [loaded, setLoaded] = useState(false);
-  const [contentStr, setContentStr] = useState('');
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!articleId) return;
-    (async () => {
-      try {
-        const r = await fetch(`/api/articles/${articleId}`);
-        const data = await r.json();
-        setContentStr(data.content);
-      } catch {
-        setError('Failed to load article content.');
-      } finally {
-        setLoaded(true);
-      }
-    })();
-  }, [articleId]);
+  const { loaded, contentStr, error } = useArticle(articleId);
 
   if (!loaded) {
     return <div className="loading">Loading...</div>;
