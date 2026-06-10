@@ -5,6 +5,7 @@ import {
 
 import JustifyButton from './JustifyButton';
 
+
 export default function CustomFormattingToolbar() {
   const Components = useComponentsContext();
   if (!Components) {

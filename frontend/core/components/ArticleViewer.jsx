@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
-import { createHighlighter } from './shiki-highlighter';
-import SUPPORTED_LANGUAGES from './supported-languages';
-import { createCustomCodeBlockSpec } from './custom-code-block-spec';
+import createHighlighter from '../utils/shiki-highlighter';
+import SUPPORTED_LANGUAGES from '../utils/supported-languages';
+import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 
 function BlockNoteViewer({ initialContent }) {
   const editor = useCreateBlockNote({
@@ -34,18 +34,18 @@ export default function ArticleViewer() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (articleId) {
-      fetch(`/api/articles/${articleId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          setContentStr(data.content);
-          setLoaded(true);
-        })
-        .catch(() => {
-          setError('Failed to load article content.');
-          setLoaded(true);
-        });
-    }
+    if (!articleId) return;
+    (async () => {
+      try {
+        const r = await fetch(`/api/articles/${articleId}`);
+        const data = await r.json();
+        setContentStr(data.content);
+      } catch {
+        setError('Failed to load article content.');
+      } finally {
+        setLoaded(true);
+      }
+    })();
   }, [articleId]);
 
   if (!loaded) {

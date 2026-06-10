@@ -2,23 +2,23 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-import ArticleEditor from './ArticleEditor';
-import ArticleViewer from './ArticleViewer';
+import ArticleForm from './components/ArticleForm';
+import ArticleViewer from './components/ArticleViewer';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const root = document.getElementById('root');
 const page = root?.dataset.page;
 
-let Component;
-if (page === 'create' || page === 'edit') {
-  Component = ArticleEditor;
-} else if (page === 'view') {
-  Component = ArticleViewer;
-}
+const Component = (page === 'create' || page === 'edit')
+  ? ArticleForm
+  : (page === 'view' ? ArticleViewer : null);
 
 if (root && Component) {
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
-      <Component />
+      <ErrorBoundary>
+        <Component />
+      </ErrorBoundary>
     </React.StrictMode>,
   );
 }

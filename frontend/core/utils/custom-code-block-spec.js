@@ -239,7 +239,5 @@ export function createCustomCodeBlockSpec(options) {
     return result;
   };
 
-  window.__langDebug = { widgetInstance, get spec() { return spec; } };
-
   return spec;
 }

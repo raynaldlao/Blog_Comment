@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const PKG = join(DIR, '..', 'node_modules', '@shikijs', 'langs-precompiled', 'dist');
-const OUT = join(DIR, '..', 'src');
+const OUT = join(DIR, '..', 'core');
 
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 

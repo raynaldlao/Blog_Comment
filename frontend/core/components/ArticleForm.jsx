@@ -3,9 +3,9 @@ import { useCreateBlockNote, FormattingToolbarController } from '@blocknote/reac
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
-import { createHighlighter } from './shiki-highlighter';
-import SUPPORTED_LANGUAGES from './supported-languages';
-import { createCustomCodeBlockSpec } from './custom-code-block-spec';
+import createHighlighter from '../utils/shiki-highlighter';
+import SUPPORTED_LANGUAGES from '../utils/supported-languages';
+import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 
 function BlockNoteEditor({ initialContent, onReady }) {
   const editor = useCreateBlockNote({
@@ -38,7 +38,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   );
 }
 
-export default function ArticleEditor() {
+export default function ArticleForm() {
   const root = document.getElementById('root');
   const page = root?.dataset.page;
   const articleId = root?.dataset.articleId;
@@ -51,19 +51,19 @@ export default function ArticleEditor() {
   const editorRef = useRef(null);
 
   useEffect(() => {
-    if (page === 'edit' && articleId) {
-      fetch(`/api/articles/${articleId}`)
-        .then((r) => r.json())
-        .then((data) => {
-          setTitle(data.title);
-          setContentStr(data.content);
-          setLoaded(true);
-        })
-        .catch(() => {
-          setError('Failed to load article.');
-          setLoaded(true);
-        });
-    }
+    if (page !== 'edit' || !articleId) return;
+    (async () => {
+      try {
+        const r = await fetch(`/api/articles/${articleId}`);
+        const data = await r.json();
+        setTitle(data.title);
+        setContentStr(data.content);
+      } catch {
+        setError('Failed to load article.');
+      } finally {
+        setLoaded(true);
+      }
+    })();
   }, [page, articleId]);
 
   const handleSubmit = async () => {

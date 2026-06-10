@@ -579,4 +579,4 @@ async function createHighlighter(options) {
   return highlighter;
 }
 
-export { createHighlighter };
+export default createHighlighter;
