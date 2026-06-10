@@ -1,10 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { useCreateBlockNote, FormattingToolbarController } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
+import { BlockNoteSchema } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
+import { createHighlighter } from './shiki-highlighter';
+import SUPPORTED_LANGUAGES from './supported-languages';
+import { createCustomCodeBlockSpec } from './custom-code-block-spec';
 
 function BlockNoteEditor({ initialContent, onReady }) {
-  const editor = useCreateBlockNote({ initialContent });
+  const editor = useCreateBlockNote({
+    initialContent,
+    schema: BlockNoteSchema.create().extend({
+      blockSpecs: {
+        codeBlock: createCustomCodeBlockSpec({
+          defaultLanguage: 'plaintext',
+          supportedLanguages: SUPPORTED_LANGUAGES,
+          createHighlighter: () => createHighlighter({
+            themes: ['github-dark', 'github-light'],
+            langs: [],
+          }),
+        }),
+      },
+    }),
+  });
 
   useEffect(() => {
     if (onReady) onReady(editor);
