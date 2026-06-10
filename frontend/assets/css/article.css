@@ -852,6 +852,11 @@ input[type=number] {
     flex-shrink: 0;
 }
 
+/* Code block spacing between consecutive blocks */
+.bn-block-content[data-content-type="codeBlock"] {
+    margin-bottom: 0.75rem;
+}
+
 /* Code block copy button */
 .code-block-wrapper {
     position: relative;
