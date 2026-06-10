@@ -87,7 +87,8 @@ class ArticleAdapter:
             "article_detail.html",
             article=article,
             threaded_comments=dto_comments,
-            current_user=user
+            current_user=user,
+            page_with_editor=True,
         )
 
     def render_create_page(self) -> str | Response:
@@ -107,7 +108,7 @@ class ArticleAdapter:
             flash("Insufficient permissions: Only authors or admins can create articles.", "error")
             return redirect(url_for("article.list_articles"))
 
-        return render_template("article_create.html", current_user=user)
+        return render_template("article_create.html", current_user=user, page_with_editor=True)
 
     def api_get_article(self, article_id: int):
         article = self.article_service.get_by_id(article_id)
@@ -224,4 +225,4 @@ class ArticleAdapter:
 
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
-        return render_template("article_edit.html", article=article, current_user=user)
+        return render_template("article_edit.html", article=article, current_user=user, page_with_editor=True)

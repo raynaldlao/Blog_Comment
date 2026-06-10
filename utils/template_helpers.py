@@ -38,7 +38,11 @@ class ViteManifest:
     @classmethod
     def get_css(cls, entry: str = "core/entry.jsx") -> list[str]:
         data = cls.get(entry)
-        return data.get("css", [])
+        css = list(data.get("css", []) or [])
+        for imp in data.get("imports", []):
+            imp_data = cls._load().get(imp, {})
+            css.extend(imp_data.get("css", []) or [])
+        return css
 
 def nl2br_filter(text: str | None) -> str:
     """

@@ -104,7 +104,7 @@
     <script defer src="{{ url_for('assets', filename='scripts/flash-messages.js') }}"></script>
     <script defer src="{{ url_for('assets', filename='scripts/theme-toggle.js') }}"></script>
     <script defer src="{{ url_for('assets', filename='scripts/password-toggle.js') }}"></script>
-    {% if vite_js_url %}
+    {% if page_with_editor and vite_js_url %}
     <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}

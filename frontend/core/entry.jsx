@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import '@blocknote/mantine/style.css';
 import '@blocknote/core/fonts/inter.css';
-import ArticleForm from './components/ArticleForm';
-import ArticleViewer from './components/ArticleViewer';
 import ErrorBoundary from './components/ErrorBoundary';
+
+const ArticleForm = React.lazy(() => import('./components/ArticleForm'));
+const ArticleViewer = React.lazy(() => import('./components/ArticleViewer'));
 
 const root = document.getElementById('root');
 const page = root?.dataset.page;
@@ -17,7 +18,9 @@ if (root && Component) {
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <Component />
+        <Suspense fallback={<div className="loading">Loading...</div>}>
+          <Component />
+        </Suspense>
       </ErrorBoundary>
     </React.StrictMode>,
   );
