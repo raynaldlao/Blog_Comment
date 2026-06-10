@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from sqlalchemy.orm import Session
 
 from config.database import setup_database
@@ -114,8 +114,15 @@ def _init_web_facade_flask() -> Flask:
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     template_dir = os.path.join(base_dir, "frontend/templates")
-    static_dir = os.path.join(base_dir, "frontend/static")
-    app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+    dist_dir = os.path.join(base_dir, "frontend/dist")
+    assets_dir = os.path.join(base_dir, "frontend/assets")
+    app = Flask(__name__, template_folder=template_dir, static_folder=dist_dir, static_url_path="/dist")
+
+    app.add_url_rule(
+        "/assets/<path:filename>",
+        endpoint="assets",
+        view_func=lambda filename: send_from_directory(assets_dir, filename),
+    )
     app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_PERMANENT"] = True

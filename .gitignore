@@ -28,4 +28,4 @@ AGENTS.md
 
 # 📦 Frontend (npm / BlockNote)
 frontend/node_modules/
-frontend/static/dist/
+frontend/dist/

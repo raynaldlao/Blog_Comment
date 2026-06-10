@@ -16,7 +16,7 @@ class ViteManifest:
 
     @classmethod
     def init(cls, static_dir: str) -> None:
-        cls._manifest_path = os.path.join(static_dir, "dist", ".vite", "manifest.json")
+        cls._manifest_path = os.path.join(static_dir, ".vite", "manifest.json")
 
     @classmethod
     def _load(cls) -> dict:
@@ -26,17 +26,17 @@ class ViteManifest:
         return {}
 
     @classmethod
-    def get(cls, entry: str = "src/main.jsx") -> dict:
+    def get(cls, entry: str = "core/entry.jsx") -> dict:
         manifest = cls._load()
         return manifest.get(entry, {})
 
     @classmethod
-    def get_js(cls, entry: str = "src/main.jsx") -> str | None:
+    def get_js(cls, entry: str = "core/entry.jsx") -> str | None:
         data = cls.get(entry)
         return data.get("file")
 
     @classmethod
-    def get_css(cls, entry: str = "src/main.jsx") -> list[str]:
+    def get_css(cls, entry: str = "core/entry.jsx") -> list[str]:
         data = cls.get(entry)
         return data.get("css", [])
 
@@ -77,8 +77,8 @@ def inject_vite_assets() -> dict:
     js_file = ViteManifest.get_js()
     css_files = ViteManifest.get_css()
     return {
-        "vite_js_url": f"dist/{js_file}" if js_file else None,
-        "vite_css_urls": [f"dist/{f}" for f in css_files] if css_files else [],
+        "vite_js_url": js_file if js_file else None,
+        "vite_css_urls": css_files if css_files else [],
     }
 
 

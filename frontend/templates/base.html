@@ -19,7 +19,7 @@
             document.documentElement.dataset.theme = t;
         } catch (e) {}
     </script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('assets', filename='css/base.css') }}">
     {% for css_url in vite_css_urls %}
     <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
     {% endfor %}
@@ -101,9 +101,9 @@
             </p>
         </div>
     </footer>
-    <script defer src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/password-toggle.js') }}"></script>
+    <script defer src="{{ url_for('assets', filename='scripts/flash-messages.js') }}"></script>
+    <script defer src="{{ url_for('assets', filename='scripts/theme-toggle.js') }}"></script>
+    <script defer src="{{ url_for('assets', filename='scripts/password-toggle.js') }}"></script>
     {% if vite_js_url %}
     <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
     {% endif %}

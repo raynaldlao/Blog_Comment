@@ -6,11 +6,11 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
+<link rel="stylesheet" href="{{ url_for('assets', filename='css/article.css') }}">
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+<script defer src="{{ url_for('assets', filename='scripts/pagination.js') }}"></script>
 {% endblock %}
 
 {% macro render_pagination_info(current_page, total_pages) %}
