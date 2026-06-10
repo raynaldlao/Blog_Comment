@@ -172,7 +172,6 @@ function createLanguageSelectorWidget(select, block, editor) {
     });
 
     trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
       if (dropdown.classList.contains('code-block-lang-dropdown--open')) {
         closeDropdown();
       } else {
