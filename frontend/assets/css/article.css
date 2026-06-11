@@ -851,8 +851,9 @@ input[type=number] {
     flex-shrink: 0;
 }
 
-/* Code block spacing between consecutive blocks */
-.bn-block-content[data-content-type="codeBlock"] {
+/* Code block spacing — margin on .bn-block-outer to push next sibling, hook handles gap-click */
+.bn-block-outer:has(.bn-block-content[data-content-type="codeBlock"]) {
+    margin-top: 0.75rem;
     margin-bottom: 0.75rem;
 }
 

@@ -345,4 +345,124 @@ describe('createCustomCodeBlockSpec', () => {
 
     expect(dropdown.classList.contains('code-block-lang-dropdown--open')).toBe(false);
   });
+
+  it('sets data-lang on copy button from select value in editor', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    select.value = 'python';
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const btn = outerDiv.querySelector('.code-copy-btn');
+    expect(btn.dataset.lang).toBe('python');
+  });
+
+  it('navigates dropdown items with ArrowDown', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'plaintext', text: 'Plain Text' },
+      { value: 'js', text: 'JavaScript' },
+      { value: 'py', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const trigger = outerDiv.querySelector('.code-block-lang-trigger');
+    trigger.click();
+
+    const dropdown = document.querySelector('.code-block-lang-dropdown');
+    const searchInput = dropdown.querySelector('.code-block-lang-search');
+    const items = dropdown.querySelectorAll('.code-block-lang-item');
+
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+
+    expect(items[0].classList.contains('code-block-lang-item--focused')).toBe(true);
+
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+
+    expect(items[1].classList.contains('code-block-lang-item--focused')).toBe(true);
+  });
+
+  it('navigates dropdown items with ArrowUp and wraps to last', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'plaintext', text: 'Plain Text' },
+      { value: 'js', text: 'JavaScript' },
+      { value: 'py', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const trigger = outerDiv.querySelector('.code-block-lang-trigger');
+    trigger.click();
+
+    const dropdown = document.querySelector('.code-block-lang-dropdown');
+    const searchInput = dropdown.querySelector('.code-block-lang-search');
+    const items = dropdown.querySelectorAll('.code-block-lang-item');
+
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+
+    expect(items[2].classList.contains('code-block-lang-item--focused')).toBe(true);
+  });
+
+  it('selects language on Enter when item is focused', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'plaintext', text: 'Plain Text' },
+      { value: 'js', text: 'JavaScript' },
+      { value: 'py', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const trigger = outerDiv.querySelector('.code-block-lang-trigger');
+    trigger.click();
+
+    const dropdown = document.querySelector('.code-block-lang-dropdown');
+    const searchInput = dropdown.querySelector('.code-block-lang-search');
+
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+
+    expect(select.value).toBe('js');
+  });
 });

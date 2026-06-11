@@ -4,6 +4,7 @@ import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
 import useArticle from '../hooks/useArticle';
+import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
@@ -26,8 +27,8 @@ function BlockNoteEditor({ initialContent, onReady }) {
   });
 
   useEffect(() => {
-    if (onReady) onReady(editor);
-  }, []);
+    if (editor && onReady) onReady(editor);
+  }, [editor, onReady]);
 
   return (
     <BlockNoteView
@@ -55,6 +56,8 @@ export default function ArticleForm() {
   useEffect(() => {
     if (loadedTitle) setTitle(loadedTitle);
   }, [loadedTitle]);
+
+  useCodeBlockGapClick(editorRef);
 
   const handleSubmit = async () => {
     if (!title.trim()) {

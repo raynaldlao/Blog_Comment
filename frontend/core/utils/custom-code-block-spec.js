@@ -1,11 +1,7 @@
 import { createCodeBlockSpec as createOriginalCodeBlockSpec } from '@blocknote/core';
 
-const DEBUG = false;
-const dbg = (...args) => { if (DEBUG) console.log('[LANG-SEL]', ...args); };
-
 function createLanguageSelectorWidget(select, block, editor) {
   try {
-    dbg('widget creation for block', block.id);
     const container = document.createElement('div');
     container.className = 'code-block-lang-selector';
 
@@ -128,9 +124,7 @@ function createLanguageSelectorWidget(select, block, editor) {
 
     function onDocumentClick(e) {
       const isInside = dropdown.contains(e.target) || trigger.contains(e.target);
-      dbg('doc click', { inside: isInside, target: e.target.className || e.target.tagName, time: Date.now() });
       if (!isInside) {
-        dbg('closing due to outside click');
         closeDropdown();
       }
     }
@@ -142,7 +136,6 @@ function createLanguageSelectorWidget(select, block, editor) {
     }
 
     function openDropdown() {
-      dbg('openDropdown', { time: Date.now() });
       searchInput.value = '';
       items.forEach((item) => {
         item.style.display = '';
@@ -158,7 +151,6 @@ function createLanguageSelectorWidget(select, block, editor) {
     }
 
     function closeDropdown() {
-      dbg('closeDropdown', { time: Date.now() });
       dropdown.classList.remove('code-block-lang-dropdown--open');
       if (dropdown.parentElement) {
         dropdown.parentElement.removeChild(dropdown);
@@ -227,7 +219,6 @@ export function createCustomCodeBlockSpec(options) {
 
   spec.implementation.render = (block, editor) => {
     const result = originalRender(block, editor);
-    dbg('render() called for block', block.id, { hasExisting: widgetInstance !== null, time: Date.now() });
 
     const selectEl = result.dom.querySelector('select');
     const codeEl = result.dom.querySelector('code');
@@ -245,7 +236,6 @@ export function createCustomCodeBlockSpec(options) {
       const select = wrapperDiv.querySelector('select');
       if (select && select.options.length > 0) {
         if (widgetInstance) {
-          dbg('cleanup old widget before recreating', block.id);
           widgetInstance._closeDropdown?.();
         }
         widgetInstance = createLanguageSelectorWidget(select, block, editor);
