@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from 'fs';
@@ -12,23 +12,23 @@ const codeCopySource = fs.readFileSync(
 );
 
 function createDOM(lang) {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'code-block-wrapper';
+  const codeBlock = document.createElement('div');
+  codeBlock.setAttribute('data-content-type', 'codeBlock');
   const pre = document.createElement('pre');
   const code = document.createElement('code');
   code.textContent = 'print("hello")';
   if (lang) code.classList.add('language-' + lang);
   pre.appendChild(code);
-  wrapper.appendChild(pre);
+  codeBlock.appendChild(pre);
 
   const btn = document.createElement('button');
   btn.className = 'code-copy-btn';
   btn.textContent = 'Copy';
   if (lang) btn.dataset.lang = lang;
-  wrapper.appendChild(btn);
+  codeBlock.appendChild(btn);
 
-  document.body.appendChild(wrapper);
-  return { wrapper, btn, pre, code };
+  document.body.appendChild(codeBlock);
+  return { wrapper: codeBlock, btn, pre, code };
 }
 
 describe('code-copy.js', () => {
@@ -56,24 +56,24 @@ describe('code-copy.js', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows Copied feedback on button click', () => {
+  it('shows tooltip on button click', () => {
     const { btn } = createDOM('python');
     btn.click();
 
-    expect(btn.textContent).toBe('Copied !');
-    expect(btn.classList.contains('copied')).toBe(true);
+    const tooltip = document.querySelector('.code-copy-tooltip');
+    expect(tooltip).not.toBeNull();
+    expect(tooltip.textContent).toBe('Copied to clipboard');
   });
 
-  it('resets button text after 2000ms', () => {
+  it('removes tooltip after 1500ms', () => {
     const { btn } = createDOM('python');
     btn.click();
 
-    expect(btn.textContent).toBe('Copied !');
+    expect(document.querySelector('.code-copy-tooltip')).not.toBeNull();
 
-    vi.advanceTimersByTime(2000);
+    vi.advanceTimersByTime(1500);
 
-    expect(btn.textContent).toBe('Copy');
-    expect(btn.classList.contains('copied')).toBe(false);
+    expect(document.querySelector('.code-copy-tooltip')).toBeNull();
   });
 
   it('ignores clicks on non-copy-btn elements', () => {
@@ -101,5 +101,33 @@ describe('code-copy.js', () => {
     expect(mockClipboardItem).toHaveBeenCalledOnce();
     expect(mockWrite).toHaveBeenCalledOnce();
     expect(mockWriteText).not.toHaveBeenCalled();
+  });
+
+  it('replaces old tooltip on rapid clicks', () => {
+    const { btn } = createDOM('python');
+    btn.click();
+    btn.click();
+
+    const tooltips = document.querySelectorAll('.code-copy-tooltip');
+    expect(tooltips.length).toBe(1);
+  });
+
+  it('does nothing when code block is empty', () => {
+    const { btn, code } = createDOM('python');
+    code.textContent = '';
+    btn.click();
+
+    expect(document.querySelector('.code-copy-tooltip')).toBeNull();
+    expect(mockWriteText).not.toHaveBeenCalled();
+  });
+
+  it('positions tooltip with pixel values', () => {
+    const { btn } = createDOM('python');
+    vi.stubGlobal('window', { innerHeight: 900 });
+    btn.click();
+
+    const tooltip = document.querySelector('.code-copy-tooltip');
+    expect(tooltip.style.left).toMatch(/^\d+px$/);
+    expect(tooltip.style.bottom).toMatch(/^\d+px$/);
   });
 });

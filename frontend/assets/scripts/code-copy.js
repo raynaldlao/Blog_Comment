@@ -1,19 +1,21 @@
 (() => {
   'use strict';
 
+  const DEBUG = false;
+
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.code-copy-btn');
     if (!btn) return;
 
-    const wrapper = btn.closest('.code-block-wrapper');
-    const codeEl = wrapper?.querySelector('pre code');
+    const codeBlock = btn.closest('[data-content-type="codeBlock"]');
+    const codeEl = codeBlock?.querySelector('pre code');
     if (!codeEl) return;
 
     const text = codeEl.textContent || '';
     if (!text) return;
 
     const lang = btn.dataset.lang || '';
-    const pre = wrapper.querySelector('pre');
+    const pre = codeBlock.querySelector('pre');
     const preClone = pre.cloneNode(true);
     if (lang) preClone.dataset.lang = lang;
     const codeClone = preClone.querySelector('code');
@@ -33,17 +35,25 @@
       return navigator.clipboard.writeText(text);
     };
 
-    const original = btn.textContent;
-    btn.textContent = 'Copied !';
-    btn.classList.add('copied');
-
     doCopy().catch(() => {
-      btn.textContent = 'Failed';
+      if (DEBUG) console.error('Copy failed');
     });
 
+    const oldTip = document.querySelector('.code-copy-tooltip');
+    if (oldTip) oldTip.remove();
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'code-copy-tooltip';
+    tooltip.textContent = 'Copied to clipboard';
+
+    const rect = btn.getBoundingClientRect();
+    tooltip.style.left = rect.left + 'px';
+    tooltip.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+
+    document.body.appendChild(tooltip);
+
     setTimeout(() => {
-      btn.textContent = original;
-      btn.classList.remove('copied');
-    }, 2000);
+      if (tooltip.parentElement) tooltip.remove();
+    }, 1500);
   });
 })();
