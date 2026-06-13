@@ -706,8 +706,8 @@ input[type=number] {
 /* Code block language selector with search */
 .code-block-lang-selector {
     position: absolute;
-    top: 8px;
-    left: 18px;
+    top: 0.25rem;
+    left: 1.125rem;
     z-index: 10;
 }
 
