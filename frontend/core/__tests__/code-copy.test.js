@@ -56,24 +56,24 @@ describe('code-copy.js', () => {
     vi.unstubAllGlobals();
   });
 
-  it('shows tooltip on button click', () => {
+  it('shows toast on button click', () => {
     const { btn } = createDOM('python');
     btn.click();
 
-    const tooltip = document.querySelector('.code-copy-tooltip');
-    expect(tooltip).not.toBeNull();
-    expect(tooltip.textContent).toBe('Copied to clipboard');
+    const toast = document.querySelector('.toast');
+    expect(toast).not.toBeNull();
+    expect(toast.textContent).toBe('Copied to clipboard');
   });
 
-  it('removes tooltip after 1500ms', () => {
+  it('removes toast after 2800ms', () => {
     const { btn } = createDOM('python');
     btn.click();
 
-    expect(document.querySelector('.code-copy-tooltip')).not.toBeNull();
+    expect(document.querySelector('.toast')).not.toBeNull();
 
-    vi.advanceTimersByTime(1500);
+    vi.advanceTimersByTime(2800);
 
-    expect(document.querySelector('.code-copy-tooltip')).toBeNull();
+    expect(document.querySelector('.toast')).toBeNull();
   });
 
   it('ignores clicks on non-copy-btn elements', () => {
@@ -81,6 +81,7 @@ describe('code-copy.js', () => {
     wrapper.click();
 
     expect(mockWriteText).not.toHaveBeenCalled();
+    expect(document.querySelector('.toast')).toBeNull();
   });
 
   it('writes text/plain via writeText as fallback when ClipboardItem absent', () => {
@@ -103,13 +104,13 @@ describe('code-copy.js', () => {
     expect(mockWriteText).not.toHaveBeenCalled();
   });
 
-  it('replaces old tooltip on rapid clicks', () => {
+  it('replaces old toast on rapid clicks', () => {
     const { btn } = createDOM('python');
     btn.click();
     btn.click();
 
-    const tooltips = document.querySelectorAll('.code-copy-tooltip');
-    expect(tooltips.length).toBe(1);
+    const toasts = document.querySelectorAll('.toast');
+    expect(toasts.length).toBe(1);
   });
 
   it('does nothing when code block is empty', () => {
@@ -117,17 +118,7 @@ describe('code-copy.js', () => {
     code.textContent = '';
     btn.click();
 
-    expect(document.querySelector('.code-copy-tooltip')).toBeNull();
+    expect(document.querySelector('.toast')).toBeNull();
     expect(mockWriteText).not.toHaveBeenCalled();
-  });
-
-  it('positions tooltip with pixel values', () => {
-    const { btn } = createDOM('python');
-    vi.stubGlobal('window', { innerHeight: 900 });
-    btn.click();
-
-    const tooltip = document.querySelector('.code-copy-tooltip');
-    expect(tooltip.style.left).toMatch(/^\d+px$/);
-    expect(tooltip.style.bottom).toMatch(/^\d+px$/);
   });
 });

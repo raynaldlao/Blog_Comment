@@ -39,21 +39,17 @@
       if (DEBUG) console.error('Copy failed');
     });
 
-    const oldTip = document.querySelector('.code-copy-tooltip');
-    if (oldTip) oldTip.remove();
+    const oldToast = document.querySelector('.toast');
+    if (oldToast) oldToast.remove();
 
-    const tooltip = document.createElement('div');
-    tooltip.className = 'code-copy-tooltip';
-    tooltip.textContent = 'Copied to clipboard';
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = 'Copied to clipboard';
 
-    const rect = btn.getBoundingClientRect();
-    tooltip.style.left = rect.left + 'px';
-    tooltip.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-
-    document.body.appendChild(tooltip);
+    document.body.appendChild(toast);
 
     setTimeout(() => {
-      if (tooltip.parentElement) tooltip.remove();
-    }, 1500);
+      if (toast.parentElement) toast.remove();
+    }, 2800);
   });
 })();
