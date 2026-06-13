@@ -13,9 +13,7 @@ export default function CustomFormattingToolbar() {
   }
 
   const items = getFormattingToolbarItems();
-  const filtered = items.filter(
-    (item) => item.key !== 'nestBlockButton' && item.key !== 'unnestBlockButton',
-  );
+  const filtered = items;
   const rightIdx = filtered.findIndex(
     (item) => item.props?.textAlignment === 'right',
   );
