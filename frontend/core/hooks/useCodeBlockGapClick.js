@@ -3,8 +3,8 @@ import { useEffect, useRef } from 'react';
 const GAP_SIZE = 12;
 
 export default function useCodeBlockGapClick(editorRef) {
-  const insertedGapsRef = useRef(new Set());
-  
+  const lastInsertedRef = useRef({ key: '', time: 0 });
+
   useEffect(() => {
     const handleMousedown = (event) => {
       const editor = editorRef.current;
@@ -37,8 +37,16 @@ export default function useCodeBlockGapClick(editorRef) {
             return;
           }
 
+          const now = Date.now();
           const gapKey = `${blockId}:${placement}`;
-          if (insertedGapsRef.current.has(gapKey)) {
+          const reverseKey = adjacentBlock && adjacentBlock.type === 'codeBlock'
+            ? `${adjacentBlock.id}:${isInTopGap ? 'after' : 'before'}`
+            : null;
+
+          const isDuplicate = gapKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
+          const isReverseDuplicate = reverseKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
+
+          if (isDuplicate || isReverseDuplicate) {
             if (isInTopGap) {
               event.preventDefault();
               event.stopPropagation();
@@ -46,7 +54,7 @@ export default function useCodeBlockGapClick(editorRef) {
             return;
           }
 
-          insertedGapsRef.current.add(gapKey);
+          lastInsertedRef.current = { key: gapKey, time: now };
           event.preventDefault();
           event.stopPropagation();
 
@@ -57,10 +65,6 @@ export default function useCodeBlockGapClick(editorRef) {
                 blockId,
                 placement,
               );
-              if (adjacentBlock && adjacentBlock.type === 'codeBlock') {
-                const reverseKey = `${adjacentBlock.id}:${isInTopGap ? 'after' : 'before'}`;
-                insertedGapsRef.current.add(reverseKey);
-              }
               editor.focus();
             } catch (e) {
               console.error('Failed to insert paragraph:', e);

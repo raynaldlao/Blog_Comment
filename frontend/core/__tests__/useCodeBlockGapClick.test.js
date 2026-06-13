@@ -289,6 +289,37 @@ describe('useCodeBlockGapClick', () => {
     expect(insertBlocks).not.toHaveBeenCalled();
   });
 
+  it('re-inserts paragraph after 300ms debounce window expires', () => {
+    vi.useFakeTimers();
+    const insertBlocks = vi.fn(() => [{ id: 'new-p' }]);
+    const focus = vi.fn();
+    const documentBlocks = [{ id: 'block-r', type: 'codeBlock' }];
+    const editorRef = {
+      current: { insertBlocks, focus, document: documentBlocks },
+    };
+
+    const container = render(React.createElement(TestHarness, { editorRef }));
+    addCodeBlockToDOM({ blockId: 'block-r', bottom: 100 });
+
+    const click = (y) => {
+      const event = new MouseEvent('mousedown', {
+        clientY: y, bubbles: true, cancelable: true,
+      });
+      container.dispatchEvent(event);
+      vi.advanceTimersByTime(0);
+    };
+
+    click(108);
+    expect(insertBlocks).toHaveBeenCalledTimes(1);
+
+    vi.advanceTimersByTime(301);
+
+    click(108);
+    expect(insertBlocks).toHaveBeenCalledTimes(2);
+    expect(focus).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
   it('handles missing block ID gracefully', () => {
     const insertBlocks = vi.fn(() => [{ id: 'new-block-5' }]);
     const editorRef = { current: { insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
