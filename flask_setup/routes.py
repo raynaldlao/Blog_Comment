@@ -75,8 +75,29 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     app.add_url_rule("/logout", view_func=acc.logout, methods=["POST"], endpoint="auth.logout")
 
 
+def _register_file_routes(app: Flask, adapters: dict) -> None:
+    fad = adapters["file_adapter"]
+    csrf = app.extensions["csrf"]
+
+    app.add_url_rule(
+        "/api/upload/image",
+        view_func=fad.upload_image,
+        methods=["POST"],
+        endpoint="file.upload_image",
+    )
+    csrf.exempt(fad.upload_image)
+
+    app.add_url_rule(
+        "/uploads/<string:file_id>/<string:filename>",
+        view_func=fad.serve_file,
+        methods=["GET"],
+        endpoint="file.serve_file",
+    )
+
+
 def register_web_routes(app: Flask, adapters: dict) -> None:
     _register_article_routes(app, adapters)
     _register_article_api_routes(app, adapters)
     _register_comment_routes(app, adapters)
     _register_auth_routes(app, adapters)
+    _register_file_routes(app, adapters)

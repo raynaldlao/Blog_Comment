@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import cast
+
 from sqlalchemy.orm import Session
 
 from src.application.domain.file_record import FileRecord
@@ -55,10 +58,10 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
         if model is None:
             return None
         return FileRecord(
-            file_id=str(model.file_id),
-            original_filename=model.original_filename,
-            mime_type=model.mime_type,
-            size=model.file_size,
-            data=model.file_data,
-            created_at=model.created_at,
+            file_id=str(cast(str, model.file_id)),
+            original_filename=cast(str, model.original_filename),
+            mime_type=cast(str, model.mime_type),
+            size=cast(int, model.file_size),
+            data=cast(bytes, model.file_data),
+            created_at=cast(datetime, model.created_at),
         )

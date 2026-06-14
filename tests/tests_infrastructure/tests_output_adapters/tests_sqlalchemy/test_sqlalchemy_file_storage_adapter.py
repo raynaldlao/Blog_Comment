@@ -1,5 +1,6 @@
-import pytest
 from uuid import uuid4
+
+import pytest
 
 from src.application.domain.file_record import FileRecord
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter

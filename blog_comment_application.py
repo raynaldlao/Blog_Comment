@@ -10,11 +10,13 @@ from flask_setup.middleware import init_web_security
 from flask_setup.routes import register_web_routes
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
+from src.application.services.file_service import FileService
 from src.application.services.login_service import LoginService
 from src.application.services.registration_service import RegistrationService
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
+from src.infrastructure.input_adapters.flask.flask_file_adapter import FlaskFileAdapter
 from src.infrastructure.input_adapters.flask.flask_login_adapter import LoginAdapter
 from src.infrastructure.input_adapters.flask.flask_registration_adapter import RegistrationAdapter
 from src.infrastructure.output_adapters.security.argon2_password_hasher_adapter import Argon2PasswordHasherAdapter
@@ -22,6 +24,7 @@ from src.infrastructure.output_adapters.session.flask_session_adapter import Fla
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
 from utils.template_helpers import (
     ViteManifest,
     date_format_filter,
@@ -47,6 +50,7 @@ def _create_output_adapters(db_session: Session) -> dict:
         "account_repo": account_repo,
         "article_repo": SqlAlchemyArticleAdapter(db_session),
         "comment_repo": SqlAlchemyCommentAdapter(db_session),
+        "file_storage_repo": SqlAlchemyFileStorageAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
         "password_hasher_repository": Argon2PasswordHasherAdapter(
             time_cost=env_config.argon2_time_cost,
@@ -83,6 +87,7 @@ def _create_services(repositories: dict) -> dict:
         "login_service": login_service,
         "comment_service": comment_service,
         "article_service": article_service,
+        "file_service": FileService(repositories["file_storage_repo"]),
     }
 
 
@@ -102,6 +107,7 @@ def _init_web_adapters(services: dict) -> dict:
         "login_adapter": LoginAdapter(services["login_service"]),
         "registration_adapter": RegistrationAdapter(services["registration_service"]),
         "account_session_adapter": AccountSessionAdapter(services["login_service"]),
+        "file_adapter": FlaskFileAdapter(services["file_service"]),
     }
 
 
