@@ -15,7 +15,9 @@ class ViteManifest:
     _manifest_path: str | None = None
 
     @classmethod
-    def init(cls, static_dir: str) -> None:
+    def init(cls, static_dir: str | None) -> None:
+        if static_dir is None:
+            raise RuntimeError("Flask static_folder is None; cannot locate Vite manifest.")
         cls._manifest_path = os.path.join(static_dir, ".vite", "manifest.json")
 
     @classmethod

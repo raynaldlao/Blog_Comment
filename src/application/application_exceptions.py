@@ -14,3 +14,17 @@ class AccountAlreadyExistsError(ApplicationError):
     a unique constraint violation is detected at the database level.
     """
     pass
+
+
+class FileTooLargeError(ApplicationError):
+    """
+    Raised when an uploaded file exceeds the maximum allowed size.
+    """
+    pass
+
+
+class FileTypeError(ApplicationError):
+    """
+    Raised when an uploaded file has an unsupported MIME type or extension.
+    """
+    pass
