@@ -53,7 +53,7 @@ class CSPConfig:
             f"script-src 'self' 'unsafe-eval' {self._script_hash};"
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
             "font-src 'self' https://fonts.gstatic.com;"
-            "img-src 'self' data:;"
+            "img-src 'self' data: https:;"
             "base-uri 'self';"
             "form-action 'self';"
             "report-uri /csp-report;"
