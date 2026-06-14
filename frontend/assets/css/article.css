@@ -764,6 +764,10 @@ input[type=number] {
     vertical-align: middle;
 }
 
+.code-block-lang-trigger[data-readonly]::after {
+    display: none;
+}
+
 .code-block-lang-dropdown {
     display: none;
     position: fixed;

@@ -95,7 +95,7 @@ describe('createCustomCodeBlockSpec', () => {
     expect(trigger).not.toBeNull();
   });
 
-  it('does not create widget in non-editable editor', () => {
+  it('creates static lang label in non-editable viewer', () => {
     const spec = renderSpec();
     const block = createMockBlock('block-1');
     const editor = createMockEditor(false);
@@ -115,7 +115,8 @@ describe('createCustomCodeBlockSpec', () => {
     spec.implementation.render(block, editor);
 
     const trigger = outerDiv.querySelector('.code-block-lang-trigger');
-    expect(trigger).toBeNull();
+    expect(trigger).not.toBeNull();
+    expect(trigger.textContent).toBe('Plain Text');
   });
 
   it('opens and closes dropdown on trigger click', () => {

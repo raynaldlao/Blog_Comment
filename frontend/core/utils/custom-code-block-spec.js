@@ -228,6 +228,19 @@ export function createCustomCodeBlockSpec(options) {
     ensureCopyButton(result.dom, lang);
 
     if (!editor.isEditable) {
+      const select = result.dom.querySelector('select');
+      if (select) {
+        select.style.display = 'none';
+        const lang = select.options[select.selectedIndex]?.text || '';
+        const container = document.createElement('div');
+        container.className = 'code-block-lang-selector';
+        const label = document.createElement('span');
+        label.className = 'code-block-lang-trigger';
+        label.dataset.readonly = '';
+        label.textContent = lang;
+        container.appendChild(label);
+        result.dom.querySelector('[contenteditable="false"]')?.appendChild(container);
+      }
       return result;
     }
 
