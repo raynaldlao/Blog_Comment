@@ -939,5 +939,11 @@ input[type=number] {
     max-width: 56rem;
     margin: 0 auto;
 }
+
+.bn-visual-media-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-default);
+}
  
 

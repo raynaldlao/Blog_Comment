@@ -13,6 +13,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
+  const blobUrlsRef = useRef([]);
 
   useEffect(() => {
     const el = document.documentElement;
@@ -23,8 +24,20 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      blobUrlsRef.current = [];
+    };
+  }, []);
+
   const editor = useCreateBlockNote({
     initialContent,
+    uploadFile: async (file) => {
+      const url = URL.createObjectURL(file);
+      blobUrlsRef.current.push(url);
+      return url;
+    },
     schema: BlockNoteSchema.create().extend({
       blockSpecs: {
         codeBlock: createCustomCodeBlockSpec({
