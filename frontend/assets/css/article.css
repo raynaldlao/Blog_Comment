@@ -664,6 +664,24 @@ input[type=number] {
     color: #fff;
 }
 
+[data-theme="dark"] .bn-mantine {
+    --bn-colors-editor-background: var(--surface);
+    --bn-colors-editor-text: var(--on-surface);
+    --bn-colors-menu-background: var(--surface-container);
+    --bn-colors-menu-text: var(--on-surface);
+    --bn-colors-hovered-background: var(--surface-container-high);
+    --bn-colors-hovered-text: var(--on-surface);
+    --bn-colors-side-menu: var(--on-surface-variant);
+    --bn-colors-border: var(--outline-variant);
+    --bn-colors-selected-background: var(--primary);
+    --bn-colors-selected-text: var(--on-primary);
+}
+
+[data-theme="dark"] .bn-block-content[data-content-type="codeBlock"] {
+    background-color: var(--surface-container-high);
+    color: var(--on-surface);
+}
+
 /* BlockNote Editor (Create/Edit) */
 .article-editor {
     display: flex;

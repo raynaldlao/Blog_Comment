@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
@@ -8,6 +8,19 @@ import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 
 function BlockNoteViewer({ initialContent }) {
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+  );
+
+  useEffect(() => {
+    const el = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setTheme(el.dataset.theme === 'dark' ? 'dark' : 'light');
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+
   const editor = useCreateBlockNote({
     initialContent,
     schema: BlockNoteSchema.create().extend({
@@ -23,7 +36,7 @@ function BlockNoteViewer({ initialContent }) {
       },
     }),
   });
-  return <BlockNoteView editor={editor} editable={false} />;
+  return <BlockNoteView editor={editor} theme={theme} editable={false} />;
 }
 
 export default function ArticleViewer() {

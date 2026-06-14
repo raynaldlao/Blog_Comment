@@ -10,6 +10,19 @@ import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 
 function BlockNoteEditor({ initialContent, onReady }) {
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
+  );
+
+  useEffect(() => {
+    const el = document.documentElement;
+    const observer = new MutationObserver(() => {
+      setTheme(el.dataset.theme === 'dark' ? 'dark' : 'light');
+    });
+    observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
+
   const editor = useCreateBlockNote({
     initialContent,
     schema: BlockNoteSchema.create().extend({
@@ -33,6 +46,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   return (
     <BlockNoteView
       editor={editor}
+      theme={theme}
       formattingToolbar={false}
     >
       <FormattingToolbarController formattingToolbar={CustomFormattingToolbar} />
