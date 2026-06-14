@@ -275,10 +275,7 @@
     }
 }
 
-::selection {
-    background: color-mix(in srgb, var(--primary) 30%, transparent);
-    color: var(--on-surface);
-}
+
 
 
 * {
