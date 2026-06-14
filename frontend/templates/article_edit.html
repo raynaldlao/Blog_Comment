@@ -7,14 +7,16 @@
 {% endblock %}
 
 {% block content %}
-    <header>
-        <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="pagination-link">
-            <span class="material-symbols-outlined">arrow_back</span>
-            <span>Back to articles</span>
-        </a>
-    </header>
+    <div class="article-edit-view">
+        <header class="detail-header">
+            <a href="{{ url_for('article.read_article', article_id=article.article_id) }}" class="pagination-link detail-back-link">
+                <span class="material-symbols-outlined">arrow_back</span>
+                <span>Back to articles</span>
+            </a>
+        </header>
 
-    <div class="article-form-container">
-        <div id="root" data-page="edit" data-article-id="{{ article.article_id }}"></div>
+        <div class="article-form-container">
+            <div id="root" data-page="edit" data-article-id="{{ article.article_id }}"></div>
+        </div>
     </div>
 {% endblock %}

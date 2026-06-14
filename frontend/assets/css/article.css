@@ -934,5 +934,10 @@ input[type=number] {
     0% { opacity: 1; }
     100% { opacity: 0; transform: translateX(-50%) translateY(-0.25rem); }
 }
+
+.article-edit-view {
+    max-width: 56rem;
+    margin: 0 auto;
+}
  
 
