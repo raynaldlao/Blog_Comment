@@ -13,8 +13,6 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
-  const blobUrlsRef = useRef([]);
-
   useEffect(() => {
     const el = document.documentElement;
     const observer = new MutationObserver(() => {
@@ -24,17 +22,16 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      blobUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
-      blobUrlsRef.current = [];
-    };
-  }, []);
-
   const uploadFn = useCallback(async (file) => {
-    const url = URL.createObjectURL(file);
-    blobUrlsRef.current.push(url);
-    return url;
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/api/upload/image', { method: 'POST', body: formData });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Upload failed.');
+    }
+    const data = await res.json();
+    return data.url;
   }, []);
 
   const editor = useCreateBlockNote({
