@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { useCreateBlockNote, FormattingToolbarController } from '@blocknote/react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
@@ -31,13 +31,15 @@ function BlockNoteEditor({ initialContent, onReady }) {
     };
   }, []);
 
+  const uploadFn = useCallback(async (file) => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.push(url);
+    return url;
+  }, []);
+
   const editor = useCreateBlockNote({
     initialContent,
-    uploadFile: async (file) => {
-      const url = URL.createObjectURL(file);
-      blobUrlsRef.current.push(url);
-      return url;
-    },
+    uploadFile: uploadFn,
     schema: BlockNoteSchema.create().extend({
       blockSpecs: {
         codeBlock: createCustomCodeBlockSpec({
@@ -51,6 +53,21 @@ function BlockNoteEditor({ initialContent, onReady }) {
       },
     }),
   });
+
+  const handleSelectionChange = useCallback(() => {
+    try {
+      const { block } = editor.getTextCursorPosition();
+      if (block?.type !== 'image') {
+        editor.uploadFile = undefined;
+      } else if (!editor.uploadFile) {
+        editor.uploadFile = uploadFn;
+      }
+    } catch {
+      editor.uploadFile = undefined;
+    }
+  }, [editor, uploadFn]);
+
+  useEditorSelectionChange(handleSelectionChange, editor);
 
   useEffect(() => {
     if (editor && onReady) onReady(editor);
