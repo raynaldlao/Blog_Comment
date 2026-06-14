@@ -659,6 +659,11 @@ input[type=number] {
     line-height: 1.6;
 }
 
+.bn-block-content[data-content-type="codeBlock"] ::selection {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
 /* BlockNote Editor (Create/Edit) */
 .article-editor {
     display: flex;
