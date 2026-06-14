@@ -160,9 +160,9 @@ describe('useCodeBlockGapClick', () => {
     vi.useRealTimers();
   });
 
-  it('inserts paragraph on first click above code block with paragraph above', () => {
+  it('skips insertion above code block when adjacent paragraph is empty', () => {
     vi.useFakeTimers();
-    const insertBlocks = vi.fn(() => [{ id: 'new-p' }]);
+    const insertBlocks = vi.fn();
     const focus = vi.fn();
     const documentBlocks = [
       { id: 'p-7', type: 'paragraph' },
@@ -183,18 +183,14 @@ describe('useCodeBlockGapClick', () => {
     container.dispatchEvent(event);
     vi.advanceTimersByTime(0);
 
-    expect(insertBlocks).toHaveBeenCalledWith(
-      [{ type: 'paragraph' }],
-      'code-7',
-      'before',
-    );
-    expect(focus).toHaveBeenCalledOnce();
+    expect(insertBlocks).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 
-  it('skips insertion on second click above code block with paragraph above', () => {
+  it('skips insertion on repeated click above empty paragraph', () => {
     vi.useFakeTimers();
-    const insertBlocks = vi.fn(() => [{ id: 'new-p' }]);
+    const insertBlocks = vi.fn();
     const focus = vi.fn();
     const documentBlocks = [
       { id: 'p-7', type: 'paragraph' },
@@ -213,12 +209,11 @@ describe('useCodeBlockGapClick', () => {
       cancelable: true,
     });
     container.dispatchEvent(event);
-    vi.advanceTimersByTime(0);
-    expect(insertBlocks).toHaveBeenCalledTimes(1);
+    expect(insertBlocks).not.toHaveBeenCalled();
 
     container.dispatchEvent(event);
-    expect(insertBlocks).toHaveBeenCalledTimes(1);
-    expect(focus).toHaveBeenCalledOnce();
+    expect(insertBlocks).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
 

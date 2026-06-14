@@ -33,8 +33,11 @@ export default function useCodeBlockGapClick(editorRef) {
           const idx = allBlocks.findIndex(b => b.id === blockId);
           const adjacentBlock = allBlocks[idx + (isInBottomGap ? 1 : -1)];
 
-          if (adjacentBlock && adjacentBlock.type === 'paragraph' && isInBottomGap) {
-            return;
+          if (adjacentBlock && adjacentBlock.type === 'paragraph') {
+            const isEmptyParagraph = !adjacentBlock.content || adjacentBlock.content.length === 0;
+            if (isEmptyParagraph) {
+              return;
+            }
           }
 
           const now = Date.now();
