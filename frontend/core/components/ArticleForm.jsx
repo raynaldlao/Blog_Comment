@@ -10,6 +10,18 @@ import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
+
+export function applyVideoDictOverrides(editor) {
+  editor.dictionary.slash_menu.video.title = 'YouTube';
+  editor.dictionary.slash_menu.video.subtext = 'Paste a YouTube video URL';
+  editor.dictionary.slash_menu.video.aliases = [
+    'youtube', 'yt', 'video', 'videoUpload', 'upload', 'film', 'media', 'url',
+  ];
+  editor.dictionary.file_panel.embed.title = 'YouTube URL';
+  editor.dictionary.file_panel.embed.url_placeholder = 'Paste YouTube video link';
+  editor.dictionary.file_panel.embed.embed_button.video = 'Embed YouTube video';
+}
+
 function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
@@ -53,16 +65,25 @@ function BlockNoteEditor({ initialContent, onReady }) {
     }),
   });
 
+  useEffect(function () {
+    if (editor) applyVideoDictOverrides(editor);
+  }, [editor]);
+
   const handleSelectionChange = useCallback(() => {
     try {
       const { block } = editor.getTextCursorPosition();
       if (block?.type !== 'image') {
         editor.uploadFile = undefined;
-      } else if (!editor.uploadFile) {
-        editor.uploadFile = uploadFn;
+        editor.portalElement?.classList.remove('image-selected');
+      } else {
+        if (!editor.uploadFile) {
+          editor.uploadFile = uploadFn;
+        }
+        editor.portalElement?.classList.add('image-selected');
       }
     } catch {
       editor.uploadFile = undefined;
+      editor.portalElement?.classList.remove('image-selected');
     }
   }, [editor, uploadFn]);
 

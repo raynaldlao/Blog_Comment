@@ -945,5 +945,10 @@ input[type=number] {
     height: auto;
     border-radius: var(--radius-default);
 }
+
+/* Hide embed tab when an image block is selected */
+.image-selected .bn-panel [data-test$="-tab"]:last-child {
+    display: none;
+}
  
 
