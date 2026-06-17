@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { BlockNoteSchema } from '@blocknote/core';
+import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
 import useArticle from '../hooks/useArticle';
 import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
@@ -47,11 +47,14 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return data.url;
   }, []);
 
-  const editor = useCreateBlockNote({
+  var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+
+  var editor = useCreateBlockNote({
     initialContent,
     uploadFile: uploadFn,
-    schema: BlockNoteSchema.create().extend({
+    schema: BlockNoteSchema.create({
       blockSpecs: {
+        ...keptSpecs,
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,

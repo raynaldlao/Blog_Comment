@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { filterVideoToolbarItems } from '../components/CustomFormattingToolbar';
+import { filterVideoToolbarItems, filterImageToolbarItems } from '../components/CustomFormattingToolbar';
 
 var MockReplace = function MockReplace() {};
 var MockDownload = function MockDownload() {};
@@ -68,5 +68,15 @@ describe('filterVideoToolbarItems', function () {
     // These won't match our mocks, so both items pass
     // This just verifies the fallback doesn't crash
     expect(filterVideoToolbarItems(items).length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('filterImageToolbarItems', function () {
+  it('filters out FileDownloadButton', function () {
+    expect(filterImageToolbarItems([{ type: MockDownload }], [MockDownload])).toEqual([]);
+  });
+
+  it('keeps normal buttons', function () {
+    expect(filterImageToolbarItems([{ type: MockNormal }])).toHaveLength(1);
   });
 });

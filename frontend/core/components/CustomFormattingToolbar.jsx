@@ -20,11 +20,23 @@ var HIDDEN_VIDEO_BUTTONS = [
   FilePreviewButton,
 ];
 
+var HIDDEN_IMAGE_BUTTONS = [
+  FileDownloadButton,
+];
+
 export function filterVideoToolbarItems(items, hiddenTypes) {
   var hide = hiddenTypes || HIDDEN_VIDEO_BUTTONS;
   return items.filter(function (item) {
     if (hide.includes(item.type)) return false;
     if (item.props?.textAlignment) return false;
+    return true;
+  });
+}
+
+export function filterImageToolbarItems(items, hiddenTypes) {
+  var hide = hiddenTypes || HIDDEN_IMAGE_BUTTONS;
+  return items.filter(function (item) {
+    if (hide.includes(item.type)) return false;
     return true;
   });
 }
@@ -43,6 +55,20 @@ function useIsVideo() {
   }
 }
 
+function useIsImage() {
+  var editor = useBlockNoteEditor();
+  if (!editor) {
+    return false;
+  }
+  try {
+    var block = editor.getSelection()?.blocks?.[0]
+      ?? editor.getTextCursorPosition().block;
+    return block.type === 'image';
+  } catch {
+    return false;
+  }
+}
+
 export default function CustomFormattingToolbar() {
   var Components = useComponentsContext();
   if (!Components) {
@@ -50,10 +76,20 @@ export default function CustomFormattingToolbar() {
   }
 
   var isVideo = useIsVideo();
+  var isImage = useIsImage();
   var items = getFormattingToolbarItems();
 
   if (isVideo) {
     var filtered = filterVideoToolbarItems(items);
+    return (
+      <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
+        {filtered}
+      </Components.FormattingToolbar.Root>
+    );
+  }
+
+  if (isImage) {
+    var filtered = filterImageToolbarItems(items);
     return (
       <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
         {filtered}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { BlockNoteSchema } from '@blocknote/core';
+import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
@@ -22,10 +22,13 @@ function BlockNoteViewer({ initialContent }) {
     return () => observer.disconnect();
   }, []);
 
-  const editor = useCreateBlockNote({
+  var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+
+  var editor = useCreateBlockNote({
     initialContent,
-    schema: BlockNoteSchema.create().extend({
+    schema: BlockNoteSchema.create({
       blockSpecs: {
+        ...keptSpecs,
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,
