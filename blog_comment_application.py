@@ -124,11 +124,21 @@ def _init_web_facade_flask() -> Flask:
     assets_dir = os.path.join(base_dir, "frontend/assets")
     app = Flask(__name__, template_folder=template_dir, static_folder=dist_dir, static_url_path="/dist")
 
+    # TODO(refactor): Extract static routes (assets, favicon) into a dedicated
+    # function/class (e.g., flask_setup/static_routes.py).
+    # Inline lambdas are convenient short‑term but make unit testing and
+    # future extensions (new static files) more difficult.
     app.add_url_rule(
         "/assets/<path:filename>",
         endpoint="assets",
         view_func=lambda filename: send_from_directory(assets_dir, filename),
     )
+    app.add_url_rule(
+        "/favicon.ico",
+        endpoint="favicon",
+        view_func=lambda: send_from_directory(assets_dir, "favicon.svg", mimetype="image/svg+xml"),
+    )
+
     app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_PERMANENT"] = True

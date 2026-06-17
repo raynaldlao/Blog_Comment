@@ -302,6 +302,12 @@ class TestCSP:
         response = client.get("/csp-report")
         assert response.status_code == 405
 
+    def test_csp_frame_src_youtube(self, client):
+        """Verifies frame-src directive allows YouTube embeds."""
+        response = client.get("/login")
+        csp = response.headers["Content-Security-Policy"]
+        assert "frame-src https://www.youtube.com" in csp
+
 
 class TestSecurityHeaders:
     """Tests focused on generic HTTP security headers."""
@@ -339,3 +345,9 @@ class TestSecurityHeaders:
         set_cookie = response.headers.get("Set-Cookie", "")
         assert "Expires=" not in set_cookie
         assert "Max-Age=" not in set_cookie
+
+    def test_favicon_ico_returns_svg(self, client):
+        """Verifies /favicon.ico serves the SVG favicon with correct content type."""
+        response = client.get("/favicon.ico")
+        assert response.status_code == 200
+        assert "image/svg+xml" in response.content_type

@@ -8,6 +8,7 @@ import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
+import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
 function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
@@ -47,6 +48,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
             langs: [],
           }),
         }),
+        video: createVideoOverrideSpec(),
       },
     }),
   });

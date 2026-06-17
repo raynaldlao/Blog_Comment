@@ -6,6 +6,7 @@ import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
+import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
 function BlockNoteViewer({ initialContent }) {
   const [theme, setTheme] = useState(() =>
@@ -33,6 +34,7 @@ function BlockNoteViewer({ initialContent }) {
             langs: [],
           }),
         }),
+        video: createVideoOverrideSpec(),
       },
     }),
   });
