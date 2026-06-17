@@ -40,11 +40,29 @@ export function createVideoOverrideSpec() {
           var embedUrl = getYouTubeEmbedUrl(url);
           var iframeContainer = document.createElement('div');
           iframeContainer.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9';
+          iframeContainer.contentEditable = 'false';
 
           var iframe = document.createElement('iframe');
           iframe.src = embedUrl;
-          iframe.style.cssText = 'position:absolute;top:0.375rem;left:0.375rem;width:calc(100% - 0.75rem);height:calc(100% - 0.75rem);border:0';
+          iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:4px';
           iframe.allow = 'fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+
+          if (editor.isEditable) {
+            iframe.style.pointerEvents = 'none';
+
+            iframeContainer.addEventListener('dblclick', function () {
+              iframe.style.pointerEvents = '';
+              if (iframe.contentWindow) iframe.contentWindow.focus();
+
+              var onAnyClick = function (e) {
+                if (!iframeContainer.contains(e.target)) {
+                  iframe.style.pointerEvents = 'none';
+                  document.removeEventListener('click', onAnyClick, true);
+                }
+              };
+              document.addEventListener('click', onAnyClick, true);
+            });
+          }
 
           iframeContainer.appendChild(iframe);
 

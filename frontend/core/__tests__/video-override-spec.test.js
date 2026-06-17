@@ -138,6 +138,75 @@ describe('render', function () {
     var iframe = result.dom.querySelector('iframe');
     expect(iframe.hasAttribute('allowfullscreen')).toBe(false);
   });
+
+  it('sets contentEditable=false on inner container', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var container = result.dom.querySelector('[contenteditable="false"]');
+    expect(container).not.toBeNull();
+    expect(container.parentElement.className).toBe('bn-visual-media-wrapper');
+  });
+
+  it('sets pointer-events:none on iframe when editor is editable', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var iframe = result.dom.querySelector('iframe');
+    expect(iframe.style.pointerEvents).toBe('none');
+  });
+
+  it('does not set pointer-events on iframe when editor is not editable', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = { isEditable: false };
+    var result = spec.implementation.render(block, editor);
+    var iframe = result.dom.querySelector('iframe');
+    expect(iframe.style.pointerEvents).toBe('');
+  });
+
+  it('removes pointer-events from iframe on dblclick', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var container = result.dom.firstElementChild;
+    var iframe = result.dom.querySelector('iframe');
+
+    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+
+    expect(iframe.style.pointerEvents).toBe('');
+  });
+
+  it('restores pointer-events:none on click outside after dblclick', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var container = result.dom.firstElementChild;
+    var iframe = result.dom.querySelector('iframe');
+
+    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(iframe.style.pointerEvents).toBe('none');
+  });
+
+  it('keeps pointer-events removed on click inside container after dblclick', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: YT_URL });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var container = result.dom.firstElementChild;
+    var iframe = result.dom.querySelector('iframe');
+
+    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    container.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+    expect(iframe.style.pointerEvents).toBe('');
+  });
 });
 
 describe('toExternalHTML', function () {

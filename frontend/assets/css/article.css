@@ -950,5 +950,11 @@ input[type=number] {
 .image-selected .bn-panel [data-test$="-tab"]:last-child {
     display: none;
 }
+
+/* Selection outline for custom video override (no bn-block-content wrapper) */
+.bn-visual-media-wrapper.ProseMirror-selectednode {
+    border-radius: 4px;
+    outline: 4px solid #64a0ff;
+}
  
 
