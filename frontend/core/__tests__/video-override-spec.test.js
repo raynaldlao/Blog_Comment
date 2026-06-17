@@ -130,6 +130,16 @@ describe('render', function () {
     expect(result.dom.querySelector('iframe')).toBeNull();
   });
 
+  it('creates iframe for YouTube Shorts URL', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: 'https://youtube.com/shorts/abc123def45' });
+    var editor = createEditor();
+    var result = spec.implementation.render(block, editor);
+    var iframe = result.dom.querySelector('iframe');
+    expect(iframe).not.toBeNull();
+    expect(iframe.src).toBe('https://www.youtube.com/embed/abc123def45');
+  });
+
   it('does not add allowfullscreen attribute (uses allow instead)', function () {
     var spec = createVideoOverrideSpec();
     var block = createBlock({ url: YT_URL });

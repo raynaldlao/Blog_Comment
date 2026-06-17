@@ -1,6 +1,6 @@
 import { createVideoBlockConfig } from '@blocknote/core';
 
-var YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+var YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
 function isYouTubeUrl(url) {
   return YOUTUBE_RE.test(url);
