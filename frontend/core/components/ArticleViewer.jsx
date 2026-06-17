@@ -41,7 +41,7 @@ function BlockNoteViewer({ initialContent }) {
       },
     }),
   });
-  return <BlockNoteView editor={editor} theme={theme} editable={false} />;
+  return <BlockNoteView editor={editor} theme={theme} editable={false} formattingToolbar={false} />;
 }
 
 export default function ArticleViewer() {
