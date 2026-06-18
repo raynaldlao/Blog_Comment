@@ -895,6 +895,15 @@ input[type=number] {
     transition-delay: 0.1s;
 }
 
+.code-block-selection-overlay--external {
+    box-shadow: 0 0 0 4px #64a0ff;
+    border-radius: 0.5rem;
+}
+
+.code-block-selection-overlay--external.code-block-selection-overlay--editing {
+    box-shadow: 0 0 0 2px rgba(100, 160, 255, 0.4);
+}
+
 .code-copy-btn {
     position: relative;
     display: inline-flex;
@@ -1015,6 +1024,12 @@ input[type=number] {
 .bn-visual-media-wrapper.ProseMirror-selectednode {
     border-radius: 4px;
     outline: 4px solid #64a0ff;
+}
+
+/* Selection outline for code blocks (TextSelection, no ProseMirror-selectednode) */
+.code-block-wrapper--selected {
+    border-radius: 4px;
+    box-shadow: 0 0 0 4px #64a0ff;
 }
  
 
