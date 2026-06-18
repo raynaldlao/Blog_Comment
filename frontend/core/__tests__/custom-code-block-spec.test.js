@@ -30,7 +30,8 @@ function createMockViewerDom(lang) {
 }
 
 function createMockEditor(isEditable) {
-  return { isEditable };
+  const removeBlocks = vi.fn();
+  return { isEditable, removeBlocks };
 }
 
 function createMockSelect(options) {
@@ -260,7 +261,9 @@ describe('createCustomCodeBlockSpec', () => {
 
     const btn = outerDiv.querySelector('.code-copy-btn');
     expect(btn).not.toBeNull();
-    expect(btn.textContent).toBe('Copy');
+    const svg = btn.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg.getAttribute('viewBox')).toBe('0 0 24 24');
   });
 
   it('adds copy button in non-editable viewer', () => {
@@ -274,7 +277,9 @@ describe('createCustomCodeBlockSpec', () => {
 
     const btn = outerDiv.querySelector('.code-copy-btn');
     expect(btn).not.toBeNull();
-    expect(btn.textContent).toBe('Copy');
+    const svg = btn.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg.getAttribute('viewBox')).toBe('0 0 24 24');
   });
 
   it('sets data-lang on copy button from DOM code class', () => {
@@ -316,6 +321,56 @@ describe('createCustomCodeBlockSpec', () => {
 
     const btns = outerDiv.querySelectorAll('.code-copy-btn');
     expect(btns.length).toBe(1);
+  });
+
+  it('shows tooltip on copy button mouseenter', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const copyBtn = outerDiv.querySelector('.code-copy-btn');
+    copyBtn.dispatchEvent(new MouseEvent('mouseenter'));
+
+    const tooltip = document.querySelector('.code-block-tooltip');
+    expect(tooltip).not.toBeNull();
+    expect(tooltip.textContent).toBe('Copy');
+  });
+
+  it('removes tooltip on copy button mouseleave', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const copyBtn = outerDiv.querySelector('.code-copy-btn');
+    copyBtn.dispatchEvent(new MouseEvent('mouseenter'));
+    copyBtn.dispatchEvent(new MouseEvent('mouseleave'));
+
+    const tooltip = document.querySelector('.code-block-tooltip');
+    expect(tooltip).toBeNull();
   });
 
   it('closes dropdown on Escape key', () => {
@@ -465,5 +520,116 @@ describe('createCustomCodeBlockSpec', () => {
     searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
     expect(select.value).toBe('js');
+  });
+
+  it('shows delete button in editable editor', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const deleteBtn = outerDiv.querySelector('.code-delete-btn');
+    expect(deleteBtn).not.toBeNull();
+    const svg = deleteBtn.querySelector('svg');
+    expect(svg).not.toBeNull();
+    expect(svg.getAttribute('viewBox')).toBe('0 0 24 24');
+  });
+
+  it('shows tooltip on delete button mouseenter', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const deleteBtn = outerDiv.querySelector('.code-delete-btn');
+    deleteBtn.dispatchEvent(new MouseEvent('mouseenter'));
+
+    const tooltip = document.querySelector('.code-block-tooltip');
+    expect(tooltip).not.toBeNull();
+    expect(tooltip.textContent).toBe('Delete');
+  });
+
+  it('removes tooltip on delete button mouseleave', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const deleteBtn = outerDiv.querySelector('.code-delete-btn');
+    deleteBtn.dispatchEvent(new MouseEvent('mouseenter'));
+    deleteBtn.dispatchEvent(new MouseEvent('mouseleave'));
+
+    const tooltip = document.querySelector('.code-block-tooltip');
+    expect(tooltip).toBeNull();
+  });
+
+  it('hides delete button in non-editable viewer', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(false);
+
+    const outerDiv = createMockViewerDom();
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const deleteBtn = outerDiv.querySelector('.code-delete-btn');
+    expect(deleteBtn).toBeNull();
+  });
+
+  it('calls editor.removeBlocks on delete click', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const deleteBtn = outerDiv.querySelector('.code-delete-btn');
+    deleteBtn.click();
+
+    expect(editor.removeBlocks).toHaveBeenCalledTimes(1);
+    expect(editor.removeBlocks).toHaveBeenCalledWith([block]);
   });
 });

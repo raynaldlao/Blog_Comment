@@ -207,14 +207,79 @@ export function createCustomCodeBlockSpec(options) {
 
   let widgetInstance = null;
 
-  function ensureCopyButton(dom, lang) {
+  function ensureHeaderButtons(dom, lang, block, editor) {
     if (dom.classList.contains('code-block-wrapper')) return;
     dom.classList.add('code-block-wrapper');
-    const btn = document.createElement('button');
-    btn.className = 'code-copy-btn';
-    btn.textContent = 'Copy';
-    if (lang) btn.dataset.lang = lang;
-    dom.appendChild(btn);
+
+    const actions = document.createElement('div');
+    actions.className = 'code-block-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'code-copy-btn';
+    copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M6.9998 6V3C6.9998 2.44772 7.44752 2 7.9998 2H19.9998C20.5521 2 20.9998 2.44772 20.9998 3V17C20.9998 17.5523 20.5521 18 19.9998 18H16.9998V20.9991C16.9998 21.5519 16.5499 22 15.993 22H4.00666C3.45059 22 3 21.5554 3 20.9991L3.0026 7.00087C3.0027 6.44811 3.45264 6 4.00942 6H6.9998ZM5.00242 8L5.00019 20H14.9998V8H5.00242ZM8.9998 6H16.9998V16H18.9998V4H8.9998V6Z"/></svg>';
+    if (lang) copyBtn.dataset.lang = lang;
+
+    function showCopyTooltip() {
+      const tooltip = document.createElement('div');
+      tooltip.className = 'code-block-tooltip';
+      tooltip.textContent = 'Copy';
+      document.body.appendChild(tooltip);
+      const rect = copyBtn.getBoundingClientRect();
+      const th = tooltip.offsetHeight;
+      tooltip.style.top = (rect.top - 5 - th) + 'px';
+      tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+      tooltip.style.transform = 'translateX(-50%)';
+      requestAnimationFrame(() => tooltip.classList.add('code-block-tooltip--visible'));
+      copyBtn._tooltip = tooltip;
+    }
+
+    function hideCopyTooltip() {
+      if (copyBtn._tooltip) {
+        copyBtn._tooltip.remove();
+        copyBtn._tooltip = null;
+      }
+    }
+
+    copyBtn.addEventListener('mouseenter', showCopyTooltip);
+    copyBtn.addEventListener('mouseleave', hideCopyTooltip);
+    actions.appendChild(copyBtn);
+
+    if (editor?.isEditable && block) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'code-delete-btn';
+      deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" width="1em" height="1em"><path d="M17 6H22V8H20V21C20 21.5523 19.5523 22 19 22H5C4.44772 22 4 21.5523 4 21V8H2V6H7V3C7 2.44772 7.44772 2 8 2H16C16.5523 2 17 2.44772 17 3V6ZM18 8H6V20H18V8ZM9 4V6H15V4H9Z"/></svg>';
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editor.removeBlocks([block]);
+      });
+
+      function showTooltip() {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'code-block-tooltip';
+        tooltip.textContent = 'Delete';
+        document.body.appendChild(tooltip);
+        const rect = deleteBtn.getBoundingClientRect();
+        const th = tooltip.offsetHeight;
+        tooltip.style.top = (rect.top - 5 - th) + 'px';
+        tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+        tooltip.style.transform = 'translateX(-50%)';
+        requestAnimationFrame(() => tooltip.classList.add('code-block-tooltip--visible'));
+        deleteBtn._tooltip = tooltip;
+      }
+
+      function hideTooltip() {
+        if (deleteBtn._tooltip) {
+          deleteBtn._tooltip.remove();
+          deleteBtn._tooltip = null;
+        }
+      }
+
+      deleteBtn.addEventListener('mouseenter', showTooltip);
+      deleteBtn.addEventListener('mouseleave', hideTooltip);
+      actions.appendChild(deleteBtn);
+    }
+
+    dom.appendChild(actions);
   }
 
   spec.implementation.render = (block, editor) => {
@@ -225,7 +290,7 @@ export function createCustomCodeBlockSpec(options) {
     const lang = selectEl?.value
         || Array.from(codeEl?.classList || []).find((c) => c.startsWith('language-'))?.replace('language-', '')
         || '';
-    ensureCopyButton(result.dom, lang);
+    ensureHeaderButtons(result.dom, lang, block, editor);
 
     if (!editor.isEditable) {
       const select = result.dom.querySelector('select');
