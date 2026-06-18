@@ -69,6 +69,28 @@ export function createVideoOverrideSpec() {
           return mediaWrapper(iframeContainer);
         }
 
+        if (editor.isEditable) {
+          var oldToast = document.querySelector('.toast');
+          if (oldToast) oldToast.remove();
+
+          var toast = document.createElement('div');
+          toast.className = 'toast';
+          toast.textContent = 'Only YouTube links are supported';
+          document.body.appendChild(toast);
+
+          setTimeout(function () { if (toast.parentElement) toast.remove(); }, 2800);
+
+          setTimeout(function () {
+            var fp = null;
+            try { fp = editor.getExtension('filePanel'); } catch (e) {}
+            if (fp) fp.showMenu(block.id);
+          }, 0);
+
+          var wrapper = document.createElement('div');
+          wrapper.className = 'bn-visual-media-wrapper';
+          return { dom: wrapper };
+        }
+
         var msg = document.createElement('div');
         msg.className = 'bn-visual-media-wrapper';
         msg.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:2rem;color:#888';

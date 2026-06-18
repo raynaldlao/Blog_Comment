@@ -93,14 +93,27 @@ describe('render', function () {
     expect(iframe.src).toBe(YT_EMBED);
   });
 
-  it('shows placeholder for non-YouTube URL', function () {
+  it('shows placeholder for non-YouTube URL in viewer mode', function () {
     var spec = createVideoOverrideSpec();
     var block = createBlock({ url: MP4_URL });
-    var editor = createEditor();
+    var editor = { isEditable: false };
     var result = spec.implementation.render(block, editor);
     expect(result.dom.textContent).toBe('Only YouTube links are supported');
     expect(result.dom.querySelector('video')).toBeNull();
     expect(result.dom.querySelector('iframe')).toBeNull();
+  });
+
+  it('shows toast and returns empty wrapper for non-YouTube URL when editable', function () {
+    var spec = createVideoOverrideSpec();
+    var block = createBlock({ url: MP4_URL });
+    var editor = { isEditable: true };
+    var result = spec.implementation.render(block, editor);
+    var toast = document.querySelector('.toast');
+    expect(toast).not.toBeNull();
+    expect(toast.textContent).toBe('Only YouTube links are supported');
+    expect(result.dom.className).toBe('bn-visual-media-wrapper');
+    expect(result.dom.children.length).toBe(0);
+    toast.remove();
   });
 
   it('creates empty wrapper for empty url', function () {
@@ -118,16 +131,6 @@ describe('render', function () {
     var editor = createEditor();
     var result = spec.implementation.render(block, editor);
     expect(result.dom.className).toBe('bn-visual-media-wrapper');
-  });
-
-  it('rejects non-YouTube URL and shows placeholder', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: 'https://vimeo.com/123456' });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    expect(result.dom.textContent).toBe('Only YouTube links are supported');
-    expect(result.dom.querySelector('video')).toBeNull();
-    expect(result.dom.querySelector('iframe')).toBeNull();
   });
 
   it('creates iframe for YouTube Shorts URL', function () {
