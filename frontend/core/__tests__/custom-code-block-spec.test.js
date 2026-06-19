@@ -64,8 +64,8 @@ beforeEach(() => {
   mockRender.mockReset();
   mockSpec.implementation.render = mockRender;
   vi.restoreAllMocks();
-  vi.stubGlobal('requestAnimationFrame', (cb) => setTimeout(cb, 0));
-  vi.stubGlobal('cancelAnimationFrame', (id) => clearTimeout(id));
+  vi.stubGlobal('requestAnimationFrame', (cb) => { cb(); });
+  vi.stubGlobal('cancelAnimationFrame', () => {});
 });
 
 afterEach(() => {
@@ -1017,6 +1017,37 @@ describe('createCustomCodeBlockSpec', () => {
     outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     expect(overlay.classList.contains('code-block-selection-overlay--editing')).toBe(false);
     expect(overlay.style.display).toBe('block');
+  });
+
+  it('clears block selection on Ctrl+A when overlay active', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const overlay = document.querySelector('.code-block-selection-overlay--external');
+
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    expect(overlay.style.display).toBe('block');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', {
+      key: 'a', ctrlKey: true, bubbles: true,
+    }));
+
+    expect(overlay.style.display).toBe('none');
   });
 
   it('calls editor.redo on Ctrl+Shift+Z keydown', () => {

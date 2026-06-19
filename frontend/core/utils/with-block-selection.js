@@ -6,6 +6,7 @@ let lastActiveId = null;
 let editingActive = false;
 let lastMousedownTime = 0;
 let lastMousedownId = null;
+let selectionFrameId = null;
 
 function ensureOverlay() {
   if (!sharedOverlay) {
@@ -61,6 +62,10 @@ function applyBlockOutline(id, editing) {
 }
 
 function clearBlockSelection() {
+  if (selectionFrameId) {
+    cancelAnimationFrame(selectionFrameId);
+    selectionFrameId = null;
+  }
   if (lastActiveId) {
     const el = blockDomMap.get(lastActiveId);
     if (el) el.classList.remove('block-selected', 'bn-editing');
@@ -82,6 +87,7 @@ let shortKeyHandler = null;
 let scrollHandler = null;
 let resizeHandler = null;
 let beforeinputHandler = null;
+let ctrlAHandler = null;
 let selectionUnsubscribe = null;
 
 function removeDocumentListeners() {
@@ -92,6 +98,7 @@ function removeDocumentListeners() {
   if (scrollHandler) window.removeEventListener('scroll', scrollHandler, true);
   if (resizeHandler) window.removeEventListener('resize', resizeHandler);
   if (beforeinputHandler) document.removeEventListener('beforeinput', beforeinputHandler, true);
+  if (ctrlAHandler) document.removeEventListener('keydown', ctrlAHandler, true);
   if (selectionUnsubscribe) selectionUnsubscribe();
   mousedownHandler = null;
   clickHandler = null;
@@ -100,6 +107,7 @@ function removeDocumentListeners() {
   scrollHandler = null;
   resizeHandler = null;
   beforeinputHandler = null;
+  ctrlAHandler = null;
   selectionUnsubscribe = null;
 }
 
@@ -120,6 +128,9 @@ function initListeners(editor) {
     if (!id || !blockDomMap.has(id)) return;
     e.preventDefault();
     e.stopPropagation();
+
+    const sel = window.getSelection();
+    if (sel && !sel.isCollapsed) sel.removeAllRanges();
 
     const now = Date.now();
     const isDblClick = (now - lastMousedownTime < 400) && (lastMousedownId === id);
@@ -191,6 +202,16 @@ function initListeners(editor) {
   };
   document.addEventListener('beforeinput', beforeinputHandler, true);
 
+  ctrlAHandler = (e) => {
+    if (!(e.ctrlKey || e.metaKey) || e.key !== 'a') return;
+    if (!lastActiveId) return;
+    if (editingActive) return;
+    e.preventDefault();
+    e.stopPropagation();
+    clearBlockSelection();
+  };
+  document.addEventListener('keydown', ctrlAHandler, true);
+
   scrollHandler = () => repositionOverlay();
   window.addEventListener('scroll', scrollHandler, true);
 
@@ -198,26 +219,31 @@ function initListeners(editor) {
   window.addEventListener('resize', resizeHandler);
 
   selectionUnsubscribe = editor.onSelectionChange(() => {
-    const sel = window.getSelection();
-    const isTextSelection = sel && !sel.isCollapsed;
-    const pos = editor.getTextCursorPosition();
-    const activeId = pos?.block?.id || null;
-    const hasBlock = blockDomMap.has(activeId);
-    if (!hasBlock) {
-      clearBlockSelection();
-      return;
-    }
-    if (isTextSelection) {
-      if (sharedOverlay) {
-        sharedOverlay.style.display = 'none';
-        sharedOverlay.classList.remove('code-block-selection-overlay--editing');
+    if (selectionFrameId) cancelAnimationFrame(selectionFrameId);
+    selectionFrameId = requestAnimationFrame(() => {
+      selectionFrameId = null;
+      const pmSelectedNodes = document.querySelectorAll('.ProseMirror-selectednode');
+      const sel = window.getSelection();
+      const isTextSelection = sel && !sel.isCollapsed;
+      const pos = editor.getTextCursorPosition();
+      const activeId = pos?.block?.id || null;
+      const hasBlock = blockDomMap.has(activeId);
+      if (!hasBlock) {
+        clearBlockSelection();
+        return;
       }
-      return;
-    }
-    if (activeId !== lastActiveId) {
-      editingActive = false;
-    }
-    applyBlockOutline(activeId, editingActive);
+      if (isTextSelection) {
+        if (sharedOverlay) {
+          sharedOverlay.style.display = 'none';
+          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
+        }
+        return;
+      }
+      if (activeId !== lastActiveId) {
+        editingActive = false;
+      }
+      applyBlockOutline(activeId, editingActive);
+    });
   });
 }
 

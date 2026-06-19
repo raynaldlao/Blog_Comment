@@ -1045,10 +1045,19 @@ input[type=number] {
     box-shadow: 0 0 0 2px rgba(100, 160, 255, 0.4);
 }
 
+/* Suppress ProseMirror native outline on overlay-selected blocks (Ctrl+A) */
+.block-selected.ProseMirror-selectednode > *,
+.ProseMirror-selectednode > .bn-block-content.block-selected > *,
+.block-selected.ProseMirror-selectednode *,
+.ProseMirror-selectednode .block-selected * {
+    outline: none !important;
+}
+
 /* Hide ::selection when block selected (not editing) — overlay handles visual */
-.block-selected:not(.bn-editing) ::selection {
-    background: transparent;
-    color: inherit;
+.block-selected:not(.bn-editing)::selection,
+.block-selected:not(.bn-editing) *::selection {
+    background: transparent !important;
+    color: inherit !important;
 }
 /* Hide overlay outline when editing — ::selection takes over */
 .code-block-selection-overlay--editing {
