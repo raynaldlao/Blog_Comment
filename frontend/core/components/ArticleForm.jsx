@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange } from '@blocknote/react';
+import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
+import CustomDragHandleMenu from './CustomDragHandleMenu';
 import useArticle from '../hooks/useArticle';
 import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter';
@@ -101,8 +102,14 @@ function BlockNoteEditor({ initialContent, onReady }) {
       editor={editor}
       theme={theme}
       formattingToolbar={false}
+      sideMenu={false}
     >
       <FormattingToolbarController formattingToolbar={CustomFormattingToolbar} />
+      <SideMenuController
+        sideMenu={(props) => (
+          <SideMenu {...props} dragHandleMenu={CustomDragHandleMenu} />
+        )}
+      />
     </BlockNoteView>
   );
 }
