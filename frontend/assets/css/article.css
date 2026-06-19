@@ -895,15 +895,6 @@ input[type=number] {
     transition-delay: 0.1s;
 }
 
-.code-block-selection-overlay--external {
-    box-shadow: 0 0 0 4px #64a0ff;
-    border-radius: 0.5rem;
-}
-
-.code-block-selection-overlay--external.code-block-selection-overlay--editing {
-    box-shadow: 0 0 0 2px rgba(100, 160, 255, 0.4);
-}
-
 .code-copy-btn {
     position: relative;
     display: inline-flex;
@@ -991,13 +982,26 @@ input[type=number] {
 }
 
 @keyframes toast-in {
-    0% { opacity: 0; transform: translateX(-50%) translateY(0.5rem); }
-    100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(0.5rem);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 
 @keyframes toast-out {
-    0% { opacity: 1; }
-    100% { opacity: 0; transform: translateX(-50%) translateY(-0.25rem); }
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-0.25rem);
+    }
 }
 
 [data-theme="dark"] .toast {
@@ -1031,5 +1035,22 @@ input[type=number] {
     border-radius: 4px;
     box-shadow: 0 0 0 4px #64a0ff;
 }
- 
 
+/* External selection overlay for block-wrapper */
+.code-block-selection-overlay--external {
+    box-shadow: 0 0 0 4px #64a0ff;
+    border-radius: 0.5rem;
+}
+.code-block-selection-overlay--external.code-block-selection-overlay--editing {
+    box-shadow: 0 0 0 2px rgba(100, 160, 255, 0.4);
+}
+
+/* Hide ::selection when block selected (not editing) — overlay handles visual */
+.block-selected:not(.bn-editing) ::selection {
+    background: transparent;
+    color: inherit;
+}
+/* Hide overlay outline when editing — ::selection takes over */
+.code-block-selection-overlay--editing {
+    display: none !important;
+}

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
+import { resetBlockSelection } from '../utils/with-block-selection';
 
 const mockRender = vi.fn();
 const mockSpec = {
@@ -41,9 +42,10 @@ function createMockEditor(isEditable) {
     };
   });
   const focus = vi.fn();
+  const setTextCursorPosition = vi.fn();
   const undo = vi.fn();
   const redo = vi.fn();
-  return { isEditable, removeBlocks, onSelectionChange, getTextCursorPosition, focus, undo, redo, _listeners: listeners, dom: document.createElement('div') };
+  return { isEditable, removeBlocks, onSelectionChange, getTextCursorPosition, focus, setTextCursorPosition, undo, redo, _listeners: listeners, dom: document.createElement('div') };
 }
 
 function createMockSelect(options) {
@@ -67,6 +69,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  resetBlockSelection();
   document.body.innerHTML = '';
 });
 
@@ -856,7 +859,8 @@ describe('createCustomCodeBlockSpec', () => {
     expect(overlay.classList.contains('code-block-selection-overlay--editing')).toBe(false);
 
     document.body.appendChild(outerDiv);
-    outerDiv.dispatchEvent(new Event('dblclick', { bubbles: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     expect(overlay.classList.contains('code-block-selection-overlay--editing')).toBe(true);
   });
 
@@ -882,7 +886,8 @@ describe('createCustomCodeBlockSpec', () => {
 
     const overlay = document.querySelector('.code-block-selection-overlay--external');
     document.body.appendChild(outerDiv);
-    outerDiv.dispatchEvent(new Event('dblclick', { bubbles: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     expect(overlay.classList.contains('code-block-selection-overlay--editing')).toBe(true);
 
     editor.getTextCursorPosition.mockReturnValue({ block: { id: 'other-block' } });
@@ -911,13 +916,14 @@ describe('createCustomCodeBlockSpec', () => {
     editor._listeners.forEach((cb) => cb());
 
     document.body.appendChild(outerDiv);
-    outerDiv.dispatchEvent(new Event('dblclick', { bubbles: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
 
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
     expect(editor.removeBlocks).not.toHaveBeenCalled();
   });
 
-  it('shows overlay on mousedown when clicking code block', () => {
+  it('shows overlay on selection change when cursor is in code block', () => {
     const spec = renderSpec();
     const block = createMockBlock('block-1', 'python');
     const editor = createMockEditor(true);
@@ -937,8 +943,8 @@ describe('createCustomCodeBlockSpec', () => {
     const overlay = document.querySelector('.code-block-selection-overlay--external');
     expect(overlay.style.display).toBe('none');
 
-    document.body.appendChild(outerDiv);
-    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
 
     expect(overlay.style.display).toBe('block');
   });

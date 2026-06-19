@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
-import { BlockNoteSchema, defaultBlockSpecs } from '@blocknote/core';
+import { BlockNoteSchema, defaultBlockSpecs, createParagraphBlockSpec } from '@blocknote/core';
 import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
+import { withBlockSelection } from '../utils/with-block-selection';
 import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
 function BlockNoteViewer({ initialContent }) {
@@ -29,6 +30,7 @@ function BlockNoteViewer({ initialContent }) {
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
+        paragraph: withBlockSelection(createParagraphBlockSpec()),
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,

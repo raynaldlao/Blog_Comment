@@ -1,4 +1,5 @@
 import { createCodeBlockSpec as createOriginalCodeBlockSpec } from '@blocknote/core';
+import { withBlockSelection } from './with-block-selection';
 
 function createLanguageSelectorWidget(select, block, editor) {
   try {
@@ -206,20 +207,10 @@ export function createCustomCodeBlockSpec(options) {
   const originalRender = spec.implementation.render.bind(spec.implementation);
 
   let widgetInstance = null;
-  const blockDomMap = new Map();
-  const blockIdMap = new Map();
-  let sharedOverlay = null;
-  let sharedOverlayAttached = false;
 
   function ensureHeaderButtons(dom, lang, block, editor) {
     if (dom.classList.contains('code-block-wrapper')) return;
     dom.classList.add('code-block-wrapper');
-
-    if (editor?.isEditable && block) {
-      blockDomMap.set(block.id, dom);
-      blockIdMap.set(block.id, block);
-      dom.dataset.codeBlockId = block.id;
-    }
 
     const actions = document.createElement('div');
     actions.className = 'code-block-actions';
@@ -319,119 +310,6 @@ export function createCustomCodeBlockSpec(options) {
       return result;
     }
 
-    if (!sharedOverlayAttached) {
-      sharedOverlayAttached = true;
-      sharedOverlay = document.createElement('div');
-      sharedOverlay.className = 'code-block-selection-overlay--external';
-      sharedOverlay.style.cssText = 'display:none;position:fixed;z-index:99999;pointer-events:none;';
-      document.body.appendChild(sharedOverlay);
-
-      let lastActiveId = null;
-      let editingActive = false;
-
-      function positionOverlay(id) {
-        const activeDom = blockDomMap.get(id);
-        if (!activeDom) { sharedOverlay.style.display = 'none'; return; }
-        const rect = activeDom.getBoundingClientRect();
-        sharedOverlay.style.display = 'block';
-        sharedOverlay.style.top = rect.top + 'px';
-        sharedOverlay.style.left = rect.left + 'px';
-        sharedOverlay.style.width = rect.width + 'px';
-        sharedOverlay.style.height = rect.height + 'px';
-      }
-
-      document.addEventListener('mousedown', (e) => {
-        if (editingActive) return;
-        const wrapper = e.target.closest('.code-block-wrapper');
-        if (!wrapper) return;
-        const id = wrapper.dataset.codeBlockId;
-        if (!id || !blockDomMap.has(id)) return;
-        e.stopPropagation();
-        e.preventDefault();
-        lastActiveId = id;
-        positionOverlay(id);
-      }, true);
-
-      function onDocumentClick(e) {
-        if (!e.target.closest('.ProseMirror')) {
-          sharedOverlay.style.display = 'none';
-          editingActive = false;
-          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
-        } else if (lastActiveId && blockDomMap.has(lastActiveId)) {
-          positionOverlay(lastActiveId);
-        }
-      }
-      document.addEventListener('click', onDocumentClick, true);
-
-      document.addEventListener('dblclick', (e) => {
-        if (!lastActiveId) return;
-        const wrapper = e.target.closest('.code-block-wrapper');
-        if (!wrapper) return;
-        const blockDom = blockDomMap.get(lastActiveId);
-        if (!blockDom || !blockDom.contains(e.target)) return;
-        editingActive = true;
-        sharedOverlay.classList.add('code-block-selection-overlay--editing');
-      }, true);
-
-      function onKeyDown(e) {
-        if (e.key !== 'Backspace' && e.key !== 'Delete') return;
-        if (editingActive) return;
-        if (!lastActiveId) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const block = blockIdMap.get(lastActiveId);
-        if (!block) return;
-        editor.removeBlocks([block]);
-        lastActiveId = null;
-        sharedOverlay.style.display = 'none';
-        editingActive = false;
-        sharedOverlay.classList.remove('code-block-selection-overlay--editing');
-      }
-      document.addEventListener('keydown', onKeyDown, true);
-
-      document.addEventListener('keydown', (e) => {
-        const mod = e.ctrlKey || e.metaKey;
-        if (!mod) return;
-        if (e.key === 'z' && !e.shiftKey) {
-          e.preventDefault();
-          e.stopPropagation();
-          editor.undo();
-          return;
-        }
-        if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
-          e.preventDefault();
-          e.stopPropagation();
-          editor.redo();
-        }
-      }, true);
-
-      editor.onSelectionChange(() => {
-        const pos = editor.getTextCursorPosition();
-        const activeId = pos?.block?.id || null;
-        const hasBlock = blockDomMap.has(activeId);
-        if (!hasBlock) {
-          sharedOverlay.style.display = 'none';
-          lastActiveId = null;
-          editingActive = false;
-          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
-          return;
-        }
-        if (activeId !== lastActiveId) {
-          editingActive = false;
-          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
-        }
-        lastActiveId = activeId;
-        positionOverlay(activeId);
-      });
-
-      window.addEventListener('scroll', () => {
-        if (sharedOverlay.style.display !== 'block') return;
-        if (lastActiveId && blockDomMap.has(lastActiveId)) {
-          positionOverlay(lastActiveId);
-        }
-      }, { passive: true });
-    }
-
     const wrapperDiv = result.dom.querySelector('[contenteditable="false"]');
     if (wrapperDiv) {
       const select = wrapperDiv.querySelector('select');
@@ -446,5 +324,5 @@ export function createCustomCodeBlockSpec(options) {
     return result;
   };
 
-  return spec;
+  return withBlockSelection(spec);
 }
