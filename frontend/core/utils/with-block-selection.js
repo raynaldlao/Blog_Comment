@@ -71,6 +71,8 @@ function clearBlockSelection() {
   }
   lastActiveId = null;
   editingActive = false;
+  lastMousedownTime = 0;
+  lastMousedownId = null;
 }
 
 let mousedownHandler = null;
@@ -79,6 +81,7 @@ let deleteKeyHandler = null;
 let shortKeyHandler = null;
 let scrollHandler = null;
 let resizeHandler = null;
+let beforeinputHandler = null;
 let selectionUnsubscribe = null;
 
 function removeDocumentListeners() {
@@ -88,6 +91,7 @@ function removeDocumentListeners() {
   if (shortKeyHandler) document.removeEventListener('keydown', shortKeyHandler, true);
   if (scrollHandler) window.removeEventListener('scroll', scrollHandler, true);
   if (resizeHandler) window.removeEventListener('resize', resizeHandler);
+  if (beforeinputHandler) document.removeEventListener('beforeinput', beforeinputHandler, true);
   if (selectionUnsubscribe) selectionUnsubscribe();
   mousedownHandler = null;
   clickHandler = null;
@@ -95,6 +99,7 @@ function removeDocumentListeners() {
   shortKeyHandler = null;
   scrollHandler = null;
   resizeHandler = null;
+  beforeinputHandler = null;
   selectionUnsubscribe = null;
 }
 
@@ -177,6 +182,14 @@ function initListeners(editor) {
     }
   };
   document.addEventListener('keydown', shortKeyHandler, true);
+
+  beforeinputHandler = (e) => {
+    if (editingActive) return;
+    if (!lastActiveId) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  document.addEventListener('beforeinput', beforeinputHandler, true);
 
   scrollHandler = () => repositionOverlay();
   window.addEventListener('scroll', scrollHandler, true);

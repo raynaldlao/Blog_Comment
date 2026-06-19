@@ -985,6 +985,40 @@ describe('createCustomCodeBlockSpec', () => {
     expect(editor.redo).toHaveBeenCalledTimes(1);
   });
 
+  it('resets double-click timer when selection is cleared outside editor', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([
+      { value: 'python', text: 'Python' },
+    ]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    const overlay = document.querySelector('.code-block-selection-overlay--external');
+
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    document.body.appendChild(outerDiv);
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(overlay.style.display).toBe('block');
+
+    document.body.dispatchEvent(new Event('click', { bubbles: true }));
+    expect(overlay.style.display).toBe('none');
+
+    outerDiv.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(overlay.classList.contains('code-block-selection-overlay--editing')).toBe(false);
+    expect(overlay.style.display).toBe('block');
+  });
+
   it('calls editor.redo on Ctrl+Shift+Z keydown', () => {
     const spec = renderSpec();
     const block = createMockBlock('block-1', 'python');
