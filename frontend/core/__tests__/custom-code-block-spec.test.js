@@ -13,8 +13,9 @@ vi.mock('@blocknote/core', () => ({
   createCodeBlockSpec: vi.fn(() => mockSpec),
 }));
 
-function createMockBlock(id, lang) {
+function createMockBlock(id, lang, type) {
   const block = { id };
+  if (type) block.type = type;
   if (lang) block.props = { language: lang };
   return block;
 }
@@ -1072,10 +1073,8 @@ describe('createCustomCodeBlockSpec', () => {
 
   it('registers image block in blockIdMap without creating overlay', () => {
     const spec = renderSpec();
-    const block = createMockBlock('block-1');
+    const block = createMockBlock('block-1', undefined, 'image');
     const editor = createMockEditor(true);
-
-    // Simulate BlockNote DOM: bn-block-content > outerDiv
     const bnBlockContent = document.createElement('div');
     bnBlockContent.className = 'bn-block-content';
     bnBlockContent.setAttribute('data-content-type', 'image');
@@ -1131,5 +1130,66 @@ describe('createCustomCodeBlockSpec', () => {
     expect(() => {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true }));
     }).not.toThrow();
+  });
+
+  it('copies code block on Ctrl+C and pastes with type conversion', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python', 'codeBlock');
+    const editor = createMockEditor(true);
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([{ value: 'python', text: 'Python' }]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true }));
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    pasteEvent.preventDefault = vi.fn();
+    pasteEvent.stopPropagation = vi.fn();
+    document.dispatchEvent(pasteEvent);
+
+    expect(editor.updateBlock).toHaveBeenCalledTimes(1);
+    expect(editor.updateBlock).toHaveBeenCalledWith(
+      block,
+      expect.objectContaining({ type: 'codeBlock' })
+    );
+    expect(editor.blur).toHaveBeenCalled();
+  });
+
+  it('pastes clipboard text as paragraph when no copy buffer', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1', 'python');
+    const editor = createMockEditor(true);
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([{ value: 'python', text: 'Python' }]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    const pasteEvent = new Event('paste', { bubbles: true, cancelable: true });
+    pasteEvent.preventDefault = vi.fn();
+    pasteEvent.stopPropagation = vi.fn();
+    Object.defineProperty(pasteEvent, 'clipboardData', {
+      value: { getData: vi.fn(() => 'hello world') },
+    });
+    document.dispatchEvent(pasteEvent);
+
+    expect(editor.updateBlock).toHaveBeenCalledWith(
+      block,
+      expect.objectContaining({ type: 'paragraph', content: 'hello world' })
+    );
   });
 });

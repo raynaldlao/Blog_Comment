@@ -47,10 +47,12 @@ function registerBlock(dom, block, editor) {
   if (!editor?.isEditable || !block) return;
   const blockEl = dom.closest('.bn-block-content') || dom;
   const contentType = blockEl.getAttribute('data-content-type');
+  const isMedia = contentType === 'image' || contentType === 'video'
+                  || block.type === 'image' || block.type === 'video';
   const wasRegistered = blockEl.dataset.blockId === block.id;
   blockEl.dataset.blockId = block.id;
   blockIdMap.set(block.id, block);
-  if (contentType === 'image' || contentType === 'video') {
+  if (isMedia) {
     blockDomMap.delete(block.id);
     return;
   }
@@ -66,6 +68,8 @@ function applyBlockOutline(id, editing) {
   lastActiveId = id;
   el.classList.add('block-selected');
   el.classList.toggle('bn-editing', editing);
+  // Remove PM native selection outline from descendants (e.g. video→codeBlock transition)
+  el.querySelectorAll('.ProseMirror-selectednode').forEach((child) => child.classList.remove('ProseMirror-selectednode'));
   positionOverlay(el, editing);
 }
 
@@ -303,6 +307,8 @@ function initListeners(editor) {
 
     const targetId = lastActiveId;
     editor.updateBlock(block, { type: pasteContent.type, props: pasteContent.props, content: pasteContent.content });
+    // Clean up PM native .ProseMirror-selectednode from previous block DOM
+    document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => el.classList.remove('ProseMirror-selectednode'));
     if (sharedOverlay) {
       sharedOverlay.style.display = 'none';
     }
