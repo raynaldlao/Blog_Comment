@@ -16,7 +16,7 @@ function ensureOverlay() {
   if (!sharedOverlay) {
     sharedOverlay = document.createElement('div');
     sharedOverlay.className = 'code-block-selection-overlay--external';
-    sharedOverlay.style.cssText = 'position:fixed;pointer-events:none;z-index:1000;display:none;';
+    sharedOverlay.style.cssText = 'position:fixed;pointer-events:none;z-index:40;display:none;';
     document.body.appendChild(sharedOverlay);
   }
   return sharedOverlay;
