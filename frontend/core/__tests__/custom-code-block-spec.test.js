@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
-import { resetBlockSelection } from '../utils/with-block-selection';
+import { withBlockSelection, resetBlockSelection } from '../utils/with-block-selection';
 
 const mockRender = vi.fn();
 const mockSpec = {
@@ -42,10 +42,12 @@ function createMockEditor(isEditable) {
     };
   });
   const focus = vi.fn();
+  const blur = vi.fn();
   const setTextCursorPosition = vi.fn();
+  const updateBlock = vi.fn();
   const undo = vi.fn();
   const redo = vi.fn();
-  return { isEditable, removeBlocks, onSelectionChange, getTextCursorPosition, focus, setTextCursorPosition, undo, redo, _listeners: listeners, dom: document.createElement('div') };
+  return { isEditable, removeBlocks, onSelectionChange, getTextCursorPosition, focus, blur, setTextCursorPosition, updateBlock, undo, redo, _listeners: listeners, dom: document.createElement('div') };
 }
 
 function createMockSelect(options) {
@@ -1066,5 +1068,68 @@ describe('createCustomCodeBlockSpec', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, shiftKey: true, bubbles: true }));
 
     expect(editor.redo).toHaveBeenCalledTimes(1);
+  });
+
+  it('registers image block in blockIdMap without creating overlay', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    // Simulate BlockNote DOM: bn-block-content > outerDiv
+    const bnBlockContent = document.createElement('div');
+    bnBlockContent.className = 'bn-block-content';
+    bnBlockContent.setAttribute('data-content-type', 'image');
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([{ value: 'python', text: 'Python' }]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+    bnBlockContent.appendChild(outerDiv);
+    document.body.appendChild(bnBlockContent);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    // No overlay for image blocks
+    const overlay = document.querySelector('.code-block-selection-overlay--external');
+    expect(overlay).toBeNull();
+
+    // Selecting image block should not create overlay
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    const overlayAfter = document.querySelector('.code-block-selection-overlay--external');
+    expect(overlayAfter).toBeNull();
+  });
+
+  it('does not crash on image block copy when node-selected', () => {
+    const spec = renderSpec();
+    const block = createMockBlock('block-1');
+    const editor = createMockEditor(true);
+
+    const bnBlockContent = document.createElement('div');
+    bnBlockContent.className = 'bn-block-content';
+    bnBlockContent.setAttribute('data-content-type', 'image');
+    const outerDiv = document.createElement('div');
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.setAttribute('contenteditable', 'false');
+    const select = createMockSelect([{ value: 'python', text: 'Python' }]);
+    wrapperDiv.appendChild(select);
+    outerDiv.appendChild(wrapperDiv);
+    bnBlockContent.appendChild(outerDiv);
+    document.body.appendChild(bnBlockContent);
+
+    mockRender.mockReturnValue({ dom: outerDiv });
+    spec.implementation.render(block, editor);
+
+    // Select the image block via node selection path
+    editor.getTextCursorPosition.mockReturnValue({ block: { id: 'block-1' } });
+    editor._listeners.forEach((cb) => cb());
+
+    // Ctrl+C on image should not throw
+    expect(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'c', ctrlKey: true, bubbles: true }));
+    }).not.toThrow();
   });
 });

@@ -1059,6 +1059,14 @@ input[type=number] {
     background: transparent !important;
     color: inherit !important;
 }
+
+/* Hide caret when block selected (not editing) — overlay active, no text cursor */
+.block-selected:not(.bn-editing) {
+    caret-color: transparent !important;
+}
+.block-selected:not(.bn-editing) .ProseMirror {
+    caret-color: transparent !important;
+}
 /* Hide overlay outline when editing — ::selection takes over */
 .code-block-selection-overlay--editing {
     display: none !important;

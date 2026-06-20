@@ -7,6 +7,10 @@ let editingActive = false;
 let lastMousedownTime = 0;
 let lastMousedownId = null;
 let selectionFrameId = null;
+let copyBuffer = null;
+let suppressOverlay = false;
+let editorResizeObserver = null;
+let suppressOnSelectionChange = false;
 
 function ensureOverlay() {
   if (!sharedOverlay) {
@@ -36,19 +40,23 @@ function positionOverlay(el, editing) {
   overlay.style.height = (rect.height - gap * 2) + 'px';
   overlay.classList.toggle('code-block-selection-overlay--editing', editing);
   overlay.style.display = 'block';
+
 }
 
 function registerBlock(dom, block, editor) {
   if (!editor?.isEditable || !block) return;
   const blockEl = dom.closest('.bn-block-content') || dom;
-  if (blockEl.dataset.blockId === block.id) return;
   const contentType = blockEl.getAttribute('data-content-type');
-  if (contentType === 'image' || contentType === 'video') return;
+  const wasRegistered = blockEl.dataset.blockId === block.id;
+  blockEl.dataset.blockId = block.id;
+  blockIdMap.set(block.id, block);
+  if (contentType === 'image' || contentType === 'video') {
+    blockDomMap.delete(block.id);
+    return;
+  }
   ensureOverlay();
   blockEl.classList.add('block-wrapper');
-  blockEl.dataset.blockId = block.id;
   blockDomMap.set(block.id, blockEl);
-  blockIdMap.set(block.id, block);
   initListeners(editor);
 }
 
@@ -78,6 +86,7 @@ function clearBlockSelection() {
   editingActive = false;
   lastMousedownTime = 0;
   lastMousedownId = null;
+  suppressOnSelectionChange = false;
 }
 
 let mousedownHandler = null;
@@ -88,6 +97,8 @@ let scrollHandler = null;
 let resizeHandler = null;
 let beforeinputHandler = null;
 let ctrlAHandler = null;
+let copyPasteHandler = null;
+let pasteHandler = null;
 let selectionUnsubscribe = null;
 
 function removeDocumentListeners() {
@@ -99,6 +110,8 @@ function removeDocumentListeners() {
   if (resizeHandler) window.removeEventListener('resize', resizeHandler);
   if (beforeinputHandler) document.removeEventListener('beforeinput', beforeinputHandler, true);
   if (ctrlAHandler) document.removeEventListener('keydown', ctrlAHandler, true);
+  if (copyPasteHandler) document.removeEventListener('keydown', copyPasteHandler, true);
+  if (pasteHandler) document.removeEventListener('paste', pasteHandler, true);
   if (selectionUnsubscribe) selectionUnsubscribe();
   mousedownHandler = null;
   clickHandler = null;
@@ -108,6 +121,8 @@ function removeDocumentListeners() {
   resizeHandler = null;
   beforeinputHandler = null;
   ctrlAHandler = null;
+  copyPasteHandler = null;
+  pasteHandler = null;
   selectionUnsubscribe = null;
 }
 
@@ -120,8 +135,45 @@ function repositionOverlay() {
 function initListeners(editor) {
   if (clickHandler) return;
 
+  // Single ResizeObserver on editor root captures all layout shifts (Shiki, font, PM re-render)
+  const editorRoot = editor.dom?.closest('.bn-editor') || editor.dom || document.querySelector('.bn-editor');
+  if (editorRoot && !editorResizeObserver) {
+    editorResizeObserver = new ResizeObserver(() => {
+      repositionOverlay();
+    });
+    editorResizeObserver.observe(editorRoot);
+  }
+
   mousedownHandler = (e) => {
+    suppressOnSelectionChange = false;
+    // Remove stale .ProseMirror-selectednode only if click target differs
+    const staleNodes = document.querySelectorAll('.ProseMirror-selectednode');
+    if (staleNodes.length > 0) {
+      const newBlockEl = e.target.closest('[data-block-id]');
+      const clickIsOnOldBlock = staleNodes.length === 1 && newBlockEl && newBlockEl === staleNodes[0];
+      if (!clickIsOnOldBlock) {
+        staleNodes.forEach((el) => el.classList.remove('ProseMirror-selectednode'));
+      }
+    }
+
     if (editingActive) return;
+
+    // Fallback for blockIdMap-only blocks (images/videos)
+    const blockEl = e.target.closest('[data-block-id]');
+    if (blockEl) {
+      const id = blockEl.dataset.blockId;
+      if (id && blockIdMap.has(id) && !blockDomMap.has(id)) {
+        if (lastActiveId && lastActiveId !== id) {
+          const prev = blockDomMap.get(lastActiveId);
+          if (prev) prev.classList.remove('block-selected', 'bn-editing');
+        }
+        if (sharedOverlay) sharedOverlay.style.display = 'none';
+        lastActiveId = id;
+        editingActive = false;
+        return;
+      }
+    }
+
     const wrapper = e.target.closest('.block-wrapper');
     if (!wrapper) return;
     const id = wrapper.dataset.blockId;
@@ -158,7 +210,11 @@ function initListeners(editor) {
   document.addEventListener('mousedown', mousedownHandler, true);
 
   clickHandler = (e) => {
+    suppressOnSelectionChange = false;
     if (!e.target.closest('.ProseMirror')) {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => {
+        el.classList.remove('ProseMirror-selectednode');
+      });
       clearBlockSelection();
     }
   };
@@ -212,6 +268,67 @@ function initListeners(editor) {
   };
   document.addEventListener('keydown', ctrlAHandler, true);
 
+  copyPasteHandler = (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (!mod) return;
+    if (editingActive) return;
+
+    if (e.key === 'c') {
+      if (!lastActiveId) return;
+      const block = blockIdMap.get(lastActiveId);
+      if (!block) return;
+      copyBuffer = { type: block.type, props: { ...block.props }, content: block.content };
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  document.addEventListener('keydown', copyPasteHandler, true);
+
+  pasteHandler = (e) => {
+    if (!lastActiveId) return;
+    if (editingActive) return;
+    const block = blockIdMap.get(lastActiveId);
+    if (!block) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    let pasteContent;
+    if (copyBuffer) {
+      pasteContent = copyBuffer;
+    } else {
+      const text = e.clipboardData?.getData('text/plain') || '';
+      if (!text) return;
+      pasteContent = { type: 'paragraph', content: text };
+    }
+
+    const targetId = lastActiveId;
+    editor.updateBlock(block, { type: pasteContent.type, props: pasteContent.props, content: pasteContent.content });
+    if (sharedOverlay) {
+      sharedOverlay.style.display = 'none';
+    }
+    // Sync: block-selected class + blur to hide caret immediately
+    const targetEl = blockDomMap.get(targetId);
+    if (targetEl) {
+      lastActiveId = targetId;
+      editingActive = false;
+      targetEl.classList.add('block-selected');
+      suppressOnSelectionChange = true;
+      editor.blur();
+    }
+    // Async: restore PM selection + overlay position after Shiki layout settle (no focus — caret stays hidden)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (targetId && blockDomMap.has(targetId)) {
+          lastActiveId = targetId;
+          editingActive = false;
+          editor.setTextCursorPosition(targetId);
+          applyBlockOutline(targetId, false);
+        }
+      });
+    });
+  };
+  document.addEventListener('paste', pasteHandler, true);
+
   scrollHandler = () => repositionOverlay();
   window.addEventListener('scroll', scrollHandler, true);
 
@@ -219,20 +336,67 @@ function initListeners(editor) {
   window.addEventListener('resize', resizeHandler);
 
   selectionUnsubscribe = editor.onSelectionChange(() => {
-    if (selectionFrameId) cancelAnimationFrame(selectionFrameId);
-    selectionFrameId = requestAnimationFrame(() => {
-      selectionFrameId = null;
-      const pmSelectedNodes = document.querySelectorAll('.ProseMirror-selectednode');
-      const sel = window.getSelection();
-      const isTextSelection = sel && !sel.isCollapsed;
+    // GUARD: suppressOnSelectionChange active → preserve overlay after paste blur
+    if (suppressOnSelectionChange && lastActiveId && blockDomMap.has(lastActiveId)) {
+      return;
+    }
+
+    // --- SYNC: update lastActiveId immediately (before rAF) ---
+    let activeId = null;
+
+    // PRIORITY: .ProseMirror-selectednode detects image/video node selections
+    const pmSelectedNodes = document.querySelectorAll('.ProseMirror-selectednode');
+    if (pmSelectedNodes.length > 0) {
+      pmSelectedNodes.forEach((node) => {
+        const blockEl = node.closest('[data-block-id]');
+        if (blockEl) {
+          const id = blockEl.dataset.blockId;
+          if (id && blockIdMap.has(id) && !blockDomMap.has(id)) {
+            activeId = id;
+          }
+        }
+      });
+    }
+
+    // Always get cursor position for stale detection
+    let cursorId = null;
+    let cursorThrew = false;
+    try {
       const pos = editor.getTextCursorPosition();
-      const activeId = pos?.block?.id || null;
-      const hasBlock = blockDomMap.has(activeId);
-      if (!hasBlock) {
-        clearBlockSelection();
+      cursorId = pos?.block?.id || null;
+    } catch (e) {
+      cursorThrew = true;
+    }
+
+
+    // Stale detection: DOM node selection differs from cursor position
+    if (activeId && !cursorThrew && cursorId && cursorId !== activeId) {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => el.classList.remove('ProseMirror-selectednode'));
+      activeId = cursorId;
+    }
+
+    // FALLBACK: use cursor position if no DOM node selection
+    if (!activeId) {
+      activeId = cursorId;
+    }
+
+    // Preserve image/video selection set by mousedown (PM cursor may be elsewhere)
+    if (lastActiveId && blockIdMap.has(lastActiveId) && !blockDomMap.has(lastActiveId)) {
+      if (activeId && activeId !== lastActiveId) {
         return;
       }
-      if (isTextSelection) {
+    }
+
+    const hasBlock = blockDomMap.has(activeId);
+    if (!hasBlock) {
+      if (activeId && blockIdMap.has(activeId)) {
+        if (suppressOverlay) { suppressOverlay = false; return; }
+        if (lastActiveId && lastActiveId !== activeId) {
+          const el = blockDomMap.get(lastActiveId);
+          if (el) el.classList.remove('block-selected', 'bn-editing');
+        }
+        lastActiveId = activeId;
+        editingActive = false;
         if (sharedOverlay) {
           sharedOverlay.style.display = 'none';
           sharedOverlay.classList.remove('code-block-selection-overlay--editing');
@@ -240,7 +404,51 @@ function initListeners(editor) {
         return;
       }
       if (activeId !== lastActiveId) {
+        if (lastActiveId) {
+          const el = blockDomMap.get(lastActiveId);
+          if (el) el.classList.remove('block-selected', 'bn-editing');
+        }
         editingActive = false;
+        if (sharedOverlay) {
+          sharedOverlay.style.display = 'none';
+          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
+        }
+      }
+      lastActiveId = activeId;
+      if (suppressOverlay) suppressOverlay = false;
+      return;
+    }
+
+    if (activeId !== lastActiveId) editingActive = false;
+    lastActiveId = activeId;
+
+    // --- ASYNC (rAF): overlay positioning only ---
+    if (selectionFrameId) cancelAnimationFrame(selectionFrameId);
+    selectionFrameId = requestAnimationFrame(() => {
+      selectionFrameId = null;
+      const sel = window.getSelection();
+      const isTextSelection = sel && !sel.isCollapsed;
+      if (isTextSelection) {
+        if (sharedOverlay) {
+          sharedOverlay.style.display = 'none';
+          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
+        }
+        return;
+      }
+      // Don't show overlay when PM has a node selection (image/video)
+      const hasNodeSelection = document.querySelectorAll('.ProseMirror-selectednode').length > 0;
+      if (hasNodeSelection) {
+        if (sharedOverlay) {
+          sharedOverlay.style.display = 'none';
+          sharedOverlay.classList.remove('code-block-selection-overlay--editing');
+        }
+        return;
+      }
+      if (suppressOverlay) {
+        suppressOverlay = false;
+        editingActive = false;
+        applyBlockOutline(activeId, false);
+        return;
       }
       applyBlockOutline(activeId, editingActive);
     });
@@ -260,9 +468,16 @@ export function withBlockSelection(spec) {
 export function resetBlockSelection() {
   clearBlockSelection();
   removeOverlay();
+  if (editorResizeObserver) {
+    editorResizeObserver.disconnect();
+    editorResizeObserver = null;
+  }
   blockDomMap.clear();
   blockIdMap.clear();
   removeDocumentListeners();
   lastMousedownTime = 0;
   lastMousedownId = null;
+  copyBuffer = null;
+  suppressOverlay = false;
+  suppressOnSelectionChange = false;
 }

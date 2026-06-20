@@ -58,6 +58,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
       blockSpecs: {
         ...keptSpecs,
         paragraph: withBlockSelection(createParagraphBlockSpec()),
+        image: withBlockSelection(defaultBlockSpecs.image),
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,
@@ -66,7 +67,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
             langs: [],
           }),
         }),
-        video: createVideoOverrideSpec(),
+        video: withBlockSelection(createVideoOverrideSpec()),
       },
     }),
   });

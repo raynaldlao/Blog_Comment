@@ -31,6 +31,7 @@ function BlockNoteViewer({ initialContent }) {
       blockSpecs: {
         ...keptSpecs,
         paragraph: withBlockSelection(createParagraphBlockSpec()),
+        image: withBlockSelection(defaultBlockSpecs.image),
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,
@@ -39,7 +40,7 @@ function BlockNoteViewer({ initialContent }) {
             langs: [],
           }),
         }),
-        video: createVideoOverrideSpec(),
+        video: withBlockSelection(createVideoOverrideSpec()),
       },
     }),
   });
