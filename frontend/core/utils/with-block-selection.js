@@ -132,6 +132,9 @@ function removeDocumentListeners() {
 
 function repositionOverlay() {
   if (!lastActiveId) return;
+  if (suppressOnSelectionChange) {
+    return;
+  }
   const el = blockDomMap.get(lastActiveId);
   if (el) positionOverlay(el, editingActive);
 }
@@ -279,6 +282,7 @@ function initListeners(editor) {
 
     if (e.key === 'c') {
       if (!lastActiveId) return;
+      if (suppressOnSelectionChange) return;  // no copy after paste (no overlay)
       const block = blockIdMap.get(lastActiveId);
       if (!block) return;
       copyBuffer = { type: block.type, props: { ...block.props }, content: block.content };
@@ -321,14 +325,14 @@ function initListeners(editor) {
       suppressOnSelectionChange = true;
       editor.blur();
     }
-    // Async: restore PM selection + overlay position after Shiki layout settle (no focus — caret stays hidden)
+    // Async: restore PM selection after Shiki layout settle (no overlay, suppressOnSelectionChange blocks onSelectionChange until click)
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         if (targetId && blockDomMap.has(targetId)) {
+          editor.setTextCursorPosition(targetId);
           lastActiveId = targetId;
           editingActive = false;
-          editor.setTextCursorPosition(targetId);
-          applyBlockOutline(targetId, false);
+          // suppressOnSelectionChange stays true — user click in mousedownHandler resets it + shows overlay
         }
       });
     });
@@ -432,6 +436,10 @@ function initListeners(editor) {
     if (selectionFrameId) cancelAnimationFrame(selectionFrameId);
     selectionFrameId = requestAnimationFrame(() => {
       selectionFrameId = null;
+      // Guard: suppressOnSelectionChange active (paste) — rAF was queued before flag was set
+      if (suppressOnSelectionChange && lastActiveId && blockDomMap.has(lastActiveId)) {
+        return;
+      }
       const sel = window.getSelection();
       const isTextSelection = sel && !sel.isCollapsed;
       if (isTextSelection) {
