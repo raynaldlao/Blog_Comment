@@ -153,19 +153,10 @@ function initListeners(editor) {
 
   mousedownHandler = (e) => {
     suppressOnSelectionChange = false;
-    // Remove stale .ProseMirror-selectednode only if click target differs
-    const staleNodes = document.querySelectorAll('.ProseMirror-selectednode');
-    if (staleNodes.length > 0) {
-      const newBlockEl = e.target.closest('[data-block-id]');
-      const clickIsOnOldBlock = staleNodes.length === 1 && newBlockEl && newBlockEl === staleNodes[0];
-      if (!clickIsOnOldBlock) {
-        staleNodes.forEach((el) => el.classList.remove('ProseMirror-selectednode'));
-      }
-    }
 
     if (editingActive) return;
 
-    // Fallback for blockIdMap-only blocks (images/videos)
+    // Fallback for blockIdMap-only blocks (images/videos) — set lastActiveId before PM processes
     const blockEl = e.target.closest('[data-block-id]');
     if (blockEl) {
       const id = blockEl.dataset.blockId;
@@ -177,6 +168,8 @@ function initListeners(editor) {
         if (sharedOverlay) sharedOverlay.style.display = 'none';
         lastActiveId = id;
         editingActive = false;
+        // Visual feedback: PM doesn't add .ProseMirror-selectednode for non-selectable nodes (images/videos)
+        blockEl.classList.add('ProseMirror-selectednode');
         return;
       }
     }
@@ -187,6 +180,12 @@ function initListeners(editor) {
     if (!id || !blockDomMap.has(id)) return;
     e.preventDefault();
     e.stopPropagation();
+
+    // Clean up .ProseMirror-selectednode from previous media block (image/video) when selecting paragraph/code
+    const pmSelectedFromMedia = document.querySelectorAll('.ProseMirror-selectednode');
+    if (pmSelectedFromMedia.length > 0) {
+      pmSelectedFromMedia.forEach((el) => el.classList.remove('ProseMirror-selectednode'));
+    }
 
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed) sel.removeAllRanges();

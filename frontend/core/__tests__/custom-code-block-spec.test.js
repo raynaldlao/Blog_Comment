@@ -1132,6 +1132,134 @@ describe('createCustomCodeBlockSpec', () => {
     }).not.toThrow();
   });
 
+  it('toggles .ProseMirror-selectednode on video mousedown and outside click', () => {
+    const spec = renderSpec();
+    const editor = createMockEditor(true);
+
+    // Register code block first to trigger initListeners (mousedownHandler, clickHandler)
+    const codeBlock = createMockBlock('code-1', 'python', 'codeBlock');
+    const codeOuterDiv = document.createElement('div');
+    const codeWrapperDiv = document.createElement('div');
+    codeWrapperDiv.setAttribute('contenteditable', 'false');
+    codeOuterDiv.appendChild(codeWrapperDiv);
+    document.body.appendChild(codeOuterDiv);
+    mockRender.mockReturnValueOnce({ dom: codeOuterDiv });
+    spec.implementation.render(codeBlock, editor);
+
+    // Register video block
+    const videoBlock = createMockBlock('vid-1', undefined, 'video');
+    const bnBlockContent = document.createElement('div');
+    bnBlockContent.className = 'bn-block-content';
+    bnBlockContent.setAttribute('data-content-type', 'video');
+    const videoOuterDiv = document.createElement('div');
+    const mediaWrapper = document.createElement('div');
+    mediaWrapper.className = 'bn-visual-media-wrapper';
+    mediaWrapper.appendChild(document.createElement('iframe'));
+    videoOuterDiv.appendChild(mediaWrapper);
+    bnBlockContent.appendChild(videoOuterDiv);
+    document.body.appendChild(bnBlockContent);
+    mockRender.mockReturnValueOnce({ dom: videoOuterDiv });
+    spec.implementation.render(videoBlock, editor);
+
+    // First mousedown → class added
+    bnBlockContent.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(true);
+
+    // Outside click → class removed
+    const outsideEl = document.createElement('div');
+    document.body.appendChild(outsideEl);
+    outsideEl.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(false);
+
+    // Second mousedown → class added again
+    bnBlockContent.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(true);
+  });
+
+  it('adds .ProseMirror-selectednode on block-content not media-wrapper', () => {
+    const spec = renderSpec();
+    const editor = createMockEditor(true);
+
+    const codeBlock = createMockBlock('code-1', 'python', 'codeBlock');
+    const codeOuterDiv = document.createElement('div');
+    const codeWrapperDiv = document.createElement('div');
+    codeWrapperDiv.setAttribute('contenteditable', 'false');
+    codeOuterDiv.appendChild(codeWrapperDiv);
+    document.body.appendChild(codeOuterDiv);
+    mockRender.mockReturnValueOnce({ dom: codeOuterDiv });
+    spec.implementation.render(codeBlock, editor);
+
+    const videoBlock = createMockBlock('vid-2', undefined, 'video');
+    const bnBlockContent = document.createElement('div');
+    bnBlockContent.className = 'bn-block-content';
+    bnBlockContent.setAttribute('data-content-type', 'video');
+    const videoOuterDiv = document.createElement('div');
+    const mediaWrapper = document.createElement('div');
+    mediaWrapper.className = 'bn-visual-media-wrapper';
+    mediaWrapper.appendChild(document.createElement('iframe'));
+    videoOuterDiv.appendChild(mediaWrapper);
+    bnBlockContent.appendChild(videoOuterDiv);
+    document.body.appendChild(bnBlockContent);
+    mockRender.mockReturnValueOnce({ dom: videoOuterDiv });
+    spec.implementation.render(videoBlock, editor);
+
+    bnBlockContent.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(true);
+    expect(mediaWrapper.classList.contains('ProseMirror-selectednode')).toBe(false);
+  });
+
+  it('cleans .ProseMirror-selectednode from video when clicking paragraph block', () => {
+    const spec = renderSpec();
+    const editor = createMockEditor(true);
+
+    // 1st code block to trigger initListeners
+    const code1 = createMockBlock('code-1', 'python', 'codeBlock');
+    const code1Outer = document.createElement('div');
+    code1Outer.appendChild(document.createElement('div'));
+    document.body.appendChild(code1Outer);
+    mockRender.mockReturnValueOnce({ dom: code1Outer });
+    spec.implementation.render(code1, editor);
+
+    // Video block
+    const vidBlock = createMockBlock('vid-1', undefined, 'video');
+    const bnBlockContent = document.createElement('div');
+    bnBlockContent.className = 'bn-block-content';
+    bnBlockContent.setAttribute('data-content-type', 'video');
+    const vidOuterDiv = document.createElement('div');
+    const mediaWrapper = document.createElement('div');
+    mediaWrapper.className = 'bn-visual-media-wrapper';
+    mediaWrapper.appendChild(document.createElement('iframe'));
+    vidOuterDiv.appendChild(mediaWrapper);
+    bnBlockContent.appendChild(vidOuterDiv);
+    document.body.appendChild(bnBlockContent);
+    mockRender.mockReturnValueOnce({ dom: vidOuterDiv });
+    spec.implementation.render(vidBlock, editor);
+
+    // 2nd code block as paragraph target
+    const code2 = createMockBlock('code-2', 'python', 'codeBlock');
+    const code2Outer = document.createElement('div');
+    const code2Wrapper = document.createElement('div');
+    code2Wrapper.setAttribute('contenteditable', 'false');
+    code2Outer.appendChild(code2Wrapper);
+    document.body.appendChild(code2Outer);
+    mockRender.mockReturnValueOnce({ dom: code2Outer });
+    spec.implementation.render(code2, editor);
+
+    // Click video → .ProseMirror-selectednode added
+    bnBlockContent.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(true);
+
+    // Click paragraph → class cleaned from video, overlay shown on paragraph
+    code2Outer.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(bnBlockContent.classList.contains('ProseMirror-selectednode')).toBe(false);
+
+    const overlay = document.querySelector('.code-block-selection-overlay--external');
+    expect(overlay).toBeTruthy();
+    expect(overlay.style.display).toBe('block');
+    expect(code2Outer.classList.contains('block-selected')).toBe(true);
+  });
+
   it('copies code block on Ctrl+C and pastes with type conversion', () => {
     const spec = renderSpec();
     const block = createMockBlock('block-1', 'python', 'codeBlock');
