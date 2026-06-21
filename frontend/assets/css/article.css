@@ -659,6 +659,11 @@ input[type=number] {
     line-height: 1.6;
 }
 
+.bn-mantine {
+    --bn-colors-side-menu: var(--on-surface-variant);
+    --bn-colors-hovered-background: var(--surface-container-high);
+}
+
 [data-theme="dark"] .bn-mantine {
     --bn-colors-editor-background: var(--surface);
     --bn-colors-editor-text: var(--on-surface);
