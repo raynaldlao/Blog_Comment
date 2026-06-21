@@ -195,6 +195,27 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return () => document.removeEventListener('copy', handler, true);
   }, [editor]);
 
+  useEffect(function () {
+    if (!editor) return;
+    var handler = function (e) {
+      var target = e.target;
+      if (target.nodeType === 3) target = target.parentNode;
+      if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
+      if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
+      try {
+        var doc = editor.document;
+        for (var i = 0; i < doc.length; i++) {
+          if (doc[i].type !== 'image' && doc[i].type !== 'video') {
+            editor.setTextCursorPosition(doc[i].id, 'start');
+            break;
+          }
+        }
+      } catch {}
+    };
+    document.addEventListener('mousedown', handler, true);
+    return function () { document.removeEventListener('mousedown', handler, true); };
+  }, [editor]);
+
   return (
     <BlockNoteView
       editor={editor}
