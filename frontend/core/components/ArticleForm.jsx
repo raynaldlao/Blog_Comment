@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { offset } from '@floating-ui/react';
 import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema, defaultBlockSpecs, createParagraphBlockSpec } from '@blocknote/core';
@@ -112,6 +113,11 @@ function BlockNoteEditor({ initialContent, onReady }) {
         sideMenu={(props) => (
           <SideMenu {...props} dragHandleMenu={CustomDragHandleMenu} />
         )}
+        floatingUIOptions={{
+          useFloatingOptions: {
+            middleware: [offset(10)],
+          },
+        }}
       />
     </BlockNoteView>
   );
