@@ -1035,3 +1035,9 @@ input[type=number] {
     outline: 4px solid #64a0ff;
 }
 
+/* Hide selection outline on video blocks in viewer */
+.article-detail-view .bn-visual-media-wrapper.ProseMirror-selectednode {
+    outline: none;
+    box-shadow: none;
+}
+
