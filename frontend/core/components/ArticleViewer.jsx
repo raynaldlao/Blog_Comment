@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCreateBlockNote } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema, defaultBlockSpecs, createParagraphBlockSpec } from '@blocknote/core';
@@ -20,6 +20,34 @@ function BlockNoteViewer({ initialContent }) {
     });
     observer.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(function () {
+    var handler = function (e) {
+      var block = document.querySelector(
+        '.bn-block-content[data-content-type="image"].ProseMirror-selectednode',
+      );
+      if (!block) return;
+      var imgEl = block.querySelector('img');
+      if (!imgEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var alt = imgEl.alt || '';
+      var src = imgEl.getAttribute('src') || '';
+      var text;
+      if (src && !src.startsWith('/uploads/')) {
+        text = src;
+      } else {
+        text = alt || src.split('/').pop() || '';
+      }
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        }),
+      ]).catch(function () {});
+    };
+    document.addEventListener('copy', handler, true);
+    return function () { document.removeEventListener('copy', handler, true); };
   }, []);
 
   var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
