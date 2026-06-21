@@ -50,6 +50,26 @@ function BlockNoteViewer({ initialContent }) {
     return function () { document.removeEventListener('copy', handler, true); };
   }, []);
 
+  useEffect(function () {
+    if (!editor) return;
+    var handler = function (e) {
+      var target = e.target;
+      if (target.nodeType === 3) target = target.parentNode;
+      if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
+      try {
+        var doc = editor.document;
+        for (var i = 0; i < doc.length; i++) {
+          if (doc[i].type !== 'image' && doc[i].type !== 'video') {
+            editor.setTextCursorPosition(doc[i].id, 'start');
+            break;
+          }
+        }
+      } catch {}
+    };
+    document.addEventListener('mousedown', handler, true);
+    return function () { document.removeEventListener('mousedown', handler, true); };
+  }, [editor]);
+
   var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
 
   var editor = useCreateBlockNote({

@@ -106,3 +106,61 @@ describe('ArticleViewer copy handler', function () {
     document.dispatchEvent(new ClipboardEvent('copy', { cancelable: true, bubbles: true }));
   });
 });
+
+var mockEditor = {
+  document: [
+    { id: 'p1', type: 'paragraph' },
+    { id: 'img1', type: 'image' },
+    { id: 'vid1', type: 'video' },
+    { id: 'p2', type: 'paragraph' },
+  ],
+  setTextCursorPosition: vi.fn(),
+};
+
+var viewerHandler = function (e) {
+  var target = e.target;
+  if (target.nodeType === 3) target = target.parentNode;
+  if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
+  try {
+    var doc = mockEditor.document;
+    for (var i = 0; i < doc.length; i++) {
+      if (doc[i].type !== 'image' && doc[i].type !== 'video') {
+        mockEditor.setTextCursorPosition(doc[i].id, 'start');
+        break;
+      }
+    }
+  } catch {}
+};
+
+function createBlock(contentType) {
+  var el = document.createElement('div');
+  el.className = 'bn-block-content';
+  el.setAttribute('data-content-type', contentType);
+  return el;
+}
+
+describe('ArticleViewer mousedown handler', function () {
+  beforeEach(function () {
+    document.body.innerHTML = '';
+    mockEditor.setTextCursorPosition.mockClear();
+    document.addEventListener('mousedown', viewerHandler, true);
+  });
+
+  afterEach(function () {
+    document.removeEventListener('mousedown', viewerHandler, true);
+    document.body.innerHTML = '';
+  });
+
+  it('moves cursor to first text block when clicking outside image', function () {
+    document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(mockEditor.setTextCursorPosition).toHaveBeenCalledOnce();
+    expect(mockEditor.setTextCursorPosition).toHaveBeenCalledWith('p1', 'start');
+  });
+
+  it('returns early when clicking on image block', function () {
+    var block = createBlock('image');
+    document.body.appendChild(block);
+    block.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(mockEditor.setTextCursorPosition).not.toHaveBeenCalled();
+  });
+});
