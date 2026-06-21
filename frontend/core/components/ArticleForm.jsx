@@ -10,7 +10,6 @@ import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
-import { withBlockSelection } from '../utils/with-block-selection';
 import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
 
@@ -58,8 +57,8 @@ function BlockNoteEditor({ initialContent, onReady }) {
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
-        paragraph: withBlockSelection(createParagraphBlockSpec()),
-        image: withBlockSelection(defaultBlockSpecs.image),
+        paragraph: createParagraphBlockSpec(),
+        image: defaultBlockSpecs.image,
         codeBlock: createCustomCodeBlockSpec({
           defaultLanguage: 'plaintext',
           supportedLanguages: SUPPORTED_LANGUAGES,
@@ -68,7 +67,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
             langs: [],
           }),
         }),
-        video: withBlockSelection(createVideoOverrideSpec()),
+        video: createVideoOverrideSpec(),
       },
     }),
   });
@@ -100,6 +99,101 @@ function BlockNoteEditor({ initialContent, onReady }) {
   useEffect(() => {
     if (editor && onReady) onReady(editor);
   }, [editor, onReady]);
+
+  useEffect(() => {
+    if (!editor) return;
+    const handler = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (!mod || (e.key !== 'z' && e.key !== 'y')) return;
+      const editorEl = editor.dom?.closest('.bn-editor') || editor.dom;
+      if (editorEl?.contains(document.activeElement)) return;
+      e.preventDefault();
+      if (e.key === 'z' && !e.shiftKey) editor.undo();
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) editor.redo();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    var handler = function (e) {
+      var html = e.clipboardData.getData('text/html');
+      if (html && html.includes('blocknote-block')) {
+        e.preventDefault();
+        e.stopPropagation();
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        var el = tmp.querySelector('blocknote-block');
+        if (!el) return;
+        var data = JSON.parse(el.getAttribute('data-json'));
+        var block;
+        try { block = editor.getTextCursorPosition().block; }
+        catch { return; }
+        editor.updateBlock(block, data);
+        if (data.type === 'image') {
+          document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+            el.classList.remove('ProseMirror-selectednode');
+          });
+          editor.domElement?.blur();
+        }
+        if (data.type === 'video') {
+          document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+            el.classList.remove('ProseMirror-selectednode');
+          });
+          try {
+            var doc = editor.document;
+            if (doc) {
+              for (var i = 0; i < doc.length; i++) {
+                if (doc[i].type !== 'video' && doc[i].type !== 'image') {
+                  editor.setTextCursorPosition(doc[i].id, 'start');
+                  break;
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+      requestAnimationFrame(function () {
+        document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+          el.classList.remove('ProseMirror-selectednode');
+        });
+      });
+    };
+    document.addEventListener('paste', handler, true);
+    return () => document.removeEventListener('paste', handler, true);
+  }, [editor]);
+
+  useEffect(() => {
+    if (!editor) return;
+    var handler = function (e) {
+      var block;
+      try { block = editor.getSelection()?.blocks?.[0] ?? editor.getTextCursorPosition().block; }
+      catch { return; }
+      if (!block || (block.type !== 'image' && block.type !== 'video')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      var data = { type: block.type, props: block.props, content: block.content };
+      var html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
+      var text;
+      if (block.type === 'image') {
+        if (block.props?.url && !block.props.url.startsWith('/uploads/')) {
+          text = block.props.url;
+        } else {
+          text = block.props?.alt || block.props?.name || '';
+        }
+      } else {
+        text = block.props?.url || '';
+      }
+      var items = {
+        'text/plain': new Blob([text], { type: 'text/plain' }),
+        'text/html': new Blob([html], { type: 'text/html' }),
+      };
+      navigator.clipboard.write([new ClipboardItem(items)]).catch(function () {});
+    };
+    document.addEventListener('copy', handler, true);
+    return () => document.removeEventListener('copy', handler, true);
+  }, [editor]);
 
   return (
     <BlockNoteView

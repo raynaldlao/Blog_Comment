@@ -1,5 +1,4 @@
 import { createCodeBlockSpec as createOriginalCodeBlockSpec } from '@blocknote/core';
-import { withBlockSelection } from './with-block-selection';
 
 function createLanguageSelectorWidget(select, block, editor) {
   try {
@@ -324,5 +323,5 @@ export function createCustomCodeBlockSpec(options) {
     return result;
   };
 
-  return withBlockSelection(spec);
+  return spec;
 }

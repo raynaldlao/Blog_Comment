@@ -10,6 +10,7 @@ import {
 } from '@blocknote/react';
 
 import JustifyButton from './JustifyButton';
+import CopyBlockButton from './CopyBlockButton';
 
 
 var HIDDEN_VIDEO_BUTTONS = [
@@ -83,6 +84,7 @@ export default function CustomFormattingToolbar() {
     var filtered = filterVideoToolbarItems(items);
     return (
       <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
+        <CopyBlockButton />
         {filtered}
       </Components.FormattingToolbar.Root>
     );
@@ -92,6 +94,7 @@ export default function CustomFormattingToolbar() {
     var filtered = filterImageToolbarItems(items);
     return (
       <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
+        <CopyBlockButton />
         {filtered}
       </Components.FormattingToolbar.Root>
     );
