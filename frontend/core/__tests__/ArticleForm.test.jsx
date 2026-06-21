@@ -13,6 +13,7 @@ var mockEditor = {
 var mousedownHandler = function (e) {
   var target = e.target;
   if (target.nodeType === 3) target = target.parentNode;
+  if (target?.closest?.('.bn-formatting-toolbar')) return;
   if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
   if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
   try {
@@ -62,6 +63,14 @@ describe('ArticleForm mousedown handler', function () {
     var block = createBlock('video');
     document.body.appendChild(block);
     block.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+    expect(mockEditor.setTextCursorPosition).not.toHaveBeenCalled();
+  });
+
+  it('returns early when clicking on formatting toolbar', function () {
+    var toolbar = document.createElement('div');
+    toolbar.className = 'bn-formatting-toolbar';
+    document.body.appendChild(toolbar);
+    toolbar.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     expect(mockEditor.setTextCursorPosition).not.toHaveBeenCalled();
   });
 

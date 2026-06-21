@@ -200,6 +200,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     var handler = function (e) {
       var target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
+      if (target?.closest?.('.bn-formatting-toolbar')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {
