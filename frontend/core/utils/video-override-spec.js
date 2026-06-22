@@ -18,16 +18,14 @@ function mediaWrapper(domElement) {
   return { dom: wrapper };
 }
 
-export function createVideoOverrideSpec() {
-  var config = createVideoBlockConfig({});
-
+export var createVideoOverrideSpec = function () {
   return {
-    config: config,
+    config: createVideoBlockConfig(),
     implementation: {
       meta: {
         fileBlockAccept: ['video/*'],
       },
-      render(block, editor) {
+      render: function (block, editor) {
         var url = block.props.url;
 
         if (!url) {
@@ -125,4 +123,4 @@ export function createVideoOverrideSpec() {
       },
     },
   };
-}
+};

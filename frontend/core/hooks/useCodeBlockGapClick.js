@@ -12,69 +12,74 @@ export default function useCodeBlockGapClick(editorRef) {
 
       const y = event.clientY;
 
-      const codeBlocks = document.querySelectorAll(
+      var BLOCK_SELECTOR = [
         '.bn-block-content[data-content-type="codeBlock"]',
-      );
+        '.bn-block-content[data-content-type="image"]',
+        '.bn-visual-media-wrapper',
+      ].join(',');
 
-      for (const block of codeBlocks) {
+      var VISUAL_TYPES = ['codeBlock', 'image', 'video'];
+
+      const blocks = document.querySelectorAll(BLOCK_SELECTOR);
+
+      var seen = new Set();
+
+      for (const block of blocks) {
         const outer = block.closest('.bn-block-outer');
         if (!outer) continue;
+        const blockId = outer.dataset.id;
+        if (!blockId || seen.has(blockId)) continue;
+        seen.add(blockId);
         const rect = outer.getBoundingClientRect();
         const isInBottomGap = y > rect.bottom && y < rect.bottom + GAP_SIZE;
         const isInTopGap = y > rect.top - GAP_SIZE && y < rect.top;
 
-        if (isInBottomGap || isInTopGap) {
-          const blockEl = block.closest('[data-id]');
-          if (!blockEl?.dataset.id) continue;
-          const blockId = blockEl.dataset.id;
-          const placement = isInBottomGap ? 'after' : 'before';
+        const allBlocks = editor.document;
+        const idx = allBlocks.findIndex(b => b.id === blockId);
+        const adjacentBlock = allBlocks[idx + (isInBottomGap ? 1 : -1)];
+        const placement = isInBottomGap ? 'after' : 'before';
 
-          const allBlocks = editor.document;
-          const idx = allBlocks.findIndex(b => b.id === blockId);
-          const adjacentBlock = allBlocks[idx + (isInBottomGap ? 1 : -1)];
+        if (!isInBottomGap && !isInTopGap) continue;
 
-          if (adjacentBlock && adjacentBlock.type === 'paragraph') {
-            const isEmptyParagraph = !adjacentBlock.content || adjacentBlock.content.length === 0;
-            if (isEmptyParagraph) {
-              return;
-            }
+        if (adjacentBlock && adjacentBlock.type === 'paragraph') {
+          const isEmptyParagraph = !adjacentBlock.content || adjacentBlock.content.length === 0;
+          if (isEmptyParagraph) return;
+        }
+
+        const now = Date.now();
+        const gapKey = blockId + ':' + placement;
+        const reverseKey = adjacentBlock && VISUAL_TYPES.includes(adjacentBlock.type)
+          ? adjacentBlock.id + ':' + (isInTopGap ? 'after' : 'before')
+          : null;
+
+        const isDuplicate = gapKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
+        const isReverseDuplicate = reverseKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
+
+        if (isDuplicate || isReverseDuplicate) {
+          if (isInTopGap) {
+            event.preventDefault();
+            event.stopPropagation();
           }
-
-          const now = Date.now();
-          const gapKey = `${blockId}:${placement}`;
-          const reverseKey = adjacentBlock && adjacentBlock.type === 'codeBlock'
-            ? `${adjacentBlock.id}:${isInTopGap ? 'after' : 'before'}`
-            : null;
-
-          const isDuplicate = gapKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
-          const isReverseDuplicate = reverseKey === lastInsertedRef.current.key && now - lastInsertedRef.current.time < 300;
-
-          if (isDuplicate || isReverseDuplicate) {
-            if (isInTopGap) {
-              event.preventDefault();
-              event.stopPropagation();
-            }
-            return;
-          }
-
-          lastInsertedRef.current = { key: gapKey, time: now };
-          event.preventDefault();
-          event.stopPropagation();
-
-          setTimeout(() => {
-            try {
-              editor.insertBlocks(
-                [{ type: 'paragraph' }],
-                blockId,
-                placement,
-              );
-              editor.focus();
-            } catch (e) {
-              console.error('Failed to insert paragraph:', e);
-            }
-          }, 0);
           return;
         }
+
+        lastInsertedRef.current = { key: gapKey, time: now };
+        event.preventDefault();
+        event.stopPropagation();
+
+        setTimeout(() => {
+          try {
+            editor.insertBlocks(
+              [{ type: 'paragraph' }],
+              blockId,
+              placement,
+            );
+            editor.focus();
+          } catch (e) {
+            console.error('Failed to insert paragraph:', e);
+          }
+        }, 0);
+        return;
       }
     };
 

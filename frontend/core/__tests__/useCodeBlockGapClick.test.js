@@ -23,36 +23,43 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function addCodeBlockToDOM(props = {}) {
-  const {
-    blockId = 'block-1',
+function addBlockToDOM(props = {}) {
+  var {
+    blockId = 'block',
     top = 0,
     bottom = 100,
     left = 0,
     right = 100,
     width = 100,
     height = 100,
+    contentType = null,
+    useMediaWrapper = false,
   } = props;
 
-  const codeBlock = document.createElement('div');
-  codeBlock.className = 'bn-block-content';
-  codeBlock.setAttribute('data-content-type', 'codeBlock');
+  var inner = document.createElement('div');
+  if (useMediaWrapper) {
+    inner.className = 'bn-visual-media-wrapper';
+  } else {
+    inner.className = 'bn-block-content';
+    if (contentType) inner.setAttribute('data-content-type', contentType);
+  }
 
-  const blockOuter = document.createElement('div');
+  var blockOuter = document.createElement('div');
   blockOuter.className = 'bn-block-outer';
   blockOuter.setAttribute('data-id', blockId);
 
   vi.spyOn(blockOuter, 'getBoundingClientRect').mockReturnValue({
-    top, bottom, left, right, width, height,
+    top: top, bottom: bottom, left: left, right: right,
+    width: width, height: height,
     x: left, y: top,
-    toJSON: () => {},
+    toJSON: function () {},
   });
 
-  blockOuter.appendChild(codeBlock);
+  blockOuter.appendChild(inner);
 
-  const container = document.getElementById('test-root') || document.body;
+  var container = document.getElementById('test-root') || document.body;
   container.appendChild(blockOuter);
-  return { codeBlock, blockOuter };
+  return { inner: inner, blockOuter: blockOuter };
 }
 
 describe('useCodeBlockGapClick', () => {
@@ -66,7 +73,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-1', bottom: 100 });
+    addBlockToDOM({ blockId: 'block-1', bottom: 100, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 108,
@@ -99,7 +106,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'code-1', bottom: 100 });
+    addBlockToDOM({ blockId: 'code-1', bottom: 100, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 108,
@@ -118,7 +125,7 @@ describe('useCodeBlockGapClick', () => {
     const editorRef = { current: { insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-2', bottom: 100 });
+    addBlockToDOM({ blockId: 'block-2', bottom: 100, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 200,
@@ -140,7 +147,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-6', top: 100, bottom: 200 });
+    addBlockToDOM({ blockId: 'block-6', top: 100, bottom: 200, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 92,
@@ -173,7 +180,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'code-7', top: 100, bottom: 200 });
+    addBlockToDOM({ blockId: 'code-7', top: 100, bottom: 200, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 92,
@@ -201,7 +208,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'code-7', top: 100, bottom: 200 });
+    addBlockToDOM({ blockId: 'code-7', top: 100, bottom: 200, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 92,
@@ -230,8 +237,8 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'code-a', top: 0, bottom: 100 });
-    addCodeBlockToDOM({ blockId: 'code-b', top: 124, bottom: 224 });
+    addBlockToDOM({ blockId: 'code-a', top: 0, bottom: 100, contentType: 'codeBlock' });
+    addBlockToDOM({ blockId: 'code-b', top: 124, bottom: 224, contentType: 'codeBlock' });
 
     const clickGap = (y) => {
       const event = new MouseEvent('mousedown', {
@@ -250,12 +257,147 @@ describe('useCodeBlockGapClick', () => {
     vi.useRealTimers();
   });
 
+  it('inserts paragraph when clicking below video block', () => {
+    vi.useFakeTimers();
+    var insertBlocks = vi.fn(function () { return [{ id: 'new-vid-p' }]; });
+    var focus = vi.fn();
+    var documentBlocks = [{ id: 'vid-1', type: 'video' }];
+    var editorRef = {
+      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    };
+
+    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    addBlockToDOM({ blockId: 'vid-1', bottom: 100, useMediaWrapper: true });
+
+    var event = new MouseEvent('mousedown', {
+      clientY: 108,
+      bubbles: true,
+      cancelable: true,
+    });
+    container.dispatchEvent(event);
+
+    vi.advanceTimersByTime(0);
+
+    expect(insertBlocks).toHaveBeenCalledWith(
+      [{ type: 'paragraph' }],
+      'vid-1',
+      'after',
+    );
+    expect(focus).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it('inserts paragraph when clicking above video block', () => {
+    vi.useFakeTimers();
+    var insertBlocks = vi.fn(function () { return [{ id: 'new-vid-p2' }]; });
+    var focus = vi.fn();
+    var documentBlocks = [{ id: 'vid-2', type: 'video' }];
+    var editorRef = {
+      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    };
+
+    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    addBlockToDOM({ blockId: 'vid-2', top: 100, bottom: 200, useMediaWrapper: true });
+
+    var event = new MouseEvent('mousedown', {
+      clientY: 92,
+      bubbles: true,
+      cancelable: true,
+    });
+    container.dispatchEvent(event);
+
+    vi.advanceTimersByTime(0);
+
+    expect(insertBlocks).toHaveBeenCalledWith(
+      [{ type: 'paragraph' }],
+      'vid-2',
+      'before',
+    );
+    expect(focus).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
+  it('skips insertion above video block when adjacent paragraph is empty', () => {
+    vi.useFakeTimers();
+    var insertBlocks = vi.fn();
+    var focus = vi.fn();
+    var documentBlocks = [
+      { id: 'p-before-vid', type: 'paragraph' },
+      { id: 'vid-3', type: 'video' },
+    ];
+    var editorRef = {
+      current: { document: documentBlocks, insertBlocks: insertBlocks, focus: focus },
+    };
+
+    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    addBlockToDOM({ blockId: 'vid-3', top: 100, bottom: 200, useMediaWrapper: true });
+
+    var event = new MouseEvent('mousedown', {
+      clientY: 92,
+      bubbles: true,
+      cancelable: true,
+    });
+    container.dispatchEvent(event);
+    vi.advanceTimersByTime(0);
+
+    expect(insertBlocks).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('does not insert when clicking far below video block', () => {
+    var insertBlocks = vi.fn();
+    var editorRef = { current: { insertBlocks: insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
+
+    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    addBlockToDOM({ blockId: 'vid-4', bottom: 100, useMediaWrapper: true });
+
+    var event = new MouseEvent('mousedown', {
+      clientY: 200,
+      bubbles: true,
+      cancelable: true,
+    });
+    container.dispatchEvent(event);
+
+    expect(insertBlocks).not.toHaveBeenCalled();
+  });
+
+  it('inserts paragraph when clicking below image block', () => {
+    vi.useFakeTimers();
+    var insertBlocks = vi.fn(function () { return [{ id: 'new-img-p' }]; });
+    var focus = vi.fn();
+    var documentBlocks = [{ id: 'img-1', type: 'image' }];
+    var editorRef = {
+      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    };
+
+    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    addBlockToDOM({ blockId: 'img-1', bottom: 100, contentType: 'image' });
+
+    var event = new MouseEvent('mousedown', {
+      clientY: 108,
+      bubbles: true,
+      cancelable: true,
+    });
+    container.dispatchEvent(event);
+
+    vi.advanceTimersByTime(0);
+
+    expect(insertBlocks).toHaveBeenCalledWith(
+      [{ type: 'paragraph' }],
+      'img-1',
+      'after',
+    );
+    expect(focus).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
   it('does not insert when clicking on code block content', () => {
     const insertBlocks = vi.fn();
     const editorRef = { current: { insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-3', bottom: 100 });
+    addBlockToDOM({ blockId: 'block-3', bottom: 100, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 50,
@@ -272,7 +414,7 @@ describe('useCodeBlockGapClick', () => {
     const editorRef = { current: null };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-4', bottom: 100 });
+    addBlockToDOM({ blockId: 'block-4', bottom: 100, contentType: 'codeBlock' });
 
     const event = new MouseEvent('mousedown', {
       clientY: 108,
@@ -294,7 +436,7 @@ describe('useCodeBlockGapClick', () => {
     };
 
     const container = render(React.createElement(TestHarness, { editorRef }));
-    addCodeBlockToDOM({ blockId: 'block-r', bottom: 100 });
+    addBlockToDOM({ blockId: 'block-r', bottom: 100, contentType: 'codeBlock' });
 
     const click = (y) => {
       const event = new MouseEvent('mousedown', {
