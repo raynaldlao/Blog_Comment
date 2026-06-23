@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 
 const DIR = dirname(fileURLToPath(import.meta.url));
 const PKG = join(DIR, '..', 'node_modules', '@shikijs', 'langs-precompiled', 'dist');
-const OUT = join(DIR, '..', 'core');
+const OUT = join(DIR, '..', 'core', 'utils');
 
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 
@@ -12,7 +12,20 @@ if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 const indexSrc = readFileSync(join(PKG, 'index.mjs'), 'utf-8');
 const langMatch = indexSrc.match(/export const languageNames = (\[[^\]]+\])/);
 if (!langMatch) throw new Error('Could not find languageNames in index.mjs');
-const languageNames = JSON.parse(langMatch[1]);
+var languageNames = JSON.parse(langMatch[1]);
+
+// Keep only commonly used languages for a dev blog
+var KEEP_LANGS = new Set([
+  'javascript', 'typescript', 'jsx', 'tsx',
+  'python', 'r', 'c', 'java', 'csharp', 'go', 'rust', 'cpp',
+  'html', 'css', 'scss', 'sql', 'yaml', 'json', 'jsonc',
+  'bash', 'shellscript', 'shellsession', 'markdown',
+  'diff', 'docker', 'php', 'ruby', 'swift', 'kotlin', 'lua',
+  'xml', 'toml', 'powershell', 'graphql', 'make',
+  'terraform',
+]);
+
+languageNames = languageNames.filter(function (id) { return KEEP_LANGS.has(id); });
 
 function toVarName(langId) {
   // e.g., "angular-html" -> "angularHtml", "c++" is not valid, but shiki uses "cpp"
@@ -223,7 +236,7 @@ async function createHighlighter(options) {
   return highlighter;
 }
 
-export { createHighlighter };
+export default createHighlighter;
 `;
 
   writeFileSync(join(OUT, 'shiki-highlighter.js'), content);
