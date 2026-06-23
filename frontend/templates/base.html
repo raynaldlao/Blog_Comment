@@ -21,9 +21,11 @@
         } catch (e) {}
     </script>
     <link rel="stylesheet" href="{{ url_for('assets', filename='css/base.css') }}">
+    {% if page_with_editor %}
     {% for css_url in vite_css_urls %}
     <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
     {% endfor %}
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body>
