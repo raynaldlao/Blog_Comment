@@ -2,6 +2,14 @@
    If a full Material 3 migration is started later, regenerate
    from the spec: https://m3.material.io/styles/color/tokens */
 
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 800;
+    src: url('/assets/fonts/Inter.woff2') format('woff2');
+    font-display: swap;
+}
+
 :root {
     color-scheme: light;
 
