@@ -1,3 +1,4 @@
+{% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
 {% block title %}Profile - DevJournal{% endblock %}
@@ -46,7 +47,7 @@
     </div>
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
-        <span class="material-symbols-outlined">home</span>
+        {{ icon('home') }}
         <span>Return to home</span>
     </a>
 </div>

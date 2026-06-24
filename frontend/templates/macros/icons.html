@@ -1,0 +1,3 @@
+{% macro icon(name, extra_class="") %}
+<span class="icon{{ ' ' + extra_class if extra_class }}">{% include 'icons/' ~ name ~ '.svg' %}</span>
+{% endmacro %}

@@ -235,16 +235,16 @@
     color: var(--on-surface);
 }
 
-.pagination-link span.material-symbols-outlined {
+.pagination-link .icon {
     font-size: var(--font-headline-sm);
     transition: transform 0.2s ease;
 }
 
-.pagination-link:hover span.material-symbols-outlined:first-child {
+.pagination-link:hover .icon:first-child {
     transform: translateX(-0.25rem);
 }
 
-.pagination-link:hover span.material-symbols-outlined:last-child {
+.pagination-link:hover .icon:last-child {
     transform: translateX(0.25rem);
 }
 

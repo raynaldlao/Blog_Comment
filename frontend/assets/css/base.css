@@ -147,6 +147,14 @@
     margin-right: var(--spacing-md);
 }
 
+.icon svg {
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .nav-item-icon {
     display: none;
     font-size: 1.5rem;
@@ -154,7 +162,6 @@
 
 #theme-toggle-btn .nav-item-icon {
     display: block;
-    font-size: var(--font-headline-md);
 }
 
 #theme-toggle-btn,
@@ -569,4 +576,8 @@ hr {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--on-surface-variant);
+}
+
+.nav-item-home {
+    font-size: 1.25rem;
 }

@@ -1,3 +1,4 @@
+{% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
 {% block title %}Latest Articles - DevJournal{% endblock %}
@@ -61,7 +62,7 @@
 <nav class="editorial-pagination top">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
@@ -71,7 +72,7 @@
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
-            <span class="material-symbols-outlined">arrow_forward</span>
+            {{ icon('arrow_forward') }}
         </a>
     </div>
 </nav>
@@ -99,7 +100,7 @@
         </article>
     {% else %}
         <div class="empty-state">
-            <span class="material-symbols-outlined empty-state-icon">folder_open</span>
+            {{ icon('folder_open', 'empty-state-icon') }}
             <p class="empty-state-text">No articles found in the database.</p>
         </div>
     {% endfor %}
@@ -109,7 +110,7 @@
 <nav class="editorial-pagination">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
@@ -119,7 +120,7 @@
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
-            <span class="material-symbols-outlined">arrow_forward</span>
+            {{ icon('arrow_forward') }}
         </a>
     </div>
 </nav>
@@ -136,10 +137,10 @@
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
                     <button class="stepper-btn up" data-step="1" title="Increase page">
-                        <span class="material-symbols-outlined">expand_less</span>
+                        {{ icon('expand_less') }}
                     </button>
                     <button class="stepper-btn down" data-step="-1" title="Decrease page">
-                        <span class="material-symbols-outlined">expand_more</span>
+                        {{ icon('expand_more') }}
                     </button>
                 </div>
             </div>

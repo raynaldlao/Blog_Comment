@@ -1,3 +1,4 @@
+{% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
 {% block title %}Sign In - DevJournal{% endblock %}
@@ -23,7 +24,7 @@
             <label for="login-password">Password</label>
             <div class="password-wrapper">
                 <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
-                <button type="button" class="password-toggle material-symbols-outlined" aria-label="Toggle password visibility" aria-pressed="false">visibility</button>
+                <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
             </div>
         </div>
         <button type="submit" class="full-width">Sign In</button>
@@ -37,7 +38,7 @@
         
         <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
-                <span class="material-symbols-outlined">home</span>
+                {{ icon('home') }}
                 <span>Return to home</span>
             </a>
         </div>

@@ -2,6 +2,7 @@
 
 {% block title %}Write an Article - DevJournal{% endblock %}
 
+{% from "macros/icons.html" import icon %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('assets', filename='css/article.css') }}">
 {% endblock %}
@@ -10,7 +11,7 @@
     <div class="article-edit-view">
         <header class="detail-header">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
-                <span class="material-symbols-outlined">arrow_back</span>
+                {{ icon('arrow_back') }}
                 <span>Back to articles</span>
             </a>
         </header>

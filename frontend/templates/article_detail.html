@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ article.article_title }} - DevJournal{% endblock %}
+{% from "macros/icons.html" import icon %}
 {% block extra_head %}
 <meta name="description" content="{{ article.meta_description }}">
 {% endblock %}
@@ -13,7 +14,7 @@
 <div class="article-detail-view">
     <header class="detail-header">
         <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Back to articles</span>
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
