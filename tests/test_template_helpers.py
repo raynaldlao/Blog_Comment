@@ -1,10 +1,43 @@
-"""Unit tests for template helper functions (filters, context processors)."""
-
 from datetime import datetime
 
+import pytest
+from flask import render_template_string
+from jinja2.exceptions import TemplateNotFound
 from markupsafe import Markup
 
 from utils.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
+
+
+class TestIconMacro:
+    """Tests for the icon() Jinja macro (inline SVG rendering)."""
+
+    def test_renders_svg_with_icon_class(self, app_with_db):
+        """icon('home') renders <span class="icon"><svg>."""
+        with app_with_db.app_context():
+            result = render_template_string(
+                '{% from "macros/icons.html" import icon %}{{ icon("home") }}'
+            )
+        assert '<span class="icon">' in result
+        assert "<svg" in result
+        assert "viewBox=" in result
+
+    def test_passes_extra_class(self, app_with_db):
+        """icon('home', 'my-class') adds the class to <span class="icon my-class">."""
+        with app_with_db.app_context():
+            result = render_template_string(
+                '{% from "macros/icons.html" import icon %}'
+                '{{ icon("home", "my-class") }}'
+            )
+        assert 'class="icon my-class"' in result
+
+    def test_unknown_icon_raises_error(self, app_with_db):
+        """icon('nonexistent') raises TemplateNotFound — no silent failure."""
+        with app_with_db.app_context():
+            with pytest.raises(TemplateNotFound):
+                render_template_string(
+                    '{% from "macros/icons.html" import icon %}'
+                    '{{ icon("nonexistent") }}'
+                )
 
 
 class TestNl2brFilter:
