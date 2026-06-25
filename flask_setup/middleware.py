@@ -2,7 +2,8 @@ import base64
 import hashlib
 from pathlib import Path
 
-from flask import Flask, Response, request as flask_request
+from flask import Flask, Response
+from flask import request as flask_request
 from flask.sessions import SecureCookieSessionInterface
 from flask_wtf.csrf import CSRFProtect
 
