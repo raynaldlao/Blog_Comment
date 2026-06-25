@@ -7,7 +7,7 @@ import CustomFormattingToolbar from './CustomFormattingToolbar';
 import CustomDragHandleMenu from './CustomDragHandleMenu';
 import useArticle from '../hooks/useArticle';
 import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
-import createHighlighter from '../utils/shiki-highlighter';
+import createHighlighter from '../utils/shiki-highlighter-editor';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 import { createVideoOverrideSpec } from '../utils/video-override-spec';
