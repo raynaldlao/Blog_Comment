@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import '@blocknote/mantine/style.css';
-import '@blocknote/core/fonts/inter.css';
 import ErrorBoundary from './components/ErrorBoundary';
 
 const ArticleForm = React.lazy(() => import('./components/ArticleForm'));
