@@ -45,3 +45,7 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('assets', filename='scripts/password-toggle.js') }}"></script>
+{% endblock %}
