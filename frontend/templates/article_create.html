@@ -21,3 +21,7 @@
         </div>
     </div>
 {% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('assets', filename='scripts/code-copy.js') }}"></script>
+{% endblock %}
