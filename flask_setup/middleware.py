@@ -2,7 +2,7 @@ import base64
 import hashlib
 from pathlib import Path
 
-from flask import Flask, Response
+from flask import Flask, Response, request as flask_request
 from flask.sessions import SecureCookieSessionInterface
 from flask_wtf.csrf import CSRFProtect
 
@@ -127,6 +127,29 @@ def _add_referrer_policy(response: Response) -> Response:
     return response
 
 
+def _add_cache_headers(response: Response) -> Response:
+    """Sets Cache-Control headers for fingerprinted static assets.
+
+    Applies ``public, max-age=31536000, immutable`` to all responses
+    served from ``/dist/`` (Vite hashed chunks) and ``/assets/``
+    (CSS, JS, fonts). Fingerprinted filenames never change, so the
+    ``immutable`` directive eliminates revalidation even on manual
+    reload.
+
+    Args:
+        response: The Flask response object to modify.
+
+    Returns:
+        The modified Flask response with Cache-Control set for
+        matching paths.
+    """
+    if flask_request:
+        path = flask_request.path
+        if path.startswith(("/dist/", "/assets/")):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
 class NonPersistentSessionInterface(SecureCookieSessionInterface):
     """Session interface that removes the cookie Expires header.
 
@@ -154,5 +177,6 @@ def init_web_security(app: Flask) -> None:
     app.after_request(_add_nosniff)
     app.after_request(_add_x_frame_options)
     app.after_request(_add_referrer_policy)
+    app.after_request(_add_cache_headers)
     csrf_protect.exempt(csp.handle_report)
     app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])

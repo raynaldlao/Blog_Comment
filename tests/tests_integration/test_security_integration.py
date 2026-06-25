@@ -351,3 +351,14 @@ class TestSecurityHeaders:
         response = client.get("/favicon.ico")
         assert response.status_code == 200
         assert "image/svg+xml" in response.content_type
+
+    def test_cache_header_on_asset(self, client):
+        """Verifies /assets/ responses include immutable Cache-Control."""
+        response = client.get("/assets/css/base.css")
+        assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
+
+    def test_cache_header_on_dist(self, client):
+        """Verifies /dist/ responses include immutable Cache-Control."""
+        response = client.get("/dist/.vite/manifest.json")
+        assert response.status_code == 200
+        assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
