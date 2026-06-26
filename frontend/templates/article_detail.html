@@ -11,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="article-detail-view">
+<article class="article-detail-view">
     <header class="detail-header">
         <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
             {{ icon('arrow_back') }}
@@ -38,7 +38,7 @@
 
     <div id="root" data-page="view" data-article-id="{{ article.article_id }}"></div>
 
-    <hr>
+    <hr aria-hidden="true">
 
     <section class="comments-section">
         <h3 class="comments-title">Comments</h3>
@@ -95,7 +95,7 @@
                 <p class="comment-empty">No comments yet.</p>
             {% endfor %}
 
-        <hr>
+        <hr aria-hidden="true">
 
         {% if current_user %}
         <div class="comment-join-section">
@@ -112,7 +112,7 @@
         </p>
         {% endif %}
     </section>
-</div>
+</article>
 
 <dialog id="confirm-dialog" class="dialog">
     <div class="modal-header">
