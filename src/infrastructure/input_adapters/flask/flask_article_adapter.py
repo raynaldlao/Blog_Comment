@@ -229,7 +229,7 @@ class ArticleAdapter:
 
         return jsonify({"ok": True})
 
-    def _api_delete_article(self, article_id: int) -> tuple[dict, int]:
+    def _api_delete_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for article deletion.
         Validates authentication and authorization, then delegates
@@ -239,23 +239,23 @@ class ArticleAdapter:
             article_id (int): The unique identifier of the article to delete.
 
         Returns:
-            tuple[dict, int]: A JSON response with an "ok" key and
-            HTTP 200 on success, or an "error" key with HTTP 401/403
+            Response | tuple[Response, int]: A JSON response with OK
+            and HTTP 200 on success, or an error JSON with HTTP 401/403
             on failure.
         """
         user = global_request_context.get("current_user")
         if not user:
-            return {"error": "Unauthorized."}, 401
+            return jsonify({"error": "Unauthorized."}), 401
         if user.account_role not in ["admin", "author"]:
-            return {"error": "Insufficient permissions."}, 403
+            return jsonify({"error": "Insufficient permissions."}), 403
 
         result = self.article_service.delete_article(
             article_id=article_id, user_id=user.account_id,
         )
         if isinstance(result, str):
-            return {"error": result}, 403
+            return jsonify({"error": result}), 403
 
-        return {"ok": True}
+        return jsonify({"ok": True})
 
     def delete_article_html(self, article_id: int) -> Response:
         """
@@ -277,7 +277,7 @@ class ArticleAdapter:
         result = self._api_delete_article(article_id)
 
         if isinstance(result, tuple):
-            flash(result[0]["error"], "error")
+            flash(result[0].get_json()["error"], "error")
         else:
             flash("Article deleted successfully.", "success")
 
