@@ -580,17 +580,6 @@ input[type=number] {
     margin: 0 auto;
 }
 
-.article-form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-md);
-    margin-top: var(--spacing-margin);
-}
-
-.article-form-actions .article-form-btn {
-    margin-top: 0;
-}
-
 /* Empty State */
 .empty-state {
     text-align: center;
