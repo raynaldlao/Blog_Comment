@@ -111,7 +111,7 @@ class ArticleAdapter:
 
         return render_template("article_create.html", current_user=user, page_with_editor=True)
 
-    def api_get_article(self, article_id: int) -> Response | tuple[dict, int]:
+    def api_get_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for fetching a single article.
         Wraps legacy plain-text content into a BlockNote paragraph block
@@ -121,13 +121,13 @@ class ArticleAdapter:
             article_id (int): The unique identifier of the article to retrieve.
 
         Returns:
-            Response | tuple[dict, int]: A JSON response with article data
-            and HTTP 200 on success, or an "error" key with HTTP 404
+            Response | tuple[Response, int]: A JSON response with article data
+            and HTTP 200 on success, or an error JSON with HTTP 404
             on failure.
         """
         article = self.article_service.get_by_id(article_id)
         if not article:
-            return {"error": "Article not found."}, 404
+            return jsonify({"error": "Article not found."}), 404
 
         content = article.article_content
         try:
@@ -148,26 +148,26 @@ class ArticleAdapter:
             "published_at": article.article_published_at,
         })
 
-    def api_create_article(self) -> Response | tuple[dict, int]:
+    def api_create_article(self) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for creating a new article.
         Validates authentication, authorization, and input data,
         then delegates creation to the article service.
 
         Returns:
-            Response | tuple[dict, int]: A JSON response with the new
-            article id and HTTP 201 on success, or an "error" key with
+            Response | tuple[Response, int]: A JSON response with the new
+            article id and HTTP 201 on success, or an error JSON with
             HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
         if not user:
-            return {"error": "Unauthorized."}, 401
+            return jsonify({"error": "Unauthorized."}), 401
         if user.account_role not in ["admin", "author"]:
-            return {"error": "Insufficient permissions."}, 403
+            return jsonify({"error": "Insufficient permissions."}), 403
 
         data = request.get_json(silent=True)
         if not data:
-            return {"error": "Invalid JSON body."}, 400
+            return jsonify({"error": "Invalid JSON body."}), 400
 
         try:
             req_data = ArticleRequest(
@@ -176,18 +176,18 @@ class ArticleAdapter:
             )
         except ValidationError as e:
             for error in e.errors():
-                return {"error": f"({error['loc'][0]}): {error['msg']}"}, 400
-            return {"error": "Validation error."}, 400
+                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
+            return jsonify({"error": "Validation error."}), 400
 
         result = self.article_service.create_article(
             title=req_data.title, content=req_data.content, author_id=user.account_id, author_role=user.account_role,
         )
         if isinstance(result, str):
-            return {"error": result}, 403
+            return jsonify({"error": result}), 403
 
         return jsonify({"id": result.article_id}), 201
 
-    def api_update_article(self, article_id: int) -> dict | tuple[dict, int]:
+    def api_update_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for updating an existing article.
         Validates authentication, authorization, and input data,
@@ -197,18 +197,19 @@ class ArticleAdapter:
             article_id (int): The unique identifier of the article to update.
 
         Returns:
-            dict | tuple[dict, int]: An "ok" dict with HTTP 200 on success,
-            or an "error" key with HTTP 400/401/403 on failure.
+            Response | tuple[Response, int]: A JSON response with OK
+            and HTTP 200 on success, or an error JSON with
+            HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
         if not user:
-            return {"error": "Unauthorized."}, 401
+            return jsonify({"error": "Unauthorized."}), 401
         if user.account_role not in ["admin", "author"]:
-            return {"error": "Insufficient permissions."}, 403
+            return jsonify({"error": "Insufficient permissions."}), 403
 
         data = request.get_json(silent=True)
         if not data:
-            return {"error": "Invalid JSON body."}, 400
+            return jsonify({"error": "Invalid JSON body."}), 400
 
         try:
             req_data = ArticleRequest(
@@ -217,16 +218,16 @@ class ArticleAdapter:
             )
         except ValidationError as e:
             for error in e.errors():
-                return {"error": f"({error['loc'][0]}): {error['msg']}"}, 400
-            return {"error": "Validation error."}, 400
+                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
+            return jsonify({"error": "Validation error."}), 400
 
         result = self.article_service.update_article(
             article_id=article_id, user_id=user.account_id, title=req_data.title, content=req_data.content,
         )
         if isinstance(result, str):
-            return {"error": result}, 403
+            return jsonify({"error": result}), 403
 
-        return {"ok": True}
+        return jsonify({"ok": True})
 
     def _api_delete_article(self, article_id: int) -> tuple[dict, int]:
         """

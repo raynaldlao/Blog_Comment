@@ -148,7 +148,7 @@ def _init_template_utils(app: Flask) -> None:
     Args:
         app: The Flask application instance to configure.
     """
-    ViteManifest.init(os.path.join(app.static_folder, "dist"))
+    ViteManifest.init(os.path.join(app.static_folder or "", "dist"))
 
     app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_format"] = date_format_filter
