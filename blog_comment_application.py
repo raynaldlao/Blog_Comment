@@ -2,9 +2,9 @@ import os
 from datetime import timedelta
 
 from flask import Flask, send_from_directory
+from flask_compress import Compress
 from sqlalchemy.orm import Session
 
-from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
 from config.env_config import env_config
 from flask_setup.middleware import init_web_security
 from flask_setup.routes import register_web_routes
@@ -25,6 +25,7 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter import SqlAlchemyArticleAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
 from utils.template_helpers import (
     ViteManifest,
     date_format_filter,
@@ -188,6 +189,7 @@ def create_app(db_session=None) -> Flask:
     repositories = _create_output_adapters(db_session)
     services = _create_services(repositories)
     app = _init_web_facade_flask()
+    Compress(app)
     init_web_security(app)
     _init_template_utils(app)
     web_adapters = _init_web_adapters(services)

@@ -362,3 +362,21 @@ class TestSecurityHeaders:
         response = client.get("/dist/.vite/manifest.json")
         assert response.status_code == 200
         assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
+
+
+class TestCompression:
+    """Tests focused on HTTP response compression (flask-compress)."""
+
+    def test_uncompressed_without_accept_encoding(self, client):
+        """Verifies responses are uncompressed when client doesn't send Accept-Encoding."""
+        response = client.get("/login")
+        assert response.status_code == 200
+        assert "Content-Encoding" not in response.headers
+
+    def test_gzip_compression_with_accept_encoding(self, client):
+        """Verifies responses are gzip-compressed when client sends Accept-Encoding: gzip."""
+        uncompressed = client.get("/login")
+        compressed = client.get("/login", headers={"Accept-Encoding": "gzip"})
+        assert compressed.status_code == 200
+        assert compressed.headers.get("Content-Encoding") == "gzip"
+        assert len(compressed.data) < len(uncompressed.data)
