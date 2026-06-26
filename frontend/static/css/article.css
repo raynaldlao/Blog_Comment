@@ -263,13 +263,6 @@
     margin-bottom: var(--spacing-xl);
 }
 
-.detail-body {
-    font-family: var(--font-primary);
-    font-size: var(--font-body-lg);
-    line-height: 1.6;
-    color: var(--on-surface);
-}
-
 /* Hide default spinners for numerical inputs */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
@@ -515,11 +508,6 @@ input[type=number] {
 .comment-reply-form {
     display: flex;
     gap: var(--spacing-xs);
-}
-
-.comment-reply-input {
-    flex: 1;
-    font-size: var(--font-body-base);
 }
 
 .comment-reply-author {

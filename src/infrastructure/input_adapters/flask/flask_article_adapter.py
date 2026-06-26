@@ -111,7 +111,20 @@ class ArticleAdapter:
 
         return render_template("article_create.html", current_user=user, page_with_editor=True)
 
-    def api_get_article(self, article_id: int):
+    def api_get_article(self, article_id: int) -> Response | tuple[dict, int]:
+        """
+        Handles JSON API request for fetching a single article.
+        Wraps legacy plain-text content into a BlockNote paragraph block
+        for compatibility with the React viewer.
+
+        Args:
+            article_id (int): The unique identifier of the article to retrieve.
+
+        Returns:
+            Response | tuple[dict, int]: A JSON response with article data
+            and HTTP 200 on success, or an "error" key with HTTP 404
+            on failure.
+        """
         article = self.article_service.get_by_id(article_id)
         if not article:
             return {"error": "Article not found."}, 404
@@ -135,7 +148,17 @@ class ArticleAdapter:
             "published_at": article.article_published_at,
         })
 
-    def api_create_article(self):
+    def api_create_article(self) -> Response | tuple[dict, int]:
+        """
+        Handles JSON API request for creating a new article.
+        Validates authentication, authorization, and input data,
+        then delegates creation to the article service.
+
+        Returns:
+            Response | tuple[dict, int]: A JSON response with the new
+            article id and HTTP 201 on success, or an "error" key with
+            HTTP 400/401/403 on failure.
+        """
         user = global_request_context.get("current_user")
         if not user:
             return {"error": "Unauthorized."}, 401
@@ -164,7 +187,19 @@ class ArticleAdapter:
 
         return jsonify({"id": result.article_id}), 201
 
-    def api_update_article(self, article_id: int):
+    def api_update_article(self, article_id: int) -> dict | tuple[dict, int]:
+        """
+        Handles JSON API request for updating an existing article.
+        Validates authentication, authorization, and input data,
+        then delegates the update to the article service.
+
+        Args:
+            article_id (int): The unique identifier of the article to update.
+
+        Returns:
+            dict | tuple[dict, int]: An "ok" dict with HTTP 200 on success,
+            or an "error" key with HTTP 400/401/403 on failure.
+        """
         user = global_request_context.get("current_user")
         if not user:
             return {"error": "Unauthorized."}, 401
