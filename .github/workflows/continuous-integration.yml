@@ -29,6 +29,10 @@ jobs:
       TEST_ARGON2_MEMORY_COST: ${{ secrets.TEST_ARGON2_MEMORY_COST }}
       TEST_ARGON2_PARALLELISM: ${{ secrets.TEST_ARGON2_PARALLELISM }}
 
+      ARGON2_TIME_COST: ${{ secrets.ARGON2_TIME_COST }}
+      ARGON2_MEMORY_COST: ${{ secrets.ARGON2_MEMORY_COST }}
+      ARGON2_PARALLELISM: ${{ secrets.ARGON2_PARALLELISM }}
+
     services:
       postgres:
         image: postgres:18
