@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('assets', filename='css/article.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -121,7 +121,7 @@
 </dialog>
 
 {% block extra_js %}
-<script defer src="{{ url_for('assets', filename='scripts/confirm-dialog.js') }}"></script>
-<script defer src="{{ url_for('assets', filename='scripts/code-copy.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/confirm-dialog.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/code-copy.js') }}"></script>
 {% endblock %}
 {% endblock %}

@@ -46,6 +46,15 @@ class ViteManifest:
             css.extend(imp_data.get("css", []) or [])
         return css
 
+    @classmethod
+    def get_vendor_js(cls) -> str | None:
+        manifest = cls._load()
+        for entry_data in manifest.values():
+            path = entry_data.get("file", "")
+            if path.startswith("assets/vendor-") and path.endswith(".js"):
+                return path
+        return None
+
 def nl2br_filter(text: str | None) -> str:
     """
     Jinja2 filter that escapes HTML and converts newlines to <br> tags.
@@ -82,9 +91,12 @@ def inject_vite_assets() -> dict:
     """
     js_file = ViteManifest.get_js()
     css_files = ViteManifest.get_css()
+    vendor_js = ViteManifest.get_vendor_js()
+    VITE_PREFIX = "dist/"
     return {
-        "vite_js_url": js_file if js_file else None,
-        "vite_css_urls": css_files if css_files else [],
+        "vite_js_url": VITE_PREFIX + js_file if js_file else None,
+        "vite_css_urls": [VITE_PREFIX + f for f in css_files] if css_files else [],
+        "vite_vendor_js_url": VITE_PREFIX + vendor_js if vendor_js else None,
     }
 
 

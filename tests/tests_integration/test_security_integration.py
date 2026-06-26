@@ -347,19 +347,19 @@ class TestSecurityHeaders:
         assert "Max-Age=" not in set_cookie
 
     def test_favicon_ico_returns_svg(self, client):
-        """Verifies /favicon.ico serves the SVG favicon with correct content type."""
-        response = client.get("/favicon.ico")
+        """Verifies /static/images/favicon.svg serves the SVG favicon."""
+        response = client.get("/static/images/favicon.svg")
         assert response.status_code == 200
         assert "image/svg+xml" in response.content_type
 
     def test_cache_header_on_asset(self, client):
-        """Verifies /assets/ responses include immutable Cache-Control."""
-        response = client.get("/assets/css/base.css")
+        """Verifies /static/ responses include immutable Cache-Control."""
+        response = client.get("/static/css/base.css")
         assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
     def test_cache_header_on_dist(self, client):
-        """Verifies /dist/ responses include immutable Cache-Control."""
-        response = client.get("/dist/.vite/manifest.json")
+        """Verifies /static/dist responses include immutable Cache-Control."""
+        response = client.get("/static/dist/.vite/manifest.json")
         assert response.status_code == 200
         assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 

@@ -4,7 +4,7 @@
 
 {% from "macros/icons.html" import icon %}
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('assets', filename='css/article.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -23,5 +23,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="{{ url_for('assets', filename='scripts/code-copy.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/code-copy.js') }}"></script>
 {% endblock %}

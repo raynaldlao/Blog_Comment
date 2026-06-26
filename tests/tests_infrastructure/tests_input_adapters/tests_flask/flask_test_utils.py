@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, get_flashed_messages, request, send_from_directory
+from flask import Flask, get_flashed_messages, request
 from flask import g as global_request_context
 from flask_wtf.csrf import CSRFProtect
 
@@ -57,15 +57,8 @@ class FlaskInputAdapterTestBase:
         Initializes test state and registers class-level hooks to avoid nested functions.
         """
         frontend_dir = os.path.dirname(self.TEMPLATE_DIR)
-        assets_dir = os.path.join(frontend_dir, "assets")
-        dist_dir = os.path.join(frontend_dir, "dist")
-        self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR, static_folder=dist_dir, static_url_path="/dist")
-
-        self.app.add_url_rule(
-            "/assets/<path:filename>",
-            endpoint="assets",
-            view_func=lambda filename: send_from_directory(assets_dir, filename),
-        )
+        static_dir = os.path.join(frontend_dir, "static")
+        self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR, static_folder=static_dir)
 
         self.app.jinja_env.filters["nl2br"] = nl2br_filter
         self.app.jinja_env.filters["date_format"] = date_format_filter

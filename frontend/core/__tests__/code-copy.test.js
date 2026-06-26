@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const codeCopySource = fs.readFileSync(
-  path.resolve(__dirname, '../../assets/scripts/code-copy.js'),
+  path.resolve(__dirname, '../../static/scripts/code-copy.js'),
   'utf-8',
 );
 

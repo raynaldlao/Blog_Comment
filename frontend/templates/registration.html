@@ -4,7 +4,7 @@
 {% block title %}Sign Up - DevJournal{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('assets', filename='css/account.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -58,5 +58,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="{{ url_for('assets', filename='scripts/password-toggle.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/password-toggle.js') }}"></script>
 {% endblock %}

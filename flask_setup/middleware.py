@@ -132,10 +132,9 @@ def _add_cache_headers(response: Response) -> Response:
     """Sets Cache-Control headers for fingerprinted static assets.
 
     Applies ``public, max-age=31536000, immutable`` to all responses
-    served from ``/dist/`` (Vite hashed chunks) and ``/assets/``
-    (CSS, JS, fonts). Fingerprinted filenames never change, so the
-    ``immutable`` directive eliminates revalidation even on manual
-    reload.
+    served from ``/static/`` (Vite dist, CSS, JS, fonts). Fingerprinted
+    filenames never change, so the ``immutable`` directive eliminates
+    revalidation even on manual reload.
 
     Args:
         response: The Flask response object to modify.
@@ -146,7 +145,7 @@ def _add_cache_headers(response: Response) -> Response:
     """
     if flask_request:
         path = flask_request.path
-        if path.startswith(("/dist/", "/assets/")):
+        if path.startswith(("/static/",)):
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
     return response
 
