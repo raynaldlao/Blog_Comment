@@ -1,3 +1,4 @@
+import json
 import math
 
 from pydantic import ValidationError
@@ -115,11 +116,20 @@ class ArticleAdapter:
         if not article:
             return {"error": "Article not found."}, 404
 
+        content = article.article_content
+        try:
+            json.loads(content)
+        except (json.JSONDecodeError, TypeError):
+            content = json.dumps([{
+                "type": "paragraph",
+                "content": [{"type": "text", "text": content}]
+            }])
+
         username = self.article_service.get_author_name(article.article_author_id)
         return jsonify({
             "id": article.article_id,
             "title": article.article_title,
-            "content": article.article_content,
+            "content": content,
             "author_id": article.article_author_id,
             "author_username": username,
             "published_at": article.article_published_at,

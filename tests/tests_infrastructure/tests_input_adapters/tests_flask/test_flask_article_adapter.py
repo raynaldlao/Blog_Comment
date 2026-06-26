@@ -1,3 +1,4 @@
+import json
 from unittest.mock import Mock
 
 from src.application.domain.account import AccountRole
@@ -353,6 +354,39 @@ class TestArticleValidation(ArticleAdapterTestBase):
         response = self.client.delete("/api/articles/1")
         assert response.status_code == 403
         assert response.get_json() == {"error": "Delete Error"}
+
+class TestArticleLegacyContent(ArticleAdapterTestBase):
+    def test_api_get_article_legacy_plain_text(self):
+        author = create_test_account(account_id=1, account_username="author")
+        self.mock_account_repo.get_by_id.return_value = author
+        plain_content = "Hello world, this is a legacy article."
+        legacy_article = create_test_article(
+            article_id=1, article_author_id=1,
+            article_content=plain_content
+        )
+        self.mock_article_repo.get_by_id.return_value = legacy_article
+
+        response = self.client.get("/api/articles/1")
+        assert response.status_code == 200
+        data = response.get_json()
+        parsed = json.loads(data["content"])
+        assert parsed[0]["type"] == "paragraph"
+        assert parsed[0]["content"][0]["text"] == plain_content
+
+    def test_api_get_article_blocknote_content_passes_through(self):
+        author = create_test_account(account_id=1, account_username="author")
+        self.mock_account_repo.get_by_id.return_value = author
+        bn_content = json.dumps([{"type": "heading", "content": [{"type": "text", "text": "Hi"}]}])
+        article = create_test_article(
+            article_id=2, article_author_id=1,
+            article_content=bn_content
+        )
+        self.mock_article_repo.get_by_id.return_value = article
+
+        response = self.client.get("/api/articles/2")
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["content"] == bn_content
 
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):
