@@ -73,7 +73,7 @@ class ArticleAdapterTestBase(FlaskInputAdapterTestBase):
         )
         self.app.add_url_rule(
             "/api/articles/<int:article_id>",
-            view_func=self.adapter.api_delete_article,
+            view_func=self.adapter._api_delete_article,
             methods=["DELETE"],
             endpoint="article.api_delete",
         )

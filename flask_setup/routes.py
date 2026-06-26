@@ -44,10 +44,10 @@ def _register_article_api_routes(app: Flask, adapters: dict) -> None:
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
-        view_func=art.api_delete_article, methods=["DELETE"],
+        view_func=art._api_delete_article, methods=["DELETE"],
         endpoint="article.api_delete",
     )
-    csrf.exempt(art.api_delete_article)
+    csrf.exempt(art._api_delete_article)
 
 
 def _register_comment_routes(app: Flask, adapters: dict) -> None:
