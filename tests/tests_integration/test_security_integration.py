@@ -357,11 +357,13 @@ class TestSecurityHeaders:
         response = client.get("/static/css/base.css")
         assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
-    def test_cache_header_on_dist(self, client):
-        """Verifies /static/dist responses include immutable Cache-Control."""
-        response = client.get("/static/dist/.vite/manifest.json")
-        assert response.status_code == 200
-        assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
+    def test_cache_header_on_dist_path(self, app_with_db):
+        """Verifies /static/dist/ paths get immutable Cache-Control (no Vite dependency)."""
+        with app_with_db.test_request_context(path="/static/dist/"):
+            from flask import Response
+            from flask_setup.middleware import _add_cache_headers
+            response = _add_cache_headers(Response())
+            assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
 
 class TestCompression:
