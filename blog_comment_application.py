@@ -4,7 +4,7 @@ from datetime import timedelta
 from flask import Flask, send_from_directory
 from sqlalchemy.orm import Session
 
-from config.database import setup_database
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
 from config.env_config import env_config
 from flask_setup.middleware import init_web_security
 from flask_setup.routes import register_web_routes

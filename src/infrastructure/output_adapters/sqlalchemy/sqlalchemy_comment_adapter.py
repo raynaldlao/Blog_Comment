@@ -43,14 +43,20 @@ class SqlAlchemyCommentAdapter(CommentRepository):
         Args:
             comment (Comment): The Comment domain entity to save.
         """
-        model = None
-        if comment.comment_id:
-            model = self._session.get(CommentModel, comment.comment_id)
+        if comment.comment_id and comment.comment_id > 0:
+            self._session.query(CommentModel).filter_by(
+                comment_id=comment.comment_id,
+            ).update({
+                CommentModel.comment_article_id: comment.comment_article_id,
+                CommentModel.comment_written_account_id: comment.comment_written_account_id,
+                CommentModel.comment_reply_to: comment.comment_reply_to,
+                CommentModel.comment_content: comment.comment_content,
+            })
+            self._session.commit()
+            return
 
-        if not model:
-            model = CommentModel()
-            self._session.add(model)
-
+        model = CommentModel()
+        self._session.add(model)
         model.comment_article_id = comment.comment_article_id
         model.comment_written_account_id = comment.comment_written_account_id
         model.comment_reply_to = comment.comment_reply_to
@@ -92,7 +98,7 @@ class SqlAlchemyCommentAdapter(CommentRepository):
         Args:
             comment_id (int): The unique identifier of the comment to delete.
         """
-        model = self._session.get(CommentModel, comment_id)
-        if model:
-            self._session.delete(model)
-            self._session.commit()
+        self._session.query(CommentModel).filter_by(
+            comment_id=comment_id,
+        ).delete()
+        self._session.commit()
