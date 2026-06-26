@@ -198,6 +198,34 @@ class ArticleAdapter:
 
         return {"ok": True}
 
+    def delete_article_html(self, article_id: int) -> Response:
+        """
+        Handles HTML form submission for article deletion.
+        Authenticates the user, delegates to the service, and redirects
+        to the article list with a flash message on success or failure.
+
+        Args:
+            article_id (int): The unique identifier of the article to delete.
+
+        Returns:
+            Response: A redirect to the login page or article list view.
+        """
+        user = global_request_context.get("current_user")
+        if not user:
+            flash("You must be logged in to delete articles.", "error")
+            return redirect(url_for("auth.login"))
+
+        result = self.article_service.delete_article(
+            article_id=article_id, user_id=user.account_id,
+        )
+
+        if isinstance(result, str):
+            flash(result, "error")
+        else:
+            flash("Article deleted successfully.", "success")
+
+        return redirect(url_for("article.list_articles"))
+
     def render_edit_page(self, article_id: int) -> str | Response:
         """
         Renders the edit form for an existing article.

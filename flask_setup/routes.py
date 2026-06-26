@@ -9,6 +9,12 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
     app.add_url_rule(
         "/articles/<int:article_id>/edit", view_func=art.render_edit_page, methods=["GET"], endpoint="article.render_edit_page"
     )
+    app.add_url_rule(
+        "/articles/<int:article_id>/delete",
+        view_func=art.delete_article_html,
+        methods=["POST"],
+        endpoint="article.delete_article_html",
+    )
 
 
 def _register_article_api_routes(app: Flask, adapters: dict) -> None:

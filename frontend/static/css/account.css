@@ -40,7 +40,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: var(--spacing-sm);
     text-decoration: none;
 }
 
@@ -48,7 +48,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.25rem;
+    font-size: var(--font-headline-md);
 }
 
 .account-link-center span:last-child {
@@ -75,7 +75,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.25rem;
+    padding: var(--spacing-xs);
     line-height: 1;
 }
 
