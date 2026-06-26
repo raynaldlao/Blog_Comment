@@ -361,6 +361,7 @@ class TestSecurityHeaders:
         """Verifies /static/dist/ paths get immutable Cache-Control (no Vite dependency)."""
         with app_with_db.test_request_context(path="/static/dist/"):
             from flask import Response
+
             from flask_setup.middleware import _add_cache_headers
             response = _add_cache_headers(Response())
             assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
