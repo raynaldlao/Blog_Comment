@@ -49,9 +49,9 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return data.url;
   }, []);
 
-  var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+  const { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
 
-  var editor = useCreateBlockNote({
+  const editor = useCreateBlockNote({
     initialContent,
     uploadFile: uploadFn,
     schema: BlockNoteSchema.create({
@@ -117,17 +117,17 @@ function BlockNoteEditor({ initialContent, onReady }) {
 
   useEffect(() => {
     if (!editor) return;
-    var handler = function (e) {
-      var html = e.clipboardData.getData('text/html');
+    const handler = function (e) {
+      const html = e.clipboardData.getData('text/html');
       if (html && html.includes('blocknote-block')) {
         e.preventDefault();
         e.stopPropagation();
-        var tmp = document.createElement('div');
+        const tmp = document.createElement('div');
         tmp.innerHTML = html;
-        var el = tmp.querySelector('blocknote-block');
+        const el = tmp.querySelector('blocknote-block');
         if (!el) return;
-        var data = JSON.parse(el.getAttribute('data-json'));
-        var block;
+        const data = JSON.parse(el.getAttribute('data-json'));
+        let block;
         try { block = editor.getTextCursorPosition().block; }
         catch { return; }
         editor.updateBlock(block, data);
@@ -142,9 +142,9 @@ function BlockNoteEditor({ initialContent, onReady }) {
             el.classList.remove('ProseMirror-selectednode');
           });
           try {
-            var doc = editor.document;
+            const doc = editor.document;
             if (doc) {
-              for (var i = 0; i < doc.length; i++) {
+              for (let i = 0; i < doc.length; i++) {
                 if (doc[i].type !== 'video' && doc[i].type !== 'image') {
                   editor.setTextCursorPosition(doc[i].id, 'start');
                   break;
@@ -166,16 +166,16 @@ function BlockNoteEditor({ initialContent, onReady }) {
 
   useEffect(() => {
     if (!editor) return;
-    var handler = function (e) {
-      var block;
+    const handler = function (e) {
+      let block;
       try { block = editor.getSelection()?.blocks?.[0] ?? editor.getTextCursorPosition().block; }
       catch { return; }
       if (!block || (block.type !== 'image' && block.type !== 'video')) return;
       e.preventDefault();
       e.stopPropagation();
-      var data = { type: block.type, props: block.props, content: block.content };
-      var html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
-      var text;
+      const data = { type: block.type, props: block.props, content: block.content };
+      const html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
+      let text;
       if (block.type === 'image') {
         if (block.props?.url && !block.props.url.startsWith('/uploads/')) {
           text = block.props.url;
@@ -185,7 +185,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
       } else {
         text = block.props?.url || '';
       }
-      var items = {
+      const items = {
         'text/plain': new Blob([text], { type: 'text/plain' }),
         'text/html': new Blob([html], { type: 'text/html' }),
       };
@@ -197,15 +197,15 @@ function BlockNoteEditor({ initialContent, onReady }) {
 
   useEffect(function () {
     if (!editor) return;
-    var handler = function (e) {
-      var target = e.target;
+    const handler = function (e) {
+      let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
       if (target?.closest?.('.bn-formatting-toolbar')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {
-        var doc = editor.document;
-        for (var i = 0; i < doc.length; i++) {
+        const doc = editor.document;
+        for (let i = 0; i < doc.length; i++) {
           if (doc[i].type !== 'image' && doc[i].type !== 'video') {
             editor.setTextCursorPosition(doc[i].id, 'start');
             break;

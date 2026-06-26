@@ -22,57 +22,9 @@ function BlockNoteViewer({ initialContent }) {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(function () {
-    var handler = function (e) {
-      var block = document.querySelector(
-        '.bn-block-content[data-content-type="image"].ProseMirror-selectednode',
-      );
-      if (!block) return;
-      var imgEl = block.querySelector('img');
-      if (!imgEl) return;
-      e.preventDefault();
-      e.stopPropagation();
-      var alt = imgEl.alt || '';
-      var src = imgEl.getAttribute('src') || '';
-      var text;
-      if (src && !src.startsWith('/uploads/')) {
-        text = src;
-      } else {
-        text = alt || src.split('/').pop() || '';
-      }
-      navigator.clipboard.write([
-        new ClipboardItem({
-          'text/plain': new Blob([text], { type: 'text/plain' }),
-        }),
-      ]).catch(function () {});
-    };
-    document.addEventListener('copy', handler, true);
-    return function () { document.removeEventListener('copy', handler, true); };
-  }, []);
+  const { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
 
-  useEffect(function () {
-    if (!editor) return;
-    var handler = function (e) {
-      var target = e.target;
-      if (target.nodeType === 3) target = target.parentNode;
-      if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
-      try {
-        var doc = editor.document;
-        for (var i = 0; i < doc.length; i++) {
-          if (doc[i].type !== 'image' && doc[i].type !== 'video') {
-            editor.setTextCursorPosition(doc[i].id, 'start');
-            break;
-          }
-        }
-      } catch {}
-    };
-    document.addEventListener('mousedown', handler, true);
-    return function () { document.removeEventListener('mousedown', handler, true); };
-  }, [editor]);
-
-  var { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
-
-  var editor = useCreateBlockNote({
+  const editor = useCreateBlockNote({
     initialContent,
     schema: BlockNoteSchema.create({
       blockSpecs: {
@@ -91,6 +43,55 @@ function BlockNoteViewer({ initialContent }) {
       },
     }),
   });
+
+  useEffect(function () {
+    const handler = function (e) {
+      const block = document.querySelector(
+        '.bn-block-content[data-content-type="image"].ProseMirror-selectednode',
+      );
+      if (!block) return;
+      const imgEl = block.querySelector('img');
+      if (!imgEl) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const alt = imgEl.alt || '';
+      const src = imgEl.getAttribute('src') || '';
+      let text;
+      if (src && !src.startsWith('/uploads/')) {
+        text = src;
+      } else {
+        text = alt || src.split('/').pop() || '';
+      }
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': new Blob([text], { type: 'text/plain' }),
+        }),
+      ]).catch(function () {});
+    };
+    document.addEventListener('copy', handler, true);
+    return function () { document.removeEventListener('copy', handler, true); };
+  }, []);
+
+  useEffect(function () {
+    if (!editor) return;
+    const handler = function (e) {
+      let target = e.target;
+      if (target.nodeType === 3) target = target.parentNode;
+      if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
+      try {
+        const doc = editor.document;
+        for (let i = 0; i < doc.length; i++) {
+          if (doc[i].type !== 'image' && doc[i].type !== 'video') {
+            editor.setTextCursorPosition(doc[i].id, 'start');
+            break;
+          }
+        }
+      } catch {}
+    };
+    document.addEventListener('mousedown', handler, true);
+    return function () { document.removeEventListener('mousedown', handler, true); };
+  }, [editor]);
+
   return <BlockNoteView editor={editor} theme={theme} editable={false} formattingToolbar={false} />;
 }
 
