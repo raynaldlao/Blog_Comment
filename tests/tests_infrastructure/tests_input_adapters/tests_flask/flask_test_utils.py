@@ -56,7 +56,10 @@ class FlaskInputAdapterTestBase:
         Sets up the Flask test client and pushes the application context globally.
         Initializes test state and registers class-level hooks to avoid nested functions.
         """
-        self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR)
+        frontend_dir = os.path.dirname(self.TEMPLATE_DIR)
+        static_dir = os.path.join(frontend_dir, "static")
+        self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR, static_folder=static_dir)
+
         self.app.jinja_env.filters["nl2br"] = nl2br_filter
         self.app.jinja_env.filters["date_format"] = date_format_filter
         self.app.jinja_env.filters["date_iso"] = date_iso_filter

@@ -1,0 +1,30 @@
+{
+  "name": "blog-comment-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@blocknote/core": "^0.51.0",
+    "@blocknote/mantine": "^0.51.0",
+    "@blocknote/react": "^0.51.0",
+    "@mantine/core": "^8.3.0",
+    "@mantine/hooks": "^8.3.0",
+    "@shikijs/core": "^4.2.0",
+    "@shikijs/engine-javascript": "^4.2.0",
+    "@shikijs/langs-precompiled": "^4.2.0",
+    "@shikijs/themes": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
+    "happy-dom": "^20.10.2",
+    "vite": "^6.0.0",
+    "vitest": "^4.1.8"
+  }
+}

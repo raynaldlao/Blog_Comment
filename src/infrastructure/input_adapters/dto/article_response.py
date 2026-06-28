@@ -1,6 +1,28 @@
+import json
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
+
+
+def _blocks_to_plain_text(blocks_json: str) -> str:
+    try:
+        blocks = json.loads(blocks_json)
+    except (json.JSONDecodeError, TypeError):
+        return blocks_json
+
+    if not isinstance(blocks, list):
+        return blocks_json
+
+    texts = []
+    for block in blocks:
+        content = block.get("content")
+        if isinstance(content, list):
+            for node in content:
+                if isinstance(node, dict) and "text" in node:
+                    texts.append(node["text"])
+        elif isinstance(content, str):
+            texts.append(content)
+    return " ".join(texts)
 
 
 class ArticleResponse(BaseModel):
@@ -20,12 +42,7 @@ class ArticleResponse(BaseModel):
 
     @classmethod
     def from_domain(cls, article, author_username: str = "Unknown"):
-        """
-        Helper factory to create a response DTO from a domain Article entity.
-        The meta_description is generated from the first 155 characters of the
-        article content, which is the optimal length for Google search display.
-        """
-        plain_text = article.article_content.replace("\n", " ").strip()
+        plain_text = _blocks_to_plain_text(article.article_content).replace("\n", " ").strip()
         limit_character = 155
         if len(plain_text) > limit_character:
             meta = f"{plain_text[:limit_character]}..."

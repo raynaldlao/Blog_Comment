@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}{{ article.article_title }} - DevJournal{% endblock %}
+{% from "macros/icons.html" import icon %}
 {% block extra_head %}
 <meta name="description" content="{{ article.meta_description }}">
 {% endblock %}
@@ -10,10 +11,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="article-detail-view">
+<article class="article-detail-view">
     <header class="detail-header">
         <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Back to articles</span>
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
@@ -26,22 +27,18 @@
         <div class="detail-actions">
             {% if current_user and current_user.account_id == article.article_author_id %}
                 <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
-            {% endif %}
-            
-            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <form action="{{ url_for('article.delete_article', article_id=article.article_id) }}" method="POST" class="detail-delete-form" id="delete-article-form">
+                <a href="#" class="btn btn-sm btn-secondary btn-danger confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-{{ article.article_id }}">Delete</a>
+                <form id="delete-article-{{ article.article_id }}" action="{{ url_for('article.delete_article_html', article_id=article.article_id) }}" method="POST" hidden>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-secondary detail-delete-btn confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-form">Delete</button>
+                    <button type="submit" hidden></button>
                 </form>
             {% endif %}
         </div>
     </header>
 
-    <div class="detail-body">
-        {{ article.article_content | nl2br }}
-    </div>
+    <div id="root" data-page="view" data-article-id="{{ article.article_id }}"></div>
 
-    <hr>
+    <hr aria-hidden="true">
 
     <section class="comments-section">
         <h3 class="comments-title">Comments</h3>
@@ -98,7 +95,7 @@
                 <p class="comment-empty">No comments yet.</p>
             {% endfor %}
 
-        <hr>
+        <hr aria-hidden="true">
 
         {% if current_user %}
         <div class="comment-join-section">
@@ -115,7 +112,7 @@
         </p>
         {% endif %}
     </section>
-</div>
+</article>
 
 <dialog id="confirm-dialog" class="dialog">
     <div class="modal-header">
@@ -129,6 +126,7 @@
 </dialog>
 
 {% block extra_js %}
-<script defer src="{{ url_for('static', filename='js/confirm-dialog.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/confirm-dialog.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/code-copy.js') }}"></script>
 {% endblock %}
 {% endblock %}

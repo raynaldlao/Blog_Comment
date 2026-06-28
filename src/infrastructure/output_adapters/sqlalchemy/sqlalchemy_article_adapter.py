@@ -76,12 +76,14 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
             article (Article): The Article domain entity to persist.
         """
         if article.article_id and article.article_id > 0:
-            model = self._session.get(ArticleModel, article.article_id)
-            if model:
-                model.article_title = article.article_title
-                model.article_content = article.article_content
-                self._session.commit()
-                return
+            self._session.query(ArticleModel).filter_by(
+                article_id=article.article_id,
+            ).update({
+                ArticleModel.article_title: article.article_title,
+                ArticleModel.article_content: article.article_content,
+            })
+            self._session.commit()
+            return
 
         model = ArticleModel()
         model.article_author_id = article.article_author_id
@@ -98,10 +100,10 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Args:
             article (Article): The Article domain entity to delete.
         """
-        model = self._session.get(ArticleModel, article.article_id)
-        if model:
-            self._session.delete(model)
-            self._session.commit()
+        self._session.query(ArticleModel).filter_by(
+            article_id=article.article_id,
+        ).delete()
+        self._session.commit()
 
     def get_paginated(self, page: int, per_page: int) -> list[Article]:
         """

@@ -1,0 +1,41 @@
+import React, { Suspense } from 'react';
+import ReactDOM from 'react-dom/client';
+import '@blocknote/mantine/style.css';
+import ErrorBoundary from './components/ErrorBoundary';
+
+const ArticleForm = React.lazy(() => import('./components/ArticleForm'));
+const ArticleViewer = React.lazy(() => import('./components/ArticleViewer'));
+
+const root = document.getElementById('root');
+const page = root?.dataset.page;
+
+const Component = (page === 'create' || page === 'edit')
+  ? ArticleForm
+  : (page === 'view' ? ArticleViewer : null);
+
+if (root && Component) {
+  ReactDOM.createRoot(root).render(
+    <React.StrictMode>
+      <ErrorBoundary>
+        <Suspense fallback={<div className="loading">Loading...</div>}>
+          <Component />
+        </Suspense>
+      </ErrorBoundary>
+    </React.StrictMode>,
+  );
+
+  if (window.innerWidth <= 768) {
+    const setPad = () => {
+      const ed = root.querySelector('.bn-editor');
+      if (!ed) return false;
+      ed.style.setProperty('padding-inline', '28px 2px');
+      return true;
+    };
+    if (!setPad()) {
+      const obs = new MutationObserver(() => {
+        if (setPad()) obs.disconnect();
+      });
+      obs.observe(root, { childList: true, subtree: true });
+    }
+  }
+}

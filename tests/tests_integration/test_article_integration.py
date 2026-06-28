@@ -115,6 +115,40 @@ class TestPersistence:
         assert db_session.query(ArticleModel).filter_by(article_id=article_id).count() == 0
         assert db_session.query(CommentModel).filter_by(comment_id=comment_id).count() == 0
 
+    def test_article_delete_end_to_end_integ(self, client, db_session):
+        """
+        Verifies the full article delete flow via POST HTML form.
+        Creates an article, logs in, deletes it, and confirms it's gone.
+        """
+        author = AccountModel(
+            account_username="del_author", account_email="del@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(author)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="To Delete", article_content="...",
+            article_author_id=author.account_id
+        )
+        db_session.add(article)
+        db_session.commit()
+        article_id = article.article_id
+
+        client.post("/login", data={
+            "username": "del_author", "password": "p"
+        }, follow_redirects=True)
+
+        response = client.post(
+            f"/articles/{article_id}/delete", follow_redirects=True
+        )
+
+        assert response.status_code == 200
+        assert b"Article deleted successfully" in response.data
+        assert db_session.query(ArticleModel).filter_by(
+            article_id=article_id
+        ).count() == 0
+
     def test_orphaned_article_graceful_display_integ(self, client, db_session):
         """
         Verifies that if an article exists without an author, the UI displays fallback info.

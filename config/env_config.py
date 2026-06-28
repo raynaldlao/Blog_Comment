@@ -6,14 +6,13 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
-load_dotenv(BASE_DIR / ".env.test")
 
 
 class EnvConfig:
     """
     Configuration manager for environment variables.
 
-    Handles loading environment variables from .env and .env.test files.
+    Handles loading environment variables from .env file.
     """
 
     def _get_env(self, name: str) -> str:
@@ -63,16 +62,6 @@ class EnvConfig:
             str: The secret key used for signing session cookies and CSRF tokens.
         """
         return self._get_env("SECRET_KEY")
-
-    @property
-    def test_secret_key(self) -> str:
-        """
-        Retrieves the test SECRET_KEY from the environment.
-
-        Returns:
-            str: The secret key used for signing session cookies in tests.
-        """
-        return self._get_env("TEST_SECRET_KEY")
 
     @property
     def argon2_time_cost(self) -> int:

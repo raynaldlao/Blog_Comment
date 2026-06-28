@@ -1,8 +1,12 @@
+{% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
 {% block title %}Latest Articles - DevJournal{% endblock %}
 {% block extra_head %}
 <meta name="description" content="DevJournal - Personal thoughts on software development, programming and technology.">
+{% if vite_vendor_js_url %}
+<link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
+{% endif %}
 {% endblock %}
 
 {% block extra_css %}
@@ -10,7 +14,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script defer src="{{ url_for('static', filename='js/pagination.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/pagination.js') }}"></script>
 {% endblock %}
 
 {% macro render_pagination_info(current_page, total_pages) %}
@@ -61,7 +65,7 @@
 <nav class="editorial-pagination top">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
@@ -71,7 +75,7 @@
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
-            <span class="material-symbols-outlined">arrow_forward</span>
+            {{ icon('arrow_forward') }}
         </a>
     </div>
 </nav>
@@ -86,9 +90,7 @@
                             {{ article.article_title }}
                         </a>
                     </h2>
-                    <p class="item-excerpt">
-                        {{ article.article_content[:200] }}{% if article.article_content|length > 200 %}...{% endif %}
-                    </p>
+                    <p class="item-excerpt">{{ article.meta_description }}</p>
                 </div>
                 <div class="item-meta">
                     <span class="meta-author">{{ article.author_username }}</span>
@@ -101,7 +103,7 @@
         </article>
     {% else %}
         <div class="empty-state">
-            <span class="material-symbols-outlined empty-state-icon">folder_open</span>
+            {{ icon('folder_open', 'empty-state-icon') }}
             <p class="empty-state-text">No articles found in the database.</p>
         </div>
     {% endfor %}
@@ -111,7 +113,7 @@
 <nav class="editorial-pagination">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
-            <span class="material-symbols-outlined">arrow_back</span>
+            {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
@@ -121,7 +123,7 @@
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
-            <span class="material-symbols-outlined">arrow_forward</span>
+            {{ icon('arrow_forward') }}
         </a>
     </div>
 </nav>
@@ -138,10 +140,10 @@
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
                     <button class="stepper-btn up" data-step="1" title="Increase page">
-                        <span class="material-symbols-outlined">expand_less</span>
+                        {{ icon('expand_less') }}
                     </button>
                     <button class="stepper-btn down" data-step="-1" title="Decrease page">
-                        <span class="material-symbols-outlined">expand_more</span>
+                        {{ icon('expand_more') }}
                     </button>
                 </div>
             </div>

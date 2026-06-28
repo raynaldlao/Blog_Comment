@@ -25,3 +25,8 @@ poetry.toml
 
 # 🤖 Agent instructions
 AGENTS.md
+
+# 📦 Frontend (npm / BlockNote)
+node_modules/
+frontend/node_modules/
+frontend/static/dist/

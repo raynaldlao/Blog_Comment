@@ -1,24 +1,21 @@
-import os
-import sys
-
 from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
 from config.env_config import env_config
 
-"""
-Infrastructure-specific database configuration and session management.
 
-This module initializes the SQLAlchemy engine and provides a scoped session
-factory for the hexagonal architecture, ensuring isolation from the legacy
-database setup. It automatically switches between production and test databases.
-"""
+def setup_database(db_session: Session | None = None) -> Session:
+    """Initialize database engine and return a configured SQLAlchemy session.
 
-if os.getenv("PYTEST_CURRENT_TEST") or "pytest" in sys.modules:
-    db_url = env_config.test_database_url
-else:
-    db_url = env_config.database_url
+    Args:
+        db_session: Optional pre-existing session for dependency injection
+            (used in tests to inject a mock or transaction-bound session).
 
-sqlalchemy_engine = create_engine(db_url)
-sqlalchemy_session_factory = sessionmaker(bind=sqlalchemy_engine)
-sqlalchemy_db_session = scoped_session(sqlalchemy_session_factory)
+    Returns:
+        Session: A configured SQLAlchemy database session connected to the engine.
+    """
+    if db_session is None:
+        engine = create_engine(env_config.database_url)
+        session_factory = sessionmaker(bind=engine)
+        db_session = session_factory()
+    return db_session

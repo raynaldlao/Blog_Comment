@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 
 from flask import Flask, Response
+from flask import request as flask_request
 from flask.sessions import SecureCookieSessionInterface
 from flask_wtf.csrf import CSRFProtect
 
@@ -50,10 +51,11 @@ class CSPConfig:
         response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
         response.headers["Content-Security-Policy"] = (
             "default-src 'self';"
-            f"script-src 'self' {self._script_hash};"
-            "style-src 'self' https://fonts.googleapis.com;"
+            f"script-src 'self' 'unsafe-eval' {self._script_hash};"
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
             "font-src 'self' https://fonts.gstatic.com;"
-            "img-src 'self' data:;"
+            "img-src 'self' data: https:;"
+            "frame-src https://www.youtube.com;"
             "base-uri 'self';"
             "form-action 'self';"
             "report-uri /csp-report;"
@@ -126,6 +128,28 @@ def _add_referrer_policy(response: Response) -> Response:
     return response
 
 
+def _add_cache_headers(response: Response) -> Response:
+    """Sets Cache-Control headers for fingerprinted static assets.
+
+    Applies ``public, max-age=31536000, immutable`` to all responses
+    served from ``/static/`` (Vite dist, CSS, JS, fonts). Fingerprinted
+    filenames never change, so the ``immutable`` directive eliminates
+    revalidation even on manual reload.
+
+    Args:
+        response: The Flask response object to modify.
+
+    Returns:
+        The modified Flask response with Cache-Control set for
+        matching paths.
+    """
+    if flask_request:
+        path = flask_request.path
+        if path.startswith(("/static/",)):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
 class NonPersistentSessionInterface(SecureCookieSessionInterface):
     """Session interface that removes the cookie Expires header.
 
@@ -153,5 +177,6 @@ def init_web_security(app: Flask) -> None:
     app.after_request(_add_nosniff)
     app.after_request(_add_x_frame_options)
     app.after_request(_add_referrer_policy)
+    app.after_request(_add_cache_headers)
     csrf_protect.exempt(csp.handle_report)
     app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])

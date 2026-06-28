@@ -98,6 +98,13 @@
     color: var(--primary);
 }
 
-.back-link .material-symbols-outlined {
-    font-size: 1.25rem;
+.back-link .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-headline-md);
+}
+
+.back-link span:last-child {
+    transform: translateY(1.5px);
 }

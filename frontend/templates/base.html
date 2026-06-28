@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
     <title>{% block title %}DevJournal{% endblock %}</title>
     {% block extra_head %}{% endblock %}
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    
+    {% from "macros/icons.html" import icon %}
     <script>
         // Must run synchronously BEFORE the first paint to prevent FOUC.
         // Do NOT remove or move to the defer script at the bottom.
@@ -20,6 +18,11 @@
         } catch (e) {}
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% if page_with_editor %}
+    {% for css_url in vite_css_urls %}
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
+    {% endfor %}
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -32,41 +35,41 @@
             </a>
             <div class="nav-actions">
                 <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="Toggle Theme">
-                    <span class="material-symbols-outlined nav-item-icon">dark_mode</span>
+                    {{ icon('dark_mode', 'nav-item-icon') }}
                 </button>
 
                 <div class="nav-links">
                     <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="Home">
-                    <span class="material-symbols-outlined nav-item-icon">home</span>
+                    {{ icon('home', 'nav-item-icon nav-item-home') }}
                     <span>Home</span>
                 </a>
                 
                 {% if current_user %}
                     {% if current_user.account_role in ['admin', 'author'] %}
                     <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="New Article">
-                        <span class="material-symbols-outlined nav-item-icon">add_box</span>
+                        {{ icon('add_box', 'nav-item-icon') }}
                         <span>New article</span>
                     </a>
                     {% endif %}
                     
                     <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="Profile">
-                        <span class="material-symbols-outlined nav-item-icon">account_circle</span>
+                        {{ icon('account_circle', 'nav-item-icon') }}
                         <span>Profile</span>
                     </a>
                     <form action="{{ url_for('auth.logout') }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="btn btn-sm btn-secondary" title="Logout">
-                            <span class="material-symbols-outlined nav-item-icon">logout</span>
+                            {{ icon('logout', 'nav-item-icon') }}
                             <span>Logout</span>
                         </button>
                     </form>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="Sign In">
-                        <span class="material-symbols-outlined nav-item-icon">person</span>
+                        {{ icon('person', 'nav-item-icon') }}
                         <span>Sign In</span>
                     </a>
                     <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="Sign Up">
-                        <span class="material-symbols-outlined nav-item-icon">person_add</span>
+                        {{ icon('person_add', 'nav-item-icon') }}
                         <span>Sign Up</span>
                     </a>
                 {% endif %}
@@ -98,9 +101,11 @@
             </p>
         </div>
     </footer>
-    <script defer src="{{ url_for('static', filename='js/flash-messages.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/theme-toggle.js') }}"></script>
-    <script defer src="{{ url_for('static', filename='js/password-toggle.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/flash-messages.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/theme-toggle.js') }}"></script>
+    {% if page_with_editor and vite_js_url %}
+    <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
+    {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
 </html>
