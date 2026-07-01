@@ -16,19 +16,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-
-      DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}
-      TEST_DATABASE_URL: postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.POSTGRES_DB }}
-
+      TEST_DATABASE_URL: postgresql://${{ secrets.TEST_POSTGRES_USER }}:${{ secrets.TEST_POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.TEST_POSTGRES_DB }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-
-      TEST_ARGON2_TIME_COST: ${{ secrets.TEST_ARGON2_TIME_COST }}
-      TEST_ARGON2_MEMORY_COST: ${{ secrets.TEST_ARGON2_MEMORY_COST }}
-      TEST_ARGON2_PARALLELISM: ${{ secrets.TEST_ARGON2_PARALLELISM }}
-
       ARGON2_TIME_COST: ${{ secrets.ARGON2_TIME_COST }}
       ARGON2_MEMORY_COST: ${{ secrets.ARGON2_MEMORY_COST }}
       ARGON2_PARALLELISM: ${{ secrets.ARGON2_PARALLELISM }}
@@ -37,9 +26,9 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.TEST_POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.TEST_POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.TEST_POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
@@ -86,9 +75,9 @@ jobs:
             --network host \
             -v ${{ github.workspace }}/migrations:/flyway/sql \
             flyway/flyway:11 \
-            -url="jdbc:postgresql://localhost:5432/${{ secrets.POSTGRES_DB }}" \
-            -user="${{ secrets.POSTGRES_USER }}" \
-            -password="${{ secrets.POSTGRES_PASSWORD }}" \
+            -url="jdbc:postgresql://localhost:5432/${{ secrets.TEST_POSTGRES_DB }}" \
+            -user="${{ secrets.TEST_POSTGRES_USER }}" \
+            -password="${{ secrets.TEST_POSTGRES_PASSWORD }}" \
             migrate
 
       - name: Run tests
