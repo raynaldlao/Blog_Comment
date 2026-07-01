@@ -18,9 +18,6 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql://${{ secrets.TEST_POSTGRES_USER }}:${{ secrets.TEST_POSTGRES_PASSWORD }}@localhost:5432/${{ secrets.TEST_POSTGRES_DB }}
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      ARGON2_TIME_COST: ${{ secrets.ARGON2_TIME_COST }}
-      ARGON2_MEMORY_COST: ${{ secrets.ARGON2_MEMORY_COST }}
-      ARGON2_PARALLELISM: ${{ secrets.ARGON2_PARALLELISM }}
       TEST_ARGON2_TIME_COST: ${{ secrets.ARGON2_TIME_COST }}
       TEST_ARGON2_MEMORY_COST: ${{ secrets.ARGON2_MEMORY_COST }}
       TEST_ARGON2_PARALLELISM: ${{ secrets.ARGON2_PARALLELISM }}

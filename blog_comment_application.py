@@ -38,15 +38,26 @@ from utils.template_helpers import (
 
 def _create_output_adapters(db_session: Session) -> dict:
     """
-    Instantiates the persistence and security adapters.
+    Instantiates persistence and security adapters.
+
+    Uses test argon2 parameters when db_session is provided (test mode),
+    production argon2 parameters otherwise.
 
     Args:
-        db_session: The SQLAlchemy session to be injected into adapters.
+        db_session: SQLAlchemy session for dependency injection (None for prod).
 
     Returns:
-        dict: A dictionary containing initialized output adapters.
+        dict: Initialized output adapters keyed by role.
     """
     account_repo = SqlAlchemyAccountAdapter(db_session)
+    if db_session is not None:
+        time_cost = env_config.test_argon2_time_cost
+        memory_cost = env_config.test_argon2_memory_cost
+        parallelism = env_config.test_argon2_parallelism
+    else:
+        time_cost = env_config.argon2_time_cost
+        memory_cost = env_config.argon2_memory_cost
+        parallelism = env_config.argon2_parallelism
     return {
         "account_repo": account_repo,
         "article_repo": SqlAlchemyArticleAdapter(db_session),
@@ -54,9 +65,9 @@ def _create_output_adapters(db_session: Session) -> dict:
         "file_storage_repo": SqlAlchemyFileStorageAdapter(db_session),
         "session_repo": FlaskSessionAdapter(account_repo),
         "password_hasher_repository": Argon2PasswordHasherAdapter(
-            time_cost=env_config.argon2_time_cost,
-            memory_cost=env_config.argon2_memory_cost,
-            parallelism=env_config.argon2_parallelism,
+            time_cost=time_cost,
+            memory_cost=memory_cost,
+            parallelism=parallelism,
         ),
     }
 
