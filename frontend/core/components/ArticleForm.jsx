@@ -88,6 +88,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const editor = useCreateBlockNote({
     initialContent,
     uploadFile: uploadFn,
+    disableExtensions: ['gapCursor'],
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
@@ -113,8 +114,8 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const handleSelectionChange = useCallback(() => {
     let blockType;
     try {
-      const { block } = editor.getTextCursorPosition();
-      blockType = block?.type;
+      var pos = editor.getTextCursorPosition();
+      blockType = pos.block?.type;
       if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
       } else {
