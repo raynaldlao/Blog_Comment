@@ -111,9 +111,11 @@ function BlockNoteEditor({ initialContent, onReady }) {
   }, [editor]);
 
   const handleSelectionChange = useCallback(() => {
+    let blockType;
     try {
       const { block } = editor.getTextCursorPosition();
-      if (block?.type === 'image') {
+      blockType = block?.type;
+      if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
       } else {
         editor.portalElement?.classList.remove('image-selected');
@@ -121,6 +123,15 @@ function BlockNoteEditor({ initialContent, onReady }) {
     } catch {
       editor.portalElement?.classList.remove('image-selected');
     }
+    if (blockType !== 'image') return;
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach(el => {
+        const id = el.closest('[data-id]')?.getAttribute('data-id');
+        if (id && editor.document?.find(b => b.id === id)?.type === 'video') {
+          el.classList.remove('ProseMirror-selectednode');
+        }
+      });
+    });
   }, [editor]);
 
   useEditorSelectionChange(handleSelectionChange, editor);
