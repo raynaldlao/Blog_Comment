@@ -1000,10 +1000,6 @@ input[type=number] {
     border-radius: var(--radius-default);
 }
 
-/* Hide embed tab when an image block is selected */
-.image-selected .bn-panel [data-test$="-tab"]:last-child {
-    display: none;
-}
 
 /* Selection outline for custom video override */
 .bn-visual-media-wrapper.ProseMirror-selectednode {

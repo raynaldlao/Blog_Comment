@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { offset } from '@floating-ui/react';
-import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu } from '@blocknote/react';
+import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu, FilePanelController, FilePanel, UploadTab, EmbedTab, useBlockNoteEditor } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema, defaultBlockSpecs, createParagraphBlockSpec } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
@@ -22,6 +22,40 @@ export function applyVideoDictOverrides(editor) {
   editor.dictionary.file_panel.embed.title = 'YouTube URL';
   editor.dictionary.file_panel.embed.url_placeholder = 'Paste YouTube video link';
   editor.dictionary.file_panel.embed.embed_button.video = 'Embed YouTube video';
+}
+
+function CustomFilePanel({ blockId }) {
+  const editor = useBlockNoteEditor();
+  const [loading, setLoading] = useState(false);
+  let block;
+  try {
+    block = blockId ? editor.getBlock(blockId) : null;
+  } catch {
+    block = null;
+  }
+  if (block?.type === 'image') {
+    return (
+      <FilePanel
+        blockId={blockId}
+        tabs={[{
+          name: 'Upload',
+          tabPanel: <UploadTab blockId={blockId} setLoading={setLoading} />,
+        }]}
+      />
+    );
+  }
+  if (block?.type === 'video') {
+    return (
+      <FilePanel
+        blockId={blockId}
+        tabs={[{
+          name: 'YouTube URL',
+          tabPanel: <EmbedTab blockId={blockId} />,
+        }]}
+      />
+    );
+  }
+  return <FilePanel blockId={blockId} />;
 }
 
 function BlockNoteEditor({ initialContent, onReady }) {
@@ -218,6 +252,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
       theme={theme}
       formattingToolbar={false}
       sideMenu={false}
+      filePanel={false}
     >
       <FormattingToolbarController formattingToolbar={CustomFormattingToolbar} />
       <SideMenuController
@@ -230,6 +265,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
           },
         }}
       />
+      <FilePanelController filePanel={CustomFilePanel} />
     </BlockNoteView>
   );
 }
