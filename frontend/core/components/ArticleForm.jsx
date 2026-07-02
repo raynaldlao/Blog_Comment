@@ -79,20 +79,15 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const handleSelectionChange = useCallback(() => {
     try {
       const { block } = editor.getTextCursorPosition();
-      if (block?.type !== 'image') {
-        editor.uploadFile = undefined;
-        editor.portalElement?.classList.remove('image-selected');
-      } else {
-        if (!editor.uploadFile) {
-          editor.uploadFile = uploadFn;
-        }
+      if (block?.type === 'image') {
         editor.portalElement?.classList.add('image-selected');
+      } else {
+        editor.portalElement?.classList.remove('image-selected');
       }
     } catch {
-      editor.uploadFile = undefined;
       editor.portalElement?.classList.remove('image-selected');
     }
-  }, [editor, uploadFn]);
+  }, [editor]);
 
   useEditorSelectionChange(handleSelectionChange, editor);
 
@@ -200,7 +195,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     const handler = function (e) {
       let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
-      if (target?.closest?.('.bn-formatting-toolbar')) return;
+      if (target?.closest?.('.bn-formatting-toolbar, .bn-panel')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {
