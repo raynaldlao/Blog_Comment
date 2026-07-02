@@ -62,6 +62,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
+  const arrowDirRef = useRef(null);
   useEffect(() => {
     const el = document.documentElement;
     const observer = new MutationObserver(() => {
@@ -116,17 +117,6 @@ function BlockNoteEditor({ initialContent, onReady }) {
     try {
       var pos = editor.getTextCursorPosition();
       blockType = pos.block?.type;
-      var sel = window.getSelection();
-      var range = sel?.rangeCount ? sel.getRangeAt(0) : null;
-      var anchorEl = sel?.anchorNode?.nodeType === 1 ? sel.anchorNode : sel?.anchorNode?.parentElement;
-      var pmSels = document.querySelectorAll('.ProseMirror-selectednode');
-      console.log('[cursor] type:', blockType, 'id:', pos.block?.id, 'anchorTag:', sel?.anchorNode?.nodeName, 'anchorClass:', anchorEl?.className, 'anchorCE:', anchorEl?.contentEditable, 'pmSelected:', pmSels.length, 'pmClass:', pmSels[0]?.className, 'collapsed:', sel?.isCollapsed, 'top:', range?.getBoundingClientRect?.()?.top);
-      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
-        console.log('[selected-before-cleanup]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
-      });
-      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
-        console.log('[selected-after-cleanup]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
-      });
       if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
       } else {
@@ -137,7 +127,25 @@ function BlockNoteEditor({ initialContent, onReady }) {
     }
     requestAnimationFrame(() => {
       document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
-        console.log('[selected-raf]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
+        if (el.classList.contains('bn-visual-media-wrapper') && el.getBoundingClientRect().height < 1) {
+          var dir = arrowDirRef.current;
+          arrowDirRef.current = null;
+          if (dir && editor) {
+            var block;
+            var container = el.closest('.bn-block') || el.closest('[data-id]');
+            var dataId = container?.getAttribute('data-id');
+            if (dataId) block = editor.document?.find(function(b) { return b.id === dataId; });
+            if (block) {
+              var idx = editor.document?.indexOf(block);
+              var target = (idx != null && idx >= 0)
+                ? (dir === 'ArrowDown' ? editor.document?.[idx + 1] : editor.document?.[idx - 1])
+                : null;
+              if (target) {
+                editor.setTextCursorPosition(target.id, 'start');
+              }
+            }
+          }
+        }
         if (el.getBoundingClientRect().height < 1) {
           el.classList.remove('ProseMirror-selectednode');
         }
@@ -155,32 +163,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     if (!editor) return;
     const handler = (e) => {
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        let block;
-        var selNode = document.querySelector('.ProseMirror-selectednode');
-        if (selNode) {
-          var container = selNode.closest('.bn-block') || selNode.closest('[data-id]');
-          var dataId = container?.getAttribute('data-id');
-          if (dataId) block = editor.document?.find(function(b) { return b.id === dataId; });
-        }
-        if (block && (block.type === 'video' || block.type === 'image')) {
-          e.preventDefault();
-          var target = null;
-          var currentEl = document.querySelector('.bn-block[data-id="' + block.id + '"]');
-          if (currentEl) {
-            var rect = currentEl.getBoundingClientRect();
-            var x = rect.left + rect.width / 2;
-            var y = e.key === 'ArrowUp' ? rect.top - 10 : rect.bottom + 10;
-            var el = document.elementFromPoint(x, y);
-            var bc = el?.closest('.bn-block[data-id]');
-            var tid = bc?.getAttribute('data-id');
-            if (tid) target = editor.document?.find(function(b) { return b.id === tid; }) ?? null;
-          }
-          console.log('[arrow] key:', e.key, 'blockType:', block.type, 'blockId:', block.id, 'targetType:', target?.type, 'targetId:', target?.id);
-          if (target) {
-            editor.setTextCursorPosition(target.id, 'start');
-            console.log('[arrow] after setTextCursorPosition — targetType:', target.type, 'targetId:', target.id);
-          }
-        }
+        arrowDirRef.current = e.key;
         return;
       }
       const mod = e.ctrlKey || e.metaKey;
