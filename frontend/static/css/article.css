@@ -1007,6 +1007,11 @@ input[type=number] {
     outline: 4px solid #64a0ff;
 }
 
+/* Hide empty ghost wrappers during void block transitions */
+.bn-visual-media-wrapper.ProseMirror-selectednode:not(:has(*)) {
+    display: none;
+}
+
 /* Hide selection outline on video blocks in viewer */
 .article-detail-view .bn-visual-media-wrapper.ProseMirror-selectednode {
     outline: none;

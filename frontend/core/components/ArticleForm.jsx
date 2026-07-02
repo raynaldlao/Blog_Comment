@@ -116,6 +116,17 @@ function BlockNoteEditor({ initialContent, onReady }) {
     try {
       var pos = editor.getTextCursorPosition();
       blockType = pos.block?.type;
+      var sel = window.getSelection();
+      var range = sel?.rangeCount ? sel.getRangeAt(0) : null;
+      var anchorEl = sel?.anchorNode?.nodeType === 1 ? sel.anchorNode : sel?.anchorNode?.parentElement;
+      var pmSels = document.querySelectorAll('.ProseMirror-selectednode');
+      console.log('[cursor] type:', blockType, 'id:', pos.block?.id, 'anchorTag:', sel?.anchorNode?.nodeName, 'anchorClass:', anchorEl?.className, 'anchorCE:', anchorEl?.contentEditable, 'pmSelected:', pmSels.length, 'pmClass:', pmSels[0]?.className, 'collapsed:', sel?.isCollapsed, 'top:', range?.getBoundingClientRect?.()?.top);
+      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
+        console.log('[selected-before-cleanup]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
+      });
+      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
+        console.log('[selected-after-cleanup]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
+      });
       if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
       } else {
@@ -124,11 +135,10 @@ function BlockNoteEditor({ initialContent, onReady }) {
     } catch {
       editor.portalElement?.classList.remove('image-selected');
     }
-    if (blockType !== 'image') return;
     requestAnimationFrame(() => {
-      document.querySelectorAll('.ProseMirror-selectednode').forEach(el => {
-        const id = el.closest('[data-id]')?.getAttribute('data-id');
-        if (id && editor.document?.find(b => b.id === id)?.type === 'video') {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
+        console.log('[selected-raf]', el.tagName, el.className, JSON.stringify(el.getBoundingClientRect()));
+        if (el.getBoundingClientRect().height < 1) {
           el.classList.remove('ProseMirror-selectednode');
         }
       });
@@ -144,6 +154,35 @@ function BlockNoteEditor({ initialContent, onReady }) {
   useEffect(() => {
     if (!editor) return;
     const handler = (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        let block;
+        var selNode = document.querySelector('.ProseMirror-selectednode');
+        if (selNode) {
+          var container = selNode.closest('.bn-block') || selNode.closest('[data-id]');
+          var dataId = container?.getAttribute('data-id');
+          if (dataId) block = editor.document?.find(function(b) { return b.id === dataId; });
+        }
+        if (block && (block.type === 'video' || block.type === 'image')) {
+          e.preventDefault();
+          var target = null;
+          var currentEl = document.querySelector('.bn-block[data-id="' + block.id + '"]');
+          if (currentEl) {
+            var rect = currentEl.getBoundingClientRect();
+            var x = rect.left + rect.width / 2;
+            var y = e.key === 'ArrowUp' ? rect.top - 10 : rect.bottom + 10;
+            var el = document.elementFromPoint(x, y);
+            var bc = el?.closest('.bn-block[data-id]');
+            var tid = bc?.getAttribute('data-id');
+            if (tid) target = editor.document?.find(function(b) { return b.id === tid; }) ?? null;
+          }
+          console.log('[arrow] key:', e.key, 'blockType:', block.type, 'blockId:', block.id, 'targetType:', target?.type, 'targetId:', target?.id);
+          if (target) {
+            editor.setTextCursorPosition(target.id, 'start');
+            console.log('[arrow] after setTextCursorPosition — targetType:', target.type, 'targetId:', target.id);
+          }
+        }
+        return;
+      }
       const mod = e.ctrlKey || e.metaKey;
       if (!mod || (e.key !== 'z' && e.key !== 'y')) return;
       const editorEl = editor.dom?.closest('.bn-editor') || editor.dom;
