@@ -15,6 +15,7 @@ export default function useCodeBlockGapClick(editorRef) {
       var BLOCK_SELECTOR = [
         '.bn-block-content[data-content-type="codeBlock"]',
         '.bn-block-content[data-content-type="image"]',
+        '.bn-block-content[data-content-type="video"]',
         '.bn-visual-media-wrapper',
       ].join(',');
 
