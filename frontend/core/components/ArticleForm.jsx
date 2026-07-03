@@ -141,30 +141,12 @@ function BlockNoteEditor({ initialContent, onReady }) {
                 ? (dir === 'ArrowDown' ? editor.document?.[idx + 1] : editor.document?.[idx - 1])
                 : null;
               if (target) {
-                var currentBlock = editor.getTextCursorPosition().block;
-                console.log('[void-nav] KEY:', dir,
-                  'FROM type:', currentBlock?.type, 'id:', currentBlock?.id,
-                  'TO type:', target.type, 'id:', target.id,
-                  'scrollY:', window.scrollY);
                 var targetEl = document.querySelector('[data-id="' + target.id + '"]');
                 if (targetEl) {
                   var rect = targetEl.getBoundingClientRect();
-                  console.log('[void-nav] PRE scrollY:', window.scrollY, 'rect.top:', rect.top, 'rect.height:', rect.height, 'rect.bottom:', rect.bottom);
-                  var targetScroll = window.scrollY + rect.top - 100;
-                  console.log('[void-nav] CALC targetScroll:', targetScroll);
-                  window.scrollTo({ top: targetScroll, behavior: 'instant' });
-                  console.log('[void-nav] POST scrollY:', window.scrollY);
+                  window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
                 }
                 editor.setTextCursorPosition(target.id, 'start');
-                var cursorAfter = editor.getTextCursorPosition();
-                console.log('[void-nav] AFTER setTextCursor scrollY:', window.scrollY, 'CURSOR type:', cursorAfter.block?.type, 'id:', cursorAfter.block?.id);
-                queueMicrotask(function() {
-                  console.log('[void-nav] MICROTASK scrollY:', window.scrollY, 'expected:', targetScroll, 'diff:', Math.abs(window.scrollY - targetScroll));
-                  if (Math.abs(window.scrollY - targetScroll) > 5) {
-                    window.scrollTo({ top: targetScroll, behavior: 'instant' });
-                    console.log('[void-nav] RE-APPLIED scrollY:', window.scrollY);
-                  }
-                });
               }
             }
           }
@@ -181,10 +163,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
           var targetEl = document.querySelector('[data-id="' + pos.block.id + '"]');
           if (targetEl) {
             var rect = targetEl.getBoundingClientRect();
-            var targetScroll = window.scrollY + rect.top - 100;
-            window.scrollTo({ top: targetScroll, behavior: 'instant' });
-            console.log('[void-nav] FALLBACK', dir, 'type:', pos.block.type,
-              'scrollY:', window.scrollY, 'rect.top:', rect.top, 'targetScroll:', targetScroll);
+            window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
           }
         }
       }
