@@ -6,7 +6,8 @@ import useArticle from '../hooks/useArticle';
 import createHighlighter from '../utils/shiki-highlighter-viewer';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
-import { createVideoOverrideSpec } from '../utils/video-override-spec';
+import { createYouTubeVideoSpec } from '../utils/video-override-spec';
+
 
 function BlockNoteViewer({ initialContent }) {
   const [theme, setTheme] = useState(() =>
@@ -22,13 +23,14 @@ function BlockNoteViewer({ initialContent }) {
     return () => observer.disconnect();
   }, []);
 
-  const { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+  const { audio: _a, file: _f, video: defaultVideoSpec, ...keptSpecs } = defaultBlockSpecs;
 
   const editor = useCreateBlockNote({
     initialContent,
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
+        video: createYouTubeVideoSpec(defaultVideoSpec),
         paragraph: createParagraphBlockSpec(),
         image: defaultBlockSpecs.image,
         codeBlock: createCustomCodeBlockSpec({
@@ -39,7 +41,6 @@ function BlockNoteViewer({ initialContent }) {
             langs: [],
           }),
         }),
-        video: createVideoOverrideSpec(),
       },
     }),
   });

@@ -1,5 +1,3 @@
-import { createVideoBlockConfig } from '@blocknote/core';
-
 var YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
 function isYouTubeUrl(url) {
@@ -11,116 +9,104 @@ function getYouTubeEmbedUrl(url) {
   return m ? 'https://www.youtube.com/embed/' + m[1] : null;
 }
 
-function mediaWrapper(domElement) {
+function buildYouTubeIFrame(url, isEditable) {
+  var embedUrl = getYouTubeEmbedUrl(url);
+
   var wrapper = document.createElement('div');
   wrapper.className = 'bn-visual-media-wrapper';
-  wrapper.appendChild(domElement);
-  return { dom: wrapper };
+  wrapper.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9';
+
+  var iframe = document.createElement('iframe');
+  iframe.src = embedUrl;
+  iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:4px';
+  iframe.allow = 'fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+
+  if (isEditable) {
+    iframe.style.pointerEvents = 'none';
+
+    wrapper.addEventListener('dblclick', function () {
+      iframe.style.pointerEvents = '';
+      if (iframe.contentWindow) iframe.contentWindow.focus();
+
+      var onAnyClick = function (e) {
+        if (!wrapper.contains(e.target)) {
+          iframe.style.pointerEvents = 'none';
+          document.removeEventListener('click', onAnyClick, true);
+        }
+      };
+      document.addEventListener('click', onAnyClick, true);
+    });
+  }
+
+  wrapper.appendChild(iframe);
+  return wrapper;
 }
 
-export var createVideoOverrideSpec = function () {
+function showToast(msg) {
+  var old = document.querySelector('.toast');
+  if (old) old.remove();
+  var el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(function () { if (el.parentNode) el.remove(); }, 2800);
+}
+
+export function createYouTubeVideoSpec(videoSpec) {
+  var origRender = videoSpec.implementation.render;
+  var origToExternalHTML = videoSpec.implementation.toExternalHTML;
+
   return {
-    config: createVideoBlockConfig(),
+    ...videoSpec,
     implementation: {
-      meta: {
-        fileBlockAccept: ['video/*'],
-      },
+      ...videoSpec.implementation,
       render: function (block, editor) {
         var url = block.props.url;
 
-        if (!url) {
-          var wrapper = document.createElement('div');
-          wrapper.className = 'bn-visual-media-wrapper';
-          return { dom: wrapper };
+        if (url && isYouTubeUrl(url)) {
+          var contentDiv = document.createElement('div');
+          contentDiv.className = 'bn-block-content';
+          contentDiv.dataset.contentType = 'video';
+          contentDiv.dataset.fileBlock = '';
+          contentDiv.dataset.url = url;
+          contentDiv.draggable = 'true';
+
+          var iframeContainer = buildYouTubeIFrame(url, editor.isEditable);
+          contentDiv.appendChild(iframeContainer);
+
+          return { dom: contentDiv };
         }
 
-        if (isYouTubeUrl(url)) {
-          var embedUrl = getYouTubeEmbedUrl(url);
-          var iframeContainer = document.createElement('div');
-          iframeContainer.style.cssText = 'position:relative;width:100%;aspect-ratio:16/9';
-          iframeContainer.contentEditable = 'false';
-
-          var iframe = document.createElement('iframe');
-          iframe.src = embedUrl;
-          iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:4px';
-          iframe.allow = 'fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-
-          if (editor.isEditable) {
-            iframe.style.pointerEvents = 'none';
-
-            iframeContainer.addEventListener('dblclick', function () {
-              iframe.style.pointerEvents = '';
-              if (iframe.contentWindow) iframe.contentWindow.focus();
-
-              var onAnyClick = function (e) {
-                if (!iframeContainer.contains(e.target)) {
-                  iframe.style.pointerEvents = 'none';
-                  document.removeEventListener('click', onAnyClick, true);
-                }
-              };
-              document.addEventListener('click', onAnyClick, true);
-            });
-          }
-
-          iframeContainer.appendChild(iframe);
-
-          return mediaWrapper(iframeContainer);
+        if (url && editor.isEditable) {
+          showToast('Only YouTube links are supported');
+          setTimeout(function () { editor.removeBlocks([block.id]); }, 0);
+          var empty = document.createElement('div');
+          empty.style.cssText = 'display:none';
+          return { dom: empty };
         }
 
-        if (editor.isEditable) {
-          var oldToast = document.querySelector('.toast');
-          if (oldToast) oldToast.remove();
-
-          var toast = document.createElement('div');
-          toast.className = 'toast';
-          toast.textContent = 'Only YouTube links are supported';
-          document.body.appendChild(toast);
-
-          setTimeout(function () { if (toast.parentElement) toast.remove(); }, 2800);
-
-          setTimeout(function () {
-            var fp = null;
-            try { fp = editor.getExtension('filePanel'); } catch (e) {}
-            if (fp) fp.showMenu(block.id);
-          }, 0);
-
-          var wrapper = document.createElement('div');
-          wrapper.className = 'bn-visual-media-wrapper';
-          return { dom: wrapper };
+        if (url) {
+          var empty = document.createElement('div');
+          empty.style.cssText = 'display:none';
+          return { dom: empty };
         }
 
-        var msg = document.createElement('div');
-        msg.className = 'bn-visual-media-wrapper';
-        msg.style.cssText = 'display:flex;align-items:center;justify-content:center;padding:2rem;color:#888';
-        msg.textContent = 'Only YouTube links are supported';
-        return { dom: msg };
+        return origRender.call(this, block, editor);
       },
-      toExternalHTML(block) {
-        var url = block.props.url;
+      toExternalHTML: function (block) {
+        var url = block.props && block.props.url;
 
-        if (!url) {
-          return { dom: document.createElement('video') };
+        if (!url || !isYouTubeUrl(url)) {
+          return origToExternalHTML.call(this, block);
         }
 
-        if (isYouTubeUrl(url)) {
-          var embedUrl = getYouTubeEmbedUrl(url);
-          if (block.props.showPreview) {
-            var iframe = document.createElement('iframe');
-            iframe.src = embedUrl;
-            iframe.width = '560';
-            iframe.height = '315';
-            return { dom: iframe };
-          }
-          var link = document.createElement('a');
-          link.href = url;
-          link.textContent = block.props.name || url;
-          return { dom: link };
-        }
-
-        var msg = document.createElement('div');
-        msg.textContent = 'Only YouTube links are supported';
-        return { dom: msg };
+        var embedUrl = getYouTubeEmbedUrl(url);
+        var iframe = document.createElement('iframe');
+        iframe.src = embedUrl;
+        iframe.width = '560';
+        iframe.height = '315';
+        return { dom: iframe };
       },
     },
   };
-};
+}

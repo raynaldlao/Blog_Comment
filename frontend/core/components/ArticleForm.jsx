@@ -10,7 +10,8 @@ import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter-editor';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
-import { createVideoOverrideSpec } from '../utils/video-override-spec';
+import { createYouTubeVideoSpec } from '../utils/video-override-spec';
+
 
 
 export function applyVideoDictOverrides(editor) {
@@ -84,7 +85,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return data.url;
   }, []);
 
-  const { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+  const { audio: _a, file: _f, video: defaultVideoSpec, ...keptSpecs } = defaultBlockSpecs;
 
   const editor = useCreateBlockNote({
     initialContent,
@@ -93,6 +94,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
+        video: createYouTubeVideoSpec(defaultVideoSpec),
         paragraph: createParagraphBlockSpec(),
         image: defaultBlockSpecs.image,
         codeBlock: createCustomCodeBlockSpec({
@@ -103,7 +105,6 @@ function BlockNoteEditor({ initialContent, onReady }) {
             langs: [],
           }),
         }),
-        video: createVideoOverrideSpec(),
       },
     }),
   });
