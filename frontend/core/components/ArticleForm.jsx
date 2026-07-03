@@ -23,6 +23,7 @@ export function applyVideoDictOverrides(editor) {
   editor.dictionary.file_panel.embed.title = 'YouTube URL';
   editor.dictionary.file_panel.embed.url_placeholder = 'Paste YouTube video link';
   editor.dictionary.file_panel.embed.embed_button.video = 'Embed YouTube video';
+  editor.dictionary.file_blocks.add_button_text.video = 'Add YouTube video URL';
 }
 
 function CustomFilePanel({ blockId }) {
@@ -110,7 +111,16 @@ function BlockNoteEditor({ initialContent, onReady }) {
   });
 
   useEffect(function () {
-    if (editor) applyVideoDictOverrides(editor);
+    if (editor) {
+      applyVideoDictOverrides(editor);
+      document.querySelectorAll(
+        '[data-content-type="video"] .bn-add-file-button-text',
+      ).forEach(function(el) {
+        if (el.textContent === 'Add video') {
+          el.textContent = 'Add YouTube video URL';
+        }
+      });
+    }
   }, [editor]);
 
   const handleSelectionChange = useCallback(() => {
