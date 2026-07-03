@@ -1017,3 +1017,8 @@ input[type=number] {
     outline: none;
     box-shadow: none;
 }
+
+/* Hide YouTube URL tab in image Replace button popover only (has bn-panel-popover, video popover does not) */
+.bn-panel-popover [data-test="youtube url-tab"] {
+    display: none;
+}
