@@ -91,7 +91,12 @@ export function createYouTubeVideoSpec(videoSpec) {
           return { dom: empty };
         }
 
-        return origRender.call(this, block, editor);
+        var result = origRender.call(this, block, editor);
+        if (!editor.isEditable && result && result.dom) {
+          var textEl = result.dom.querySelector('.bn-add-file-button-text');
+          if (textEl) textEl.textContent = 'Add YouTube video URL';
+        }
+        return result;
       },
       toExternalHTML: function (block) {
         var url = block.props && block.props.url;
