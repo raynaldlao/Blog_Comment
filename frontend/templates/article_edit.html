@@ -3,6 +3,31 @@
 {% block title %}Edit Article - DevJournal{% endblock %}
 
 {% from "macros/icons.html" import icon %}
+{% block extra_head %}
+<meta name="author" content="{{ article.author_username }}">
+<style>
+  .article-static-content {
+    position: absolute;
+    left: -99999px;
+    top: -99999px;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+</style>
+<noscript>
+  <style>
+    .article-static-content {
+      position: static;
+      left: auto;
+      top: auto;
+      width: auto;
+      height: auto;
+      overflow: visible;
+    }
+  </style>
+</noscript>
+{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/article.css') }}">
 {% endblock %}
@@ -15,6 +40,10 @@
                 <span>Back to articles</span>
             </a>
         </header>
+
+        <div class="article-static-content">
+            {{ article.article_content | prosemirror_to_html(request.url_root) }}
+        </div>
 
         <div class="article-form-container">
             <div id="root" data-page="edit" data-article-id="{{ article.article_id }}"></div>
