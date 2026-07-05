@@ -26,6 +26,7 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
+from utils.prosemirror_to_html import prosemirror_to_html
 from utils.template_helpers import (
     ViteManifest,
     date_format_filter,
@@ -164,6 +165,7 @@ def _init_template_utils(app: Flask) -> None:
     app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
+    app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
     app.context_processor(inject_current_year)
     app.context_processor(inject_vite_assets)
 
