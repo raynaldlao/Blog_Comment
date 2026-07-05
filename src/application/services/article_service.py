@@ -1,10 +1,69 @@
+import json
+import re
+
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
 from src.application.input_ports.article_management import ArticleManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.service_utils import build_comment_thread_view
+
+
+def _extract_image_uuids(content: str) -> set[str]:
+    """Extract UUIDs from BlockNote image block URLs in article content.
+
+    Walks the BlockNote JSON tree recursively via _walk_blocks to find
+    image blocks (type == "image"). Supports both BlockNote v0.51+
+    (props.url) and legacy (attrs.url) attribute locations. Expects URLs
+    matching pattern /uploads/<uuid_v4>.<ext> where uuid_v4 is a
+    36-character hex string with hyphens.
+
+    Args:
+        content: BlockNote JSON string or plain text.
+
+    Returns:
+        Set of UUID strings found, or empty set if content is empty,
+        not valid JSON, or contains no image blocks.
+    """
+    if not content:
+        return set()
+    try:
+        data = json.loads(content)
+    except (json.JSONDecodeError, TypeError):
+        return set()
+    uuids: set[str] = set()
+    pattern = re.compile(r"/uploads/([a-f0-9\-]{36})")
+    _walk_blocks(data, uuids, pattern)
+    return uuids
+
+
+def _walk_blocks(node, uuids: set[str], pattern: re.Pattern) -> None:
+    """Recursively walk BlockNote JSON tree, mutating `uuids` in place.
+
+    DFS through BlockNote document tree. For each dict node, check if
+    type == "image" → extract url from props (v0.51+) or attrs (legacy),
+    run pattern.search(url), add UUID match to uuids. Then recurse into
+    content array. For list nodes, recurse into each item.
+
+    Args:
+        node: Current node in BlockNote JSON tree (dict, list, or leaf).
+        uuids: Mutable set, mutated in place with found UUIDs.
+        pattern: Compiled regex matching /uploads/<uuid_v4>.<ext>.
+    """
+    if isinstance(node, dict):
+        if node.get("type") == "image":
+            attrs = node.get("props") or node.get("attrs") or {}
+            url = attrs.get("url", "")
+            match = pattern.search(url)
+            if match:
+                uuids.add(match.group(1))
+        for child in node.get("content", []):
+            _walk_blocks(child, uuids, pattern)
+    elif isinstance(node, list):
+        for item in node:
+            _walk_blocks(item, uuids, pattern)
 
 
 class ArticleService(ArticleManagementPort):
@@ -19,7 +78,8 @@ class ArticleService(ArticleManagementPort):
         self,
         article_repository: ArticleRepository,
         account_repository: AccountRepository,
-        comment_repository: CommentRepository
+        comment_repository: CommentRepository,
+        file_service: FileManagementPort | None = None,
     ):
         """
         Initialize the service via Dependency Injection.
@@ -28,10 +88,12 @@ class ArticleService(ArticleManagementPort):
             article_repository (ArticleRepository): Port for article data access.
             account_repository (AccountRepository): Port for account data access.
             comment_repository (CommentRepository): Port for comment data access.
+            file_service (FileManagementPort | None): Optional port for file management cleanup.
         """
         self.article_repository = article_repository
         self.account_repository = account_repository
         self.comment_repository = comment_repository
+        self.file_service = file_service
 
     def _get_account_if_author_or_admin(self, user_id: int) -> Account | str:
         """
@@ -132,9 +194,18 @@ class ArticleService(ArticleManagementPort):
             # TODO: Raise OwnershipException
             return "Unauthorized : You are not the author of this article."
 
+        old_content = article.article_content
         article.article_title = title
         article.article_content = content
         self.article_repository.save(article)
+
+        if self.file_service:
+            old_uuids = _extract_image_uuids(old_content)
+            new_uuids = _extract_image_uuids(content)
+            orphaned = old_uuids - new_uuids
+            for uuid in orphaned:
+                self.file_service.delete_file(uuid)
+
         return article
 
     def delete_article(self, article_id: int, user_id: int) -> bool | str:
@@ -161,6 +232,10 @@ class ArticleService(ArticleManagementPort):
         if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
             # TODO: Raise OwnershipException
             return "Unauthorized : Only authors or admins can delete articles."
+
+        if self.file_service:
+            for uuid in _extract_image_uuids(article.article_content):
+                self.file_service.delete_file(uuid)
 
         self.article_repository.delete(article)
         return True

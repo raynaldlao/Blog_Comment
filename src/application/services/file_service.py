@@ -121,3 +121,13 @@ class FileService(FileManagementPort):
             FileRecord if found, None otherwise.
         """
         return self.file_storage_repository.get(file_id)
+
+    def delete_file(self, file_id: str) -> None:
+        """Delete a file record by UUID.
+
+        Idempotent — does nothing if the file does not exist.
+
+        Args:
+            file_id: UUID string of the file to delete.
+        """
+        self.file_storage_repository.delete(file_id)

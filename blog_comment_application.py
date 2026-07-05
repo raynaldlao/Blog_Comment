@@ -92,7 +92,8 @@ def _create_services(repositories: dict) -> dict:
 
     login_service = LoginService(account_repo, session_repo, password_hasher_repository)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
-    article_service = ArticleService(article_repo, account_repo, comment_repo)
+    file_service = FileService(repositories["file_storage_repo"])
+    article_service = ArticleService(article_repo, account_repo, comment_repo, file_service=file_service)
 
     return {
         "registration_service": registration_service,
@@ -100,7 +101,7 @@ def _create_services(repositories: dict) -> dict:
         "login_service": login_service,
         "comment_service": comment_service,
         "article_service": article_service,
-        "file_service": FileService(repositories["file_storage_repo"]),
+        "file_service": file_service,
     }
 
 

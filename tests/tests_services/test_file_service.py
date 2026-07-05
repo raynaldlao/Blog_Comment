@@ -88,3 +88,8 @@ class TestFileService:
 
         self.mock_storage.get.assert_called_once_with("uuid-missing")
         assert result is None
+
+    def test_delete_file_delegates_to_storage(self):
+        self.service.delete_file("uuid-to-delete")
+
+        self.mock_storage.delete.assert_called_once_with("uuid-to-delete")

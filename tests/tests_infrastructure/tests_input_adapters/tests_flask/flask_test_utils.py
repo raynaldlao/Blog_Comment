@@ -4,6 +4,7 @@ from flask import Flask, get_flashed_messages, request
 from flask import g as global_request_context
 from flask_wtf.csrf import CSRFProtect
 
+from utils.prosemirror_to_html import prosemirror_to_html
 from utils.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
 
 
@@ -63,6 +64,7 @@ class FlaskInputAdapterTestBase:
         self.app.jinja_env.filters["nl2br"] = nl2br_filter
         self.app.jinja_env.filters["date_format"] = date_format_filter
         self.app.jinja_env.filters["date_iso"] = date_iso_filter
+        self.app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
         self.app.config["SECRET_KEY"] = "test_secret"
         self.app.config["SERVER_NAME"] = "localhost"
         self.app.config["TESTING"] = True

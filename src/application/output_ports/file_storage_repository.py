@@ -34,3 +34,15 @@ class FileStorageRepository(ABC):
             FileRecord | None: The file record if found, None otherwise.
         """
         pass
+
+    @abstractmethod
+    def delete(self, file_id: str) -> None:
+        """
+        Deletes a file record by its UUID.
+
+        Idempotent — does nothing if the file does not exist.
+
+        Args:
+            file_id (str): The UUID of the file to delete.
+        """
+        pass
