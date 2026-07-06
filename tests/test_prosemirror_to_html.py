@@ -205,3 +205,89 @@ class TestProsemirrorToHtml:
             '[{"type":"video","attrs":{"url":"https://example.com/video.mp4"}}]'
         )
         assert '<a href="https://example.com/video.mp4">' in str(result)
+
+    def test_string_in_content_array_does_not_crash(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":["bad string",{"type":"tableRow","content":[]}]}]'
+        )
+        assert "bad string" in str(result)
+        assert "table" in str(result)
+
+    def test_table_blocknote_format(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","props":{"textColor":"default"},"content":{"type":"tableContent",'
+            '"columnWidths":[null],"rows":[{"cells":[{"type":"tableCell","content":'
+            '[{"type":"text","text":"A1"}],"props":{"colspan":1,"rowspan":1,'
+            '"backgroundColor":"default","textColor":"default","textAlignment":"left"}},'
+            '{"type":"tableCell","content":[{"type":"text","text":"B1"}],"props":{}}]},'
+            '{"cells":[{"type":"tableCell","content":[{"type":"text","text":"A2"}],"props":{}},'
+            '{"type":"tableCell","content":[{"type":"text","text":"B2"}],"props":{}}]}]}}]'
+        )
+        html = str(result)
+        assert "<table>" in html
+        assert "<tr>" in html
+        assert "<td>A1</td>" in html
+        assert "<td>B1</td>" in html
+        assert "<td>A2</td>" in html
+        assert "<td>B2</td>" in html
+
+    def test_table_blocknote_styled_cells(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":{"type":"tableContent","rows":[{"cells":'
+            '[{"type":"tableCell","content":[{"type":"text","text":"Bold cell",'
+            '"styles":{"bold":true}}],"props":{}}]}]}}]'
+        )
+        assert "<strong>Bold cell</strong>" in str(result)
+
+    def test_table_blocknote_empty_cells(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":{"type":"tableContent","rows":[{"cells":'
+            '[{"type":"tableCell","content":[],"props":{}}]}]}}]'
+        )
+        assert "<td></td>" in str(result)
+
+    def test_table_blocknote_with_prosemirror_table_still_works(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableCell",'
+            '"content":[{"type":"text","text":"Cell"}]}]}]}]'
+        )
+        assert "<td>Cell</td>" in str(result)
+
+    def test_text_styles_bold(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","text":"bold text","styles":{"bold":true}}]}]'
+        )
+        assert result == Markup("<p><strong>bold text</strong></p>")
+
+    def test_text_styles_multiple(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","text":"bold+italic",'
+            '"styles":{"bold":true,"italic":true}}]}]'
+        )
+        assert result == Markup("<p><strong><em>bold+italic</em></strong></p>")
+
+    def test_text_styles_false_ignored(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","text":"not bold","styles":{"bold":false}}]}]'
+        )
+        assert result == Markup("<p>not bold</p>")
+
+    def test_text_styles_code(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","text":"inline code",'
+            '"styles":{"code":true}}]}]'
+        )
+        assert result == Markup("<p><code>inline code</code></p>")
+
+    def test_text_styles_prosemirror_marks_still_work(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"bold"}],'
+            '"text":"still bold"}]}]'
+        )
+        assert result == Markup("<p><strong>still bold</strong></p>")
+
+    def test_quote_type_blocknote(self):
+        result = prosemirror_to_html(
+            '[{"type":"quote","content":[{"type":"text","text":"BlockNote quote"}]}]'
+        )
+        assert result == Markup("<blockquote>\nBlockNote quote\n</blockquote>")

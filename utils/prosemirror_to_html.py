@@ -16,7 +16,9 @@ def prosemirror_to_html(content_json: str | None, base_url: str = "") -> Markup:
     return Markup("\n".join(parts))
 
 
-def _render_block(block: dict, base_url: str = "") -> str:
+def _render_block(block, base_url: str = "") -> str:
+    if not isinstance(block, dict):
+        return escape(str(block))
     t = block.get("type", "")
     content = block.get("content") or []
     attrs = block.get("props") or block.get("attrs") or {}
@@ -49,7 +51,7 @@ def _render_block(block: dict, base_url: str = "") -> str:
             return f'<pre><code class="language-{escape(lang)}">{escaped_code}</code></pre>'
         return f"<pre><code>{escaped_code}</code></pre>"
 
-    if t == "blockquote":
+    if t in ("blockquote", "quote"):
         return f"<blockquote>\n{_render_inline(content)}\n</blockquote>"
 
     if t == "horizontalRule":
@@ -78,8 +80,20 @@ def _render_block(block: dict, base_url: str = "") -> str:
         return f"<li>\n{inner}\n</li>"
 
     if t == "table":
-        inner = "\n".join(_render_block(item, base_url) for item in content)
-        return f"<table>\n{inner}\n</table>"
+        if isinstance(content, dict):
+            rows = content.get("rows") or []
+            rows_html = []
+            for row in rows:
+                if not isinstance(row, dict):
+                    rows_html.append(escape(str(row)))
+                    continue
+                cells = row.get("cells") or []
+                cells_html = "\n".join(_render_block(cell, base_url) for cell in cells)
+                rows_html.append(f"<tr>\n{cells_html}\n</tr>")
+            inner = "\n".join(rows_html)
+        else:
+            inner = "\n".join(_render_block(item, base_url) for item in content)
+        return f"<table>\n{inner}\n</table>\n<br>"
 
     if t in ("tableRow",):
         inner = "\n".join(_render_block(item, base_url) for item in content)
@@ -120,6 +134,12 @@ def _render_inline(content: list) -> str:
         if nt == "text":
             text = node.get("text", "")
             marks = node.get("marks") or []
+            styles = node.get("styles") or {}
+            if styles:
+                mark_map = {"bold": "bold", "italic": "italic", "underline": "underline", "strike": "strike", "code": "code"}
+                for k, v in styles.items():
+                    if v and k in mark_map:
+                        marks.append({"type": mark_map[k]})
             parts.append(_render_marks(text, marks))
         elif nt == "hardBreak":
             parts.append("<br>")
