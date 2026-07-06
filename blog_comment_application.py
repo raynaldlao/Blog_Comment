@@ -139,7 +139,7 @@ def _init_web_facade_flask() -> Flask:
     app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_PERMANENT"] = True
-    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
     return app
 
 

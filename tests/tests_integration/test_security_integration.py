@@ -334,7 +334,7 @@ class TestSecurityHeaders:
     def test_session_lifetime_config(self, client):
         """Verifies that PERMANENT_SESSION_LIFETIME is set to 30 minutes."""
         from datetime import timedelta
-        assert client.application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(minutes=30)
+        assert client.application.config["PERMANENT_SESSION_LIFETIME"] == timedelta(hours=12)
 
     def test_session_cookie_has_no_expiry(self, client, db_session):
         """Verifies the Set-Cookie header has no Expires or Max-Age (browser-session only)."""
