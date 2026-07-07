@@ -68,6 +68,10 @@
     }, true);
 
     window.addEventListener('open-emoji-picker', function (e) {
+        if (activePopup) {
+            closePopup();
+            return;
+        }
         openPicker({
             left: e.detail.left,
             top: e.detail.top
