@@ -30,10 +30,14 @@ class CommentResponse(BaseModel):
         Args:
             comment (Comment): The domain comment entity.
             author_username (str): The username of the comment author.
+                Overridden to "Anonymous" if comment_content is "Comment removed" or "[deleted]".
 
         Returns:
             CommentResponse: The initialized DTO.
         """
+        if comment.comment_content in ("Comment removed", "[deleted]"):
+            author_username = "Anonymous"
+
         formatted_date = ""
         if comment.comment_posted_at:
             formatted_date = comment.comment_posted_at.strftime("%B %d, %Y at %H:%M")

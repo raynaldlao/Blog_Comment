@@ -52,6 +52,18 @@ class InMemoryCommentRepository(CommentRepository):
         """
         return [c for c in self._comments.values() if c.comment_article_id == article_id]
 
+    def get_by_reply_to(self, comment_id: int) -> list[Comment]:
+        """
+        Retrieves all direct child comments that reply to a given comment.
+
+        Args:
+            comment_id (int): ID of the parent comment.
+
+        Returns:
+            list[Comment]: A list of direct child Comment domain entities.
+        """
+        return [c for c in self._comments.values() if c.comment_reply_to == comment_id]
+
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID.

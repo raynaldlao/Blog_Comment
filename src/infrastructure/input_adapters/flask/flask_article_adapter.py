@@ -89,6 +89,7 @@ class ArticleAdapter:
             article=article,
             nested_comments=dto_comments,
             current_user=user,
+            page_with_editor=True,
             page_with_comments=True,
         )
 

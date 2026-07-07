@@ -530,6 +530,11 @@ input[type=number] {
     color: var(--on-surface-variant);
 }
 
+.comment-deleted > .comment-content > .comment-header > .comment-author,
+.comment-deleted > .comment-content > .comment-body-text {
+    font-style: italic;
+}
+
 .comment-body-text {
     font-size: var(--font-body-base);
     color: var(--on-surface);
@@ -544,7 +549,6 @@ input[type=number] {
     cursor: pointer;
     font-size: var(--font-body-sm);
     font-family: var(--font-mono);
-    text-transform: uppercase;
     padding: 0;
     margin-top: var(--spacing-xs);
 }

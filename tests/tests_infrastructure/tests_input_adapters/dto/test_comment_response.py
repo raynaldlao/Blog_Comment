@@ -38,6 +38,20 @@ def test_comment_response_from_domain_with_reply():
     assert response.comment_reply_to == 1
     assert response.author_username == "Unknown"
 
+def test_comment_response_from_domain_legacy_deleted_maps_to_anonymous():
+    domain_comment = Comment(
+        comment_id=3,
+        comment_article_id=10,
+        comment_written_account_id=5,
+        comment_reply_to=None,
+        comment_content="[deleted]",
+        comment_posted_at=datetime.now()
+    )
+
+    response = CommentResponse.from_domain(domain_comment, author_username="original_user")
+    assert response.author_username == "Anonymous"
+    assert response.comment_content == "[deleted]"
+
 def test_map_nested_tree():
     posted_at = datetime(2023, 10, 27, 14, 30)
     comment_1 = Comment(1, 10, 1, None, "Root", posted_at)

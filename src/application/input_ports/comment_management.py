@@ -58,7 +58,8 @@ class CommentManagementPort(ABC):
     @abstractmethod
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
-        Deletes a comment. Only an admin can delete a comment.
+        Deletes a comment or soft-deletes it if it has replies (content becomes "Comment removed").
+        Only an admin can delete a comment.
 
         Args:
             comment_id (int): ID of the comment to delete.

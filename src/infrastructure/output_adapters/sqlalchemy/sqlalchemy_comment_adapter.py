@@ -91,6 +91,21 @@ class SqlAlchemyCommentAdapter(CommentRepository):
         models = self._session.query(CommentModel).filter_by(comment_article_id=article_id).all()
         return [self._to_domain(model) for model in models]
 
+    def get_by_reply_to(self, comment_id: int) -> list[Comment]:
+        """
+        Retrieves all direct child comments that reply to a given comment.
+
+        Args:
+            comment_id (int): ID of the parent comment.
+
+        Returns:
+            list[Comment]: A list of direct child Comment domain entities.
+        """
+        models = self._session.query(CommentModel).filter_by(
+            comment_reply_to=comment_id,
+        ).all()
+        return [self._to_domain(model) for model in models]
+
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

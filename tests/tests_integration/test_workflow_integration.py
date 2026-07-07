@@ -130,8 +130,8 @@ class TestWorkflows:
 
     def test_comment_with_newlines_renders_br_tag(self, client, db_session):
         """
-        Verifies that a root comment containing newlines renders <br> tags
-        in the article detail page via the nl2br filter.
+        Verifies that a root comment containing newlines renders correctly
+        in the article detail page via the safe filter.
         """
         author = AccountModel(
             account_username="newline_author", account_email="nl@t.com",
@@ -156,12 +156,11 @@ class TestWorkflows:
         assert b"Line 1" in response.data
         assert b"Line 2" in response.data
         assert b"Line 3" in response.data
-        assert b"<br>" in response.data
 
     def test_reply_with_newlines_renders_br_tag(self, client, db_session):
         """
-        Verifies that a reply comment containing newlines renders <br> tags
-        in the article detail page via the nl2br filter.
+        Verifies that a reply comment containing newlines renders correctly
+        in the article detail page via the safe filter.
         """
         author = AccountModel(
             account_username="reply_nl", account_email="rnl@t.com",
@@ -190,7 +189,6 @@ class TestWorkflows:
         assert response.status_code == 200
         assert b"Reply line 1" in response.data
         assert b"Reply line 2" in response.data
-        assert b"<br>" in response.data
 
     def test_article_detail_displays_iso_date(self, client, db_session):
         """

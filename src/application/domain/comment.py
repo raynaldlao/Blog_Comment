@@ -61,9 +61,3 @@ class CommentNode:
     replies: list[CommentNode] = field(default_factory=list)
     depth: int = 0
 
-@dataclass
-class CommentThreadView:
-    """
-    Read Model for a threaded comment tree associated with an article.
-    """
-    threads: list[CommentNode] = field(default_factory=list)

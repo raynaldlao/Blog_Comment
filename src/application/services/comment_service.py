@@ -160,7 +160,8 @@ class CommentService(CommentManagementPort):
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
-        Deletes a comment. Only an admin can delete a comment.
+        Deletes a comment or soft-deletes it if it has replies (content becomes "Comment removed").
+        Only an admin can delete a comment.
 
         Args:
             comment_id (int): ID of the comment to delete.
@@ -184,6 +185,12 @@ class CommentService(CommentManagementPort):
         if not comment:
             # TODO: Raise CommentNotFoundException later
             return "Comment not found."
+
+        replies = self.comment_repository.get_by_reply_to(comment_id)
+        if replies:
+            comment.comment_content = "Comment removed"
+            self.comment_repository.save(comment)
+            return True
 
         self.comment_repository.delete(comment_id)
         return True
