@@ -1324,6 +1324,7 @@ input[type=number] {
     height: 350px;
     --background-rgb: var(--surface-container);
     --rgb-background: var(--surface-container);
+    --font-family: var(--font-primary);
 }
 
 @media (max-width: 30em) {
