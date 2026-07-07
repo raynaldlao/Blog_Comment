@@ -473,6 +473,135 @@ input[type=number] {
     margin-bottom: var(--spacing-lg);
 }
 
+/* N-level comment threading */
+.comment {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    align-items: flex-start;
+}
+
+.comment-avatar {
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background: var(--primary-container);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comment-avatar-initial {
+    font-size: var(--font-body-sm);
+    font-weight: 600;
+    color: var(--on-primary-container);
+    line-height: 1;
+}
+
+.comment-avatar-deleted {
+    background: var(--surface-container-high);
+}
+
+.comment-avatar-deleted .comment-avatar-initial {
+    color: var(--on-surface-variant);
+}
+
+.comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-header {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.comment-author {
+    font-size: var(--font-body-sm);
+    font-weight: 600;
+    color: var(--on-surface);
+}
+
+.comment-timestamp {
+    font-size: var(--font-body-xs);
+    color: var(--on-surface-variant);
+}
+
+.comment-body-text {
+    font-size: var(--font-body-base);
+    color: var(--on-surface);
+    margin-top: var(--spacing-xs);
+    line-height: 1.6;
+}
+
+.reply-toggle {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: var(--font-body-sm);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 0;
+    margin-top: var(--spacing-xs);
+}
+
+.reply-toggle:hover {
+    text-decoration: underline;
+}
+
+.reply-form-container {
+    margin-top: var(--spacing-sm);
+}
+
+.reply-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.reply-editor {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 4rem;
+    font-size: var(--font-body-base);
+}
+
+.reply-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.comment-depth-1 > .comment-content,
+.comment-depth-2 > .comment-content,
+.comment-depth-3 > .comment-content,
+.comment-depth-4 > .comment-content {
+    border-left: 2px solid var(--outline-variant);
+    padding-left: var(--spacing-md);
+}
+
+.comment-replies {
+    margin-top: var(--spacing-sm);
+}
+
+@media (max-width: 30em) {
+    .comment-depth-1 > .comment-content,
+    .comment-depth-2 > .comment-content,
+    .comment-depth-3 > .comment-content,
+    .comment-depth-4 > .comment-content {
+        padding-left: var(--spacing-sm);
+    }
+
+    .comment-avatar {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
 .comment-delete-form {
     display: inline;
     margin-left: 0.625rem;
@@ -496,29 +625,6 @@ input[type=number] {
     filter: brightness(1.1);
     box-shadow: none;
     transform: none;
-}
-
-.comment-content-text {
-    font-size: var(--font-body-base);
-    color: var(--on-surface);
-}
-
-.comment-reply-wrapper {
-    margin-top: var(--spacing-sm);
-}
-
-.comment-reply-form {
-    display: flex;
-    gap: var(--spacing-xs);
-}
-
-.comment-reply-author {
-    font-size: var(--font-body-sm);
-}
-
-.comment-reply-text {
-    font-size: var(--font-body-base);
-    color: var(--on-surface-variant);
 }
 
 .comment-empty {
@@ -561,6 +667,20 @@ input[type=number] {
 
 .comment-auth-link:hover {
     text-decoration: underline;
+}
+
+/* SunEditor dark theme overrides */
+[data-theme="dark"] .sun-editor {
+    --se-background-color: var(--surface);
+    --se-foreground-color: var(--on-surface);
+    --se-border-color: var(--outline-variant);
+    --se-toolbar-background-color: var(--surface-container);
+    --se-toolbar-border-color: var(--outline-variant);
+    --se-toolbar-hover-background-color: var(--surface-container-high);
+    --se-toolbar-active-background-color: var(--primary-container);
+    --se-toolbar-active-foreground-color: var(--on-primary-container);
+    --se-placeholder-color: var(--on-surface-variant);
+    --se-resizing-bar-background: var(--surface-container-high);
 }
 
 /* Article Form (Create/Edit) */
