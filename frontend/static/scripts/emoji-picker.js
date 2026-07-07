@@ -27,6 +27,7 @@
             set: 'native',
             maxFrequentRows: 4,
             previewPosition: 'none',
+            skinTonePosition: 'none',
             onEmojiSelect: function (data) {
                 var editor = window.__suneditors[editorId];
                 if (editor) {
