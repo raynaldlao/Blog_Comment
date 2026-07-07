@@ -27,8 +27,7 @@ class CommentManagementPort(ABC):
     @abstractmethod
     def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
         """
-        Creates a reply to an existing comment.
-        A reply is linked to the thread's top-level comment (threading logic).
+        Creates a reply directly to a parent comment.
 
         Args:
             parent_comment_id (int): The ID of the comment being replied to.

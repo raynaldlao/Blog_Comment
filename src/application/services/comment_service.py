@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import nh3
+
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.comment import Comment, CommentNode
 from src.application.input_ports.comment_management import CommentManagementPort
@@ -16,6 +18,11 @@ class CommentService(CommentManagementPort):
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
     for data persistence, injected via the constructor.
     """
+    ALLOWED_TAGS = frozenset({
+        "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
+        "blockquote", "pre", "code", "span", "sub", "sup", "h1", "h2", "h3",
+        "h4", "h5", "h6", "hr", "div", "figure", "figcaption",
+    })
 
     def __init__(
         self,
@@ -75,13 +82,14 @@ class CommentService(CommentManagementPort):
             # TODO: Raise ArticleNotFoundException later
             return "Article not found."
 
+        sanitized = nh3.clean(content, tags=self.ALLOWED_TAGS)
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
             comment_article_id=article.article_id,
             comment_written_account_id=account.account_id,
             comment_reply_to=None,
-            comment_content=content,
+            comment_content=sanitized,
             comment_posted_at=datetime.now(),
         )
 
@@ -90,9 +98,7 @@ class CommentService(CommentManagementPort):
 
     def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
         """
-        Creates a reply to an existing comment. A reply is linked
-        either to the parent directly or to the parent's top-level
-        comment (threading logic).
+        Creates a reply directly to a parent comment.
 
         Args:
             parent_comment_id (int): The ID of the comment being replied to.
@@ -115,12 +121,13 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Parent comment not found."
 
+        sanitized = nh3.clean(content, tags=self.ALLOWED_TAGS)
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
             comment_article_id=parent_comment.comment_article_id,
             comment_written_account_id=account.account_id,
-            comment_content=content,
+            comment_content=sanitized,
             comment_reply_to=parent_comment.comment_id,
             comment_posted_at=datetime.now(),
         )

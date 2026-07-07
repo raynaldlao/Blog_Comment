@@ -63,6 +63,23 @@ class TestCreateComment(CommentServiceTestBase):
         self.mock_comment_repo.save.assert_not_called()
         assert result == "Account not found."
 
+    def test_create_comment_sanitizes_html(self):
+        fake_account = create_test_account(account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        malicious_content = '<script>alert("xss")</script><b>bold</b>'
+        result = self.service.create_comment(
+            article_id=fake_article.article_id,
+            user_id=fake_account.account_id,
+            content=malicious_content,
+        )
+
+        saved_comment = self.mock_comment_repo.save.call_args.args[0]
+        assert saved_comment.comment_content == "<b>bold</b>"
+        assert result is saved_comment
+
     def test_create_comment_article_not_found(self):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
