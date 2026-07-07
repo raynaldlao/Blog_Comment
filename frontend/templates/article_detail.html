@@ -94,7 +94,8 @@
                     <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
                         <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <textarea name="content" class="reply-editor" placeholder="Write a reply..." required minlength="1" maxlength="500"></textarea>
+                            <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
+                            <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" placeholder="Write a reply..."></textarea>
                             <div class="reply-actions">
                                 <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
                                 <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
@@ -126,7 +127,8 @@
             <h4 class="comment-join-title">Join the discussion</h4>
             <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <textarea name="content" placeholder="Share your thoughts..." required class="comment-post-textarea"></textarea>
+                <input type="hidden" name="content" id="comment-content">
+                <textarea id="comment-editor" placeholder="Share your thoughts..." class="comment-post-textarea"></textarea>
                 <button type="submit" class="btn">Post Comment</button>
             </form>
         </div>

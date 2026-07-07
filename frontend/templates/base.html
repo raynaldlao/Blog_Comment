@@ -23,6 +23,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
     {% endfor %}
     {% endif %}
+    {% if page_with_comments %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/suneditor/suneditor.min.css') }}">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -105,6 +108,10 @@
     <script defer src="{{ url_for('static', filename='scripts/theme-toggle.js') }}"></script>
     {% if page_with_editor and vite_js_url %}
     <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
+    {% endif %}
+    {% if page_with_comments %}
+    <script defer src="{{ url_for('static', filename='vendor/suneditor/suneditor.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/suneditor-init.js') }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
 </body>
