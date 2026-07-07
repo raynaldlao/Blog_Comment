@@ -673,6 +673,10 @@ input[type=number] {
     text-decoration: underline;
 }
 
+.sun-editor {
+    font-family: var(--font-primary);
+}
+
 /* SunEditor dark theme overrides */
 [data-theme="dark"] .sun-editor {
     --se-background-color: var(--surface);
