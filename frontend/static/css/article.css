@@ -726,6 +726,10 @@ input[type=number] {
     white-space: nowrap;
 }
 
+[data-theme="dark"] .code-block-lang-trigger {
+    color: var(--on-surface);
+}
+
 .bn-block-content[data-content-type="codeBlock"]:hover .code-block-lang-trigger,
 .code-block-lang-trigger:focus-visible {
     opacity: 0.5;
@@ -742,6 +746,10 @@ input[type=number] {
     border-top: 0.35em solid currentColor;
     margin-left: 0.35em;
     vertical-align: middle;
+}
+
+.code-block-lang-trigger[data-readonly] {
+    opacity: 0.65;
 }
 
 .code-block-lang-trigger[data-readonly]::after {
