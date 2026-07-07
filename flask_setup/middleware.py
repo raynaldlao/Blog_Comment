@@ -56,6 +56,7 @@ class CSPConfig:
             "font-src 'self' https://fonts.gstatic.com;"
             "img-src 'self' data: https:;"
             "frame-src https://www.youtube.com;"
+            "connect-src 'self' https://cdn.jsdelivr.net;"
             "base-uri 'self';"
             "form-action 'self';"
             "report-uri /csp-report;"

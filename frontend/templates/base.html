@@ -111,7 +111,9 @@
     {% endif %}
     {% if page_with_comments %}
     <script defer src="{{ url_for('static', filename='vendor/suneditor/suneditor.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='vendor/emoji-mart/emoji-mart.js') }}"></script>
     <script defer src="{{ url_for('static', filename='scripts/suneditor-init.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/emoji-picker.js') }}"></script>
     <script defer src="{{ url_for('static', filename='scripts/comment-reply.js') }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}

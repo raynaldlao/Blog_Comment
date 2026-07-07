@@ -1311,3 +1311,19 @@ input[type=number] {
 [data-theme="dark"] .article-static-content code {
     background: var(--surface-container-high);
 }
+
+.emoji-picker-popup {
+    background: var(--surface-container);
+    border: 1px solid var(--outline);
+    border-radius: var(--radius-md);
+    box-shadow: var(--elevation-3);
+    overflow: hidden;
+}
+
+.emoji-picker-popup em-emoji-picker {
+    height: 350px;
+    --background-rgb: var(--surface-container);
+    --rgb-background: var(--surface-container);
+}
+
+
