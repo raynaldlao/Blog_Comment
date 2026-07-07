@@ -6,6 +6,40 @@ export default function useCodeBlockGapClick(editorRef) {
   const lastInsertedRef = useRef({ key: '', time: 0 });
 
   useEffect(() => {
+    const handler = (e) => {
+      const editor = editorRef.current;
+      if (!editor || !editor._tiptapEditor) return;
+
+      if (e.key === 'Backspace' && !e.isComposing) {
+        const pmSel = editor._tiptapEditor.state.selection;
+        const parent = pmSel.$from?.parent;
+        if (parent?.type?.name === 'paragraph' && parent?.content?.size === 0) {
+          const selDOM = window.getSelection();
+          if (selDOM?.rangeCount && selDOM.rangeCount > 0) {
+            const range = selDOM.getRangeAt(0);
+            if (!range.collapsed) {
+              e.preventDefault();
+              e.stopPropagation();
+              selDOM.removeAllRanges();
+              const newRange = document.createRange();
+              newRange.setStart(range.startContainer, 0);
+              newRange.collapse(true);
+              selDOM.addRange(newRange);
+              return;
+            }
+          }
+        }
+      }
+
+    };
+    document.addEventListener('keydown', handler, { capture: true });
+
+    return () => {
+      document.removeEventListener('keydown', handler, { capture: true });
+    };
+  }, [editorRef]);
+
+  useEffect(() => {
     const handleMousedown = (event) => {
       const editor = editorRef.current;
       if (!editor || typeof editor.insertBlocks !== 'function') return;
@@ -15,6 +49,7 @@ export default function useCodeBlockGapClick(editorRef) {
       var BLOCK_SELECTOR = [
         '.bn-block-content[data-content-type="codeBlock"]',
         '.bn-block-content[data-content-type="image"]',
+        '.bn-block-content[data-content-type="video"]',
         '.bn-visual-media-wrapper',
       ].join(',');
 
@@ -73,8 +108,8 @@ export default function useCodeBlockGapClick(editorRef) {
               [{ type: 'paragraph' }],
               blockId,
               placement,
+              false,
             );
-            editor.focus();
           } catch (e) {
             console.error('Failed to insert paragraph:', e);
           }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { offset } from '@floating-ui/react';
-import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu } from '@blocknote/react';
+import { useCreateBlockNote, FormattingToolbarController, useEditorSelectionChange, SideMenuController, SideMenu, FilePanelController, FilePanel, UploadTab, EmbedTab, useBlockNoteEditor } from '@blocknote/react';
 import { BlockNoteView } from '@blocknote/mantine';
 import { BlockNoteSchema, defaultBlockSpecs, createParagraphBlockSpec } from '@blocknote/core';
 import CustomFormattingToolbar from './CustomFormattingToolbar';
@@ -10,7 +10,8 @@ import useCodeBlockGapClick from '../hooks/useCodeBlockGapClick';
 import createHighlighter from '../utils/shiki-highlighter-editor';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
-import { createVideoOverrideSpec } from '../utils/video-override-spec';
+import { createYouTubeVideoSpec } from '../utils/video-override-spec';
+
 
 
 export function applyVideoDictOverrides(editor) {
@@ -22,12 +23,48 @@ export function applyVideoDictOverrides(editor) {
   editor.dictionary.file_panel.embed.title = 'YouTube URL';
   editor.dictionary.file_panel.embed.url_placeholder = 'Paste YouTube video link';
   editor.dictionary.file_panel.embed.embed_button.video = 'Embed YouTube video';
+  editor.dictionary.file_blocks.add_button_text.video = 'Add YouTube video URL';
+}
+
+function CustomFilePanel({ blockId }) {
+  const editor = useBlockNoteEditor();
+  const [loading, setLoading] = useState(false);
+  let block;
+  try {
+    block = blockId ? editor.getBlock(blockId) : null;
+  } catch {
+    block = null;
+  }
+  if (block?.type === 'image') {
+    return (
+      <FilePanel
+        blockId={blockId}
+        tabs={[{
+          name: 'Upload',
+          tabPanel: <UploadTab blockId={blockId} setLoading={setLoading} />,
+        }]}
+      />
+    );
+  }
+  if (block?.type === 'video') {
+    return (
+      <FilePanel
+        blockId={blockId}
+        tabs={[{
+          name: 'YouTube URL',
+          tabPanel: <EmbedTab blockId={blockId} />,
+        }]}
+      />
+    );
+  }
+  return <FilePanel blockId={blockId} />;
 }
 
 function BlockNoteEditor({ initialContent, onReady }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
+  const arrowDirRef = useRef(null);
   useEffect(() => {
     const el = document.documentElement;
     const observer = new MutationObserver(() => {
@@ -49,14 +86,16 @@ function BlockNoteEditor({ initialContent, onReady }) {
     return data.url;
   }, []);
 
-  const { audio: _a, file: _f, video: _v, ...keptSpecs } = defaultBlockSpecs;
+  const { audio: _a, file: _f, video: defaultVideoSpec, ...keptSpecs } = defaultBlockSpecs;
 
   const editor = useCreateBlockNote({
     initialContent,
     uploadFile: uploadFn,
+    disableExtensions: ['gapCursor'],
     schema: BlockNoteSchema.create({
       blockSpecs: {
         ...keptSpecs,
+        video: createYouTubeVideoSpec(defaultVideoSpec),
         paragraph: createParagraphBlockSpec(),
         image: defaultBlockSpecs.image,
         codeBlock: createCustomCodeBlockSpec({
@@ -67,32 +106,80 @@ function BlockNoteEditor({ initialContent, onReady }) {
             langs: [],
           }),
         }),
-        video: createVideoOverrideSpec(),
       },
     }),
   });
 
   useEffect(function () {
-    if (editor) applyVideoDictOverrides(editor);
+    if (editor) {
+      applyVideoDictOverrides(editor);
+      document.querySelectorAll(
+        '[data-content-type="video"] .bn-add-file-button-text',
+      ).forEach(function(el) {
+        if (el.textContent === 'Add video') {
+          el.textContent = 'Add YouTube video URL';
+        }
+      });
+    }
   }, [editor]);
 
   const handleSelectionChange = useCallback(() => {
+    let blockType;
     try {
-      const { block } = editor.getTextCursorPosition();
-      if (block?.type !== 'image') {
-        editor.uploadFile = undefined;
-        editor.portalElement?.classList.remove('image-selected');
-      } else {
-        if (!editor.uploadFile) {
-          editor.uploadFile = uploadFn;
-        }
+      var pos = editor.getTextCursorPosition();
+      blockType = pos.block?.type;
+      if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
+      } else {
+        editor.portalElement?.classList.remove('image-selected');
       }
     } catch {
-      editor.uploadFile = undefined;
       editor.portalElement?.classList.remove('image-selected');
     }
-  }, [editor, uploadFn]);
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
+        if (el.classList.contains('bn-visual-media-wrapper') && el.getBoundingClientRect().height < 1) {
+          var dir = arrowDirRef.current;
+          arrowDirRef.current = null;
+          if (dir && editor) {
+            var block;
+            var container = el.closest('.bn-block') || el.closest('[data-id]');
+            var dataId = container?.getAttribute('data-id');
+            if (dataId) block = editor.document?.find(function(b) { return b.id === dataId; });
+            if (block) {
+              var idx = editor.document?.indexOf(block);
+              var target = (idx != null && idx >= 0)
+                ? (dir === 'ArrowDown' ? editor.document?.[idx + 1] : editor.document?.[idx - 1])
+                : null;
+              if (target) {
+                var targetEl = document.querySelector('[data-id="' + target.id + '"]');
+                if (targetEl) {
+                  var rect = targetEl.getBoundingClientRect();
+                  window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
+                }
+                editor.setTextCursorPosition(target.id, 'start');
+              }
+            }
+          }
+        }
+        if (el.getBoundingClientRect().height < 1) {
+          el.classList.remove('ProseMirror-selectednode');
+        }
+      });
+      if (arrowDirRef.current && editor) {
+        var dir = arrowDirRef.current;
+        arrowDirRef.current = null;
+        var pos = editor.getTextCursorPosition();
+        if (pos?.block) {
+          var targetEl = document.querySelector('[data-id="' + pos.block.id + '"]');
+          if (targetEl) {
+            var rect = targetEl.getBoundingClientRect();
+            window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
+          }
+        }
+      }
+    });
+  }, [editor]);
 
   useEditorSelectionChange(handleSelectionChange, editor);
 
@@ -103,6 +190,10 @@ function BlockNoteEditor({ initialContent, onReady }) {
   useEffect(() => {
     if (!editor) return;
     const handler = (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        arrowDirRef.current = e.key;
+        return;
+      }
       const mod = e.ctrlKey || e.metaKey;
       if (!mod || (e.key !== 'z' && e.key !== 'y')) return;
       const editorEl = editor.dom?.closest('.bn-editor') || editor.dom;
@@ -200,7 +291,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     const handler = function (e) {
       let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
-      if (target?.closest?.('.bn-formatting-toolbar')) return;
+      if (target?.closest?.('.bn-formatting-toolbar, .bn-panel')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {
@@ -223,6 +314,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
       theme={theme}
       formattingToolbar={false}
       sideMenu={false}
+      filePanel={false}
     >
       <FormattingToolbarController formattingToolbar={CustomFormattingToolbar} />
       <SideMenuController
@@ -235,6 +327,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
           },
         }}
       />
+      <FilePanelController filePanel={CustomFilePanel} />
     </BlockNoteView>
   );
 }

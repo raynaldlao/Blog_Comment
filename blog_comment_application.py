@@ -26,6 +26,7 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_article_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter import SqlAlchemyCommentAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
+from utils.prosemirror_to_html import prosemirror_to_html
 from utils.template_helpers import (
     ViteManifest,
     date_format_filter,
@@ -91,7 +92,8 @@ def _create_services(repositories: dict) -> dict:
 
     login_service = LoginService(account_repo, session_repo, password_hasher_repository)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
-    article_service = ArticleService(article_repo, account_repo, comment_repo)
+    file_service = FileService(repositories["file_storage_repo"])
+    article_service = ArticleService(article_repo, account_repo, comment_repo, file_service=file_service)
 
     return {
         "registration_service": registration_service,
@@ -99,7 +101,7 @@ def _create_services(repositories: dict) -> dict:
         "login_service": login_service,
         "comment_service": comment_service,
         "article_service": article_service,
-        "file_service": FileService(repositories["file_storage_repo"]),
+        "file_service": file_service,
     }
 
 
@@ -137,7 +139,7 @@ def _init_web_facade_flask() -> Flask:
     app.secret_key = env_config.secret_key
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
     app.config["SESSION_PERMANENT"] = True
-    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=12)
     return app
 
 
@@ -164,6 +166,7 @@ def _init_template_utils(app: Flask) -> None:
     app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
+    app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
     app.context_processor(inject_current_year)
     app.context_processor(inject_vite_assets)
 

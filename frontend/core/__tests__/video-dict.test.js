@@ -26,6 +26,14 @@ function makeMockEditor() {
           },
         },
       },
+      file_blocks: {
+        add_button_text: {
+          image: 'Add image',
+          video: 'Add video',
+          audio: 'Add audio',
+          file: 'Add file',
+        },
+      },
     },
   };
 }
@@ -67,5 +75,11 @@ describe('applyVideoDictOverrides', function () {
     var editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.file_panel.embed.url_placeholder).toBe('Paste YouTube video link');
+  });
+
+  it('updates add button text for video', function () {
+    var editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.file_blocks.add_button_text.video).toBe('Add YouTube video URL');
   });
 });

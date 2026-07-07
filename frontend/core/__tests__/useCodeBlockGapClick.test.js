@@ -8,16 +8,21 @@ function TestHarness({ editorRef }) {
   return null;
 }
 
+var roots = [];
+
 function render(ui) {
-  const container = document.createElement('div');
+  var container = document.createElement('div');
   container.id = 'test-root';
-  const root = createRoot(container);
-  act(() => { root.render(ui); });
+  var root = createRoot(container);
+  roots.push(root);
+  act(function () { root.render(ui); });
   document.body.appendChild(container);
   return container;
 }
 
-afterEach(() => {
+afterEach(function () {
+  roots.forEach(function (r) { r.unmount(); });
+  roots = [];
   vi.useRealTimers();
   document.body.innerHTML = '';
   vi.restoreAllMocks();
@@ -88,8 +93,9 @@ describe('useCodeBlockGapClick', () => {
       [{ type: 'paragraph' }],
       'block-1',
       'after',
+      false,
     );
-    expect(focus).toHaveBeenCalledOnce();
+
     vi.useRealTimers();
   });
 
@@ -162,8 +168,9 @@ describe('useCodeBlockGapClick', () => {
       [{ type: 'paragraph' }],
       'block-6',
       'before',
+      false,
     );
-    expect(focus).toHaveBeenCalledOnce();
+
     vi.useRealTimers();
   });
 
@@ -282,8 +289,9 @@ describe('useCodeBlockGapClick', () => {
       [{ type: 'paragraph' }],
       'vid-1',
       'after',
+      false,
     );
-    expect(focus).toHaveBeenCalledOnce();
+
     vi.useRealTimers();
   });
 
@@ -312,8 +320,9 @@ describe('useCodeBlockGapClick', () => {
       [{ type: 'paragraph' }],
       'vid-2',
       'before',
+      false,
     );
-    expect(focus).toHaveBeenCalledOnce();
+
     vi.useRealTimers();
   });
 
@@ -387,9 +396,88 @@ describe('useCodeBlockGapClick', () => {
       [{ type: 'paragraph' }],
       'img-1',
       'after',
+      false,
     );
-    expect(focus).toHaveBeenCalledOnce();
+
     vi.useRealTimers();
+  });
+
+  it('collapses DOM selection on Backspace when selection is non-collapsed on empty paragraph', () => {
+    const tiptapState = {
+      selection: {
+        $from: {
+          parent: { type: { name: 'paragraph' }, content: { size: 0 } },
+        },
+      },
+    };
+    const editorRef = {
+      current: {
+        _tiptapEditor: { state: tiptapState },
+        getTextCursorPosition: () => ({ block: { id: 'p-1', type: 'paragraph', content: [] } }),
+      },
+    };
+
+    render(React.createElement(TestHarness, { editorRef }));
+
+    var p = document.createElement('p');
+    p.innerHTML = '<br class="ProseMirror-trailingBreak">';
+    document.body.appendChild(p);
+
+    var sel = window.getSelection();
+    var range = document.createRange();
+    range.setStart(p, 0);
+    range.setEnd(p, 1);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    expect(range.collapsed).toBe(false);
+
+    var event = new KeyboardEvent('keydown', {
+      key: 'Backspace', cancelable: true, bubbles: true,
+    });
+    var preventSpy = vi.spyOn(event, 'preventDefault');
+    var stopSpy = vi.spyOn(event, 'stopPropagation');
+    document.dispatchEvent(event);
+
+    expect(preventSpy).toHaveBeenCalled();
+    expect(stopSpy).toHaveBeenCalled();
+
+    var selAfter = window.getSelection();
+    expect(selAfter.rangeCount).toBe(1);
+    expect(selAfter.getRangeAt(0).collapsed).toBe(true);
+  });
+
+  it('does not intercept Backspace when DOM selection is already collapsed', () => {
+    const tiptapState = {
+      selection: {
+        $from: { depth: 3, parent: { type: { name: 'paragraph' }, content: { size: 0 } } },
+      },
+    };
+    const editorRef = {
+      current: {
+        _tiptapEditor: { state: tiptapState },
+        getTextCursorPosition: () => ({ block: { id: 'p-1', type: 'paragraph', content: [] } }),
+      },
+    };
+
+    render(React.createElement(TestHarness, { editorRef }));
+
+    var p = document.createElement('p');
+    document.body.appendChild(p);
+
+    var sel = window.getSelection();
+    var range = document.createRange();
+    range.setStart(p, 0);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    var event = new KeyboardEvent('keydown', {
+      key: 'Backspace', cancelable: true, bubbles: true,
+    });
+    var preventSpy = vi.spyOn(event, 'preventDefault');
+    document.dispatchEvent(event);
+
+    expect(preventSpy).not.toHaveBeenCalled();
   });
 
   it('does not insert when clicking on code block content', () => {
@@ -453,7 +541,6 @@ describe('useCodeBlockGapClick', () => {
 
     click(108);
     expect(insertBlocks).toHaveBeenCalledTimes(2);
-    expect(focus).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });
 

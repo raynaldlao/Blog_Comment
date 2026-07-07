@@ -1,268 +1,139 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createVideoOverrideSpec } from '../utils/video-override-spec';
 
-var mockConfig = {
-  type: 'video',
-  propSchema: {
-    textAlignment: { default: 'left' },
-    backgroundColor: { default: 'default' },
-    name: { default: '' },
-    url: { default: '' },
-    caption: { default: '' },
-    showPreview: { default: true },
-    previewWidth: { default: undefined, type: 'number' },
-  },
-  content: 'none',
-};
+import { createYouTubeVideoSpec } from '../utils/video-override-spec';
 
-vi.mock('@blocknote/core', () => ({
-  createVideoBlockConfig: vi.fn(function () { return mockConfig; }),
-}));
-
-var YT_URL = 'https://www.youtube.com/watch?v=eme8BnMFthI';
-var YT_SHORT = 'https://youtu.be/eme8BnMFthI';
-var YT_EMBED = 'https://www.youtube.com/embed/eme8BnMFthI';
-var MP4_URL = 'https://example.com/video.mp4';
-
-function createBlock(props) {
-  return { props: props || {} };
+function makeBlock(url) {
+  return { id: 'b1', props: { url: url } };
 }
 
-function createEditor(resolveFileUrl) {
-  return { isEditable: true, resolveFileUrl: resolveFileUrl || null };
+function makeEditor(editable) {
+  return { isEditable: editable, removeBlocks: vi.fn() };
 }
 
-beforeEach(function () {
-  document.body.innerHTML = '';
-});
+describe('createYouTubeVideoSpec', function () {
+  var origRender, origToExternalHTML, videoSpec;
 
-afterEach(function () {
-  document.body.innerHTML = '';
-});
-
-describe('createVideoOverrideSpec', function () {
-  it('returns spec with config type video', function () {
-    var spec = createVideoOverrideSpec();
-    expect(spec.config.type).toBe('video');
-    expect(spec.config.propSchema.url).toBeDefined();
-    expect(spec.config.propSchema.url.default).toBe('');
-    expect(spec.config.content).toBe('none');
+  beforeEach(function () {
+    document.querySelectorAll('.toast').forEach(function (t) { t.remove(); });
+    origRender = vi.fn(function () {
+      return { dom: document.createElement('div') };
+    });
+    origToExternalHTML = vi.fn(function () {
+      return { dom: document.createElement('a') };
+    });
+    videoSpec = {
+      implementation: { render: origRender, toExternalHTML: origToExternalHTML },
+    };
+    vi.useFakeTimers();
   });
 
-  it('returns spec with implementation.render function', function () {
-    var spec = createVideoOverrideSpec();
+  afterEach(function () {
+    document.querySelectorAll('.toast').forEach(function (t) { t.remove(); });
+    vi.useRealTimers();
+  });
+
+  it('returns spec with same shape', function () {
+    var spec = createYouTubeVideoSpec(videoSpec);
+    expect(spec).toHaveProperty('implementation');
     expect(spec.implementation).toHaveProperty('render');
-    expect(typeof spec.implementation.render).toBe('function');
+    expect(spec.implementation).toHaveProperty('toExternalHTML');
   });
 
-  it('returns spec with fileBlockAccept meta', function () {
-    var spec = createVideoOverrideSpec();
-    expect(spec.implementation.meta.fileBlockAccept).toEqual(['video/*']);
-  });
-});
+  describe('render', function () {
+    it('returns bn-block-content with iframe for YouTube URL', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(true);
+      var result = spec.implementation.render(makeBlock('https://www.youtube.com/watch?v=eme8BnMFthI'), editor);
 
-describe('render', function () {
-  it('creates iframe for YouTube watch URL', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe).not.toBeNull();
-    expect(iframe.src).toBe(YT_EMBED);
-    expect(iframe.allow).toContain('fullscreen');
-  });
+      expect(result.dom.className).toContain('bn-block-content');
+      expect(result.dom.querySelector('iframe')).toBeTruthy();
+      expect(result.dom.querySelector('iframe').src).toContain('youtube.com/embed/');
+      expect(origRender).not.toHaveBeenCalled();
+    });
 
-  it('creates iframe for YouTube short URL', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_SHORT });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe).not.toBeNull();
-    expect(iframe.src).toBe(YT_EMBED);
-  });
+    it('returns iframe without pointerEvents in viewer', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(false);
+      var result = spec.implementation.render(makeBlock('https://youtu.be/abcdefghijk'), editor);
 
-  it('creates iframe for YouTube embed URL', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: 'https://www.youtube.com/embed/eme8BnMFthI' });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe).not.toBeNull();
-    expect(iframe.src).toBe(YT_EMBED);
-  });
+      var iframe = result.dom.querySelector('iframe');
+      expect(iframe.style.pointerEvents).toBe('');
+    });
 
-  it('shows placeholder for non-YouTube URL in viewer mode', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: MP4_URL });
-    var editor = { isEditable: false };
-    var result = spec.implementation.render(block, editor);
-    expect(result.dom.textContent).toBe('Only YouTube links are supported');
-    expect(result.dom.querySelector('video')).toBeNull();
-    expect(result.dom.querySelector('iframe')).toBeNull();
-  });
+    it('shows toast and calls removeBlocks for non-YouTube URL in editor', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(true);
+      spec.implementation.render(makeBlock('https://vimeo.com/123'), editor);
 
-  it('shows toast and returns empty wrapper for non-YouTube URL when editable', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: MP4_URL });
-    var editor = { isEditable: true };
-    var result = spec.implementation.render(block, editor);
-    var toast = document.querySelector('.toast');
-    expect(toast).not.toBeNull();
-    expect(toast.textContent).toBe('Only YouTube links are supported');
-    expect(result.dom.className).toBe('bn-visual-media-wrapper');
-    expect(result.dom.children.length).toBe(0);
-    toast.remove();
-  });
+      vi.advanceTimersByTime(0);
 
-  it('creates empty wrapper for empty url', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: '' });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    expect(result.dom.className).toBe('bn-visual-media-wrapper');
-    expect(result.dom.children.length).toBe(0);
-  });
+      expect(origRender).not.toHaveBeenCalled();
 
-  it('creates empty wrapper for null url', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: null });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    expect(result.dom.className).toBe('bn-visual-media-wrapper');
+      var toast = document.querySelector('.toast');
+      expect(toast).toBeTruthy();
+      expect(toast.textContent).toContain('Only YouTube');
+
+      expect(editor.removeBlocks).toHaveBeenCalledWith(['b1']);
+    });
+
+    it('returns display:none div for non-YouTube URL in viewer', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(false);
+      var result = spec.implementation.render(makeBlock('https://vimeo.com/123'), editor);
+
+      expect(result.dom.style.display).toBe('none');
+      expect(origRender).not.toHaveBeenCalled();
+      expect(document.querySelector('.toast')).toBeNull();
+    });
+
+    it('calls origRender when url is empty', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(true);
+      var result = spec.implementation.render(makeBlock(''), editor);
+
+      expect(origRender).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls origRender when url is undefined', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(true);
+      var block = { id: 'b1', props: {} };
+      var result = spec.implementation.render(block, editor);
+
+      expect(origRender).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls origRender when url is null', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var editor = makeEditor(true);
+      var result = spec.implementation.render(makeBlock(null), editor);
+
+      expect(origRender).toHaveBeenCalledTimes(1);
+    });
   });
 
-  it('creates iframe for YouTube Shorts URL', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: 'https://youtube.com/shorts/abc123def45' });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe).not.toBeNull();
-    expect(iframe.src).toBe('https://www.youtube.com/embed/abc123def45');
-  });
+  describe('toExternalHTML', function () {
+    it('returns iframe for YouTube URL', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var result = spec.implementation.toExternalHTML(makeBlock('https://www.youtube.com/watch?v=eme8BnMFthI'));
 
-  it('does not add allowfullscreen attribute (uses allow instead)', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe.hasAttribute('allowfullscreen')).toBe(false);
-  });
+      expect(result.dom.tagName).toBe('IFRAME');
+      expect(result.dom.src).toContain('youtube.com/embed/');
+      expect(origToExternalHTML).not.toHaveBeenCalled();
+    });
 
-  it('sets contentEditable=false on inner container', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var container = result.dom.querySelector('[contenteditable="false"]');
-    expect(container).not.toBeNull();
-    expect(container.parentElement.className).toBe('bn-visual-media-wrapper');
-  });
+    it('calls origToExternalHTML for non-YouTube URL', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var result = spec.implementation.toExternalHTML(makeBlock('https://vimeo.com/123'));
 
-  it('sets pointer-events:none on iframe when editor is editable', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe.style.pointerEvents).toBe('none');
-  });
+      expect(origToExternalHTML).toHaveBeenCalledTimes(1);
+    });
 
-  it('does not set pointer-events on iframe when editor is not editable', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = { isEditable: false };
-    var result = spec.implementation.render(block, editor);
-    var iframe = result.dom.querySelector('iframe');
-    expect(iframe.style.pointerEvents).toBe('');
-  });
+    it('calls origToExternalHTML when url is empty', function () {
+      var spec = createYouTubeVideoSpec(videoSpec);
+      var result = spec.implementation.toExternalHTML(makeBlock(''));
 
-  it('removes pointer-events from iframe on dblclick', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var container = result.dom.firstElementChild;
-    var iframe = result.dom.querySelector('iframe');
-
-    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-
-    expect(iframe.style.pointerEvents).toBe('');
-  });
-
-  it('restores pointer-events:none on click outside after dblclick', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var container = result.dom.firstElementChild;
-    var iframe = result.dom.querySelector('iframe');
-
-    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-    expect(iframe.style.pointerEvents).toBe('none');
-  });
-
-  it('keeps pointer-events removed on click inside container after dblclick', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL });
-    var editor = createEditor();
-    var result = spec.implementation.render(block, editor);
-    var container = result.dom.firstElementChild;
-    var iframe = result.dom.querySelector('iframe');
-
-    container.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
-    container.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-    expect(iframe.style.pointerEvents).toBe('');
-  });
-});
-
-describe('toExternalHTML', function () {
-  it('creates iframe for YouTube with showPreview', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL, showPreview: true });
-    var result = spec.implementation.toExternalHTML(block);
-    var iframe = result.dom;
-    expect(iframe.tagName).toBe('IFRAME');
-    expect(iframe.src).toBe(YT_EMBED);
-    expect(iframe.width).toBe('560');
-    expect(iframe.height).toBe('315');
-  });
-
-  it('creates link for YouTube without showPreview', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL, showPreview: false, name: 'My Video' });
-    var result = spec.implementation.toExternalHTML(block);
-    var link = result.dom;
-    expect(link.tagName).toBe('A');
-    expect(link.href).toContain(YT_URL);
-    expect(link.textContent).toBe('My Video');
-  });
-
-  it('creates link from url when name is empty', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: YT_URL, showPreview: false });
-    var result = spec.implementation.toExternalHTML(block);
-    expect(result.dom.textContent).toBe(YT_URL);
-  });
-
-  it('shows placeholder for non-YouTube URL', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: MP4_URL });
-    var result = spec.implementation.toExternalHTML(block);
-    expect(result.dom.textContent).toBe('Only YouTube links are supported');
-    expect(result.dom.tagName).not.toBe('VIDEO');
-  });
-
-  it('creates empty video for empty url', function () {
-    var spec = createVideoOverrideSpec();
-    var block = createBlock({ url: '' });
-    var result = spec.implementation.toExternalHTML(block);
-    expect(result.dom.tagName).toBe('VIDEO');
+      expect(origToExternalHTML).toHaveBeenCalledTimes(1);
+    });
   });
 });

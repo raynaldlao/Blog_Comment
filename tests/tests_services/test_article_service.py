@@ -1,12 +1,14 @@
+import json
 from datetime import datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
 from src.application.domain.article import Article
+from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.article_service import ArticleService
+from src.application.services.article_service import ArticleService, _extract_image_uuids
 from tests.test_domain_factories import (
     create_test_account,
     create_test_article,
@@ -19,10 +21,12 @@ class ArticleServiceTestBase:
         self.mock_article_repo = MagicMock(spec=ArticleRepository, autospec=True)
         self.mock_account_repo = MagicMock(spec=AccountRepository, autospec=True)
         self.mock_comment_repo = MagicMock(spec=CommentRepository, autospec=True)
+        self.mock_file_service = MagicMock(spec=FileManagementPort)
         self.service = ArticleService(
             article_repository=self.mock_article_repo,
             account_repository=self.mock_account_repo,
-            comment_repository=self.mock_comment_repo
+            comment_repository=self.mock_comment_repo,
+            file_service=self.mock_file_service,
         )
 
 
@@ -361,3 +365,183 @@ class TestGetArticleWithComments(ArticleServiceTestBase):
         assert not isinstance(result, str)
         assert result.article_with_author.author_name == "Unknown"
         self.mock_account_repo.get_by_ids.assert_called_once()
+
+
+class TestExtractImageUuids:
+    def test_empty_content_returns_empty_set(self):
+        assert _extract_image_uuids("") == set()
+
+    def test_invalid_json_returns_empty_set(self):
+        assert _extract_image_uuids("not-json") == set()
+
+    def test_no_images_returns_empty_set(self):
+        content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "paragraph", "content": [{"type": "text", "text": "hello"}]}],
+        })
+        assert _extract_image_uuids(content) == set()
+
+    def test_single_image_with_props_format(self):
+        content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "props": {"url": "/uploads/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.png"}}],
+        })
+        assert _extract_image_uuids(content) == {"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"}
+
+    def test_single_image_with_attrs_format_legacy(self):
+        content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "attrs": {"url": "/uploads/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.jpg"}}],
+        })
+        assert _extract_image_uuids(content) == {"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"}
+
+    def test_multiple_images_returns_all_uuids(self):
+        content = json.dumps({
+            "type": "doc",
+            "content": [
+                {"type": "image", "props": {"url": "/uploads/11111111-1111-1111-1111-111111111111.webp"}},
+                {"type": "paragraph", "content": [{"type": "text", "text": "text"}]},
+                {"type": "image", "props": {"url": "/uploads/22222222-2222-2222-2222-222222222222.png"}},
+            ],
+        })
+        result = _extract_image_uuids(content)
+        assert result == {"11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"}
+
+
+class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):
+    def test_delete_article_cleans_up_orphan_files(self):
+        content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "props": {"url": "/uploads/11111111-1111-1111-1111-111111111111.png"}}],
+        })
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content=content)
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.delete_article(article_id=1, user_id=1)
+
+        assert result is True
+        self.mock_file_service.delete_file.assert_called_once_with("11111111-1111-1111-1111-111111111111")
+        self.mock_article_repo.delete.assert_called_once_with(fake_article)
+
+    def test_delete_article_no_files_does_not_call_file_service(self):
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content="no images here")
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.delete_article(article_id=1, user_id=1)
+
+        assert result is True
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_article_repo.delete.assert_called_once_with(fake_article)
+
+    def test_delete_article_unauthorized_does_not_delete_files(self):
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content="{}")
+        fake_other = create_test_account(account_id=99, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_other
+
+        result = self.service.delete_article(article_id=1, user_id=99)
+
+        assert result == "Unauthorized : Only authors or admins can delete articles."
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_article_repo.delete.assert_not_called()
+
+    def test_delete_article_no_file_service_does_not_crash(self):
+        service_no_file = ArticleService(
+            article_repository=self.mock_article_repo,
+            account_repository=self.mock_account_repo,
+            comment_repository=self.mock_comment_repo,
+        )
+        fake_article = create_test_article(article_id=1, article_author_id=1)
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = service_no_file.delete_article(article_id=1, user_id=1)
+
+        assert result is True
+        self.mock_article_repo.delete.assert_called_once_with(fake_article)
+
+
+class TestUpdateArticleOrphanCleanup(ArticleServiceTestBase):
+    def test_update_article_removes_orphan_files(self):
+        old_content = json.dumps({
+            "type": "doc",
+            "content": [
+                {"type": "image", "props": {"url": "/uploads/11111111-1111-1111-1111-111111111111.png"}},
+                {"type": "image", "props": {"url": "/uploads/22222222-2222-2222-2222-222222222222.png"}},
+            ],
+        })
+        new_content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "props": {"url": "/uploads/22222222-2222-2222-2222-222222222222.png"}}],
+        })
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content=old_content)
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.update_article(
+            article_id=1, user_id=1, title="New", content=new_content,
+        )
+
+        assert isinstance(result, Article)
+        self.mock_file_service.delete_file.assert_called_once_with("11111111-1111-1111-1111-111111111111")
+        self.mock_article_repo.save.assert_called_once()
+
+    def test_update_article_no_old_images_does_not_delete(self):
+        new_content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "props": {"url": "/uploads/aaa-new.png"}}],
+        })
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content="no images")
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.update_article(
+            article_id=1, user_id=1, title="New", content=new_content,
+        )
+
+        assert isinstance(result, Article)
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_article_repo.save.assert_called_once()
+
+    def test_update_article_same_images_does_not_delete(self):
+        same_content = json.dumps({
+            "type": "doc",
+            "content": [{"type": "image", "props": {"url": "/uploads/aaa-same.png"}}],
+        })
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content=same_content)
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.update_article(
+            article_id=1, user_id=1, title="Same", content=same_content,
+        )
+
+        assert isinstance(result, Article)
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_article_repo.save.assert_called_once()
+
+    def test_update_article_no_file_service_does_not_crash(self):
+        service_no_file = ArticleService(
+            article_repository=self.mock_article_repo,
+            account_repository=self.mock_account_repo,
+            comment_repository=self.mock_comment_repo,
+        )
+        fake_article = create_test_article(article_id=1, article_author_id=1, article_content="{}")
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = service_no_file.update_article(
+            article_id=1, user_id=1, title="New", content="{}",
+        )
+
+        assert isinstance(result, Article)
+        self.mock_article_repo.save.assert_called_once()

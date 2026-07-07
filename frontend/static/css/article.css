@@ -86,6 +86,7 @@
 .meta-author {
     color: var(--on-surface);
     font-weight: 600;
+    font-style: italic;
 }
 
 .meta-divider {
@@ -725,6 +726,10 @@ input[type=number] {
     white-space: nowrap;
 }
 
+[data-theme="dark"] .code-block-lang-trigger {
+    color: var(--on-surface);
+}
+
 .bn-block-content[data-content-type="codeBlock"]:hover .code-block-lang-trigger,
 .code-block-lang-trigger:focus-visible {
     opacity: 0.5;
@@ -741,6 +746,10 @@ input[type=number] {
     border-top: 0.35em solid currentColor;
     margin-left: 0.35em;
     vertical-align: middle;
+}
+
+.code-block-lang-trigger[data-readonly] {
+    opacity: 0.65;
 }
 
 .code-block-lang-trigger[data-readonly]::after {
@@ -1000,15 +1009,16 @@ input[type=number] {
     border-radius: var(--radius-default);
 }
 
-/* Hide embed tab when an image block is selected */
-.image-selected .bn-panel [data-test$="-tab"]:last-child {
-    display: none;
-}
 
 /* Selection outline for custom video override */
 .bn-visual-media-wrapper.ProseMirror-selectednode {
     border-radius: 4px;
     outline: 4px solid #64a0ff;
+}
+
+/* Hide empty ghost wrappers during void block transitions */
+.bn-visual-media-wrapper.ProseMirror-selectednode:not(:has(*)) {
+    display: none;
 }
 
 /* Hide selection outline on video blocks in viewer */
@@ -1017,3 +1027,163 @@ input[type=number] {
     box-shadow: none;
 }
 
+/* Hide YouTube URL tab in image Replace button popover only (has bn-panel-popover, video popover does not) */
+.bn-panel-popover [data-test="youtube url-tab"] {
+    display: none;
+}
+
+/* Fallback server-rendered article content (Firefox Reader Mode + No-JS) */
+.article-static-content {
+    max-width: var(--content-narrow);
+    margin: 0 auto;
+    color: var(--on-surface);
+    font-family: var(--font-primary);
+    font-size: var(--font-body-lg);
+    line-height: 1.75;
+}
+
+.article-static-content h1,
+.article-static-content h2,
+.article-static-content h3,
+.article-static-content h4 {
+    color: var(--on-surface);
+    margin-top: var(--spacing-xl);
+    margin-bottom: var(--spacing-md);
+    font-family: var(--font-primary);
+}
+
+.article-static-content h1 {
+    font-size: var(--font-headline-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.article-static-content h2 {
+    font-size: var(--font-headline-lg);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.article-static-content h3 {
+    font-size: var(--font-headline-md);
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.article-static-content h4 {
+    font-size: var(--font-body-lg);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.article-static-content p {
+    margin-bottom: var(--spacing-md);
+}
+
+.article-static-content pre {
+    margin: 0.75rem 0;
+}
+
+.article-static-content pre code {
+    display: block;
+    overflow-x: auto;
+    padding: var(--spacing-sm);
+    background: var(--surface);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-md);
+    font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono",
+        "Consolas", monospace;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--on-surface);
+}
+
+.article-static-content blockquote {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-left: 4px solid var(--primary);
+    background: var(--surface-container);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--on-surface-variant);
+    font-style: italic;
+}
+
+.article-static-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.article-static-content td,
+.article-static-content th {
+    border: 1px solid var(--outline);
+    padding: 0.5rem 0.75rem;
+    vertical-align: top;
+}
+
+.article-static-content th {
+    font-weight: 600;
+    background: var(--surface-container-high);
+}
+
+.article-static-content ul,
+.article-static-content ol {
+    padding-left: 1.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.article-static-content li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.article-static-content figure {
+    margin: 0.75rem 0;
+    text-align: center;
+}
+
+.article-static-content figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-default);
+}
+
+.article-static-content figure figcaption {
+    margin-top: var(--spacing-xs);
+    font-size: var(--font-body-sm);
+    color: var(--on-surface-variant);
+    font-style: italic;
+}
+
+.article-static-content hr {
+    border: none;
+    border-top: 1px solid var(--outline-variant);
+    margin: var(--spacing-lg) 0;
+}
+
+.article-static-content a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.article-static-content code {
+    font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SF Mono",
+        "Consolas", monospace;
+    font-size: 0.8125rem;
+    background: var(--surface-container);
+    padding: 0.125rem 0.25rem;
+    border-radius: var(--radius-xs);
+}
+
+[data-theme="dark"] .article-static-content pre code {
+    background: var(--surface-container-high);
+}
+
+[data-theme="dark"] .article-static-content blockquote {
+    background: var(--surface-container-high);
+}
+
+[data-theme="dark"] .article-static-content code {
+    background: var(--surface-container-high);
+}

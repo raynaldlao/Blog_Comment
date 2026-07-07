@@ -65,3 +65,17 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
             data=cast(bytes, model.file_data),
             created_at=cast(datetime, model.created_at),
         )
+
+    def delete(self, file_id: str) -> None:
+        """Delete a file record by UUID.
+
+        Idempotent — does nothing if the file does not exist.
+
+        Args:
+            file_id: UUID string.
+        """
+        model = self._session.get(UploadedFileModel, file_id)
+        if model is None:
+            return
+        self._session.delete(model)
+        self._session.commit()
