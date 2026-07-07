@@ -19,7 +19,7 @@
         popup.className = 'emoji-picker-popup';
         popup.style.position = 'fixed';
         popup.style.left = anchorRect.left + 'px';
-        popup.style.top = anchorRect.top + 'px';
+        popup.style.top = (anchorRect.top + 4) + 'px';
         popup.style.zIndex = '9999';
 
         var picker = new EmojiMart.Picker({
@@ -39,6 +39,19 @@
         popup.appendChild(picker);
         document.body.appendChild(popup);
         activePopup = popup;
+
+        requestAnimationFrame(function () {
+            var pr = popup.getBoundingClientRect();
+            var overflowRight = pr.right - window.innerWidth;
+            var overflowBottom = pr.bottom - window.innerHeight;
+
+            if (overflowRight > 0) {
+                popup.style.left = Math.max(4, pr.left - overflowRight - 4) + 'px';
+            }
+            if (overflowBottom > 0) {
+                popup.style.top = Math.max(4, anchorRect.top - pr.height - 4) + 'px';
+            }
+        });
     }
 
     document.addEventListener('click', function (e) {
@@ -46,6 +59,12 @@
             closePopup();
         }
     });
+
+    window.addEventListener('scroll', function (e) {
+        if (activePopup && !activePopup.contains(e.target)) {
+            closePopup();
+        }
+    }, true);
 
     window.addEventListener('open-emoji-picker', function (e) {
         openPicker({

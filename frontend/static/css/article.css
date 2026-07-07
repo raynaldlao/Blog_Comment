@@ -1326,4 +1326,19 @@ input[type=number] {
     --rgb-background: var(--surface-container);
 }
 
+@media (max-width: 30em) {
+    .emoji-picker-popup {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        width: calc(100vw - 1rem) !important;
+        max-height: 80vh;
+        transform: translate(-50%, -50%);
+    }
+
+    .emoji-picker-popup em-emoji-picker {
+        height: min(280px, 70vh);
+    }
+}
+
 
