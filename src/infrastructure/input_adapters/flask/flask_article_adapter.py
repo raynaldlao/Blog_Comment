@@ -82,14 +82,14 @@ class ArticleAdapter:
             detail.article_with_author.article,
             author_username=detail.article_with_author.author_name
         )
-        dto_comments = CommentResponse.map_threaded_comments(detail.threaded_comments.threads)
+        dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
         user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",
             article=article,
-            threaded_comments=dto_comments,
+            nested_comments=dto_comments,
             current_user=user,
-            page_with_editor=True,
+            page_with_comments=True,
         )
 
     def render_create_page(self) -> str | Response:

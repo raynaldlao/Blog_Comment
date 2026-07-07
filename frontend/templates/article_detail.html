@@ -70,7 +70,8 @@
     <section class="comments-section">
         <h3 class="comments-title">Comments</h3>
 
-        {% for root_comment in threaded_comments.get('root', []) %}
+        {% for node in nested_comments %}
+            {% set root_comment = node.comment %}
                 <div class="comment-root">
                     <div class="comment-header">
                         <span class="meta-author">{{ root_comment.author_username }}</span>
@@ -96,10 +97,11 @@
                     </div>
                     {% endif %}
 
-                    {% set replies = threaded_comments.get(root_comment.comment_id, []) %}
-                    {% if replies %}
+                    {% set replies_nodes = node.replies %}
+                    {% if replies_nodes %}
                     <div class="replies-wrapper">
-                        {% for reply in replies %}
+                        {% for reply_node in replies_nodes %}
+                            {% set reply = reply_node.comment %}
                             <div class="comment-reply">
                                 <div class="comment-header">
                                     <span class="meta-author comment-reply-author">{{ reply.author_username }}</span>
@@ -118,9 +120,9 @@
                     </div>
                     {% endif %}
                 </div>
-            {% else %}
-                <p class="comment-empty">No comments yet.</p>
-            {% endfor %}
+        {% else %}
+            <p class="comment-empty">No comments yet.</p>
+        {% endfor %}
 
         <hr aria-hidden="true">
 

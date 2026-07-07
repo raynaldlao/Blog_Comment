@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from src.application.domain.comment import Comment, CommentWithAuthor
-from src.infrastructure.input_adapters.dto.comment_response import CommentResponse
+from src.application.domain.comment import Comment, CommentNode, CommentWithAuthor
+from src.infrastructure.input_adapters.dto.comment_response import CommentNodeResponse, CommentResponse
 
 
 def test_comment_response_from_domain_mapping():
@@ -38,21 +38,31 @@ def test_comment_response_from_domain_with_reply():
     assert response.comment_reply_to == 1
     assert response.author_username == "Unknown"
 
-def test_map_threaded_comments():
+def test_map_nested_tree():
     posted_at = datetime(2023, 10, 27, 14, 30)
     comment_1 = Comment(1, 10, 1, None, "Root", posted_at)
     comment_2 = Comment(2, 10, 2, 1, "Reply", posted_at)
 
-    threads = {
-        "root": [CommentWithAuthor(comment_1, "Author1")],
-        1: [CommentWithAuthor(comment_2, "Author2")]
-    }
+    nodes = [
+        CommentNode(
+            comment=CommentWithAuthor(comment_1, "Author1"),
+            replies=[
+                CommentNode(
+                    comment=CommentWithAuthor(comment_2, "Author2"),
+                    depth=1
+                )
+            ],
+            depth=0
+        )
+    ]
 
-    result = CommentResponse.map_threaded_comments(threads)
+    result = CommentResponse.map_nested_tree(nodes)
 
-    assert "root" in result
-    assert 1 in result
-    assert isinstance(result["root"][0], CommentResponse)
-    assert result["root"][0].author_username == "Author1"
-    assert result[1][0].author_username == "Author2"
-    assert result[1][0].comment_reply_to == 1
+    assert len(result) == 1
+    assert isinstance(result[0], CommentNodeResponse)
+    assert result[0].comment.author_username == "Author1"
+    assert result[0].depth == 0
+    assert len(result[0].replies) == 1
+    assert result[0].replies[0].comment.author_username == "Author2"
+    assert result[0].replies[0].comment.comment_reply_to == 1
+    assert result[0].replies[0].depth == 1

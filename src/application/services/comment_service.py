@@ -1,12 +1,12 @@
 from datetime import datetime
 
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment, CommentThreadView
+from src.application.domain.comment import Comment, CommentNode
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.service_utils import build_comment_thread_view
+from src.application.services.service_utils import build_comment_nested_tree
 
 
 class CommentService(CommentManagementPort):
@@ -115,35 +115,29 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Parent comment not found."
 
-        is_parent_a_reply = parent_comment.comment_reply_to is not None
-        if is_parent_a_reply:
-            thread_root_id = parent_comment.comment_reply_to
-        else:
-            thread_root_id = parent_comment.comment_id
-
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
             comment_article_id=parent_comment.comment_article_id,
             comment_written_account_id=account.account_id,
             comment_content=content,
-            comment_reply_to=thread_root_id,
+            comment_reply_to=parent_comment.comment_id,
             comment_posted_at=datetime.now(),
         )
 
         self.comment_repository.save(new_reply)
         return new_reply
 
-    def get_comments_for_article(self, article_id: int) -> CommentThreadView | str:
+    def get_comments_for_article(self, article_id: int) -> list[CommentNode] | str:
         """
         Retrieves all comments for a specific article and structures them
-        in a threaded view for display, along with author names.
+        in a nested tree for display, along with author names.
 
         Args:
             article_id (int): ID of the article.
 
         Returns:
-            CommentThreadView | str: A Read Model containing the threaded comments,
+            list[CommentNode] | str: The nested tree root nodes,
             or an error message string if the article is not found.
         """
         article = self.article_repository.get_by_id(article_id)
@@ -155,7 +149,7 @@ class CommentService(CommentManagementPort):
         author_ids = {c.comment_written_account_id for c in all_comments}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        return build_comment_thread_view(all_comments, author_map)
+        return build_comment_nested_tree(all_comments, author_map)
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """

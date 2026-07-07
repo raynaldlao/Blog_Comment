@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from src.application.domain.comment import CommentThreadView
+from src.application.domain.comment import CommentNode
 
 
 class Article:
@@ -55,4 +55,4 @@ class ArticleDetailView:
     Encapsulates an article with its author and threaded comments.
     """
     article_with_author: ArticleWithAuthor
-    threaded_comments: CommentThreadView = field(default_factory=CommentThreadView)
+    nested_comments: list[CommentNode] = field(default_factory=list)

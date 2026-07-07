@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -45,17 +49,30 @@ class CommentResponse(BaseModel):
         )
 
     @classmethod
-    def map_threaded_comments(cls, threads: dict) -> dict[str | int, list["CommentResponse"]]:
+    def map_nested_tree(cls, nodes: list, depth_limit: int = 4) -> list[CommentNodeResponse]:
         """
-        Maps a dictionary of threaded Read Models (CommentWithAuthor) into a dictionary of DTOs.
+        Recursively maps a list of CommentNode domain tree nodes into DTO tree nodes.
 
         Args:
-            threads (dict): The dictionary of threaded comments from the Read Model.
+            nodes (list[CommentNode]): The root tree nodes from the domain layer.
+            depth_limit (int): Maximum rendering depth; deeper nodes are flattened.
 
         Returns:
-            dict[str | int, list[CommentResponse]]: The mapped dictionary.
+            list[CommentNodeResponse]: The mapped DTO tree.
         """
-        return {
-            key: [cls.from_domain(c.comment, c.author_name) for c in comments]
-            for key, comments in threads.items()
-        }
+        def _map(node) -> CommentNodeResponse:
+            display_depth = node.depth if node.depth < depth_limit else depth_limit
+            cr = cls.from_domain(node.comment.comment, node.comment.author_name)
+            replies = [_map(child) for child in node.replies]
+            return CommentNodeResponse(comment=cr, replies=replies, depth=display_depth)
+        return [_map(n) for n in nodes]
+
+
+@dataclass
+class CommentNodeResponse:
+    """
+    Recursive DTO for a single node in the nested comment tree.
+    """
+    comment: CommentResponse
+    replies: list[CommentNodeResponse] = field(default_factory=list)
+    depth: int = 0

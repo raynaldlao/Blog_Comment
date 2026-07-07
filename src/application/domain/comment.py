@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -51,8 +53,17 @@ class CommentWithAuthor:
     author_name: str
 
 @dataclass
+class CommentNode:
+    """
+    Recursive tree node for N-level nested comment threading.
+    """
+    comment: CommentWithAuthor
+    replies: list[CommentNode] = field(default_factory=list)
+    depth: int = 0
+
+@dataclass
 class CommentThreadView:
     """
     Read Model for a threaded comment tree associated with an article.
     """
-    threads: dict[str | int, list[CommentWithAuthor]] = field(default_factory=dict)
+    threads: list[CommentNode] = field(default_factory=list)

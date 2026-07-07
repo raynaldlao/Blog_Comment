@@ -341,11 +341,10 @@ class TestGetArticleWithComments(ArticleServiceTestBase):
         assert not isinstance(result, str)
         assert result.article_with_author.article.article_id == 1
         assert result.article_with_author.author_name == "ArticleAuthor"
-        assert "root" in result.threaded_comments.threads
-        root_comments = result.threaded_comments.threads["root"]
-        assert len(root_comments) == 1
-        assert root_comments[0].comment.comment_id == 101
-        assert root_comments[0].author_name == "CommentAuthor"
+        assert len(result.nested_comments) == 1
+        root_node = result.nested_comments[0]
+        assert root_node.comment.comment.comment_id == 101
+        assert root_node.comment.author_name == "CommentAuthor"
         self.mock_article_repo.get_by_id.assert_called_once_with(1)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(1)
         called_author_ids = self.mock_account_repo.get_by_ids.call_args[0][0]
