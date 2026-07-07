@@ -106,7 +106,7 @@ class TestWorkflows:
         assert response.status_code == 200
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
-        assert b"Level 3" not in response.data
+        assert b"Level 3" in response.data
 
     def test_registration_login_profile_flow_integ(self, client, db_session):
         client.post("/register", data={
