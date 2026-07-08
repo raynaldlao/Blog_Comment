@@ -564,7 +564,7 @@ input[type=number] {
 .reply-form {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
 }
 
 .reply-editor {
@@ -641,6 +641,10 @@ input[type=number] {
     margin-top: var(--spacing-xl);
 }
 
+.comment-join-section .sun-editor {
+    margin-bottom: var(--spacing-md);
+}
+
 .comment-join-title {
     font-family: var(--font-mono);
     font-size: var(--font-body-sm);
@@ -677,18 +681,63 @@ input[type=number] {
     font-family: var(--font-primary);
 }
 
+.sun-editor-editable {
+    font-family: var(--font-primary);
+}
+
 /* SunEditor dark theme overrides */
 [data-theme="dark"] .sun-editor {
-    --se-background-color: var(--surface);
-    --se-foreground-color: var(--on-surface);
-    --se-border-color: var(--outline-variant);
-    --se-toolbar-background-color: var(--surface-container);
-    --se-toolbar-border-color: var(--outline-variant);
-    --se-toolbar-hover-background-color: var(--surface-container-high);
-    --se-toolbar-active-background-color: var(--primary-container);
-    --se-toolbar-active-foreground-color: var(--on-primary-container);
-    --se-placeholder-color: var(--on-surface-variant);
-    --se-resizing-bar-background: var(--surface-container-high);
+    background-color: var(--surface);
+    border-color: var(--outline-variant);
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-toolbar {
+    background-color: var(--surface-container);
+    outline-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor-editable {
+    background-color: var(--surface);
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-placeholder {
+    color: var(--on-surface-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-btn:enabled:focus,
+[data-theme="dark"] .sun-editor .se-btn:enabled:hover {
+    background-color: var(--surface-container-high);
+}
+
+[data-theme="dark"] .sun-editor .se-btn:enabled.on {
+    background-color: var(--primary-container);
+    color: var(--on-primary-container);
+}
+
+[data-theme="dark"] .sun-editor .se-btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+}
+
+[data-theme="dark"] .se-tooltip .se-tooltip-inner .se-tooltip-text {
+    background-color: var(--surface-container-high);
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .se-tooltip .se-tooltip-inner .se-tooltip-text:after {
+    border-bottom-color: var(--surface-container-high);
+}
+
+[data-theme="dark"] .sun-editor .se-resizing-bar {
+    background-color: var(--surface-container);
+    border-top-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-resizing-bar .se-navigation {
+    color: var(--on-surface-variant);
 }
 
 /* Article Form (Create/Edit) */

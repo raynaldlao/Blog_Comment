@@ -350,10 +350,10 @@ class TestSecurityHeaders:
         assert response.status_code == 200
         assert "image/svg+xml" in response.content_type
 
-    def test_cache_header_on_asset(self, client):
-        """Verifies /static/ responses include immutable Cache-Control."""
+    def test_cache_header_on_static_asset(self, client):
+        """Verifies non-fingerprinted /static/ responses get no-cache."""
         response = client.get("/static/css/base.css")
-        assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
+        assert response.headers.get("Cache-Control") == "no-cache"
 
     def test_cache_header_on_dist_path(self, app_with_db):
         """Verifies /static/dist/ paths get immutable Cache-Control (no Vite dependency)."""
