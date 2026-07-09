@@ -685,6 +685,18 @@ input[type=number] {
     font-family: var(--font-primary);
 }
 
+.sun-editor-editable a {
+    color: var(--primary);
+}
+
+.article-editor .bn-editor a {
+    color: var(--primary);
+}
+
+.article-detail-view #root .bn-editor a {
+    color: var(--primary);
+}
+
 /* SunEditor dark theme overrides */
 [data-theme="dark"] .sun-editor {
     background-color: var(--surface);
@@ -726,6 +738,12 @@ input[type=number] {
     color: var(--on-primary);
 }
 
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-content .se-btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+}
+
 [data-theme="dark"] .se-tooltip .se-tooltip-inner .se-tooltip-text {
     background-color: var(--surface-container-high);
     color: var(--on-surface);
@@ -752,6 +770,94 @@ input[type=number] {
 
 [data-theme="dark"] .sun-editor .se-resizing-bar .se-navigation {
     color: var(--on-surface-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-content {
+    background-color: var(--surface-container);
+    border-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-header {
+    border-bottom-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-footer {
+    border-top-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor input,
+[data-theme="dark"] .sun-editor select,
+[data-theme="dark"] .sun-editor textarea {
+    background-color: var(--surface);
+    color: var(--on-surface);
+    border-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor input:focus,
+[data-theme="dark"] .sun-editor select:focus,
+[data-theme="dark"] .sun-editor textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary) 25%, transparent);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-body input.se-input-form {
+    background-color: var(--surface);
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog button,
+[data-theme="dark"] .sun-editor .se-dialog input,
+[data-theme="dark"] .sun-editor .se-dialog label {
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog-tabs button {
+    background-color: var(--surface-container-high);
+    border-right-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog-tabs button.active,
+[data-theme="dark"] .sun-editor .se-dialog-tabs button:hover {
+    background-color: var(--surface);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-link-preview {
+    color: var(--on-surface-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-dialog .se-dialog-inner .se-dialog-form a {
+    color: var(--primary);
+}
+
+/* Link controller (floating edit/unlink/remove toolbar) */
+[data-theme="dark"] .sun-editor .se-controller {
+    background-color: var(--surface);
+    border-color: var(--outline-variant);
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-controller .se-arrow.se-arrow-up {
+    border-bottom-color: var(--outline-variant);
+}
+
+[data-theme="dark"] .sun-editor .se-controller .se-btn-group button {
+    color: var(--on-surface);
+}
+
+[data-theme="dark"] .sun-editor .se-controller .se-btn-group button:focus:enabled,
+[data-theme="dark"] .sun-editor .se-controller .se-btn-group button:hover:enabled {
+    background-color: color-mix(in srgb, var(--on-surface) 8%, transparent);
+}
+
+/* Hide unused SunEditor link dialog fields */
+.sun-editor .se-dialog .se-dialog-inner ._se_bookmark_button,
+.sun-editor .se-dialog .se-dialog-inner ._se_anchor_bookmark_icon,
+.sun-editor .se-dialog .se-dialog-inner ._se_anchor_download,
+.sun-editor .se-dialog .se-dialog-inner ._se_anchor_download_icon,
+.sun-editor .se-dialog .se-dialog-inner label:has(._se_anchor_download),
+.sun-editor .se-dialog .se-dialog-inner label:has(+ input._se_anchor_text),
+.sun-editor .se-dialog .se-dialog-inner ._se_anchor_text.se-input-form {
+    display: none;
 }
 
 /* Article Form (Create/Edit) */

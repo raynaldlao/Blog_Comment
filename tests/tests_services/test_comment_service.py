@@ -69,7 +69,7 @@ class TestCreateComment(CommentServiceTestBase):
         fake_article = create_test_article(article_id=1, article_author_id=2)
         self.mock_article_repo.get_by_id.return_value = fake_article
 
-        malicious_content = '<script>alert("xss")</script><b>bold</b>'
+        malicious_content = '<script>alert("xss")</script><b>bold</b><a href="https://example.com" target="_blank">link</a>'
         result = self.service.create_comment(
             article_id=fake_article.article_id,
             user_id=fake_account.account_id,
@@ -77,7 +77,10 @@ class TestCreateComment(CommentServiceTestBase):
         )
 
         saved_comment = self.mock_comment_repo.save.call_args.args[0]
-        assert saved_comment.comment_content == "<b>bold</b>"
+        assert (
+            saved_comment.comment_content
+            == '<b>bold</b><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a>'
+        )
         assert result is saved_comment
 
     def test_create_comment_article_not_found(self):

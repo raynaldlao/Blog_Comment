@@ -82,7 +82,12 @@ class CommentService(CommentManagementPort):
             # TODO: Raise ArticleNotFoundException later
             return "Article not found."
 
-        sanitized = nh3.clean(content, tags=self.ALLOWED_TAGS)
+        sanitized = nh3.clean(
+            content,
+            tags=self.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
@@ -121,7 +126,12 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Parent comment not found."
 
-        sanitized = nh3.clean(content, tags=self.ALLOWED_TAGS)
+        sanitized = nh3.clean(
+            content,
+            tags=self.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
