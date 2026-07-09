@@ -42,6 +42,7 @@
                 ['bold', 'underline', 'italic', 'strike'],
                 ['list', 'link', 'emoji']
             ],
+            lineHeight: '1.4',
             height: 'auto',
             minHeight: '6.25rem',
         });

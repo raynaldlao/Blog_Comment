@@ -695,6 +695,12 @@ input[type=number] {
 
 .sun-editor-editable {
     font-family: var(--font-primary);
+    line-height: 1.4;
+}
+
+.sun-editor-editable p {
+    margin: 0 0 0.25rem;
+    line-height: 1.4;
 }
 
 .sun-editor-editable a {
