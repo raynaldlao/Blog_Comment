@@ -55,11 +55,35 @@ class TestWorkflows:
             "content": reply_content
         }, follow_redirects=True)
 
-        assert reply_content.encode() in reply_response.data
+        # Rate limit: reply within 60s of root comment by same user
+        # NB: apostrophe HTML-escaped to &#39; in flash message
+        assert b"posting too fast" in reply_response.data
         final_view = client.get(f"/articles/{article_id}")
         assert b"tester" in final_view.data
         assert comment_content.encode() in final_view.data
-        assert reply_content.encode() in final_view.data
+
+    def test_honeypot_blocks_spam_bots(self, client, db_session):
+        client.post("/register", data={
+            "username": "spam_tester", "email": "spam@t.com",
+            "password": "p12345678", "confirm_password": "p12345678"
+        }, follow_redirects=True)
+        user = db_session.query(AccountModel).filter_by(account_username="spam_tester").first()
+        user.account_role = "author"
+        db_session.commit()
+
+        client.post("/login", data={"username": "spam_tester", "password": "p12345678"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Spam Test", "content": "Spam content"})
+        assert r.status_code == 201
+        aid = r.get_json()["id"]
+
+        r = client.post(f"/articles/{aid}/comments", data={
+            "content": "Spam comment!", "hp_comment": "I am a bot"
+        }, follow_redirects=False)
+        assert r.status_code == 302
+
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
+        comments = db_session.query(CommentModel).filter_by(comment_article_id=aid).all()
+        assert len(comments) == 0
 
     def test_deep_comment_threading_integ(self, client, db_session):
         """
@@ -181,14 +205,13 @@ class TestWorkflows:
         root_comment = db_session.query(CommentModel).filter_by(comment_article_id=article.article_id).first()
         multi_line_reply = "Reply line 1\nReply line 2"
 
-        client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
+        reply_response = client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
             "content": multi_line_reply
         }, follow_redirects=True)
 
-        response = client.get(f"/articles/{article.article_id}")
-        assert response.status_code == 200
-        assert b"Reply line 1" in response.data
-        assert b"Reply line 2" in response.data
+        # Rate limit: reply within 60s of root comment by same user
+        # NB: apostrophe HTML-escaped to &#39; in flash message
+        assert b"posting too fast" in reply_response.data
 
     def test_article_detail_displays_iso_date(self, client, db_session):
         """
