@@ -530,8 +530,8 @@ input[type=number] {
     color: var(--on-surface-variant);
 }
 
-.comment-deleted > .comment-content > .comment-header > .comment-author,
-.comment-deleted > .comment-content > .comment-body-text {
+.comment-deleted > .comment-content > .comment-header-section > .comment-header > .comment-author,
+.comment-deleted > .comment-content > .comment-header-section > .comment-body-text {
     font-style: italic;
 }
 
@@ -580,10 +580,10 @@ input[type=number] {
     gap: var(--spacing-xs);
 }
 
-.comment-depth-1 > .comment-content,
-.comment-depth-2 > .comment-content,
-.comment-depth-3 > .comment-content,
-.comment-depth-4 > .comment-content {
+.comment-depth-1 > .comment-content > .comment-header-section,
+.comment-depth-2 > .comment-content > .comment-header-section,
+.comment-depth-3 > .comment-content > .comment-header-section,
+.comment-depth-4 > .comment-content > .comment-header-section {
     border-left: 2px solid var(--outline-variant);
     padding-left: var(--spacing-md);
 }
@@ -592,12 +592,24 @@ input[type=number] {
     margin-top: var(--spacing-sm);
 }
 
+.comment-depth-3 .comment-replies > .comment-depth-3 > .comment-avatar {
+    display: none;
+}
+
+.comment-depth-3 .comment-replies > .comment-depth-3 > .comment-content > .comment-header-section {
+    border-left: none;
+}
+
 @media (max-width: 30em) {
-    .comment-depth-1 > .comment-content,
-    .comment-depth-2 > .comment-content,
-    .comment-depth-3 > .comment-content,
-    .comment-depth-4 > .comment-content {
+    .comment-depth-1 > .comment-content > .comment-header-section,
+    .comment-depth-2 > .comment-content > .comment-header-section,
+    .comment-depth-3 > .comment-content > .comment-header-section,
+    .comment-depth-4 > .comment-content > .comment-header-section {
         padding-left: var(--spacing-sm);
+    }
+
+    .comment-depth-3 .comment-replies > .comment-depth-3 > .comment-content > .comment-header-section {
+        border-left: none;
     }
 
     .comment-avatar {

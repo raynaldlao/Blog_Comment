@@ -66,7 +66,7 @@
     <div id="root" data-page="view" data-article-id="{{ article.article_id }}"></div>
 
     {% macro render_comment(node, depth=0) %}
-        {% set display_depth = depth if depth < 4 else 4 %}
+        {% set display_depth = depth if depth < 3 else 3 %}
         <div class="comment comment-depth-{{ display_depth }}{% if node.comment.comment_content in ('Comment removed', '[deleted]') %} comment-deleted{% endif %}">
             <div class="comment-avatar">
                 {% if node.comment.comment_content not in ('Comment removed', '[deleted]') %}
@@ -76,33 +76,35 @@
                 {% endif %}
             </div>
             <div class="comment-content">
-                <div class="comment-header">
-                    <span class="comment-author">{{ node.comment.author_username }}</span>
-                    <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
-                    {% if current_user and current_user.account_role == 'admin' %}
-                        <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ node.comment.comment_id }}">[Delete]</button>
-                        </form>
+                <div class="comment-header-section">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ node.comment.author_username }}</span>
+                        <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
+                        {% if current_user and current_user.account_role == 'admin' %}
+                            <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ node.comment.comment_id }}">[Delete]</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    <div class="comment-body-text">
+                        {{ node.comment.comment_content | safe }}
+                    </div>
+                    {% if current_user and node.comment.comment_content not in ('Comment removed', '[deleted]') %}
+                        <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
+                        <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
+                            <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
+                                <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" placeholder="Write a reply..."></textarea>
+                                <div class="reply-actions">
+                                    <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     {% endif %}
                 </div>
-                <div class="comment-body-text">
-                    {{ node.comment.comment_content | safe }}
-                </div>
-                {% if current_user and node.comment.comment_content not in ('Comment removed', '[deleted]') %}
-                    <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
-                    <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
-                        <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
-                            <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" placeholder="Write a reply..."></textarea>
-                            <div class="reply-actions">
-                                <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
-                                <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                {% endif %}
                 {% if node.replies %}
                     <div class="comment-replies">
                         {% for reply_node in node.replies %}

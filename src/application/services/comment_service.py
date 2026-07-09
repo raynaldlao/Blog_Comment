@@ -18,6 +18,7 @@ class CommentService(CommentManagementPort):
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
     for data persistence, injected via the constructor.
     """
+
     ALLOWED_TAGS = frozenset({
         "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
         "blockquote", "pre", "code", "span", "sub", "sup", "h1", "h2", "h3",
@@ -57,6 +58,7 @@ class CommentService(CommentManagementPort):
             # TODO: Raise AccountNotFoundException
             return "Account not found."
         return account
+
 
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment | str:
         """
