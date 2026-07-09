@@ -1313,6 +1313,16 @@ input[type=number] {
     border: 1px solid var(--outline-variant);
 }
 
+.hp-field {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    opacity: 0;
+    height: 0;
+    width: 0;
+    z-index: -1;
+}
+
 .article-edit-view {
     max-width: var(--content-narrow);
     margin: 0 auto;

@@ -75,6 +75,13 @@ class TestCommentCreate(CommentAdapterTestBase):
         assert b"Article not found" in response.data
         assert b"alert-error" in response.data
 
+    def test_create_comment_with_honeypot_returns_silent_redirect(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments", data={"content": "x", "hp_comment": "bot"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_comment.assert_not_called()
+
 class TestCommentReply(CommentAdapterTestBase):
     def test_reply_to_comment_success(self):
         user = create_test_account(account_id=456)
@@ -109,6 +116,13 @@ class TestCommentReply(CommentAdapterTestBase):
         response = self.client.post("/articles/1/comments/10/reply", data={"content": "Valid"}, follow_redirects=True)
         assert b"Parent not found" in response.data
         assert b"alert-error" in response.data
+
+    def test_reply_with_honeypot_returns_silent_redirect(self):
+        user = create_test_account(account_id=456)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": "x", "hp_comment": "bot"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_reply.assert_not_called()
 
 class TestCommentDelete(CommentAdapterTestBase):
     def test_delete_comment_success(self):

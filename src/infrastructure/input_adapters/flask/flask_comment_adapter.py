@@ -37,6 +37,9 @@ class CommentAdapter:
             flash("You must be signed in to post a comment.", "error")
             return redirect(url_for("auth.login"))
 
+        if request.form.get("hp_comment"):
+            return redirect(url_for("article.read_article", article_id=article_id))
+
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         except ValidationError as e:
@@ -72,6 +75,9 @@ class CommentAdapter:
         if not user:
             flash("You must be signed in to reply.", "error")
             return redirect(url_for("auth.login"))
+
+        if request.form.get("hp_comment"):
+            return redirect(url_for("article.read_article", article_id=article_id))
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
