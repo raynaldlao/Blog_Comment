@@ -265,7 +265,6 @@ class TestDeleteComment(CommentServiceTestBase):
         self.mock_account_repo.get_by_id.return_value = admin_account
         comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
         self.mock_comment_repo.get_by_id.return_value = comment_to_delete
-        self.mock_comment_repo.get_by_reply_to.return_value = []
 
         result = self.service.delete_comment(
             comment_id=comment_to_delete.comment_id,
@@ -274,9 +273,56 @@ class TestDeleteComment(CommentServiceTestBase):
 
         self.mock_account_repo.get_by_id.assert_called_once_with(admin_account.account_id)
         self.mock_comment_repo.get_by_id.assert_called_once_with(comment_to_delete.comment_id)
-        self.mock_comment_repo.get_by_reply_to.assert_called_once_with(comment_to_delete.comment_id)
-        self.mock_comment_repo.delete.assert_called_once_with(comment_to_delete.comment_id)
+        self.mock_comment_repo.save.assert_called_once()
+        self.mock_comment_repo.delete.assert_not_called()
         assert result is True
+        assert comment_to_delete.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
+
+    def test_delete_comment_second_click_cascade(self):
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = admin_account
+        comment_to_delete = create_test_comment(
+            comment_id=10,
+            comment_content="<!--cmt-removed--><em>Comment removed</em>"
+        )
+        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
+        child = create_test_comment(comment_id=11, comment_reply_to=10)
+        grandchild = create_test_comment(comment_id=12, comment_reply_to=11)
+        self.mock_comment_repo.get_by_reply_to.side_effect = lambda cid: {
+            10: [child],
+            11: [grandchild],
+            12: [],
+        }.get(cid, [])
+
+        result = self.service.delete_comment(
+            comment_id=comment_to_delete.comment_id,
+            user_id=admin_account.account_id,
+            cascade=True
+        )
+
+        assert result is True
+        assert self.mock_comment_repo.delete.call_args_list[0].args[0] == 12
+        assert self.mock_comment_repo.delete.call_args_list[1].args[0] == 11
+        assert self.mock_comment_repo.delete.call_args_list[2].args[0] == 10
+
+    def test_delete_comment_second_click_no_cascade(self):
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = admin_account
+        comment_to_delete = create_test_comment(
+            comment_id=10,
+            comment_content="<!--cmt-removed--><em>Comment removed</em>"
+        )
+        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
+
+        result = self.service.delete_comment(
+            comment_id=comment_to_delete.comment_id,
+            user_id=admin_account.account_id,
+            cascade=False
+        )
+
+        assert result is True
+        self.mock_comment_repo.orphan_children.assert_called_once_with(10)
+        self.mock_comment_repo.delete.assert_called_once_with(10)
 
     def test_delete_comment_unauthorized_not_admin(self):
         fake_account = create_test_account(account_id=2, account_role=AccountRole.USER)
@@ -295,25 +341,6 @@ class TestDeleteComment(CommentServiceTestBase):
         self.mock_comment_repo.get_by_id.assert_called_once_with(999)
         self.mock_comment_repo.delete.assert_not_called()
         assert result == "Comment not found."
-
-    def test_delete_comment_soft_delete_with_replies(self):
-        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.mock_account_repo.get_by_id.return_value = admin_account
-        comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
-        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
-        self.mock_comment_repo.get_by_reply_to.return_value = [
-            create_test_comment(comment_id=11)
-        ]
-
-        result = self.service.delete_comment(
-            comment_id=comment_to_delete.comment_id,
-            user_id=admin_account.account_id
-        )
-
-        self.mock_comment_repo.save.assert_called_once()
-        self.mock_comment_repo.delete.assert_not_called()
-        assert result is True
-        assert comment_to_delete.comment_content == "Comment removed"
 
     def test_delete_comment_account_not_found(self):
         self.mock_account_repo.get_by_id.return_value = None

@@ -85,6 +85,47 @@ class TestWorkflows:
         comments = db_session.query(CommentModel).filter_by(comment_article_id=aid).all()
         assert len(comments) == 0
 
+    def test_two_click_delete_cascade(self, client, db_session):
+        """
+        Verifies two-click delete + cascade across the full stack.
+        First click soft-deletes (content → marker + Anonymous).
+        Second click hard-deletes parent + children from DB.
+        """
+        admin = AccountModel(
+            account_username="del_admin", account_email="del@t.com",
+            account_password="p", account_role="admin"
+        )
+
+        db_session.add(admin)
+        db_session.commit()
+        client.post("/login", data={"username": "del_admin", "password": "p"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Del Test", "content": "Content"})
+        aid = r.get_json()["id"]
+
+        client.post(f"/articles/{aid}/comments", data={"content": "Root"})
+        db_session.commit()
+        root = db_session.query(CommentModel).filter_by(comment_article_id=aid).first()
+        rid = root.comment_id
+        client.post(f"/articles/{aid}/comments/{rid}/reply", data={"content": "Child"})
+
+        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        assert first_click.status_code == 302
+        db_session.expire_all()
+        soft = db_session.get(CommentModel, rid)
+        assert "<!--cmt-removed-->" in soft.comment_content
+        assert "<em>Comment removed</em>" in soft.comment_content
+
+        detail = client.get(f"/articles/{aid}")
+        assert b"Anonymous" in detail.data
+        assert b">?<" in detail.data
+        assert b"comment-deleted" in detail.data
+
+        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        assert second_click.status_code == 302
+        db_session.expire_all()
+        assert db_session.get(CommentModel, rid) is None
+        assert db_session.query(CommentModel).filter_by(comment_reply_to=rid).count() == 0
+
     def test_deep_comment_threading_integ(self, client, db_session):
         """
         Verifies that threading works for multiple levels of nesting.

@@ -153,7 +153,8 @@ class TestCommentDelete(CommentAdapterTestBase):
 
         self.mock_comment_service.delete_comment.assert_called_once_with(
             comment_id=99,
-            user_id=1
+            user_id=1,
+            cascade=True
         )
 
     def test_delete_comment_requires_login(self):

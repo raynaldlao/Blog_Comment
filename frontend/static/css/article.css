@@ -666,12 +666,6 @@ input[type=number] {
     margin-bottom: var(--spacing-md);
 }
 
-.comment-post-textarea {
-    margin-bottom: var(--spacing-md);
-    height: 6.25rem;
-    font-size: var(--font-body-base);
-}
-
 .comment-auth-prompt {
     text-align: center;
     margin-top: var(--spacing-xl);

@@ -59,6 +59,21 @@ class CommentService(CommentManagementPort):
             return "Account not found."
         return account
 
+    def _delete_with_descendants(self, comment_id: int) -> None:
+        """
+        Recursively deletes a comment and all its descendants from the repository.
+
+        Traverses the reply tree depth-first, deleting leaf comments first
+        to respect foreign key constraints.
+
+        Args:
+            comment_id (int): ID of the root comment to delete along with its subtree.
+        """
+        children = self.comment_repository.get_by_reply_to(comment_id)
+        for child in children:
+            self._delete_with_descendants(child.comment_id)
+        self.comment_repository.delete(comment_id)
+
 
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment | str:
         """
@@ -170,14 +185,15 @@ class CommentService(CommentManagementPort):
         author_map = {acc.account_id: acc.account_username for acc in authors}
         return build_comment_nested_tree(all_comments, author_map)
 
-    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
         """
-        Deletes a comment or soft-deletes it if it has replies (content becomes "Comment removed").
-        Only an admin can delete a comment.
+        Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
+        Second click hard-deletes: if cascade=True, removes all descendants recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
+            cascade (bool): If True, also delete all child nodes recursively.
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.
@@ -198,11 +214,14 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Comment not found."
 
-        replies = self.comment_repository.get_by_reply_to(comment_id)
-        if replies:
-            comment.comment_content = "Comment removed"
-            self.comment_repository.save(comment)
+        if "<!--cmt-removed-->" in comment.comment_content:
+            if cascade:
+                self._delete_with_descendants(comment_id)
+            else:
+                self.comment_repository.orphan_children(comment_id)
+                self.comment_repository.delete(comment_id)
             return True
 
-        self.comment_repository.delete(comment_id)
+        comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
+        self.comment_repository.save(comment)
         return True

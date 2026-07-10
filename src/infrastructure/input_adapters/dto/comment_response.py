@@ -35,8 +35,12 @@ class CommentResponse(BaseModel):
         Returns:
             CommentResponse: The initialized DTO.
         """
-        if comment.comment_content in ("Comment removed", "[deleted]"):
+        content = comment.comment_content
+        if "<!--cmt-removed-->" in content or content in ("Comment removed", "[deleted]"):
             author_username = "Anonymous"
+
+        if "<!--cmt-removed-->" in content:
+            content = content.replace("<!--cmt-removed-->", "")
 
         formatted_date = ""
         if comment.comment_posted_at:
@@ -48,7 +52,7 @@ class CommentResponse(BaseModel):
             comment_written_account_id=comment.comment_written_account_id,
             author_username=author_username,
             comment_reply_to=comment.comment_reply_to,
-            comment_content=comment.comment_content,
+            comment_content=content,
             comment_posted_at_formatted=formatted_date
         )
 

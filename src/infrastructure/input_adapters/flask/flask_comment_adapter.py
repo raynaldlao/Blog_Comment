@@ -151,9 +151,11 @@ class CommentAdapter:
             flash("You must be signed in to delete comments.", "error")
             return redirect(url_for("auth.login"))
 
+        cascade = request.form.get("cascade", "true").lower() == "true"
         result = self.comment_service.delete_comment(
             comment_id=comment_id,
-            user_id=user.account_id
+            user_id=user.account_id,
+            cascade=cascade
         )
 
         if isinstance(result, str):
