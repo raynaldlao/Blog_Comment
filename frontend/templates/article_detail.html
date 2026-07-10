@@ -94,7 +94,12 @@
                         {{ node.comment.comment_content | safe }}
                     </div>
                     {% if current_user and not is_deleted %}
+                    <div class="comment-actions">
                         <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
+                        {% if node.replies and display_depth < 3 %}
+                        <button type="button" class="view-replies-btn">View replies</button>
+                        {% endif %}
+                    </div>
                         <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
                             <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -107,6 +112,10 @@
                                 </div>
                             </form>
                         </div>
+                    {% elif node.replies and display_depth < 3 %}
+                    <div class="comment-actions">
+                        <button type="button" class="view-replies-btn">View replies</button>
+                    </div>
                     {% endif %}
                 </div>
                 {% if node.replies %}

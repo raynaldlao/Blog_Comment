@@ -519,6 +519,38 @@ input[type=number] {
     flex-wrap: wrap;
 }
 
+.comment > .comment-content > .comment-replies {
+    display: none;
+}
+
+.comment.replies-visible > .comment-content > .comment-replies {
+    display: block;
+}
+
+.comment-depth-3 > .comment-content > .comment-replies {
+    display: block;
+}
+
+.comment-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+}
+
+.view-replies-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: var(--font-body-sm);
+    font-family: var(--font-mono);
+    padding: 0;
+}
+
+.view-replies-btn:hover {
+    text-decoration: underline;
+}
+
 .comment-author {
     font-size: var(--font-body-sm);
     font-weight: 600;
@@ -550,7 +582,6 @@ input[type=number] {
     font-size: var(--font-body-sm);
     font-family: var(--font-mono);
     padding: 0;
-    margin-top: var(--spacing-xs);
 }
 
 .reply-toggle:hover {
@@ -580,14 +611,6 @@ input[type=number] {
     gap: var(--spacing-xs);
 }
 
-.comment-depth-1 > .comment-content > .comment-header-section,
-.comment-depth-2 > .comment-content > .comment-header-section,
-.comment-depth-3 > .comment-content > .comment-header-section,
-.comment-depth-4 > .comment-content > .comment-header-section {
-    border-left: 2px solid var(--outline-variant);
-    padding-left: var(--spacing-md);
-}
-
 .comment-replies {
     margin-top: var(--spacing-sm);
 }
@@ -596,22 +619,7 @@ input[type=number] {
     display: none;
 }
 
-.comment-depth-3 .comment-replies > .comment-depth-3 > .comment-content > .comment-header-section {
-    border-left: none;
-}
-
 @media (max-width: 30em) {
-    .comment-depth-1 > .comment-content > .comment-header-section,
-    .comment-depth-2 > .comment-content > .comment-header-section,
-    .comment-depth-3 > .comment-content > .comment-header-section,
-    .comment-depth-4 > .comment-content > .comment-header-section {
-        padding-left: var(--spacing-sm);
-    }
-
-    .comment-depth-3 .comment-replies > .comment-depth-3 > .comment-content > .comment-header-section {
-        border-left: none;
-    }
-
     .comment-avatar {
         width: 2rem;
         height: 2rem;

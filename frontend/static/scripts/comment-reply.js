@@ -29,6 +29,28 @@
                 return;
             }
 
+            const viewBtn = e.target.closest('.view-replies-btn');
+            if (viewBtn) {
+                const commentEl = viewBtn.closest('.comment');
+                if (!commentEl) return;
+                commentEl.classList.toggle('replies-visible');
+                const isVisible = commentEl.classList.contains('replies-visible');
+                viewBtn.textContent = isVisible ? 'Hide replies' : 'View replies';
+
+                const cascade = (el, visible) => {
+                    const replies = el.querySelector(':scope > .comment-content > .comment-replies');
+                    if (!replies) return;
+                    replies.querySelectorAll(':scope > .comment').forEach(child => {
+                        child.classList.toggle('replies-visible', visible);
+                        const btn = child.querySelector('.view-replies-btn');
+                        if (btn) btn.textContent = visible ? 'Hide replies' : 'View replies';
+                        cascade(child, visible);
+                    });
+                };
+                cascade(commentEl, isVisible);
+                return;
+            }
+
             const cancelBtn = e.target.closest('.cancel-reply');
             if (cancelBtn) {
                 const container = cancelBtn.closest('.reply-form-container');
