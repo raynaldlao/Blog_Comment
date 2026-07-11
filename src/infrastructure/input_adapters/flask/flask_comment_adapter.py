@@ -66,16 +66,17 @@ class CommentAdapter:
         if request.form.get("hp_comment"):
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
-        if remaining is not None:
-            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
-            return redirect(url_for("article.read_article", article_id=article_id))
-
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error: {error['msg']}", "error")
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(msg, "error")
+            return redirect(url_for("article.read_article", article_id=article_id))
+
+        remaining = self._check_comment_rate_limit(user.account_id)
+        if remaining is not None:
+            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_comment(
@@ -110,16 +111,17 @@ class CommentAdapter:
         if request.form.get("hp_comment"):
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
-        if remaining is not None:
-            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
-            return redirect(url_for("article.read_article", article_id=article_id))
-
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         except ValidationError as e:
             for error in e.errors():
-                flash(f"Validation Error: {error['msg']}", "error")
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(msg, "error")
+            return redirect(url_for("article.read_article", article_id=article_id))
+
+        remaining = self._check_comment_rate_limit(user.account_id)
+        if remaining is not None:
+            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_reply(

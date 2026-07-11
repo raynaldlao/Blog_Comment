@@ -112,7 +112,7 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">
                                 <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
-                                <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" placeholder="Write a reply..."></textarea>
+                                <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" placeholder="Write a reply..." maxlength="5000"></textarea>
                                 <div class="reply-actions">
                                     <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
                                     <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
@@ -151,7 +151,7 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">
                 <input type="hidden" name="content" id="comment-content">
-                <textarea id="comment-editor" placeholder="Share your thoughts..." class="comment-post-textarea"></textarea>
+                                <textarea id="comment-editor" placeholder="Share your thoughts..." class="comment-post-textarea" maxlength="5000"></textarea>
                 <button type="submit" class="btn">Post Comment</button>
             </form>
         </div>

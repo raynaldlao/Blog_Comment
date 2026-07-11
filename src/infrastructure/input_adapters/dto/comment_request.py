@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CommentRequest(BaseModel):
@@ -10,5 +10,12 @@ class CommentRequest(BaseModel):
     content: str = Field(
         ...,
         min_length=1,
-        description="The text content of the comment. Required (NOT NULL)."
+        description="The text content of the comment. Required, max 5000 characters."
     )
+
+    @field_validator("content")
+    @classmethod
+    def check_content_length(cls, v: str) -> str:
+        if len(v) > 5000:
+            raise ValueError("Comment is too long. Maximum 5000 characters.")
+        return v

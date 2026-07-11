@@ -64,7 +64,6 @@ class TestCommentCreate(CommentAdapterTestBase):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
         response = self.client.post("/articles/1/comments", data={"content": ""}, follow_redirects=True)
-        assert b"Validation Error" in response.data
         assert b"alert-error" in response.data
 
     def test_create_comment_service_error_string(self):
@@ -115,7 +114,6 @@ class TestCommentReply(CommentAdapterTestBase):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
         response = self.client.post("/articles/1/comments/10/reply", data={"content": ""}, follow_redirects=True)
-        assert b"Validation Error" in response.data
         assert b"alert-error" in response.data
 
     def test_reply_service_error_string(self):
