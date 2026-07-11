@@ -22,6 +22,9 @@
     {% for css_url in vite_css_urls %}
     <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
     {% endfor %}
+    {% if vite_vendor_js_url %}
+    <link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
+    {% endif %}
     {% endif %}
     {% if page_with_comments %}
     <link rel="stylesheet" href="{{ url_for('static', filename='vendor/suneditor/suneditor.min.css') }}">

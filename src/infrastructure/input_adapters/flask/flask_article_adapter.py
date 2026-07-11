@@ -102,11 +102,22 @@ class ArticleAdapter:
             detail.article_with_author.article,
             author_username=detail.article_with_author.author_name
         )
+
+        content = article.article_content
+        try:
+            json.loads(content)
+        except (json.JSONDecodeError, TypeError):
+            content = json.dumps([{
+                "type": "paragraph",
+                "content": [{"type": "text", "text": content}]
+            }])
+
         dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
         user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",
             article=article,
+            article_content_json=content,
             nested_comments=dto_comments,
             comment_count=self._count_comment_nodes(detail.nested_comments),
             current_user=user,

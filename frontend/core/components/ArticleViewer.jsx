@@ -15,6 +15,16 @@ function BlockNoteViewer({ initialContent }) {
   );
 
   useEffect(() => {
+    const el = document.querySelector('.article-static-content');
+    if (el) el.remove();
+  }, []);
+
+  useEffect(() => {
+    const section = document.getElementById('comments-section');
+    if (section) section.classList.remove('comments-hidden');
+  }, []);
+
+  useEffect(() => {
     const el = document.documentElement;
     const observer = new MutationObserver(() => {
       setTheme(el.dataset.theme === 'dark' ? 'dark' : 'light');
