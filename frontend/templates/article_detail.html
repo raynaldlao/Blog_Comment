@@ -130,7 +130,7 @@
     {% endmacro %}
 
     <section class="comments-section">
-        <h3 class="comments-title">Comments</h3>
+        <h3 class="comments-title">Comments ({{ comment_count }})</h3>
         {% for node in nested_comments %}
             {{ render_comment(node, 0) }}
         {% else %}

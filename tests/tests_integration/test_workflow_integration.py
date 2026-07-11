@@ -359,3 +359,52 @@ class TestWorkflows:
         assert b"New article" not in response.data
         assert b"Sign In" in response.data
         assert b"Sign Up" in response.data
+
+    def test_comment_count_displays_total_with_nested(self, client, db_session):
+        author = AccountModel(
+            account_username="count_author", account_email="count@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(
+            article_title="Count Test", article_content="...",
+            article_author_id=author.account_id
+        )
+
+        db_session.add(article)
+        db_session.commit()
+
+        root = CommentModel(
+            comment_content="Root",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=None
+        )
+
+        db_session.add(root)
+        db_session.commit()
+
+        reply1 = CommentModel(
+            comment_content="Reply 1",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=root.comment_id
+        )
+
+        db_session.add(reply1)
+        db_session.commit()
+
+        reply2 = CommentModel(
+            comment_content="Reply 2",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=root.comment_id
+        )
+
+        db_session.add(reply2)
+        db_session.commit()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Comments (3)" in response.data
