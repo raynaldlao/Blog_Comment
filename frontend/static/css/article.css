@@ -606,6 +606,12 @@ input[type=number] {
     font-size: var(--font-body-base);
 }
 
+.comment-limit-hint {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+
 .reply-actions {
     display: flex;
     gap: var(--spacing-xs);
@@ -675,7 +681,7 @@ input[type=number] {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--primary);
-    margin-bottom: var(--spacing-md);
+    margin: 0;
 }
 
 .comment-auth-prompt {

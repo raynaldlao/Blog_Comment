@@ -59,8 +59,7 @@
             },
             height: 'auto',
             minHeight: '6.25rem',
-            maxTextLength: 5000,
-            charCounter: true,
+            maxCharCount: 5000,
         });
 
         suneditors[textareaId] = editor;
