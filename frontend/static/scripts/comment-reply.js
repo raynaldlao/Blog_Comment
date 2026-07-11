@@ -23,8 +23,8 @@
                 container.style.display = isHidden ? 'block' : 'none';
                 replyToggle.textContent = isHidden ? 'Cancel' : 'Reply';
 
-                if (isHidden && window.__initReplyEditor) {
-                    window.__initReplyEditor(commentId);
+                if (isHidden && window.initReplyEditor) {
+                    window.initReplyEditor(commentId);
                 }
                 return;
             }

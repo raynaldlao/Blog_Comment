@@ -21,8 +21,7 @@ class CommentService(CommentManagementPort):
 
     ALLOWED_TAGS = frozenset({
         "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
-        "blockquote", "pre", "code", "span", "sub", "sup", "h1", "h2", "h3",
-        "h4", "h5", "h6", "hr", "div", "figure", "figcaption",
+        "blockquote", "pre", "code", "span", "sub", "sup",
     })
 
     def __init__(

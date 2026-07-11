@@ -1,7 +1,7 @@
-(function () {
-    'use strict';
+'use strict';
 
-    var activePopup = null;
+(() => {
+    let activePopup = null;
 
     function closePopup() {
         if (activePopup) {
@@ -13,23 +13,23 @@
     function openPicker(anchorRect, editorId) {
         closePopup();
 
-        var theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
 
-        var popup = document.createElement('DIV');
+        const popup = document.createElement('DIV');
         popup.className = 'emoji-picker-popup';
         popup.style.position = 'fixed';
         popup.style.left = anchorRect.left + 'px';
         popup.style.top = (anchorRect.top + 4) + 'px';
         popup.style.zIndex = '9999';
 
-        var picker = new EmojiMart.Picker({
+        const picker = new EmojiMart.Picker({
             theme: theme,
             set: 'native',
             maxFrequentRows: 4,
             previewPosition: 'none',
             skinTonePosition: 'none',
             onEmojiSelect: function (data) {
-                var editor = window.__suneditors[editorId];
+                const editor = window.suneditors[editorId];
                 if (editor) {
                     editor.insertHTML(data.native);
                 }
@@ -42,9 +42,9 @@
         activePopup = popup;
 
         requestAnimationFrame(function () {
-            var pr = popup.getBoundingClientRect();
-            var overflowRight = pr.right - window.innerWidth;
-            var overflowBottom = pr.bottom - window.innerHeight;
+            const pr = popup.getBoundingClientRect();
+            const overflowRight = pr.right - window.innerWidth;
+            const overflowBottom = pr.bottom - window.innerHeight;
 
             if (overflowRight > 0) {
                 popup.style.left = Math.max(4, pr.left - overflowRight - 4) + 'px';
