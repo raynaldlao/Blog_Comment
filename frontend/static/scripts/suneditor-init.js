@@ -27,6 +27,20 @@
         };
     }
 
+    function showToast(message) {
+        const oldToast = document.querySelector('.toast');
+        if (oldToast) oldToast.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            if (toast.parentElement) toast.remove();
+        }, 2800);
+    }
+
     const suneditors = {};
 
     function initCommentEditor(textareaId, hiddenInputId) {
@@ -103,8 +117,15 @@
         };
 
         if (form && hiddenInput) {
-            form.addEventListener('submit', function () {
-                hiddenInput.value = editor.getContents();
+            form.addEventListener('submit', function (e) {
+                const html = editor.getContents();
+                const text = html.replace(/<[^>]+>/g, '').trim();
+                if (!text) {
+                    e.preventDefault();
+                    showToast('Comment cannot be empty');
+                    return;
+                }
+                hiddenInput.value = html;
             });
         }
 

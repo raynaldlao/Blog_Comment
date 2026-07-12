@@ -112,7 +112,7 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">
                                 <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
-                                <span class="comment-limit-hint">Maximum 5000 characters</span>
+                                <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
                                 <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" maxlength="5000"></textarea>
                                 <div class="reply-actions">
                                     <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
@@ -148,7 +148,7 @@
         {% if current_user %}
         <div class="comment-join-section">
             <h4 class="comment-join-title">Join the discussion</h4>
-            <span class="comment-limit-hint">Maximum 5000 characters</span>
+            <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
             <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">

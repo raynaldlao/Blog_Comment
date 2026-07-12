@@ -104,6 +104,8 @@ class CommentService(CommentManagementPort):
             attributes={"a": {"href", "target"}},
             link_rel="noopener noreferrer",
         )
+        if not sanitized.strip():
+            return "Comment cannot be empty."
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
@@ -148,6 +150,8 @@ class CommentService(CommentManagementPort):
             attributes={"a": {"href", "target"}},
             link_rel="noopener noreferrer",
         )
+        if not sanitized.strip():
+            return "Comment cannot be empty."
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
