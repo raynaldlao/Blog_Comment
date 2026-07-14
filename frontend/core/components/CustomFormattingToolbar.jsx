@@ -13,7 +13,7 @@ import JustifyButton from './JustifyButton';
 import CopyBlockButton from './CopyBlockButton';
 
 
-var HIDDEN_VIDEO_BUTTONS = [
+const HIDDEN_VIDEO_BUTTONS = [
   FileReplaceButton,
   FileDownloadButton,
   FileCaptionButton,
@@ -21,13 +21,13 @@ var HIDDEN_VIDEO_BUTTONS = [
   FilePreviewButton,
 ];
 
-var HIDDEN_IMAGE_BUTTONS = [
+const HIDDEN_IMAGE_BUTTONS = [
   FileDownloadButton,
 ];
 
 export function filterVideoToolbarItems(items, hiddenTypes) {
-  var hide = hiddenTypes || HIDDEN_VIDEO_BUTTONS;
-  return items.filter(function (item) {
+  const hide = hiddenTypes || HIDDEN_VIDEO_BUTTONS;
+  return items.filter((item) => {
     if (hide.includes(item.type)) return false;
     if (item.props?.textAlignment) return false;
     return true;
@@ -35,20 +35,20 @@ export function filterVideoToolbarItems(items, hiddenTypes) {
 }
 
 export function filterImageToolbarItems(items, hiddenTypes) {
-  var hide = hiddenTypes || HIDDEN_IMAGE_BUTTONS;
-  return items.filter(function (item) {
+  const hide = hiddenTypes || HIDDEN_IMAGE_BUTTONS;
+  return items.filter((item) => {
     if (hide.includes(item.type)) return false;
     return true;
   });
 }
 
 function useIsVideo() {
-  var editor = useBlockNoteEditor();
+  const editor = useBlockNoteEditor();
   if (!editor) {
     return false;
   }
   try {
-    var block = editor.getSelection()?.blocks?.[0]
+    const block = editor.getSelection()?.blocks?.[0]
       ?? editor.getTextCursorPosition().block;
     return block.type === 'video';
   } catch {
@@ -57,12 +57,12 @@ function useIsVideo() {
 }
 
 function useIsImage() {
-  var editor = useBlockNoteEditor();
+  const editor = useBlockNoteEditor();
   if (!editor) {
     return false;
   }
   try {
-    var block = editor.getSelection()?.blocks?.[0]
+    const block = editor.getSelection()?.blocks?.[0]
       ?? editor.getTextCursorPosition().block;
     return block.type === 'image';
   } catch {
@@ -71,17 +71,17 @@ function useIsImage() {
 }
 
 export default function CustomFormattingToolbar() {
-  var Components = useComponentsContext();
+  const Components = useComponentsContext();
   if (!Components) {
     return null;
   }
 
-  var isVideo = useIsVideo();
-  var isImage = useIsImage();
-  var items = getFormattingToolbarItems();
+  const isVideo = useIsVideo();
+  const isImage = useIsImage();
+  const items = getFormattingToolbarItems();
 
   if (isVideo) {
-    var filtered = filterVideoToolbarItems(items);
+    const filtered = filterVideoToolbarItems(items);
     return (
       <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
         <CopyBlockButton />
@@ -91,7 +91,7 @@ export default function CustomFormattingToolbar() {
   }
 
   if (isImage) {
-    var filtered = filterImageToolbarItems(items);
+    const filtered = filterImageToolbarItems(items);
     return (
       <Components.FormattingToolbar.Root className="bn-toolbar bn-formatting-toolbar">
         <CopyBlockButton />
@@ -100,8 +100,8 @@ export default function CustomFormattingToolbar() {
     );
   }
 
-  var rightIdx = items.findIndex(
-    function (item) { return item.props?.textAlignment === 'right'; },
+  const rightIdx = items.findIndex(
+    (item) => { return item.props?.textAlignment === 'right'; },
   );
 
   return (

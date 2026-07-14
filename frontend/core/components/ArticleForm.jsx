@@ -110,12 +110,12 @@ function BlockNoteEditor({ initialContent, onReady }) {
     }),
   });
 
-  useEffect(function () {
+  useEffect(() => {
     if (editor) {
       applyVideoDictOverrides(editor);
       document.querySelectorAll(
         '[data-content-type="video"] .bn-add-file-button-text',
-      ).forEach(function(el) {
+      ).forEach((el) => {
         if (el.textContent === 'Add video') {
           el.textContent = 'Add YouTube video URL';
         }
@@ -126,7 +126,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const handleSelectionChange = useCallback(() => {
     let blockType;
     try {
-      var pos = editor.getTextCursorPosition();
+      const pos = editor.getTextCursorPosition();
       blockType = pos.block?.type;
       if (blockType === 'image') {
         editor.portalElement?.classList.add('image-selected');
@@ -137,24 +137,24 @@ function BlockNoteEditor({ initialContent, onReady }) {
       editor.portalElement?.classList.remove('image-selected');
     }
     requestAnimationFrame(() => {
-      document.querySelectorAll('.ProseMirror-selectednode').forEach(function(el) {
+      document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => {
         if (el.classList.contains('bn-visual-media-wrapper') && el.getBoundingClientRect().height < 1) {
-          var dir = arrowDirRef.current;
+          const dir = arrowDirRef.current;
           arrowDirRef.current = null;
           if (dir && editor) {
-            var block;
-            var container = el.closest('.bn-block') || el.closest('[data-id]');
-            var dataId = container?.getAttribute('data-id');
-            if (dataId) block = editor.document?.find(function(b) { return b.id === dataId; });
+            let block;
+            const container = el.closest('.bn-block') || el.closest('[data-id]');
+            const dataId = container?.getAttribute('data-id');
+            if (dataId) block = editor.document?.find((b) => b.id === dataId);
             if (block) {
-              var idx = editor.document?.indexOf(block);
-              var target = (idx != null && idx >= 0)
+              const idx = editor.document?.indexOf(block);
+              const target = (idx != null && idx >= 0)
                 ? (dir === 'ArrowDown' ? editor.document?.[idx + 1] : editor.document?.[idx - 1])
                 : null;
               if (target) {
-                var targetEl = document.querySelector('[data-id="' + target.id + '"]');
+                const targetEl = document.querySelector('[data-id="' + target.id + '"]');
                 if (targetEl) {
-                  var rect = targetEl.getBoundingClientRect();
+                  const rect = targetEl.getBoundingClientRect();
                   window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
                 }
                 editor.setTextCursorPosition(target.id, 'start');
@@ -167,13 +167,13 @@ function BlockNoteEditor({ initialContent, onReady }) {
         }
       });
       if (arrowDirRef.current && editor) {
-        var dir = arrowDirRef.current;
+        const dir = arrowDirRef.current;
         arrowDirRef.current = null;
-        var pos = editor.getTextCursorPosition();
+        const pos = editor.getTextCursorPosition();
         if (pos?.block) {
-          var targetEl = document.querySelector('[data-id="' + pos.block.id + '"]');
+          const targetEl = document.querySelector('[data-id="' + pos.block.id + '"]');
           if (targetEl) {
-            var rect = targetEl.getBoundingClientRect();
+            const rect = targetEl.getBoundingClientRect();
             window.scrollTo({ top: window.scrollY + rect.top - 100, behavior: 'instant' });
           }
         }
@@ -208,7 +208,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
 
   useEffect(() => {
     if (!editor) return;
-    const handler = function (e) {
+    const handler = (e) => {
       const html = e.clipboardData.getData('text/html');
       if (html && html.includes('blocknote-block')) {
         e.preventDefault();
@@ -223,13 +223,13 @@ function BlockNoteEditor({ initialContent, onReady }) {
         catch { return; }
         editor.updateBlock(block, data);
         if (data.type === 'image') {
-          document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+          document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => {
             el.classList.remove('ProseMirror-selectednode');
           });
           editor.domElement?.blur();
         }
         if (data.type === 'video') {
-          document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+          document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => {
             el.classList.remove('ProseMirror-selectednode');
           });
           try {
@@ -245,8 +245,8 @@ function BlockNoteEditor({ initialContent, onReady }) {
           } catch {}
         }
       }
-      requestAnimationFrame(function () {
-        document.querySelectorAll('.ProseMirror-selectednode').forEach(function (el) {
+      requestAnimationFrame(() => {
+        document.querySelectorAll('.ProseMirror-selectednode').forEach((el) => {
           el.classList.remove('ProseMirror-selectednode');
         });
       });
@@ -257,7 +257,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
 
   useEffect(() => {
     if (!editor) return;
-    const handler = function (e) {
+    const handler = (e) => {
       let block;
       try { block = editor.getSelection()?.blocks?.[0] ?? editor.getTextCursorPosition().block; }
       catch { return; }
@@ -280,18 +280,18 @@ function BlockNoteEditor({ initialContent, onReady }) {
         'text/plain': new Blob([text], { type: 'text/plain' }),
         'text/html': new Blob([html], { type: 'text/html' }),
       };
-      navigator.clipboard.write([new ClipboardItem(items)]).catch(function () {});
+      navigator.clipboard.write([new ClipboardItem(items)]).catch(() => {});
     };
     document.addEventListener('copy', handler, true);
     return () => document.removeEventListener('copy', handler, true);
   }, [editor]);
 
-  useEffect(function () {
+  useEffect(() => {
     if (!editor) return;
-    const handler = function (e) {
+    const handler = (e) => {
       let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
-      if (target?.closest?.('.bn-formatting-toolbar, .bn-panel')) return;
+      if (target?.closest?.('#bn-grid-suggestion-menu, .bn-formatting-toolbar, .bn-panel, em-emoji-picker')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {
@@ -305,7 +305,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
       } catch {}
     };
     document.addEventListener('mousedown', handler, true);
-    return function () { document.removeEventListener('mousedown', handler, true); };
+    return () => { document.removeEventListener('mousedown', handler, true); };
   }, [editor]);
 
   return (

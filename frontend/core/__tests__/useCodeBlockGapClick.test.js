@@ -8,20 +8,20 @@ function TestHarness({ editorRef }) {
   return null;
 }
 
-var roots = [];
+let roots = [];
 
 function render(ui) {
-  var container = document.createElement('div');
+  const container = document.createElement('div');
   container.id = 'test-root';
-  var root = createRoot(container);
+  const root = createRoot(container);
   roots.push(root);
-  act(function () { root.render(ui); });
+  act(() => { root.render(ui); });
   document.body.appendChild(container);
   return container;
 }
 
-afterEach(function () {
-  roots.forEach(function (r) { r.unmount(); });
+afterEach(() => {
+  roots.forEach((r) => { r.unmount(); });
   roots = [];
   vi.useRealTimers();
   document.body.innerHTML = '';
@@ -29,7 +29,7 @@ afterEach(function () {
 });
 
 function addBlockToDOM(props = {}) {
-  var {
+  const {
     blockId = 'block',
     top = 0,
     bottom = 100,
@@ -41,7 +41,7 @@ function addBlockToDOM(props = {}) {
     useMediaWrapper = false,
   } = props;
 
-  var inner = document.createElement('div');
+  const inner = document.createElement('div');
   if (useMediaWrapper) {
     inner.className = 'bn-visual-media-wrapper';
   } else {
@@ -49,22 +49,22 @@ function addBlockToDOM(props = {}) {
     if (contentType) inner.setAttribute('data-content-type', contentType);
   }
 
-  var blockOuter = document.createElement('div');
+  const blockOuter = document.createElement('div');
   blockOuter.className = 'bn-block-outer';
   blockOuter.setAttribute('data-id', blockId);
 
   vi.spyOn(blockOuter, 'getBoundingClientRect').mockReturnValue({
-    top: top, bottom: bottom, left: left, right: right,
-    width: width, height: height,
+    top, bottom, left, right,
+    width, height,
     x: left, y: top,
-    toJSON: function () {},
+    toJSON() {},
   });
 
   blockOuter.appendChild(inner);
 
-  var container = document.getElementById('test-root') || document.body;
+  const container = document.getElementById('test-root') || document.body;
   container.appendChild(blockOuter);
-  return { inner: inner, blockOuter: blockOuter };
+  return { inner, blockOuter };
 }
 
 describe('useCodeBlockGapClick', () => {
@@ -266,17 +266,17 @@ describe('useCodeBlockGapClick', () => {
 
   it('inserts paragraph when clicking below video block', () => {
     vi.useFakeTimers();
-    var insertBlocks = vi.fn(function () { return [{ id: 'new-vid-p' }]; });
-    var focus = vi.fn();
-    var documentBlocks = [{ id: 'vid-1', type: 'video' }];
-    var editorRef = {
-      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    const insertBlocks = vi.fn(() => [{ id: 'new-vid-p' }]);
+    const focus = vi.fn();
+    const documentBlocks = [{ id: 'vid-1', type: 'video' }];
+    const editorRef = {
+      current: { insertBlocks, focus, document: documentBlocks },
     };
 
-    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    const container = render(React.createElement(TestHarness, { editorRef }));
     addBlockToDOM({ blockId: 'vid-1', bottom: 100, useMediaWrapper: true });
 
-    var event = new MouseEvent('mousedown', {
+    const event = new MouseEvent('mousedown', {
       clientY: 108,
       bubbles: true,
       cancelable: true,
@@ -297,17 +297,17 @@ describe('useCodeBlockGapClick', () => {
 
   it('inserts paragraph when clicking above video block', () => {
     vi.useFakeTimers();
-    var insertBlocks = vi.fn(function () { return [{ id: 'new-vid-p2' }]; });
-    var focus = vi.fn();
-    var documentBlocks = [{ id: 'vid-2', type: 'video' }];
-    var editorRef = {
-      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    const insertBlocks = vi.fn(() => [{ id: 'new-vid-p2' }]);
+    const focus = vi.fn();
+    const documentBlocks = [{ id: 'vid-2', type: 'video' }];
+    const editorRef = {
+      current: { insertBlocks, focus, document: documentBlocks },
     };
 
-    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    const container = render(React.createElement(TestHarness, { editorRef }));
     addBlockToDOM({ blockId: 'vid-2', top: 100, bottom: 200, useMediaWrapper: true });
 
-    var event = new MouseEvent('mousedown', {
+    const event = new MouseEvent('mousedown', {
       clientY: 92,
       bubbles: true,
       cancelable: true,
@@ -328,20 +328,20 @@ describe('useCodeBlockGapClick', () => {
 
   it('skips insertion above video block when adjacent paragraph is empty', () => {
     vi.useFakeTimers();
-    var insertBlocks = vi.fn();
-    var focus = vi.fn();
-    var documentBlocks = [
+    const insertBlocks = vi.fn();
+    const focus = vi.fn();
+    const documentBlocks = [
       { id: 'p-before-vid', type: 'paragraph' },
       { id: 'vid-3', type: 'video' },
     ];
-    var editorRef = {
-      current: { document: documentBlocks, insertBlocks: insertBlocks, focus: focus },
+    const editorRef = {
+      current: { document: documentBlocks, insertBlocks, focus },
     };
 
-    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    const container = render(React.createElement(TestHarness, { editorRef }));
     addBlockToDOM({ blockId: 'vid-3', top: 100, bottom: 200, useMediaWrapper: true });
 
-    var event = new MouseEvent('mousedown', {
+    const event = new MouseEvent('mousedown', {
       clientY: 92,
       bubbles: true,
       cancelable: true,
@@ -355,13 +355,13 @@ describe('useCodeBlockGapClick', () => {
   });
 
   it('does not insert when clicking far below video block', () => {
-    var insertBlocks = vi.fn();
-    var editorRef = { current: { insertBlocks: insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
+    const insertBlocks = vi.fn();
+    const editorRef = { current: { insertBlocks, focus: vi.fn(), setTextCursorPosition: vi.fn(), document: [] } };
 
-    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    const container = render(React.createElement(TestHarness, { editorRef }));
     addBlockToDOM({ blockId: 'vid-4', bottom: 100, useMediaWrapper: true });
 
-    var event = new MouseEvent('mousedown', {
+    const event = new MouseEvent('mousedown', {
       clientY: 200,
       bubbles: true,
       cancelable: true,
@@ -373,17 +373,17 @@ describe('useCodeBlockGapClick', () => {
 
   it('inserts paragraph when clicking below image block', () => {
     vi.useFakeTimers();
-    var insertBlocks = vi.fn(function () { return [{ id: 'new-img-p' }]; });
-    var focus = vi.fn();
-    var documentBlocks = [{ id: 'img-1', type: 'image' }];
-    var editorRef = {
-      current: { insertBlocks: insertBlocks, focus: focus, document: documentBlocks },
+    const insertBlocks = vi.fn(() => [{ id: 'new-img-p' }]);
+    const focus = vi.fn();
+    const documentBlocks = [{ id: 'img-1', type: 'image' }];
+    const editorRef = {
+      current: { insertBlocks, focus, document: documentBlocks },
     };
 
-    var container = render(React.createElement(TestHarness, { editorRef: editorRef }));
+    const container = render(React.createElement(TestHarness, { editorRef }));
     addBlockToDOM({ blockId: 'img-1', bottom: 100, contentType: 'image' });
 
-    var event = new MouseEvent('mousedown', {
+    const event = new MouseEvent('mousedown', {
       clientY: 108,
       bubbles: true,
       cancelable: true,
@@ -419,29 +419,29 @@ describe('useCodeBlockGapClick', () => {
 
     render(React.createElement(TestHarness, { editorRef }));
 
-    var p = document.createElement('p');
+    const p = document.createElement('p');
     p.innerHTML = '<br class="ProseMirror-trailingBreak">';
     document.body.appendChild(p);
 
-    var sel = window.getSelection();
-    var range = document.createRange();
+    const sel = window.getSelection();
+    const range = document.createRange();
     range.setStart(p, 0);
     range.setEnd(p, 1);
     sel.removeAllRanges();
     sel.addRange(range);
     expect(range.collapsed).toBe(false);
 
-    var event = new KeyboardEvent('keydown', {
+    const event = new KeyboardEvent('keydown', {
       key: 'Backspace', cancelable: true, bubbles: true,
     });
-    var preventSpy = vi.spyOn(event, 'preventDefault');
-    var stopSpy = vi.spyOn(event, 'stopPropagation');
+    const preventSpy = vi.spyOn(event, 'preventDefault');
+    const stopSpy = vi.spyOn(event, 'stopPropagation');
     document.dispatchEvent(event);
 
     expect(preventSpy).toHaveBeenCalled();
     expect(stopSpy).toHaveBeenCalled();
 
-    var selAfter = window.getSelection();
+    const selAfter = window.getSelection();
     expect(selAfter.rangeCount).toBe(1);
     expect(selAfter.getRangeAt(0).collapsed).toBe(true);
   });
@@ -461,20 +461,20 @@ describe('useCodeBlockGapClick', () => {
 
     render(React.createElement(TestHarness, { editorRef }));
 
-    var p = document.createElement('p');
+    const p = document.createElement('p');
     document.body.appendChild(p);
 
-    var sel = window.getSelection();
-    var range = document.createRange();
+    const sel = window.getSelection();
+    const range = document.createRange();
     range.setStart(p, 0);
     range.collapse(true);
     sel.removeAllRanges();
     sel.addRange(range);
 
-    var event = new KeyboardEvent('keydown', {
+    const event = new KeyboardEvent('keydown', {
       key: 'Backspace', cancelable: true, bubbles: true,
     });
-    var preventSpy = vi.spyOn(event, 'preventDefault');
+    const preventSpy = vi.spyOn(event, 'preventDefault');
     document.dispatchEvent(event);
 
     expect(preventSpy).not.toHaveBeenCalled();

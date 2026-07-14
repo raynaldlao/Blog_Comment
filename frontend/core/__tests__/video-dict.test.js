@@ -39,46 +39,46 @@ function makeMockEditor() {
 }
 
 
-describe('applyVideoDictOverrides', function () {
-  it('renames slash menu title to YouTube', function () {
-    var editor = makeMockEditor();
+describe('applyVideoDictOverrides', () => {
+  it('renames slash menu title to YouTube', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.slash_menu.video.title).toBe('YouTube');
   });
 
-  it('sets slash menu subtext', function () {
-    var editor = makeMockEditor();
+  it('sets slash menu subtext', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.slash_menu.video.subtext).toBe('Paste a YouTube video URL');
   });
 
-  it('adds youtube and yt aliases', function () {
-    var editor = makeMockEditor();
+  it('adds youtube and yt aliases', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.slash_menu.video.aliases).toContain('youtube');
     expect(editor.dictionary.slash_menu.video.aliases).toContain('yt');
   });
 
-  it('renames file panel embed tab title', function () {
-    var editor = makeMockEditor();
+  it('renames file panel embed tab title', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.file_panel.embed.title).toBe('YouTube URL');
   });
 
-  it('updates embed button text for video', function () {
-    var editor = makeMockEditor();
+  it('updates embed button text for video', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.file_panel.embed.embed_button.video).toBe('Embed YouTube video');
   });
 
-  it('updates embed placeholder', function () {
-    var editor = makeMockEditor();
+  it('updates embed placeholder', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.file_panel.embed.url_placeholder).toBe('Paste YouTube video link');
   });
 
-  it('updates add button text for video', function () {
-    var editor = makeMockEditor();
+  it('updates add button text for video', () => {
+    const editor = makeMockEditor();
     applyVideoDictOverrides(editor);
     expect(editor.dictionary.file_blocks.add_button_text.video).toBe('Add YouTube video URL');
   });
