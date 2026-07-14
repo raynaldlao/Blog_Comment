@@ -46,18 +46,18 @@ export default function useCodeBlockGapClick(editorRef) {
 
       const y = event.clientY;
 
-      var BLOCK_SELECTOR = [
+      const BLOCK_SELECTOR = [
         '.bn-block-content[data-content-type="codeBlock"]',
         '.bn-block-content[data-content-type="image"]',
         '.bn-block-content[data-content-type="video"]',
         '.bn-visual-media-wrapper',
       ].join(',');
 
-      var VISUAL_TYPES = ['codeBlock', 'image', 'video'];
+      const VISUAL_TYPES = ['codeBlock', 'image', 'video'];
 
       const blocks = document.querySelectorAll(BLOCK_SELECTOR);
 
-      var seen = new Set();
+      const seen = new Set();
 
       for (const block of blocks) {
         const outer = block.closest('.bn-block-outer');
