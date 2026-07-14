@@ -35,6 +35,12 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/register", "registration.register", "registration")
         self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
+        self.app.add_url_rule(
+            "/users/<username>",
+            view_func=self.adapter.display_user_profile,
+            endpoint="auth.user_profile",
+        )
+
     def test_logout_clears_session(self):
         response = self.client.post("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
@@ -71,6 +77,47 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"Please sign in to view your profile." in response.data
         assert b"alert-error" in response.data
         assert b"login" in response.data
+
+    def test_get_user_profile_found(self):
+        fake_user = create_test_account(account_username="yoda", account_email="yoda@dagobah.com")
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/yoda")
+        assert response.status_code == 200
+        assert b"yoda" in response.data
+        assert b"yoda@dagobah.com" not in response.data
+        self.mock_session_service.get_account_by_username.assert_called_once_with("yoda")
+
+    def test_get_user_profile_not_found(self):
+        self.mock_session_service.get_account_by_username.return_value = None
+        response = self.client.get("/users/nobody")
+        assert response.status_code == 404
+
+    def test_get_user_profile_own_profile(self):
+        fake_user = create_test_account(account_username="luke", account_email="luke@tatooine.com")
+        self.set_current_user(fake_user)
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/luke")
+        assert response.status_code == 200
+        assert b"luke@tatooine.com" in response.data
+        assert b"Sign Out" in response.data
+
+    def test_get_user_profile_admin_view(self):
+        profile_user = create_test_account(account_id=2, account_username="han", account_email="han@falcon.com")
+        admin_user = create_test_account(account_id=99, account_username="admin", account_role=AccountRole.ADMIN)
+        self.set_current_user(admin_user)
+        self.mock_session_service.get_account_by_username.return_value = profile_user
+        response = self.client.get("/users/han")
+        assert response.status_code == 200
+        assert b"han@falcon.com" in response.data
+        assert b"Sign Out" not in response.data
+
+    def test_get_user_profile_anonymous(self):
+        fake_user = create_test_account(account_username="leia", account_email="leia@galaxy.com")
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/leia")
+        assert response.status_code == 200
+        assert b"leia@galaxy.com" not in response.data
+        assert b"Sign Out" not in response.data
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

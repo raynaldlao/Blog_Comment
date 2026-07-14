@@ -1,4 +1,4 @@
-from flask import flash, redirect, render_template, url_for
+from flask import abort, flash, redirect, render_template, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
@@ -73,4 +73,42 @@ class AccountSessionAdapter(MethodView):
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)
-        return render_template("profile.html", user=user_dto, current_user=user_dto)
+        return render_template("profile.html", user=user_dto, current_user=user_dto, is_own_profile=True)
+
+    def display_user_profile(self, username: str):
+        """
+        Renders a public user profile page for the given username.
+
+        Accessible to all users (authenticated or anonymous).
+        Sensitive fields (email, member since) are shown only to
+        the profile owner or an admin viewer.
+
+        Args:
+            username: The username of the profile to display.
+
+        Returns:
+            str: The rendered profile HTML.
+
+        Raises:
+            404: If no account exists with the given username.
+        """
+        account = self.session_service.get_account_by_username(username)
+
+        if not account:
+            abort(404)
+
+        user_dto = AccountResponse.from_domain(account)
+
+        current_user_dto = None
+        current_account = getattr(global_request_context, "current_user", None)
+        if current_account:
+            current_user_dto = AccountResponse.from_domain(current_account)
+
+        return render_template(
+            "profile.html",
+            user=user_dto,
+            current_user=current_user_dto,
+            is_own_profile=bool(
+                current_account and current_account.account_id == account.account_id
+            ),
+        )

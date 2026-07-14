@@ -408,3 +408,35 @@ class TestWorkflows:
         response = client.get(f"/articles/{article.article_id}")
         assert response.status_code == 200
         assert b"Comments (3)" in response.data
+
+
+class TestUserProfileLinks:
+    """Verifies author name links point to the public profile page."""
+
+    def test_article_list_author_link_points_to_profile(self, client, db_session):
+        """
+        Regression: the author name in the article list should link
+        to /users/<username>. If the <a> wrapper is removed or the
+        overlay ::after intercepts clicks (as happened), this catches it.
+        """
+        author = AccountModel(
+            account_username="link_test_author",
+            account_email="link@test.com",
+            account_password="p",
+            account_role="author",
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="Link Test",
+            article_content="...",
+            article_author_id=author.account_id,
+        )
+
+        db_session.add(article)
+        db_session.commit()
+        response = client.get("/")
+        assert response.status_code == 200
+        assert b'href="/users/link_test_author"' in response.data

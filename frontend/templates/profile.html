@@ -1,7 +1,7 @@
 {% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
-{% block title %}Profile - DevJournal{% endblock %}
+{% block title %}{% if is_own_profile %}Profile{% else %}{{ user.account_username }}{% endif %} - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
@@ -18,10 +18,13 @@
     </div>
 
     <div class="info-section">
+        {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
             <span class="info-label">Email</span>
             <span class="info-value">{{ user.account_email }}</span>
         </div>
+        {% endif %}
+        {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
             <span class="info-label">Member Since</span>
             <span class="info-value">
@@ -32,16 +35,19 @@
                 {% endif %}
             </span>
         </div>
+        {% endif %}
         <div class="info-row">
             <span class="info-label">Status</span>
             <span class="info-value">Active</span>
         </div>
     </div>
 
+    {% if is_own_profile %}
     <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button type="submit" class="btn btn-secondary">Sign Out</button>
     </form>
+    {% endif %}
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}

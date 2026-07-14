@@ -86,7 +86,14 @@
 .meta-author {
     color: var(--on-surface);
     font-weight: 600;
-    font-style: italic;
+    text-decoration: none;
+    position: relative;
+    z-index: 1;
+}
+
+.meta-author:hover {
+    color: var(--primary);
+    text-decoration: underline;
 }
 
 .meta-divider {
@@ -559,6 +566,16 @@ input[type=number] {
     font-size: var(--font-body-sm);
     font-weight: 600;
     color: var(--on-surface);
+    text-decoration: none;
+}
+
+.comment-author:hover {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.comment-avatar-link {
+    text-decoration: none;
 }
 
 .comment-timestamp {

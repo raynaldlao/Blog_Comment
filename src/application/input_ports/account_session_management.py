@@ -26,3 +26,16 @@ class AccountSessionManagementPort(ABC):
         Terminates the current active session, effectively logging the user out.
         """
         pass
+
+    @abstractmethod
+    def get_account_by_username(self, username: str) -> Account | None:
+        """
+        Retrieves a domain Account by its unique username.
+
+        Args:
+            username: The username to look up.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        pass

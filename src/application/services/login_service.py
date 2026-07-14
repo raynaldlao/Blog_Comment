@@ -80,3 +80,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         self.session_repository.clear()
 
+    def get_account_by_username(self, username: str) -> Account | None:
+        """
+        Retrieves a domain Account by its unique username via the repository.
+
+        Args:
+            username: The username to look up.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        return self.account_repository.find_by_username(username)
