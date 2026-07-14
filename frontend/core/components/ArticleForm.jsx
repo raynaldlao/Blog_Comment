@@ -291,7 +291,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     const handler = (e) => {
       let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
-      if (target?.closest?.('.bn-formatting-toolbar, .bn-panel')) return;
+      if (target?.closest?.('#bn-grid-suggestion-menu, .bn-formatting-toolbar, .bn-panel, em-emoji-picker')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
       if (target?.closest?.('.bn-block-content[data-content-type="video"]')) return;
       try {

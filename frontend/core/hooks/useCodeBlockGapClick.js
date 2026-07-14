@@ -44,6 +44,9 @@ export default function useCodeBlockGapClick(editorRef) {
       const editor = editorRef.current;
       if (!editor || typeof editor.insertBlocks !== 'function') return;
 
+      const emojiTarget = event.target;
+      if (emojiTarget?.closest?.('#bn-grid-suggestion-menu, .bn-formatting-toolbar, .bn-panel, em-emoji-picker')) return;
+
       const y = event.clientY;
 
       const BLOCK_SELECTOR = [
