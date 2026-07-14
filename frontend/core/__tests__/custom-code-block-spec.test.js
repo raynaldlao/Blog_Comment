@@ -646,7 +646,7 @@ describe('createCustomCodeBlockSpec', () => {
     spec.implementation.render(block, editor);
 
     const deleteBtn = outerDiv.querySelector('.code-delete-btn');
-    deleteBtn.click();
+    deleteBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
 
     expect(editor.removeBlocks).toHaveBeenCalledTimes(1);
     expect(editor.removeBlocks).toHaveBeenCalledWith([block]);

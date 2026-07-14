@@ -2,49 +2,49 @@ import { describe, it, expect } from 'vitest';
 
 import { filterVideoToolbarItems, filterImageToolbarItems } from '../components/CustomFormattingToolbar';
 
-var MockReplace = function MockReplace() {};
-var MockDownload = function MockDownload() {};
-var MockCaption = function MockCaption() {};
-var MockRename = function MockRename() {};
-var MockPreview = function MockPreview() {};
-var MockNormal = function MockNormal() {};
+const MockReplace = () => {};
+const MockDownload = () => {};
+const MockCaption = () => {};
+const MockRename = () => {};
+const MockPreview = () => {};
+const MockNormal = () => {};
 
-var HIDDEN = [MockReplace, MockDownload, MockCaption, MockRename, MockPreview];
+const HIDDEN = [MockReplace, MockDownload, MockCaption, MockRename, MockPreview];
 
 
-describe('filterVideoToolbarItems', function () {
-  it('filters out FileReplaceButton', function () {
+describe('filterVideoToolbarItems', () => {
+  it('filters out FileReplaceButton', () => {
     expect(filterVideoToolbarItems([{ type: MockReplace }], HIDDEN)).toEqual([]);
   });
 
-  it('filters out FileDownloadButton', function () {
+  it('filters out FileDownloadButton', () => {
     expect(filterVideoToolbarItems([{ type: MockDownload }], HIDDEN)).toEqual([]);
   });
 
-  it('filters out FileCaptionButton', function () {
+  it('filters out FileCaptionButton', () => {
     expect(filterVideoToolbarItems([{ type: MockCaption }], HIDDEN)).toEqual([]);
   });
 
-  it('filters out FileRenameButton', function () {
+  it('filters out FileRenameButton', () => {
     expect(filterVideoToolbarItems([{ type: MockRename }], HIDDEN)).toEqual([]);
   });
 
-  it('filters out FilePreviewButton', function () {
+  it('filters out FilePreviewButton', () => {
     expect(filterVideoToolbarItems([{ type: MockPreview }], HIDDEN)).toEqual([]);
   });
 
-  it('filters out items with textAlignment prop', function () {
-    var items = [{ type: MockNormal, props: { textAlignment: 'right' } }];
+  it('filters out items with textAlignment prop', () => {
+    const items = [{ type: MockNormal, props: { textAlignment: 'right' } }];
     expect(filterVideoToolbarItems(items, HIDDEN)).toEqual([]);
   });
 
-  it('keeps normal buttons', function () {
-    var items = [{ type: MockNormal, props: {} }, { type: MockNormal }];
+  it('keeps normal buttons', () => {
+    const items = [{ type: MockNormal, props: {} }, { type: MockNormal }];
     expect(filterVideoToolbarItems(items, HIDDEN)).toHaveLength(2);
   });
 
-  it('filters multiple items together', function () {
-    var items = [
+  it('filters multiple items together', () => {
+    const items = [
       { type: MockNormal },
       { type: MockReplace },
       { type: MockDownload },
@@ -57,13 +57,13 @@ describe('filterVideoToolbarItems', function () {
     expect(filterVideoToolbarItems(items, HIDDEN)).toHaveLength(2);
   });
 
-  it('returns empty array for empty input', function () {
+  it('returns empty array for empty input', () => {
     expect(filterVideoToolbarItems([], HIDDEN)).toEqual([]);
   });
 
-  it('uses default hidden types when none provided', function () {
-    var MockUnknown = function MockUnknown() {};
-    var items = [{ type: MockUnknown }, { type: MockNormal }];
+  it('uses default hidden types when none provided', () => {
+    const MockUnknown = () => {};
+    const items = [{ type: MockUnknown }, { type: MockNormal }];
     // default HIDDEN_VIDEO_BUTTONS = real File*Button from @blocknote/react
     // These won't match our mocks, so both items pass
     // This just verifies the fallback doesn't crash
@@ -71,12 +71,12 @@ describe('filterVideoToolbarItems', function () {
   });
 });
 
-describe('filterImageToolbarItems', function () {
-  it('filters out FileDownloadButton', function () {
+describe('filterImageToolbarItems', () => {
+  it('filters out FileDownloadButton', () => {
     expect(filterImageToolbarItems([{ type: MockDownload }], [MockDownload])).toEqual([]);
   });
 
-  it('keeps normal buttons', function () {
+  it('keeps normal buttons', () => {
     expect(filterImageToolbarItems([{ type: MockNormal }])).toHaveLength(1);
   });
 });
