@@ -2,11 +2,11 @@ import React from 'react';
 import { useBlockNoteEditor, useComponentsContext } from '@blocknote/react';
 
 export default function CopyBlockButton() {
-  var editor = useBlockNoteEditor();
-  var Components = useComponentsContext();
+  const editor = useBlockNoteEditor();
+  const Components = useComponentsContext();
   if (!editor || !Components) return null;
 
-  var block;
+  let block;
   try {
     block = editor.getSelection()?.blocks?.[0] ?? editor.getTextCursorPosition().block;
   } catch { return null; }
@@ -16,10 +16,10 @@ export default function CopyBlockButton() {
   return (
     <Components.FormattingToolbar.Button
       mainTooltip={block.type === 'image' || block.type === 'video' ? 'Copy' : 'Copy Block'}
-      onClick={function () {
-        var data = { type: block.type, props: block.props, content: block.content };
-        var html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
-        var plainText = '';
+      onClick={() => {
+        const data = { type: block.type, props: block.props, content: block.content };
+        const html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
+        let plainText = '';
         if (block.type === 'image') {
           if (block.props?.url && !block.props.url.startsWith('/uploads/')) {
             plainText = block.props.url;
@@ -31,18 +31,18 @@ export default function CopyBlockButton() {
         } else {
           plainText = block.props?.url || '';
         }
-        var items = {
+        const items = {
           'text/plain': new Blob([plainText], { type: 'text/plain' }),
           'text/html': new Blob([html], { type: 'text/html' }),
         };
-        navigator.clipboard.write([new ClipboardItem(items)]).catch(function () {});
-        var old = document.querySelector('.toast');
+        navigator.clipboard.write([new ClipboardItem(items)]).catch(() => {});
+        const old = document.querySelector('.toast');
         if (old) old.remove();
-        var toast = document.createElement('div');
+        const toast = document.createElement('div');
         toast.className = 'toast';
         toast.textContent = 'Copied to clipboard';
         document.body.appendChild(toast);
-        setTimeout(function () { if (toast.parentElement) toast.remove(); }, 2800);
+        setTimeout(() => { if (toast.parentElement) toast.remove(); }, 2800);
       }}
       icon={
         <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 24 24" height="1em" width="1em">
