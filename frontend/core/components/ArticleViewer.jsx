@@ -55,8 +55,8 @@ function BlockNoteViewer({ initialContent }) {
     }),
   });
 
-  useEffect(function () {
-    const handler = function (e) {
+  useEffect(() => {
+    const handler = (e) => {
       const block = document.querySelector(
         '.bn-block-content[data-content-type="image"].ProseMirror-selectednode',
       );
@@ -77,15 +77,15 @@ function BlockNoteViewer({ initialContent }) {
         new ClipboardItem({
           'text/plain': new Blob([text], { type: 'text/plain' }),
         }),
-      ]).catch(function () {});
+      ]).catch(() => {});
     };
     document.addEventListener('copy', handler, true);
-    return function () { document.removeEventListener('copy', handler, true); };
+    return () => { document.removeEventListener('copy', handler, true); };
   }, []);
 
-  useEffect(function () {
+  useEffect(() => {
     if (!editor) return;
-    const handler = function (e) {
+    const handler = (e) => {
       let target = e.target;
       if (target.nodeType === 3) target = target.parentNode;
       if (target?.closest?.('.bn-block-content[data-content-type="image"]')) return;
@@ -100,7 +100,7 @@ function BlockNoteViewer({ initialContent }) {
       } catch {}
     };
     document.addEventListener('mousedown', handler, true);
-    return function () { document.removeEventListener('mousedown', handler, true); };
+    return () => { document.removeEventListener('mousedown', handler, true); };
   }, [editor]);
 
   return <BlockNoteView editor={editor} theme={theme} editable={false} formattingToolbar={false} />;
