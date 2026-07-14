@@ -1,12 +1,14 @@
 from datetime import datetime
 
+import nh3
+
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment, CommentThreadView
+from src.application.domain.comment import Comment, CommentNode
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.service_utils import build_comment_thread_view
+from src.application.services.service_utils import build_comment_nested_tree
 
 
 class CommentService(CommentManagementPort):
@@ -16,6 +18,11 @@ class CommentService(CommentManagementPort):
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
     for data persistence, injected via the constructor.
     """
+
+    ALLOWED_TAGS = frozenset({
+        "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
+        "blockquote", "pre", "code", "span", "sub", "sup",
+    })
 
     def __init__(
         self,
@@ -51,6 +58,22 @@ class CommentService(CommentManagementPort):
             return "Account not found."
         return account
 
+    def _delete_with_descendants(self, comment_id: int) -> None:
+        """
+        Recursively deletes a comment and all its descendants from the repository.
+
+        Traverses the reply tree depth-first, deleting leaf comments first
+        to respect foreign key constraints.
+
+        Args:
+            comment_id (int): ID of the root comment to delete along with its subtree.
+        """
+        children = self.comment_repository.get_by_reply_to(comment_id)
+        for child in children:
+            self._delete_with_descendants(child.comment_id)
+        self.comment_repository.delete(comment_id)
+
+
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment | str:
         """
         Creates a top-level comment on an article.
@@ -75,13 +98,21 @@ class CommentService(CommentManagementPort):
             # TODO: Raise ArticleNotFoundException later
             return "Article not found."
 
+        sanitized = nh3.clean(
+            content,
+            tags=self.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
+        if not sanitized.strip():
+            return "Comment cannot be empty."
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
             comment_article_id=article.article_id,
             comment_written_account_id=account.account_id,
             comment_reply_to=None,
-            comment_content=content,
+            comment_content=sanitized,
             comment_posted_at=datetime.now(),
         )
 
@@ -90,9 +121,7 @@ class CommentService(CommentManagementPort):
 
     def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
         """
-        Creates a reply to an existing comment. A reply is linked
-        either to the parent directly or to the parent's top-level
-        comment (threading logic).
+        Creates a reply directly to a parent comment.
 
         Args:
             parent_comment_id (int): The ID of the comment being replied to.
@@ -115,35 +144,37 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Parent comment not found."
 
-        is_parent_a_reply = parent_comment.comment_reply_to is not None
-        if is_parent_a_reply:
-            thread_root_id = parent_comment.comment_reply_to
-        else:
-            thread_root_id = parent_comment.comment_id
-
+        sanitized = nh3.clean(
+            content,
+            tags=self.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
+        if not sanitized.strip():
+            return "Comment cannot be empty."
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
             comment_article_id=parent_comment.comment_article_id,
             comment_written_account_id=account.account_id,
-            comment_content=content,
-            comment_reply_to=thread_root_id,
+            comment_content=sanitized,
+            comment_reply_to=parent_comment.comment_id,
             comment_posted_at=datetime.now(),
         )
 
         self.comment_repository.save(new_reply)
         return new_reply
 
-    def get_comments_for_article(self, article_id: int) -> CommentThreadView | str:
+    def get_comments_for_article(self, article_id: int) -> list[CommentNode] | str:
         """
         Retrieves all comments for a specific article and structures them
-        in a threaded view for display, along with author names.
+        in a nested tree for display, along with author names.
 
         Args:
             article_id (int): ID of the article.
 
         Returns:
-            CommentThreadView | str: A Read Model containing the threaded comments,
+            list[CommentNode] | str: The nested tree root nodes,
             or an error message string if the article is not found.
         """
         article = self.article_repository.get_by_id(article_id)
@@ -155,15 +186,17 @@ class CommentService(CommentManagementPort):
         author_ids = {c.comment_written_account_id for c in all_comments}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        return build_comment_thread_view(all_comments, author_map)
+        return build_comment_nested_tree(all_comments, author_map)
 
-    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
         """
-        Deletes a comment. Only an admin can delete a comment.
+        Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
+        Second click hard-deletes: if cascade=True, removes all descendants recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
+            cascade (bool): If True, also delete all child nodes recursively.
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.
@@ -184,5 +217,14 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Comment not found."
 
-        self.comment_repository.delete(comment_id)
+        if "<!--cmt-removed-->" in comment.comment_content:
+            if cascade:
+                self._delete_with_descendants(comment_id)
+            else:
+                self.comment_repository.orphan_children(comment_id)
+                self.comment_repository.delete(comment_id)
+            return True
+
+        comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
+        self.comment_repository.save(comment)
         return True

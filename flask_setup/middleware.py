@@ -56,6 +56,7 @@ class CSPConfig:
             "font-src 'self' https://fonts.gstatic.com;"
             "img-src 'self' data: https:;"
             "frame-src https://www.youtube.com;"
+            "connect-src 'self' https://cdn.jsdelivr.net;"
             "base-uri 'self';"
             "form-action 'self';"
             "report-uri /csp-report;"
@@ -145,8 +146,11 @@ def _add_cache_headers(response: Response) -> Response:
     """
     if flask_request:
         path = flask_request.path
-        if path.startswith(("/static/",)):
-            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        if path.startswith("/static/"):
+            if path.startswith("/static/dist/"):
+                response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+            else:
+                response.headers["Cache-Control"] = "no-cache"
     return response
 
 

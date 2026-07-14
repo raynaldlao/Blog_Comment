@@ -1,56 +1,37 @@
 from collections import defaultdict
-from datetime import datetime
 
-from src.application.domain.comment import Comment, CommentThreadView, CommentWithAuthor
+from src.application.domain.comment import Comment, CommentNode, CommentWithAuthor
 
 
-def _get_posted_at_date(item: CommentWithAuthor) -> datetime:
+def build_comment_nested_tree(all_comments: list[Comment], author_map: dict[int, str]) -> list[CommentNode]:
     """
-    Extracts the posting date from a CommentWithAuthor object.
-    Used as a key for sorting comments in the threading logic.
+    Transforms a flat list of comment entities and an author mapping into a recursive N-level tree.
 
-    Args:
-        item (CommentWithAuthor): The comment wrapper object containing domain data.
-
-    Returns:
-        datetime: The date and time the comment was posted.
-    """
-    return item.comment.comment_posted_at
-
-
-def build_comment_thread_view(all_comments: list[Comment], author_map: dict[int, str]) -> CommentThreadView:
-    """
-    Transforms a flat list of comment entities and an author mapping into a structured threaded view.
-    Handles grouping by parent and sorting by date (descending for root, ascending for replies).
+    Builds a parent_map from comment_reply_to, then recurses from roots (reply_to is None)
+    to produce a nested CommentNode tree with sorted children.
 
     Args:
         all_comments (list[Comment]): The flat list of domain comment entities to structure.
         author_map (dict[int, str]): A mapping of account IDs to their corresponding usernames.
 
     Returns:
-        CommentThreadView: The structured read model containing the threaded hierarchy.
+        list[CommentNode]: The tree root nodes, sorted most recent first.
     """
-    tree = defaultdict(list)
-    tree["root"] = []
+    parent_map: dict[int | None, list[Comment]] = defaultdict(list)
+    for c in all_comments:
+        parent_map[c.comment_reply_to].append(c)
 
-    for comment in all_comments:
-        if comment.comment_reply_to is None:
-            key = "root"
-        else:
-            key = comment.comment_reply_to
+    roots = parent_map.pop(None, [])
+    roots.sort(key=lambda c: c.comment_posted_at, reverse=True)
 
-        comment_with_author = CommentWithAuthor(
+    def _build_node(comment: Comment, depth: int) -> CommentNode:
+        cwa = CommentWithAuthor(
             comment=comment,
             author_name=author_map.get(comment.comment_written_account_id, "Unknown")
         )
-        tree[key].append(comment_with_author)
+        children = parent_map.pop(comment.comment_id, [])
+        children.sort(key=lambda c: c.comment_posted_at)
+        replies = [_build_node(child, depth + 1) for child in children]
+        return CommentNode(comment=cwa, replies=replies, depth=depth)
 
-    if "root" in tree:
-        tree["root"].sort(key=_get_posted_at_date, reverse=True)
-
-    for root_comment in tree["root"]:
-        node_id = root_comment.comment.comment_id
-        if node_id in tree:
-            tree[node_id].sort(key=_get_posted_at_date)
-
-    return CommentThreadView(threads=dict(tree))
+    return [_build_node(root, 0) for root in roots]

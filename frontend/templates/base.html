@@ -22,6 +22,12 @@
     {% for css_url in vite_css_urls %}
     <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
     {% endfor %}
+    {% if vite_vendor_js_url %}
+    <link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
+    {% endif %}
+    {% endif %}
+    {% if page_with_comments %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/suneditor/suneditor.min.css') }}">
     {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
@@ -105,6 +111,13 @@
     <script defer src="{{ url_for('static', filename='scripts/theme-toggle.js') }}"></script>
     {% if page_with_editor and vite_js_url %}
     <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
+    {% endif %}
+    {% if page_with_comments %}
+    <script defer src="{{ url_for('static', filename='vendor/suneditor/suneditor.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='vendor/emoji-mart/emoji-mart.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/suneditor-init.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/emoji-picker.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/comment-reply.js') }}"></script>
     {% endif %}
     {% block extra_js %}{% endblock %}
 </body>

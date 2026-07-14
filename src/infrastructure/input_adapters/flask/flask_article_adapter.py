@@ -6,6 +6,7 @@ from werkzeug.wrappers.response import Response
 
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
+from src.application.domain.comment import CommentNode
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
 from src.infrastructure.input_adapters.dto.article_response import ArticleResponse
@@ -29,6 +30,25 @@ class ArticleAdapter:
             article_service (ArticleManagementPort): The core service for articles.
         """
         self.article_service = article_service
+
+    @staticmethod
+    def _count_comment_nodes(nodes: list[CommentNode]) -> int:
+        """
+        Recursively count all comment nodes in the nested tree.
+
+        Soft-deleted comments are included since they persist as placeholders.
+        Hard-deleted comments are absent from the tree, thus not counted.
+
+        Args:
+            nodes: list of CommentNode domain objects.
+
+        Returns:
+            Total number of comments including nested replies.
+        """
+        count = len(nodes)
+        for node in nodes:
+            count += ArticleAdapter._count_comment_nodes(node.replies)
+        return count
 
     def list_articles(self) -> str:
         """
@@ -82,14 +102,27 @@ class ArticleAdapter:
             detail.article_with_author.article,
             author_username=detail.article_with_author.author_name
         )
-        dto_comments = CommentResponse.map_threaded_comments(detail.threaded_comments.threads)
+
+        content = article.article_content
+        try:
+            json.loads(content)
+        except (json.JSONDecodeError, TypeError):
+            content = json.dumps([{
+                "type": "paragraph",
+                "content": [{"type": "text", "text": content}]
+            }])
+
+        dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
         user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",
             article=article,
-            threaded_comments=dto_comments,
+            article_content_json=content,
+            nested_comments=dto_comments,
+            comment_count=self._count_comment_nodes(detail.nested_comments),
             current_user=user,
             page_with_editor=True,
+            page_with_comments=True,
         )
 
     def render_create_page(self) -> str | Response:

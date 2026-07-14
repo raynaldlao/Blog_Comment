@@ -7,7 +7,7 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.article_service import ArticleService
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
-from tests.test_domain_factories import create_test_account, create_test_article
+from tests.test_domain_factories import create_test_account, create_test_article, create_test_comment
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
@@ -186,6 +186,53 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         response = self.client.put("/api/articles/1", json={"title": "T", "content": "C"})
         assert response.status_code == 401
         assert response.get_json() == {"error": "Unauthorized."}
+
+    def test_read_article_comment_count_zero(self):
+        article = create_test_article(article_title="Count Test", article_author_id=1)
+        self.mock_article_repo.get_by_id.return_value = article
+        self.mock_comment_repo.get_all_by_article_id.return_value = []
+
+        self.mock_account_repo.get_by_ids.return_value = [
+            create_test_account(account_id=1, account_username="Author"),
+        ]
+
+        response = self.client.get("/articles/1")
+        assert b"Comments (0)" in response.data
+
+    def test_read_article_comment_count_with_nested(self):
+        article = create_test_article(article_title="Count Test", article_author_id=1)
+        self.mock_article_repo.get_by_id.return_value = article
+        root = create_test_comment(comment_id=1, comment_written_account_id=2)
+        reply1 = create_test_comment(comment_id=2, comment_written_account_id=2, comment_reply_to=1)
+        reply2 = create_test_comment(comment_id=3, comment_written_account_id=2, comment_reply_to=1)
+        self.mock_comment_repo.get_all_by_article_id.return_value = [root, reply1, reply2]
+
+        self.mock_account_repo.get_by_ids.return_value = [
+            create_test_account(account_id=1, account_username="Author"),
+            create_test_account(account_id=2, account_username="Commenter"),
+        ]
+
+        response = self.client.get("/articles/1")
+        assert b"Comments (3)" in response.data
+
+    def test_read_article_comment_count_includes_soft_deleted(self):
+        article = create_test_article(article_title="Count Test", article_author_id=1)
+        self.mock_article_repo.get_by_id.return_value = article
+
+        deleted = create_test_comment(
+            comment_id=1,
+            comment_written_account_id=2,
+            comment_content="<em>Comment removed</em>",
+        )
+
+        self.mock_comment_repo.get_all_by_article_id.return_value = [deleted]
+        self.mock_account_repo.get_by_ids.return_value = [
+            create_test_account(account_id=1, account_username="Author"),
+            create_test_account(account_id=2, account_username="Anonymous"),
+        ]
+
+        response = self.client.get("/articles/1")
+        assert b"Comments (1)" in response.data
 
 
 class TestArticleUserAccess(ArticleAdapterTestBase):

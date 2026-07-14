@@ -63,6 +63,26 @@ class TestCreateComment(CommentServiceTestBase):
         self.mock_comment_repo.save.assert_not_called()
         assert result == "Account not found."
 
+    def test_create_comment_sanitizes_html(self):
+        fake_account = create_test_account(account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        malicious_content = '<script>alert("xss")</script><b>bold</b><a href="https://example.com" target="_blank">link</a>'
+        result = self.service.create_comment(
+            article_id=fake_article.article_id,
+            user_id=fake_account.account_id,
+            content=malicious_content,
+        )
+
+        saved_comment = self.mock_comment_repo.save.call_args.args[0]
+        assert (
+            saved_comment.comment_content
+            == '<b>bold</b><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a>'
+        )
+        assert result is saved_comment
+
     def test_create_comment_article_not_found(self):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
@@ -132,7 +152,7 @@ class TestCreateReply(CommentServiceTestBase):
         self.mock_comment_repo.save.assert_called_once()
         index_first_arg = 0
         saved_reply = self.mock_comment_repo.save.call_args.args[index_first_arg]
-        assert saved_reply.comment_reply_to == 10
+        assert saved_reply.comment_reply_to == parent_comment.comment_id
         assert result is saved_reply
 
     def test_create_reply_parent_not_found(self):
@@ -168,7 +188,7 @@ class TestGetComments(CommentServiceTestBase):
         self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
         self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
         assert not isinstance(comments, str)
-        assert comments.threads == {"root": []}
+        assert comments == []
 
     def test_get_comments_for_article_success(self):
         fake_article = create_test_article(article_id=1, article_author_id=2)
@@ -201,12 +221,12 @@ class TestGetComments(CommentServiceTestBase):
 
         result = self.service.get_comments_for_article(article_id=fake_article.article_id)
         assert not isinstance(result, str)
-        root_comment_view, = result.threads["root"]
-        reply_view, = result.threads[root_comment.comment_id]
-        assert root_comment_view.comment == root_comment
-        assert root_comment_view.author_name == "Author3"
-        assert reply_view.comment == reply
-        assert reply_view.author_name == "Author4"
+        root_node, = result
+        reply_node, = root_node.replies
+        assert root_node.comment.comment == root_comment
+        assert root_node.comment.author_name == "Author3"
+        assert reply_node.comment.comment == reply
+        assert reply_node.comment.author_name == "Author4"
 
     def test_get_comments_for_article_ordering(self):
         from datetime import datetime
@@ -220,12 +240,12 @@ class TestGetComments(CommentServiceTestBase):
         self.mock_comment_repo.get_all_by_article_id.return_value = [comment_1, comment_2, reply_1, reply_2]
         result = self.service.get_comments_for_article(article_id=1)
         assert not isinstance(result, str)
-        latest_root, oldest_root = result.threads["root"]
-        latest_reply, oldest_reply = result.threads[comment_2.comment_id]
-        assert latest_root.comment.comment_id == comment_2.comment_id
-        assert oldest_root.comment.comment_id == comment_1.comment_id
-        assert latest_reply.comment.comment_id == reply_2.comment_id
-        assert oldest_reply.comment.comment_id == reply_1.comment_id
+        latest_root, oldest_root = result
+        latest_reply, oldest_reply = result[0].replies
+        assert latest_root.comment.comment.comment_id == comment_2.comment_id
+        assert oldest_root.comment.comment.comment_id == comment_1.comment_id
+        assert latest_reply.comment.comment.comment_id == reply_2.comment_id
+        assert oldest_reply.comment.comment.comment_id == reply_1.comment_id
 
     def test_get_comments_for_article_unknown_author(self):
         fake_article = create_test_article(article_id=1, article_author_id=2)
@@ -235,8 +255,8 @@ class TestGetComments(CommentServiceTestBase):
         self.mock_account_repo.get_by_ids.return_value = []
         result = self.service.get_comments_for_article(article_id=1)
         assert not isinstance(result, str)
-        comment_view, = result.threads["root"]
-        assert comment_view.author_name == "Unknown"
+        comment_node, = result
+        assert comment_node.comment.author_name == "Unknown"
 
 
 class TestDeleteComment(CommentServiceTestBase):
@@ -253,8 +273,56 @@ class TestDeleteComment(CommentServiceTestBase):
 
         self.mock_account_repo.get_by_id.assert_called_once_with(admin_account.account_id)
         self.mock_comment_repo.get_by_id.assert_called_once_with(comment_to_delete.comment_id)
-        self.mock_comment_repo.delete.assert_called_once_with(comment_to_delete.comment_id)
+        self.mock_comment_repo.save.assert_called_once()
+        self.mock_comment_repo.delete.assert_not_called()
         assert result is True
+        assert comment_to_delete.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
+
+    def test_delete_comment_second_click_cascade(self):
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = admin_account
+        comment_to_delete = create_test_comment(
+            comment_id=10,
+            comment_content="<!--cmt-removed--><em>Comment removed</em>"
+        )
+        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
+        child = create_test_comment(comment_id=11, comment_reply_to=10)
+        grandchild = create_test_comment(comment_id=12, comment_reply_to=11)
+        self.mock_comment_repo.get_by_reply_to.side_effect = lambda cid: {
+            10: [child],
+            11: [grandchild],
+            12: [],
+        }.get(cid, [])
+
+        result = self.service.delete_comment(
+            comment_id=comment_to_delete.comment_id,
+            user_id=admin_account.account_id,
+            cascade=True
+        )
+
+        assert result is True
+        assert self.mock_comment_repo.delete.call_args_list[0].args[0] == 12
+        assert self.mock_comment_repo.delete.call_args_list[1].args[0] == 11
+        assert self.mock_comment_repo.delete.call_args_list[2].args[0] == 10
+
+    def test_delete_comment_second_click_no_cascade(self):
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = admin_account
+        comment_to_delete = create_test_comment(
+            comment_id=10,
+            comment_content="<!--cmt-removed--><em>Comment removed</em>"
+        )
+        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
+
+        result = self.service.delete_comment(
+            comment_id=comment_to_delete.comment_id,
+            user_id=admin_account.account_id,
+            cascade=False
+        )
+
+        assert result is True
+        self.mock_comment_repo.orphan_children.assert_called_once_with(10)
+        self.mock_comment_repo.delete.assert_called_once_with(10)
 
     def test_delete_comment_unauthorized_not_admin(self):
         fake_account = create_test_account(account_id=2, account_role=AccountRole.USER)

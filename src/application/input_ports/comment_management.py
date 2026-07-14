@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.domain.comment import Comment, CommentThreadView
+from src.application.domain.comment import Comment, CommentNode
 
 
 class CommentManagementPort(ABC):
@@ -27,8 +27,7 @@ class CommentManagementPort(ABC):
     @abstractmethod
     def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
         """
-        Creates a reply to an existing comment.
-        A reply is linked to the thread's top-level comment (threading logic).
+        Creates a reply directly to a parent comment.
 
         Args:
             parent_comment_id (int): The ID of the comment being replied to.
@@ -42,28 +41,30 @@ class CommentManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_comments_for_article(self, article_id: int) -> CommentThreadView | str:
+    def get_comments_for_article(self, article_id: int) -> list[CommentNode] | str:
         """
         Retrieves all comments for a specific article and structures them
-        into a threaded view for display, along with associated author names.
+        into a nested tree for display, along with associated author names.
 
         Args:
             article_id (int): ID of the article.
 
         Returns:
-            CommentThreadView | str: A Read Model containing the threaded comments,
+            list[CommentNode] | str: The nested tree root nodes,
             or an error message string if the article is not found.
         """
         pass
 
     @abstractmethod
-    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
         """
-        Deletes a comment. Only an admin can delete a comment.
+        Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
+        Second click hard-deletes: if cascade=True, removes all descendants recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
+            cascade (bool): If True, also delete all child nodes recursively.
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.

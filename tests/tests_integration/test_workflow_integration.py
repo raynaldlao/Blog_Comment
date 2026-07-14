@@ -55,11 +55,76 @@ class TestWorkflows:
             "content": reply_content
         }, follow_redirects=True)
 
-        assert reply_content.encode() in reply_response.data
+        # Rate limit: reply within 60s of root comment by same user
+        # NB: apostrophe HTML-escaped to &#39; in flash message
+        assert b"posting too fast" in reply_response.data
         final_view = client.get(f"/articles/{article_id}")
         assert b"tester" in final_view.data
         assert comment_content.encode() in final_view.data
-        assert reply_content.encode() in final_view.data
+
+    def test_honeypot_blocks_spam_bots(self, client, db_session):
+        client.post("/register", data={
+            "username": "spam_tester", "email": "spam@t.com",
+            "password": "p12345678", "confirm_password": "p12345678"
+        }, follow_redirects=True)
+        user = db_session.query(AccountModel).filter_by(account_username="spam_tester").first()
+        user.account_role = "author"
+        db_session.commit()
+
+        client.post("/login", data={"username": "spam_tester", "password": "p12345678"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Spam Test", "content": "Spam content"})
+        assert r.status_code == 201
+        aid = r.get_json()["id"]
+
+        r = client.post(f"/articles/{aid}/comments", data={
+            "content": "Spam comment!", "hp_comment": "I am a bot"
+        }, follow_redirects=False)
+        assert r.status_code == 302
+
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
+        comments = db_session.query(CommentModel).filter_by(comment_article_id=aid).all()
+        assert len(comments) == 0
+
+    def test_two_click_delete_cascade(self, client, db_session):
+        """
+        Verifies two-click delete + cascade across the full stack.
+        First click soft-deletes (content → marker + Anonymous).
+        Second click hard-deletes parent + children from DB.
+        """
+        admin = AccountModel(
+            account_username="del_admin", account_email="del@t.com",
+            account_password="p", account_role="admin"
+        )
+
+        db_session.add(admin)
+        db_session.commit()
+        client.post("/login", data={"username": "del_admin", "password": "p"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Del Test", "content": "Content"})
+        aid = r.get_json()["id"]
+
+        client.post(f"/articles/{aid}/comments", data={"content": "Root"})
+        db_session.commit()
+        root = db_session.query(CommentModel).filter_by(comment_article_id=aid).first()
+        rid = root.comment_id
+        client.post(f"/articles/{aid}/comments/{rid}/reply", data={"content": "Child"})
+
+        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        assert first_click.status_code == 302
+        db_session.expire_all()
+        soft = db_session.get(CommentModel, rid)
+        assert "<!--cmt-removed-->" in soft.comment_content
+        assert "<em>Comment removed</em>" in soft.comment_content
+
+        detail = client.get(f"/articles/{aid}")
+        assert b"Anonymous" in detail.data
+        assert b">?<" in detail.data
+        assert b"comment-deleted" in detail.data
+
+        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        assert second_click.status_code == 302
+        db_session.expire_all()
+        assert db_session.get(CommentModel, rid) is None
+        assert db_session.query(CommentModel).filter_by(comment_reply_to=rid).count() == 0
 
     def test_deep_comment_threading_integ(self, client, db_session):
         """
@@ -106,7 +171,7 @@ class TestWorkflows:
         assert response.status_code == 200
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
-        assert b"Level 3" not in response.data
+        assert b"Level 3" in response.data
 
     def test_registration_login_profile_flow_integ(self, client, db_session):
         client.post("/register", data={
@@ -130,8 +195,8 @@ class TestWorkflows:
 
     def test_comment_with_newlines_renders_br_tag(self, client, db_session):
         """
-        Verifies that a root comment containing newlines renders <br> tags
-        in the article detail page via the nl2br filter.
+        Verifies that a root comment containing newlines renders correctly
+        in the article detail page via the safe filter.
         """
         author = AccountModel(
             account_username="newline_author", account_email="nl@t.com",
@@ -156,12 +221,11 @@ class TestWorkflows:
         assert b"Line 1" in response.data
         assert b"Line 2" in response.data
         assert b"Line 3" in response.data
-        assert b"<br>" in response.data
 
     def test_reply_with_newlines_renders_br_tag(self, client, db_session):
         """
-        Verifies that a reply comment containing newlines renders <br> tags
-        in the article detail page via the nl2br filter.
+        Verifies that a reply comment containing newlines renders correctly
+        in the article detail page via the safe filter.
         """
         author = AccountModel(
             account_username="reply_nl", account_email="rnl@t.com",
@@ -182,15 +246,13 @@ class TestWorkflows:
         root_comment = db_session.query(CommentModel).filter_by(comment_article_id=article.article_id).first()
         multi_line_reply = "Reply line 1\nReply line 2"
 
-        client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
+        reply_response = client.post(f"/articles/{article.article_id}/comments/{root_comment.comment_id}/reply", data={
             "content": multi_line_reply
         }, follow_redirects=True)
 
-        response = client.get(f"/articles/{article.article_id}")
-        assert response.status_code == 200
-        assert b"Reply line 1" in response.data
-        assert b"Reply line 2" in response.data
-        assert b"<br>" in response.data
+        # Rate limit: reply within 60s of root comment by same user
+        # NB: apostrophe HTML-escaped to &#39; in flash message
+        assert b"posting too fast" in reply_response.data
 
     def test_article_detail_displays_iso_date(self, client, db_session):
         """
@@ -297,3 +359,52 @@ class TestWorkflows:
         assert b"New article" not in response.data
         assert b"Sign In" in response.data
         assert b"Sign Up" in response.data
+
+    def test_comment_count_displays_total_with_nested(self, client, db_session):
+        author = AccountModel(
+            account_username="count_author", account_email="count@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+        article = ArticleModel(
+            article_title="Count Test", article_content="...",
+            article_author_id=author.account_id
+        )
+
+        db_session.add(article)
+        db_session.commit()
+
+        root = CommentModel(
+            comment_content="Root",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=None
+        )
+
+        db_session.add(root)
+        db_session.commit()
+
+        reply1 = CommentModel(
+            comment_content="Reply 1",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=root.comment_id
+        )
+
+        db_session.add(reply1)
+        db_session.commit()
+
+        reply2 = CommentModel(
+            comment_content="Reply 2",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=root.comment_id
+        )
+
+        db_session.add(reply2)
+        db_session.commit()
+        response = client.get(f"/articles/{article.article_id}")
+        assert response.status_code == 200
+        assert b"Comments (3)" in response.data

@@ -64,7 +64,6 @@ class TestCommentCreate(CommentAdapterTestBase):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
         response = self.client.post("/articles/1/comments", data={"content": ""}, follow_redirects=True)
-        assert b"Validation Error" in response.data
         assert b"alert-error" in response.data
 
     def test_create_comment_service_error_string(self):
@@ -74,6 +73,22 @@ class TestCommentCreate(CommentAdapterTestBase):
         response = self.client.post("/articles/1/comments", data={"content": "Valid"}, follow_redirects=True)
         assert b"Article not found" in response.data
         assert b"alert-error" in response.data
+
+    def test_create_comment_with_honeypot_returns_silent_redirect(self):
+        user = create_test_account(account_id=123)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments", data={"content": "x", "hp_comment": "bot"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_comment.assert_not_called()
+
+    def test_create_comment_rate_limited(self):
+        user = create_test_account(account_id=999)
+        self.set_current_user(user)
+        self.mock_comment_service.create_comment.return_value = Mock()
+        self.client.post("/articles/1/comments", data={"content": "First"})
+        response = self.client.post("/articles/1/comments", data={"content": "Second"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_comment.assert_called_once()
 
 class TestCommentReply(CommentAdapterTestBase):
     def test_reply_to_comment_success(self):
@@ -99,7 +114,6 @@ class TestCommentReply(CommentAdapterTestBase):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
         response = self.client.post("/articles/1/comments/10/reply", data={"content": ""}, follow_redirects=True)
-        assert b"Validation Error" in response.data
         assert b"alert-error" in response.data
 
     def test_reply_service_error_string(self):
@@ -109,6 +123,22 @@ class TestCommentReply(CommentAdapterTestBase):
         response = self.client.post("/articles/1/comments/10/reply", data={"content": "Valid"}, follow_redirects=True)
         assert b"Parent not found" in response.data
         assert b"alert-error" in response.data
+
+    def test_reply_with_honeypot_returns_silent_redirect(self):
+        user = create_test_account(account_id=456)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": "x", "hp_comment": "bot"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_reply.assert_not_called()
+
+    def test_reply_rate_limited(self):
+        user = create_test_account(account_id=888)
+        self.set_current_user(user)
+        self.mock_comment_service.create_reply.return_value = Mock()
+        self.client.post("/articles/1/comments/10/reply", data={"content": "First"})
+        response = self.client.post("/articles/1/comments/10/reply", data={"content": "Second"})
+        assert response.status_code == 302
+        self.mock_comment_service.create_reply.assert_called_once()
 
 class TestCommentDelete(CommentAdapterTestBase):
     def test_delete_comment_success(self):
@@ -121,7 +151,8 @@ class TestCommentDelete(CommentAdapterTestBase):
 
         self.mock_comment_service.delete_comment.assert_called_once_with(
             comment_id=99,
-            user_id=1
+            user_id=1,
+            cascade=True
         )
 
     def test_delete_comment_requires_login(self):

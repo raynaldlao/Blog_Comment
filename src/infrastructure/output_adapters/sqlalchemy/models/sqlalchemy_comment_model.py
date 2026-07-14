@@ -4,7 +4,7 @@ from sqlalchemy import (
     TIMESTAMP,
     ForeignKey,
     Integer,
-    Text,
+    String,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -42,7 +42,7 @@ class CommentModel(SqlAlchemyModel):
         nullable=True,
     )
     comment_content: Mapped[str] = mapped_column(
-        name="comment_content", type_=Text, nullable=False
+        name="comment_content", type_=String(5000), nullable=False
     )
     comment_posted_at: Mapped[datetime] = mapped_column(
         name="comment_posted_at", type_=TIMESTAMP, server_default=func.now()

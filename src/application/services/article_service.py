@@ -8,7 +8,7 @@ from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.service_utils import build_comment_thread_view
+from src.application.services.service_utils import build_comment_nested_tree
 
 
 def _extract_image_uuids(content: str) -> set[str]:
@@ -304,7 +304,7 @@ class ArticleService(ArticleManagementPort):
         author_ids.update(c.comment_written_account_id for c in all_comments)
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        comments_view = build_comment_thread_view(all_comments, author_map)
+        nested = build_comment_nested_tree(all_comments, author_map)
         author_name = author_map.get(article.article_author_id, "Unknown")
         article_with_author = ArticleWithAuthor(article=article, author_name=author_name)
-        return ArticleDetailView(article_with_author=article_with_author, threaded_comments=comments_view)
+        return ArticleDetailView(article_with_author=article_with_author, nested_comments=nested)
