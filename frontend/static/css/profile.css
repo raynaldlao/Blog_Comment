@@ -60,25 +60,9 @@
     font-weight: 600;
 }
 
-.actions {
-    display: flex;
-    gap: var(--spacing-sm);
+.logout-form {
     margin-top: var(--spacing-lg);
-}
-
-.actions .btn {
-    flex: 1;
-    text-decoration: none;
-    color: var(--on-primary);
-}
-
-.actions .btn.btn-secondary {
-    color: var(--primary);
-}
-
-.actions .btn.btn-secondary:hover {
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
-    border-color: var(--primary);
+    text-align: center;
 }
 
 .back-link {

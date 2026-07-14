@@ -38,13 +38,10 @@
         </div>
     </div>
 
-    <div class="actions">
-        <a href="{{ url_for('article.list_articles') }}" class="btn">Go to Home</a>
-        <form action="{{ url_for('auth.logout') }}" method="POST" style="display:inline">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-secondary">Sign Out</button>
-        </form>
-    </div>
+    <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-secondary">Sign Out</button>
+    </form>
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}
