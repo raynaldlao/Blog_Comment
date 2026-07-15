@@ -108,3 +108,12 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         if account is None:
             return
         self.account_repository.update_avatar(account.account_id, avatar_file_id)
+
+    def get_all_accounts(self) -> list[Account]:
+        """
+        Retrieves all accounts via the account repository.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        return self.account_repository.get_all()

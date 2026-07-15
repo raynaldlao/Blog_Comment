@@ -2,6 +2,7 @@ from flask import abort, flash, jsonify, redirect, render_template, request, url
 from flask import g as global_request_context
 from flask.views import MethodView
 from src.application.application_exceptions import FileTooLargeError, FileTypeError
+from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
@@ -187,3 +188,29 @@ class AccountSessionAdapter(MethodView):
 
         flash("Profile photo removed.", "success")
         return redirect(url_for("auth.profile"))
+
+    def list_all_users(self):
+        """
+        Renders the admin-only user list page.
+
+        Access restricted to admin role. Non-admin users receive a 403.
+        Displays all registered users with username, email, role, and join date.
+
+        Returns:
+            str: The rendered user_list.html template.
+
+        Raises:
+            403: If the current user is not authenticated or not an admin.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account or current_account.account_role != AccountRole.ADMIN:
+            abort(403)
+
+        accounts = self.session_service.get_all_accounts()
+        users_dto = [AccountResponse.from_domain(acc) for acc in accounts]
+
+        return render_template(
+            "user_list.html",
+            users=users_dto,
+            current_user=current_account,
+        )

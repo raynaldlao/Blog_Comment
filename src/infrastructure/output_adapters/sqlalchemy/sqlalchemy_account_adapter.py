@@ -171,3 +171,13 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             return
         model.avatar_file_id = avatar_file_id
         self._session.commit()
+
+    def get_all(self) -> list[Account]:
+        """
+        Retrieves all accounts from the database.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        models = self._session.query(AccountModel).all()
+        return [self._to_domain(model) for model in models]

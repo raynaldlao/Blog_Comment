@@ -66,6 +66,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             endpoint="auth.remove_profile_photo",
         )
 
+        self.app.add_url_rule(
+            "/admin/users",
+            view_func=self.adapter.list_all_users,
+            methods=["GET"],
+            endpoint="auth.list_all_users",
+        )
+
     def test_logout_clears_session(self):
         response = self.client.post("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
@@ -198,6 +205,26 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/profile/photo/delete", follow_redirects=True)
         assert b"No avatar to remove." in response.data
         assert b"alert-error" in response.data
+
+    def test_list_all_users_as_admin(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_users = [
+            create_test_account(account_id=1, account_username="alice"),
+            create_test_account(account_id=2, account_username="bob"),
+        ]
+        self.mock_session_service.get_all_accounts.return_value = fake_users
+
+        response = self.client.get("/admin/users")
+        assert response.status_code == 200
+        assert b"alice" in response.data
+        assert b"bob" in response.data
+
+    def test_list_all_users_as_non_admin_returns_403(self):
+        fake_user = create_test_account(account_role=AccountRole.USER)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.get("/admin/users")
+        assert response.status_code == 403
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

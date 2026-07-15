@@ -84,3 +84,13 @@ class AccountRepository(ABC):
             avatar_file_id: The new avatar file UUID, or None to remove.
         """
         pass
+
+    @abstractmethod
+    def get_all(self) -> list[Account]:
+        """
+        Retrieves all accounts from the data store.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        pass

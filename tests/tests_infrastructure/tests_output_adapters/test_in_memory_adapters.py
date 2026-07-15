@@ -117,6 +117,17 @@ class TestInMemoryAccountRepository:
         repo.save(Account(1, "user", "pass", "em", AccountRole.USER, datetime.now()))
         assert repo.get_by_ids([]) == []
 
+    def test_get_all_accounts(self):
+        repo = InMemoryAccountRepository()
+        a1 = Account(1, "user1", "pass", "em1", AccountRole.USER, datetime.now())
+        a2 = Account(2, "user2", "pass", "em2", AccountRole.USER, datetime.now())
+        repo.save(a1)
+        repo.save(a2)
+        results = repo.get_all()
+        assert len(results) == 2
+        assert a1 in results
+        assert a2 in results
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

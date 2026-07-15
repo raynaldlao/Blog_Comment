@@ -51,3 +51,16 @@ class AccountSessionManagementPort(ABC):
             avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
         """
         pass
+
+    @abstractmethod
+    def get_all_accounts(self) -> list[Account]:
+        """
+        Retrieves all registered accounts.
+
+        Intended for admin use only. The calling adapter is responsible
+        for enforcing role-based access control.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        pass

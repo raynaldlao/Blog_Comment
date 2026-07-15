@@ -39,6 +39,11 @@
     margin-bottom: var(--spacing-sm);
 }
 
+#upload-avatar-btn,
+.remove-avatar-form .btn-sm {
+    min-width: 8rem;
+}
+
 .role-badge {
     display: inline-block;
     padding: var(--spacing-xs) var(--spacing-sm);
@@ -78,8 +83,24 @@
 }
 
 .logout-form {
-    margin-top: var(--spacing-lg);
+    margin: 0;
     text-align: center;
+}
+
+.profile-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: center;
+    margin-top: var(--spacing-lg);
+}
+
+@media (max-width: 22.5em) {
+    .profile-actions {
+        flex-direction: column;
+    }
+    .profile-actions .btn-secondary {
+        width: 100%;
+    }
 }
 
 .back-link {

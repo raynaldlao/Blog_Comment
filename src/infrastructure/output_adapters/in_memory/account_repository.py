@@ -93,3 +93,12 @@ class InMemoryAccountRepository(AccountRepository):
         if account is None:
             return
         account.avatar_file_id = avatar_file_id
+
+    def get_all(self) -> list[Account]:
+        """
+        Retrieves all accounts from the in-memory store.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        return list(self._accounts.values())

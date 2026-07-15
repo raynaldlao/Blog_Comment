@@ -461,6 +461,7 @@ button,
 /* Buttons */
 button,
 .btn {
+    line-height: 1.5;
     padding: var(--spacing-sm) var(--spacing-xl);
     background: var(--primary);
     color: var(--on-primary);

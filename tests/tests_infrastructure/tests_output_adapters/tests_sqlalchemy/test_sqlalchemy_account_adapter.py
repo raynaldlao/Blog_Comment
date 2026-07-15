@@ -139,3 +139,13 @@ class TestAccountUpdateAvatar(SqlAlchemyAccountAdapterTestBase):
 
     def test_update_avatar_nonexistent_account_does_not_raise(self):
         self.repository.update_avatar(99999, "abc-123")
+
+
+class TestAccountGetAll(SqlAlchemyAccountAdapterTestBase):
+    def test_get_all_returns_all_accounts(self):
+        self.account_builder.create(username="user_one", email="one@test.com")
+        self.account_builder.create(username="user_two", email="two@test.com")
+        results = self.repository.get_all()
+        assert len(results) == 2
+        usernames = {r.account_username for r in results}
+        assert usernames == {"user_one", "user_two"}

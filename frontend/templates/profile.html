@@ -57,10 +57,15 @@
     </div>
 
     {% if is_own_profile %}
-    <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit" class="btn btn-secondary">Sign Out</button>
-    </form>
+    <div class="profile-actions">
+        {% if current_user.account_role == 'admin' %}
+        <a href="{{ url_for('auth.list_all_users') }}" class="btn btn-secondary">Manage Users</a>
+        {% endif %}
+        <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-secondary">Sign Out</button>
+        </form>
+    </div>
     {% endif %}
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">

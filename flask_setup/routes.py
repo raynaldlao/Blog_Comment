@@ -100,6 +100,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.remove_profile_photo",
     )
 
+    app.add_url_rule(
+        "/admin/users",
+        view_func=acc.list_all_users,
+        methods=["GET"],
+        endpoint="auth.list_all_users",
+    )
+
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]
