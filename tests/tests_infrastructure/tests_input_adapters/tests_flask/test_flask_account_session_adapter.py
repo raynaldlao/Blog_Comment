@@ -184,6 +184,33 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_file_service.upload_file.assert_called_once()
         self.mock_session_service.update_avatar.assert_called_once_with("abc-123")
 
+    def test_upload_profile_photo_replaces_old_avatar(self):
+        from datetime import datetime
+        from io import BytesIO
+
+        from src.application.domain.file_record import FileRecord
+
+        fake_user = create_test_account(account_avatar_file_id="old-avatar-id")
+        self.set_current_user(fake_user)
+        fake_file = FileRecord(
+            file_id="new-avatar-id",
+            original_filename="new_avatar.jpg",
+            mime_type="image/jpeg",
+            size=1024,
+            data=b"new-image-data",
+            created_at=datetime.now(),
+        )
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        response = self.client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"new-image"), "new_avatar.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+        self.mock_file_service.delete_file.assert_called_once_with("old-avatar-id")
+        self.mock_session_service.update_avatar.assert_called_once_with("new-avatar-id")
+
     def test_remove_profile_photo_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None
         response = self.client.post("/profile/photo/delete", follow_redirects=True)

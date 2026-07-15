@@ -1,3 +1,5 @@
+import logging
+
 from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -6,6 +8,8 @@ from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AccountSessionAdapter(MethodView):
@@ -150,6 +154,17 @@ class AccountSessionAdapter(MethodView):
             )
         except (FileTooLargeError, FileTypeError) as e:
             return jsonify({"error": str(e)}), 400
+
+        old_avatar_id = current_account.avatar_file_id
+        if old_avatar_id:
+            try:
+                self.file_service.delete_file(old_avatar_id)
+            except Exception:
+                logger.warning(
+                    "Failed to delete old avatar %s for account %s",
+                    old_avatar_id,
+                    current_account.account_id,
+                )
 
         self.session_service.update_avatar(file_record.file_id)
 
