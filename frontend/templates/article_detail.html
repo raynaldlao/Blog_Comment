@@ -79,7 +79,13 @@
         <div class="comment comment-depth-{{ display_depth }}{% if is_deleted %} comment-deleted{% endif %}">
             <div class="comment-avatar">
                 {% if not is_deleted %}
-                    <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}"><span class="comment-avatar-initial">{{ node.comment.author_username[0]|upper }}</span></a>
+                    <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
+                        {% if node.comment.author_avatar_file_id %}
+                            <img src="{{ url_for('file.serve_file', file_id=node.comment.author_avatar_file_id, filename='avatar') }}" alt="{{ node.comment.author_username }}" class="comment-avatar-img">
+                        {% else %}
+                            <span class="comment-avatar-initial">{{ node.comment.author_username[0]|upper }}</span>
+                        {% endif %}
+                    </a>
                 {% else %}
                     <span class="comment-avatar-initial comment-avatar-deleted">?</span>
                 {% endif %}

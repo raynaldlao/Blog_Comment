@@ -186,7 +186,8 @@ class CommentService(CommentManagementPort):
         author_ids = {c.comment_written_account_id for c in all_comments}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        return build_comment_nested_tree(all_comments, author_map)
+        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
+        return build_comment_nested_tree(all_comments, author_map, avatar_map)
 
     def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
         """

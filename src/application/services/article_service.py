@@ -304,7 +304,8 @@ class ArticleService(ArticleManagementPort):
         author_ids.update(c.comment_written_account_id for c in all_comments)
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        nested = build_comment_nested_tree(all_comments, author_map)
+        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
+        nested = build_comment_nested_tree(all_comments, author_map, avatar_map)
         author_name = author_map.get(article.article_author_id, "Unknown")
         article_with_author = ArticleWithAuthor(article=article, author_name=author_name)
         return ArticleDetailView(article_with_author=article_with_author, nested_comments=nested)
