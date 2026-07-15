@@ -1,7 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
+from io import BytesIO
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
+from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_uploaded_file_model import UploadedFileModel
 
 
 class TestRegistration:
@@ -67,6 +69,63 @@ class TestProfile:
         response_3 = client.get("/")
         assert b"new_legend" in response_3.data
         assert b"old_name" not in response_3.data
+
+
+class TestProfilePhoto:
+    """Tests for profile photo upload, replace, and remove via DB."""
+
+    OLD_FILE_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+
+    def _create_user_and_old_file(self, db_session):
+        old_file = UploadedFileModel(
+            file_id=self.OLD_FILE_ID,
+            original_filename="old_avatar.jpg",
+            mime_type="image/jpeg",
+            file_size=100,
+            file_data=b"old-image-data",
+        )
+        db_session.add(old_file)
+        auth = AccountModel(
+            account_username="photo_user",
+            account_email="photo@test.com",
+            account_password="p",
+            account_role="user",
+            avatar_file_id=self.OLD_FILE_ID,
+        )
+        db_session.add(auth)
+        db_session.commit()
+        return auth
+
+    def test_upload_replaces_old_avatar_and_remove_clears_integ(self, client, db_session):
+        auth = self._create_user_and_old_file(db_session)
+        client.post("/login", data={"username": "photo_user", "password": "p"}, follow_redirects=True)
+
+        upload_resp = client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"new-image-data"), "new_avatar.jpg", "image/jpeg")},
+            content_type="multipart/form-data",
+        )
+        assert upload_resp.status_code == 200
+        body = upload_resp.get_json()
+        assert body is not None
+        new_file_id = body["avatar_url"].split("/")[2]
+
+        db_session.expire_all()
+        updated_account = db_session.query(AccountModel).filter_by(account_id=auth.account_id).first()
+        assert updated_account.avatar_file_id == new_file_id
+        old_file = db_session.query(UploadedFileModel).filter_by(file_id=self.OLD_FILE_ID).first()
+        assert old_file is None
+
+        remove_resp = client.post("/profile/photo/delete", follow_redirects=True)
+        assert remove_resp.status_code == 200
+        assert b"Profile photo removed." in remove_resp.data
+
+        db_session.expire_all()
+        updated_account = db_session.query(AccountModel).filter_by(account_id=auth.account_id).first()
+        assert updated_account.avatar_file_id is None
+        deleted_new_file = db_session.query(UploadedFileModel).filter_by(file_id=new_file_id).first()
+        assert deleted_new_file is None
+
 
 class TestConcurrency:
     """Grouped tests for high-concurrency race condition scenarios."""
