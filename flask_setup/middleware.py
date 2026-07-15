@@ -130,12 +130,13 @@ def _add_referrer_policy(response: Response) -> Response:
 
 
 def _add_cache_headers(response: Response) -> Response:
-    """Sets Cache-Control headers for fingerprinted static assets.
+    """Sets Cache-Control headers based on request path.
 
-    Applies ``public, max-age=31536000, immutable`` to all responses
-    served from ``/static/`` (Vite dist, CSS, JS, fonts). Fingerprinted
-    filenames never change, so the ``immutable`` directive eliminates
-    revalidation even on manual reload.
+    Fingerprinted Vite dist assets (static/dist/) get long-term immutable
+    cache. Non-fingerprinted static files (CSS, JS, fonts) get no-cache
+    to force revalidation. Uploaded files have UUID-based URLs so they
+    are also cached indefinitely. All other routes (HTML pages) get
+    no-store to prevent the browser from caching sensitive pages.
 
     Args:
         response: The Flask response object to modify.
@@ -151,6 +152,11 @@ def _add_cache_headers(response: Response) -> Response:
                 response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
             else:
                 response.headers["Cache-Control"] = "no-cache"
+        elif path.startswith("/uploads/"):
+            response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        else:
+            response.headers["Cache-Control"] = "no-store"
+            response.headers["Pragma"] = "no-cache"
     return response
 
 

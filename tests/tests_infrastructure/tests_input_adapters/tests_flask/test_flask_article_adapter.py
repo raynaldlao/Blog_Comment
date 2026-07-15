@@ -251,6 +251,15 @@ class TestArticleUserAccess(ArticleAdapterTestBase):
         assert b"Insufficient permissions" in response.data
         assert b"alert-error" in response.data
 
+    def test_author_cannot_edit_others_article(self):
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        article = create_test_article(article_id=1, article_author_id=99)
+        self.mock_article_repo.get_by_id.return_value = article
+        response = self.client.get("/articles/1/edit", follow_redirects=True)
+        assert b"You do not have permission" in response.data
+        assert b"alert-error" in response.data
+
     def test_user_cannot_update_article(self):
         user = create_test_account(account_id=10, account_role=AccountRole.USER)
         self._prepare_user_context(user)

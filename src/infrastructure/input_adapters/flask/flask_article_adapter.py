@@ -346,6 +346,10 @@ class ArticleAdapter:
             flash("Error: The requested article could not be found.", "error")
             return redirect(url_for("article.list_articles"))
 
+        if user.account_role != "admin" and domain_article.article_author_id != user.account_id:
+            flash("You do not have permission to edit this article.", "error")
+            return redirect(url_for("article.list_articles"))
+
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
         return render_template("article_edit.html", article=article, current_user=user, page_with_editor=True)
