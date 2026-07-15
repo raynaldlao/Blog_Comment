@@ -23,6 +23,7 @@ class Account:
         account_email (str): Unique email address for the user.
         account_role (AccountRole): Permissions role.
         account_created_at (datetime): Timestamp of account creation.
+        avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
     """
 
     def __init__(
@@ -33,6 +34,7 @@ class Account:
         account_email: str,
         account_role: AccountRole,
         account_created_at: datetime | None,
+        avatar_file_id: str | None = None,
     ):
         """
         Initialize a user account.
@@ -44,6 +46,7 @@ class Account:
             account_email (str): Unique email address for the user.
             account_role (AccountRole): Permissions role.
             account_created_at (datetime): Timestamp of account creation.
+            avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
         """
         self.account_id = account_id
         self.account_username = account_username
@@ -51,3 +54,4 @@ class Account:
         self.account_email = account_email
         self.account_role = account_role
         self.account_created_at = account_created_at
+        self.avatar_file_id = avatar_file_id

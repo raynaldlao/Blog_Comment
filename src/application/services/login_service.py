@@ -91,3 +91,18 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             Account | None: The domain Account if found, None otherwise.
         """
         return self.account_repository.find_by_username(username)
+
+    def update_avatar(self, avatar_file_id: str) -> None:
+        """
+        Updates the avatar_file_id for the currently authenticated account.
+
+        Retrieves the current account from the session and delegates
+        the persistence update to the account repository.
+
+        Args:
+            avatar_file_id: The UUID of the uploaded avatar file.
+        """
+        account = self.get_current_account()
+        if account is None:
+            return
+        self.account_repository.update_avatar(account.account_id, avatar_file_id)

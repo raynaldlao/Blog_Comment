@@ -20,6 +20,18 @@
     font-size: 1.8rem;
     font-weight: bold;
     margin: 0 auto var(--spacing-sm);
+    overflow: hidden;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+}
+
+#upload-avatar-btn {
+    margin-bottom: var(--spacing-sm);
 }
 
 .role-badge {

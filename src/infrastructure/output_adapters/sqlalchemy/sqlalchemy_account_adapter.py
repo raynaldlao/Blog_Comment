@@ -153,3 +153,21 @@ class SqlAlchemyAccountAdapter(AccountRepository):
                     f"Unexpected unique constraint violation: {constraint_name}"
                 ) from None
         account.account_id = model.account_id
+
+    def update_avatar(self, account_id: int, avatar_file_id: str | None) -> None:
+        """
+        Updates the avatar_file_id for the given account directly in the database.
+
+        Performs a targeted column update without loading or saving the full
+        Account entity, keeping the responsibility focused and avoiding
+        accidental overwrites of other fields.
+
+        Args:
+            account_id: The ID of the account to update.
+            avatar_file_id: The new avatar file UUID, or None to remove.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.avatar_file_id = avatar_file_id
+        self._session.commit()

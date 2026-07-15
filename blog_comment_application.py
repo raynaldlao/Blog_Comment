@@ -120,7 +120,10 @@ def _init_web_adapters(services: dict) -> dict:
         "comment_adapter": CommentAdapter(services["comment_service"]),
         "login_adapter": LoginAdapter(services["login_service"]),
         "registration_adapter": RegistrationAdapter(services["registration_service"]),
-        "account_session_adapter": AccountSessionAdapter(services["login_service"]),
+        "account_session_adapter": AccountSessionAdapter(
+            services["login_service"],
+            services["file_service"],
+        ),
         "file_adapter": FlaskFileAdapter(services["file_service"]),
     }
 

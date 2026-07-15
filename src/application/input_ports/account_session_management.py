@@ -39,3 +39,13 @@ class AccountSessionManagementPort(ABC):
             Account | None: The domain Account if found, None otherwise.
         """
         pass
+
+    @abstractmethod
+    def update_avatar(self, avatar_file_id: str) -> None:
+        """
+        Updates the avatar_file_id for the currently authenticated account.
+
+        Args:
+            avatar_file_id: The UUID of the uploaded avatar file.
+        """
+        pass

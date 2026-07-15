@@ -11,8 +11,16 @@
 <div class="user-card profile-card">
     <div class="profile-header">
         <div class="avatar-placeholder">
-            {{ user.account_username[0]|upper }}
+            {% if user.avatar_file_id %}
+                <img src="{{ url_for('file.serve_file', file_id=user.avatar_file_id, filename='avatar') }}" alt="{{ user.account_username }}" class="avatar-img">
+            {% else %}
+                {{ user.account_username[0]|upper }}
+            {% endif %}
         </div>
+        {% if is_own_profile %}
+        <button type="button" id="upload-avatar-btn" class="btn btn-sm btn-secondary">Upload Photo</button>
+        <input type="file" id="avatar-file-input" accept="image/*" hidden>
+        {% endif %}
         <h1>{{ user.account_username }}</h1>
         <span class="role-badge">{{ user.account_role }}</span>
     </div>
@@ -54,4 +62,8 @@
         <span>Return to home</span>
     </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('static', filename='scripts/profile-avatar.js') }}"></script>
 {% endblock %}

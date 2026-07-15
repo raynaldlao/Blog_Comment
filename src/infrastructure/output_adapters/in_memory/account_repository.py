@@ -80,3 +80,16 @@ class InMemoryAccountRepository(AccountRepository):
             if account.account_email == email:
                 return account
         return None
+
+    def update_avatar(self, account_id: int, avatar_file_id: str | None) -> None:
+        """
+        Updates the avatar_file_id for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            avatar_file_id: The new avatar file UUID, or None to remove.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.avatar_file_id = avatar_file_id

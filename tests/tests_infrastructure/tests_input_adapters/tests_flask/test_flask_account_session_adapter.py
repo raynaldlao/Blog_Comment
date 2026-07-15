@@ -4,6 +4,7 @@ from flask import g as global_request_context
 
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from tests.test_domain_factories import create_test_account
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
@@ -15,7 +16,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(session_service=self.mock_session_service)
+        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.adapter = AccountSessionAdapter(
+            session_service=self.mock_session_service,
+            file_service=self.mock_file_service,
+        )
 
         self.app.add_url_rule(
             "/logout",
@@ -39,6 +44,19 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             "/users/<username>",
             view_func=self.adapter.display_user_profile,
             endpoint="auth.user_profile",
+        )
+
+        self.app.add_url_rule(
+            "/api/profile/photo",
+            view_func=self.adapter.upload_profile_photo,
+            methods=["POST"],
+            endpoint="auth.upload_profile_photo",
+        )
+
+        self._register_dummy_route(
+            "/uploads/<string:file_id>/<string:filename>",
+            "file.serve_file",
+            "file_serve",
         )
 
     def test_logout_clears_session(self):
@@ -119,6 +137,39 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"leia@galaxy.com" not in response.data
         assert b"Sign Out" not in response.data
 
+    def test_upload_profile_photo_unauthenticated(self):
+        response = self.client.post("/api/profile/photo")
+        assert response.status_code == 401
+
+    def test_upload_profile_photo_success(self):
+        from datetime import datetime
+        from io import BytesIO
+
+        from src.application.domain.file_record import FileRecord
+
+        fake_user = create_test_account()
+        self.set_current_user(fake_user)
+        fake_file = FileRecord(
+            file_id="abc-123",
+            original_filename="avatar.jpg",
+            mime_type="image/jpeg",
+            size=1024,
+            data=b"fake-image-data",
+            created_at=datetime.now(),
+        )
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        response = self.client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"fake-image"), "avatar.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["avatar_url"] == "/uploads/abc-123/avatar"
+        self.mock_file_service.upload_file.assert_called_once()
+        self.mock_session_service.update_avatar.assert_called_once_with("abc-123")
+
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     """
@@ -130,7 +181,11 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(session_service=self.mock_session_service)
+        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.adapter = AccountSessionAdapter(
+            session_service=self.mock_session_service,
+            file_service=self.mock_file_service,
+        )
 
     def _capture_handler(self, **kwargs):
         """Route handler that captures the current_user from flask.g."""

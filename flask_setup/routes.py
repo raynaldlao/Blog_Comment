@@ -73,6 +73,7 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     log = adapters["login_adapter"]
     reg = adapters["registration_adapter"]
     acc = adapters["account_session_adapter"]
+    csrf = app.extensions["csrf"]
     app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
@@ -84,6 +85,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.user_profile",
     )
     app.add_url_rule("/logout", view_func=acc.logout, methods=["POST"], endpoint="auth.logout")
+    app.add_url_rule(
+        "/api/profile/photo",
+        view_func=acc.upload_profile_photo,
+        methods=["POST"],
+        endpoint="auth.upload_profile_photo",
+    )
+    csrf.exempt(acc.upload_profile_photo)
 
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:

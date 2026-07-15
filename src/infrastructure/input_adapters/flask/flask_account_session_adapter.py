@@ -1,7 +1,9 @@
-from flask import abort, flash, redirect, render_template, url_for
+from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
+from src.application.application_exceptions import FileTooLargeError, FileTypeError
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
 
@@ -17,14 +19,20 @@ class AccountSessionAdapter(MethodView):
     - User profile display.
     """
 
-    def __init__(self, session_service: AccountSessionManagementPort):
+    def __init__(
+        self,
+        session_service: AccountSessionManagementPort,
+        file_service: FileManagementPort,
+    ):
         """
         Initializes the AccountSessionAdapter with the required session service.
 
         Args:
             session_service (AccountSessionManagementPort): The input port for session management.
+            file_service (FileManagementPort): The input port for file management.
         """
         self.session_service = session_service
+        self.file_service = file_service
 
     def _identify_user(self):
         """Injects the current user into the global request context."""
@@ -112,3 +120,38 @@ class AccountSessionAdapter(MethodView):
                 current_account and current_account.account_id == account.account_id
             ),
         )
+
+    def upload_profile_photo(self):
+        """
+        Handles profile photo upload via multipart POST.
+
+        Validates authentication, delegates file upload to the file service,
+        and persists the avatar reference on the current account.
+
+        Returns:
+            Response: JSON with avatar_url on success (200),
+                      or error message (400/401).
+        """
+        current_account = getattr(global_request_context, "current_user", None)
+        if not current_account:
+            return jsonify({"error": "Authentication required."}), 401
+
+        uploaded_file = request.files.get("file")
+        if not uploaded_file or not uploaded_file.filename:
+            return jsonify({"error": "No file provided."}), 400
+
+        file_data = uploaded_file.read()
+        try:
+            file_record = self.file_service.upload_file(
+                filename=uploaded_file.filename,
+                data=file_data,
+                mime_type=uploaded_file.content_type or "application/octet-stream",
+            )
+        except (FileTooLargeError, FileTypeError) as e:
+            return jsonify({"error": str(e)}), 400
+
+        self.session_service.update_avatar(file_record.file_id)
+
+        return jsonify({
+            "avatar_url": url_for("file.serve_file", file_id=file_record.file_id, filename="avatar"),
+        }), 200
