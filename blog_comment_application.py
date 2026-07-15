@@ -1,7 +1,7 @@
 import os
 from datetime import timedelta
 
-from flask import Flask
+from flask import Flask, render_template
 from flask_compress import Compress
 from sqlalchemy.orm import Session
 
@@ -174,6 +174,11 @@ def _init_template_utils(app: Flask) -> None:
     app.context_processor(inject_vite_assets)
 
 
+def _error_page(code: int, message: str) -> tuple[str, int]:
+    """Render generic error page with given HTTP status code and message."""
+    return render_template("error.html", code=code, message=message), code
+
+
 def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
@@ -195,6 +200,9 @@ def create_app(db_session=None) -> Flask:
     web_adapters = _init_web_adapters(services)
     register_web_routes(app, web_adapters)
     web_adapters["account_session_adapter"].register_before_request_handler(app)
+    app.errorhandler(403)(lambda e: _error_page(403, "You do not have permission to access this page."))
+    app.errorhandler(404)(lambda e: _error_page(404, "The page you are looking for does not exist."))
+    app.errorhandler(500)(lambda e: _error_page(500, "An unexpected error occurred. Please try again later."))
     return app
 
 

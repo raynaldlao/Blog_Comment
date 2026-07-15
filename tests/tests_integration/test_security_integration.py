@@ -389,6 +389,13 @@ class TestSecurityHeaders:
             response = _add_cache_headers(Response())
             assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
+    def test_forbidden_returns_custom_error_page(self, client):
+        """Verifies 403 errors render the custom error template."""
+        response = client.get("/admin/users")
+        assert response.status_code == 403
+        assert b"You do not have permission" in response.data
+        assert b"Return to home" in response.data
+
 
 class TestCompression:
     """Tests focused on HTTP response compression (flask-compress)."""
