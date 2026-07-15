@@ -39,6 +39,32 @@
     text-decoration: underline;
 }
 
+.user-search-wrapper {
+    margin-bottom: var(--spacing-md);
+}
+
+.user-search-input {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--outline);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--on-surface);
+    font-family: inherit;
+    font-size: var(--font-body-base);
+    box-sizing: border-box;
+    outline: none;
+}
+
+.user-search-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.user-search-input::placeholder {
+    color: var(--on-surface-variant);
+}
+
 .user-card h1 {
     text-align: center;
     font-family: var(--font-mono);

@@ -9,6 +9,9 @@
 {% block content %}
 <div class="user-card profile-card">
     <h1>Manage Users</h1>
+    <div class="user-search-wrapper">
+        <input type="search" id="user-search" class="user-search-input" placeholder="Filter by username or email..." autocomplete="off">
+    </div>
     <div class="user-table-wrapper">
         <table class="user-table">
             <thead>
@@ -36,4 +39,5 @@
         <span>Return to home</span>
     </a>
 </div>
+<script defer src="{{ url_for('static', filename='scripts/user-search.js') }}"></script>
 {% endblock %}
