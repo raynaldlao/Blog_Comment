@@ -611,6 +611,12 @@ input[type=number] {
     font-style: italic;
 }
 
+.comment-deleted > .comment-content > .comment-header-section > .comment-header > .comment-author:hover {
+    color: inherit;
+    text-decoration: none;
+    cursor: default;
+}
+
 .comment-body-text {
     font-size: var(--font-body-base);
     color: var(--on-surface);

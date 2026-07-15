@@ -98,7 +98,11 @@
             <div class="comment-content">
                 <div class="comment-header-section">
                     <div class="comment-header">
-                        <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
+                        {% if not is_deleted %}
+                            <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
+                        {% else %}
+                            <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% endif %}
                         <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
                             <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
