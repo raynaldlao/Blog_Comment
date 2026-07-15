@@ -59,6 +59,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             "file_serve",
         )
 
+        self.app.add_url_rule(
+            "/profile/photo/delete",
+            view_func=self.adapter.remove_profile_photo,
+            methods=["POST"],
+            endpoint="auth.remove_profile_photo",
+        )
+
     def test_logout_clears_session(self):
         response = self.client.post("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
@@ -169,6 +176,28 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert data["avatar_url"] == "/uploads/abc-123/avatar"
         self.mock_file_service.upload_file.assert_called_once()
         self.mock_session_service.update_avatar.assert_called_once_with("abc-123")
+
+    def test_remove_profile_photo_unauthenticated(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"Please sign in." in response.data
+        assert b"alert-error" in response.data
+
+    def test_remove_profile_photo_success(self):
+        fake_user = create_test_account(account_avatar_file_id="abc-123")
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"Profile photo removed." in response.data
+        assert b"alert-success" in response.data
+        self.mock_file_service.delete_file.assert_called_once_with("abc-123")
+        self.mock_session_service.update_avatar.assert_called_once_with(None)
+
+    def test_remove_profile_photo_no_avatar(self):
+        fake_user = create_test_account(account_avatar_file_id=None)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"No avatar to remove." in response.data
+        assert b"alert-error" in response.data
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

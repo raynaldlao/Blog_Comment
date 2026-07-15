@@ -93,6 +93,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
     csrf.exempt(acc.upload_profile_photo)
 
+    app.add_url_rule(
+        "/profile/photo/delete",
+        view_func=acc.remove_profile_photo,
+        methods=["POST"],
+        endpoint="auth.remove_profile_photo",
+    )
+
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]

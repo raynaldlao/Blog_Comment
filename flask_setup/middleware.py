@@ -175,6 +175,7 @@ def init_web_security(app: Flask) -> None:
         app: The Flask application instance to secure.
     """
     app.session_interface = NonPersistentSessionInterface()
+    app.config["WTF_CSRF_TIME_LIMIT"] = None
     csrf_protect = CSRFProtect(app)
     csp = CSPConfig()
     app.after_request(csp.add_headers)

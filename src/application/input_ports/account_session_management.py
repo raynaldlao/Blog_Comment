@@ -41,11 +41,13 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
-    def update_avatar(self, avatar_file_id: str) -> None:
+    def update_avatar(self, avatar_file_id: str | None) -> None:
         """
-        Updates the avatar_file_id for the currently authenticated account.
+        Sets or clears the avatar_file_id for the currently authenticated account.
+
+        Pass None to remove the avatar reference.
 
         Args:
-            avatar_file_id: The UUID of the uploaded avatar file.
+            avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
         """
         pass

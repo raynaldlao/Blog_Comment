@@ -155,3 +155,35 @@ class AccountSessionAdapter(MethodView):
         return jsonify({
             "avatar_url": url_for("file.serve_file", file_id=file_record.file_id, filename="avatar"),
         }), 200
+
+    def remove_profile_photo(self):
+        """
+        Removes the current user's profile photo.
+
+        Deletes the uploaded file from storage via the file service,
+        then clears the avatar_file_id reference on the account.
+
+        Redirects back to profile with a flash message on success or error.
+
+        Returns:
+            Response: A Flask redirect response.
+        """
+        account = self.session_service.get_current_account()
+        if not account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        avatar_file_id = account.avatar_file_id
+        if not avatar_file_id:
+            flash("No avatar to remove.", "error")
+            return redirect(url_for("auth.profile"))
+
+        try:
+            self.file_service.delete_file(avatar_file_id)
+            self.session_service.update_avatar(None)
+        except Exception:
+            flash("Failed to remove profile photo.", "error")
+            return redirect(url_for("auth.profile"))
+
+        flash("Profile photo removed.", "success")
+        return redirect(url_for("auth.profile"))

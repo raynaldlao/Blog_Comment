@@ -92,15 +92,17 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.find_by_username(username)
 
-    def update_avatar(self, avatar_file_id: str) -> None:
+    def update_avatar(self, avatar_file_id: str | None) -> None:
         """
-        Updates the avatar_file_id for the currently authenticated account.
+        Sets or clears the avatar_file_id for the currently authenticated account.
 
         Retrieves the current account from the session and delegates
         the persistence update to the account repository.
 
+        Pass None to remove the avatar reference.
+
         Args:
-            avatar_file_id: The UUID of the uploaded avatar file.
+            avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
         """
         account = self.get_current_account()
         if account is None:

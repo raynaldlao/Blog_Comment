@@ -20,6 +20,12 @@
         {% if is_own_profile %}
         <button type="button" id="upload-avatar-btn" class="btn btn-sm btn-secondary">Upload Photo</button>
         <input type="file" id="avatar-file-input" accept="image/*" hidden>
+        {% if user.avatar_file_id %}
+        <form action="{{ url_for('auth.remove_profile_photo') }}" method="POST" class="remove-avatar-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-secondary">Remove Photo</button>
+        </form>
+        {% endif %}
         {% endif %}
         <h1>{{ user.account_username }}</h1>
         <span class="role-badge">{{ user.account_role }}</span>
