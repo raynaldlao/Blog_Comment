@@ -48,7 +48,12 @@
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
         <div class="item-meta">
-            <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">{{ article.author_username }}</a>
+            <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">
+                {% if article.author_avatar_file_id %}
+                    <img src="{{ url_for('file.serve_file', file_id=article.author_avatar_file_id, filename='avatar') }}" alt="{{ article.author_username }}" class="meta-author-avatar">
+                {% endif %}
+                {{ article.author_username }}
+            </a>
             <span class="meta-divider">•</span>
             <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
         </div>

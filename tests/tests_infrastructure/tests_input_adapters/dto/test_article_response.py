@@ -34,3 +34,19 @@ class TestArticleResponse:
         response = ArticleResponse.from_domain(domain_article, author_username="Guest")
         assert response.author_username == "Guest"
         assert response.article_published_at is None
+
+    def test_from_domain_with_avatar_file_id(self):
+        domain_article = Article(
+            article_id=1, article_author_id=10, article_title="Title",
+            article_content="Content", article_published_at=datetime.now()
+        )
+        result = ArticleResponse.from_domain(domain_article, "yoda", "abc-123")
+        assert result.author_avatar_file_id == "abc-123"
+
+    def test_from_domain_without_avatar_file_id(self):
+        domain_article = Article(
+            article_id=1, article_author_id=10, article_title="Title",
+            article_content="Content", article_published_at=datetime.now()
+        )
+        result = ArticleResponse.from_domain(domain_article, "yoda")
+        assert result.author_avatar_file_id is None

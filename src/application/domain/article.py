@@ -43,10 +43,17 @@ class Article:
 @dataclass
 class ArticleWithAuthor:
     """
-    Read Model that combines an Article domain entity with its author's username.
+    Read Model that combines an Article domain entity with its author's username
+    and optional avatar file ID.
+
+    Attributes:
+        article (Article): The underlying article domain entity.
+        author_name (str): The display name of the article author.
+        author_avatar_file_id (str | None): UUID of the author's avatar file, or None.
     """
     article: Article
     author_name: str
+    author_avatar_file_id: str | None = None
 
 @dataclass
 class ArticleDetailView:
