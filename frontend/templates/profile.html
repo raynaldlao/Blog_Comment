@@ -93,7 +93,10 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-input-group">
                     <label for="new-password-input">New Password</label>
-                    <input type="password" id="new-password-input" name="new_password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="new-password-input" name="new_password" required>
+                        <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -127,4 +130,5 @@
 <script defer src="{{ url_for('static', filename='scripts/profile-avatar.js') }}"></script>
 <script defer src="{{ url_for('static', filename='scripts/profile-email.js') }}"></script>
 <script defer src="{{ url_for('static', filename='scripts/profile-password.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/password-toggle.js') }}"></script>
 {% endblock %}

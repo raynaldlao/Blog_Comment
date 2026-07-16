@@ -244,3 +244,36 @@
 .back-link span:last-child {
     transform: translateY(1.5px);
 }
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs);
+    line-height: 1;
+}
+
+.password-toggle .icon {
+    font-size: 1.5rem;
+}
+
+.password-toggle:hover {
+    color: var(--on-surface);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
