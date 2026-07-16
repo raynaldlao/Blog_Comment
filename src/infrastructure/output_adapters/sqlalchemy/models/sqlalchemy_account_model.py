@@ -12,6 +12,8 @@ class AccountModel(SqlAlchemyModel):
 
     This class defines the database schema for user profiles, including
     authentication credentials, contact information, and roles.
+    It also stores an optional reference to the user's avatar image
+    in the ``uploaded_files`` table via ``avatar_file_id``.
     """
 
     __tablename__ = "accounts"
@@ -22,3 +24,4 @@ class AccountModel(SqlAlchemyModel):
     account_email: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     account_role: Mapped[str] = mapped_column(Text, nullable=False)
     account_created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    avatar_file_id: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)

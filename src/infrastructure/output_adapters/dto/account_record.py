@@ -10,7 +10,8 @@ class AccountRecord(BaseModel):
     Pydantic DTO (Data Transfer Object) for account database records.
 
     This class faithfully mirrors the 'accounts' table schema and provides
-    validation when loading data from the persistence layer.
+    validation when loading data from the persistence layer, including
+    the optional avatar file reference.
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -21,6 +22,7 @@ class AccountRecord(BaseModel):
     account_email: str
     account_role: str
     account_created_at: datetime | None
+    avatar_file_id: str | None = None
 
     def to_domain(self) -> Account:
         """
@@ -28,7 +30,8 @@ class AccountRecord(BaseModel):
 
         Returns:
             Account: The corresponding domain entity, including the
-            conversion of the 'account_role' string to an AccountRole enum.
+            conversion of the 'account_role' string to an AccountRole enum
+            and the optional avatar_file_id reference.
         """
         return Account(
             account_id=self.account_id,
@@ -37,4 +40,5 @@ class AccountRecord(BaseModel):
             account_email=self.account_email,
             account_role=AccountRole(self.account_role),
             account_created_at=self.account_created_at,
+            avatar_file_id=self.avatar_file_id,
         )

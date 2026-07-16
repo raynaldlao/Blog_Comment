@@ -80,3 +80,33 @@ def test_map_nested_tree():
     assert result[0].replies[0].comment.author_username == "Author2"
     assert result[0].replies[0].comment.comment_reply_to == 1
     assert result[0].replies[0].depth == 1
+
+def test_from_domain_with_avatar_file_id():
+    comment = Comment(1, 10, 5, None, "Hello", datetime(2023, 10, 27, 14, 30))
+    result = CommentResponse.from_domain(comment, "yoda", "abc-123")
+    assert result.author_avatar_file_id == "abc-123"
+
+def test_from_domain_without_avatar_file_id():
+    comment = Comment(1, 10, 5, None, "Hello", datetime(2023, 10, 27, 14, 30))
+    result = CommentResponse.from_domain(comment, "yoda")
+    assert result.author_avatar_file_id is None
+
+def test_map_nested_tree_threads_avatar():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    comment_1 = Comment(1, 10, 1, None, "Root", posted_at)
+    comment_2 = Comment(2, 10, 2, 1, "Reply", posted_at)
+    nodes = [
+        CommentNode(
+            comment=CommentWithAuthor(comment_1, "Author1", "avatar-1"),
+            replies=[
+                CommentNode(
+                    comment=CommentWithAuthor(comment_2, "Author2", "avatar-2"),
+                    depth=1,
+                )
+            ],
+            depth=0,
+        )
+    ]
+    result = CommentResponse.map_nested_tree(nodes)
+    assert result[0].comment.author_avatar_file_id == "avatar-1"
+    assert result[0].replies[0].comment.author_avatar_file_id == "avatar-2"

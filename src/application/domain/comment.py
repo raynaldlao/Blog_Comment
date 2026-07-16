@@ -47,10 +47,17 @@ class Comment:
 @dataclass
 class CommentWithAuthor:
     """
-    Read Model that combines a Comment domain entity with its author's username.
+    Read Model that combines a Comment domain entity with its author's username
+    and optional avatar file ID.
+
+    Attributes:
+        comment (Comment): The underlying comment domain entity.
+        author_name (str): The display name of the comment author.
+        author_avatar_file_id (str | None): UUID of the author's avatar file, or None.
     """
     comment: Comment
     author_name: str
+    author_avatar_file_id: str | None = None
 
 @dataclass
 class CommentNode:

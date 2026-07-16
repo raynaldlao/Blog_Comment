@@ -64,7 +64,11 @@ class ArticleAdapter:
         articles = []
 
         for item in domain_articles:
-            articles.append(ArticleResponse.from_domain(item.article, author_username=item.author_name))
+            articles.append(ArticleResponse.from_domain(
+                item.article,
+                author_username=item.author_name,
+                author_avatar_file_id=item.author_avatar_file_id,
+            ))
 
         has_next = (page * 10) < total_count
         has_prev = page > 1
@@ -100,7 +104,8 @@ class ArticleAdapter:
         detail = result
         article = ArticleResponse.from_domain(
             detail.article_with_author.article,
-            author_username=detail.article_with_author.author_name
+            author_username=detail.article_with_author.author_name,
+            author_avatar_file_id=detail.article_with_author.author_avatar_file_id,
         )
 
         content = article.article_content
@@ -339,6 +344,10 @@ class ArticleAdapter:
         domain_article = self.article_service.get_by_id(article_id)
         if not domain_article:
             flash("Error: The requested article could not be found.", "error")
+            return redirect(url_for("article.list_articles"))
+
+        if user.account_role != "admin" and domain_article.article_author_id != user.account_id:
+            flash("You do not have permission to edit this article.", "error")
             return redirect(url_for("article.list_articles"))
 
         username = self.article_service.get_author_name(domain_article.article_author_id)

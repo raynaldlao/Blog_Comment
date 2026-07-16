@@ -259,7 +259,12 @@ class ArticleService(ArticleManagementPort):
         author_ids = {a.article_author_id for a in domain_articles}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        return [ArticleWithAuthor(article=a, author_name=author_map.get(a.article_author_id, "Unknown")) for a in domain_articles]
+        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
+        return [ArticleWithAuthor(
+            article=a,
+            author_name=author_map.get(a.article_author_id, "Unknown"),
+            author_avatar_file_id=avatar_map.get(a.article_author_id),
+        ) for a in domain_articles]
 
     def get_total_count(self) -> int:
         """
@@ -304,7 +309,12 @@ class ArticleService(ArticleManagementPort):
         author_ids.update(c.comment_written_account_id for c in all_comments)
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
-        nested = build_comment_nested_tree(all_comments, author_map)
+        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
+        nested = build_comment_nested_tree(all_comments, author_map, avatar_map)
         author_name = author_map.get(article.article_author_id, "Unknown")
-        article_with_author = ArticleWithAuthor(article=article, author_name=author_name)
+        article_with_author = ArticleWithAuthor(
+            article=article,
+            author_name=author_name,
+            author_avatar_file_id=avatar_map.get(article.article_author_id),
+        )
         return ArticleDetailView(article_with_author=article_with_author, nested_comments=nested)

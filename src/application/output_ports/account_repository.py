@@ -73,3 +73,24 @@ class AccountRepository(ABC):
             account (Account): The Account domain entity to save.
         """
         pass
+
+    @abstractmethod
+    def update_avatar(self, account_id: int, avatar_file_id: str | None) -> None:
+        """
+        Updates the avatar_file_id for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            avatar_file_id: The new avatar file UUID, or None to remove.
+        """
+        pass
+
+    @abstractmethod
+    def get_all(self) -> list[Account]:
+        """
+        Retrieves all accounts from the data store.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        pass

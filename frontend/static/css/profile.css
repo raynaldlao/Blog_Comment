@@ -20,6 +20,28 @@
     font-size: 1.8rem;
     font-weight: bold;
     margin: 0 auto var(--spacing-sm);
+    overflow: hidden;
+}
+
+.avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-full);
+}
+
+#upload-avatar-btn {
+    margin-bottom: var(--spacing-sm);
+}
+
+.remove-avatar-form {
+    display: inline-block;
+    margin-bottom: var(--spacing-sm);
+}
+
+#upload-avatar-btn,
+.remove-avatar-form .btn-sm {
+    min-width: 8rem;
 }
 
 .role-badge {
@@ -60,25 +82,25 @@
     font-weight: 600;
 }
 
-.actions {
+.logout-form {
+    margin: 0;
+    text-align: center;
+}
+
+.profile-actions {
     display: flex;
     gap: var(--spacing-sm);
+    justify-content: center;
     margin-top: var(--spacing-lg);
 }
 
-.actions .btn {
-    flex: 1;
-    text-decoration: none;
-    color: var(--on-primary);
-}
-
-.actions .btn.btn-secondary {
-    color: var(--primary);
-}
-
-.actions .btn.btn-secondary:hover {
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
-    border-color: var(--primary);
+@media (max-width: 22.5em) {
+    .profile-actions {
+        flex-direction: column;
+    }
+    .profile-actions .btn-secondary {
+        width: 100%;
+    }
 }
 
 .back-link {

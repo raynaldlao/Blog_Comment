@@ -119,3 +119,33 @@ class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
         result = self.repository.find_by_username("auto_id")
         assert result is not None
         assert result.account_id > 0
+
+
+class TestAccountUpdateAvatar(SqlAlchemyAccountAdapterTestBase):
+    def test_update_avatar_sets_file_id(self):
+        account = self.account_builder.create(username="avatar_user")
+        self.repository.update_avatar(account.account_id, "abc-123")
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.avatar_file_id == "abc-123"
+
+    def test_update_avatar_removes_file_id(self):
+        account = self.account_builder.create(username="avatar_remove")
+        self.repository.update_avatar(account.account_id, "abc-123")
+        self.repository.update_avatar(account.account_id, None)
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.avatar_file_id is None
+
+    def test_update_avatar_nonexistent_account_does_not_raise(self):
+        self.repository.update_avatar(99999, "abc-123")
+
+
+class TestAccountGetAll(SqlAlchemyAccountAdapterTestBase):
+    def test_get_all_returns_all_accounts(self):
+        self.account_builder.create(username="user_one", email="one@test.com")
+        self.account_builder.create(username="user_two", email="two@test.com")
+        results = self.repository.get_all()
+        assert len(results) == 2
+        usernames = {r.account_username for r in results}
+        assert usernames == {"user_one", "user_two"}

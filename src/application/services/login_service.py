@@ -80,3 +80,40 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         self.session_repository.clear()
 
+    def get_account_by_username(self, username: str) -> Account | None:
+        """
+        Retrieves a domain Account by its unique username via the repository.
+
+        Args:
+            username: The username to look up.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        return self.account_repository.find_by_username(username)
+
+    def update_avatar(self, avatar_file_id: str | None) -> None:
+        """
+        Sets or clears the avatar_file_id for the currently authenticated account.
+
+        Retrieves the current account from the session and delegates
+        the persistence update to the account repository.
+
+        Pass None to remove the avatar reference.
+
+        Args:
+            avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
+        """
+        account = self.get_current_account()
+        if account is None:
+            return
+        self.account_repository.update_avatar(account.account_id, avatar_file_id)
+
+    def get_all_accounts(self) -> list[Account]:
+        """
+        Retrieves all accounts via the account repository.
+
+        Returns:
+            list[Account]: A list of all Account domain entities.
+        """
+        return self.account_repository.get_all()

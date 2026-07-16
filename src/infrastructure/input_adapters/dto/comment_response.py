@@ -10,6 +10,9 @@ class CommentResponse(BaseModel):
     Data Transfer Object used to send comment data to the UI.
     Protects the Domain entity from being exposed directly to the templates.
     Handles formatting of complex types like dates.
+
+    Attributes:
+        author_avatar_file_id (str | None): UUID of the author's avatar file, or None.
     """
     model_config = ConfigDict(from_attributes=True)
 
@@ -17,12 +20,13 @@ class CommentResponse(BaseModel):
     comment_article_id: int
     comment_written_account_id: int
     author_username: str = "Unknown"
+    author_avatar_file_id: str | None = None
     comment_reply_to: int | None
     comment_content: str
     comment_posted_at_formatted: str = ""
 
     @classmethod
-    def from_domain(cls, comment, author_username: str = "Unknown"):
+    def from_domain(cls, comment, author_username: str = "Unknown", author_avatar_file_id: str | None = None):
         """
         Helper factory to create a response DTO from a domain Comment entity.
         Formats the posting date into a reader-friendly string.
@@ -31,6 +35,7 @@ class CommentResponse(BaseModel):
             comment (Comment): The domain comment entity.
             author_username (str): The username of the comment author.
                 Overridden to "Anonymous" if comment_content is "Comment removed" or "[deleted]".
+            author_avatar_file_id (str | None): Optional UUID of the author's avatar file.
 
         Returns:
             CommentResponse: The initialized DTO.
@@ -51,6 +56,7 @@ class CommentResponse(BaseModel):
             comment_article_id=comment.comment_article_id,
             comment_written_account_id=comment.comment_written_account_id,
             author_username=author_username,
+            author_avatar_file_id=author_avatar_file_id,
             comment_reply_to=comment.comment_reply_to,
             comment_content=content,
             comment_posted_at_formatted=formatted_date
@@ -70,7 +76,7 @@ class CommentResponse(BaseModel):
         """
         def _map(node) -> CommentNodeResponse:
             display_depth = node.depth if node.depth < depth_limit else depth_limit
-            cr = cls.from_domain(node.comment.comment, node.comment.author_name)
+            cr = cls.from_domain(node.comment.comment, node.comment.author_name, node.comment.author_avatar_file_id)
             replies = [_map(child) for child in node.replies]
             return CommentNodeResponse(comment=cr, replies=replies, depth=display_depth)
         return [_map(n) for n in nodes]

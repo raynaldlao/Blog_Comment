@@ -1,7 +1,7 @@
 {% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
-{% block title %}Profile - DevJournal{% endblock %}
+{% block title %}{% if is_own_profile %}Profile{% else %}{{ user.account_username }}{% endif %} - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
@@ -11,17 +11,34 @@
 <div class="user-card profile-card">
     <div class="profile-header">
         <div class="avatar-placeholder">
-            {{ user.account_username[0]|upper }}
+            {% if user.avatar_file_id %}
+                <img src="{{ url_for('file.serve_file', file_id=user.avatar_file_id, filename='avatar') }}" alt="{{ user.account_username }}" class="avatar-img">
+            {% else %}
+                {{ user.account_username[0]|upper }}
+            {% endif %}
         </div>
+        {% if is_own_profile %}
+        <button type="button" id="upload-avatar-btn" class="btn btn-sm">Upload Photo</button>
+        <input type="file" id="avatar-file-input" accept="image/*" hidden>
+        {% if user.avatar_file_id %}
+        <form action="{{ url_for('auth.remove_profile_photo') }}" method="POST" class="remove-avatar-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-secondary">Remove Photo</button>
+        </form>
+        {% endif %}
+        {% endif %}
         <h1>{{ user.account_username }}</h1>
         <span class="role-badge">{{ user.account_role }}</span>
     </div>
 
     <div class="info-section">
+        {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
             <span class="info-label">Email</span>
             <span class="info-value">{{ user.account_email }}</span>
         </div>
+        {% endif %}
+        {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
             <span class="info-label">Member Since</span>
             <span class="info-value">
@@ -32,23 +49,32 @@
                 {% endif %}
             </span>
         </div>
+        {% endif %}
         <div class="info-row">
             <span class="info-label">Status</span>
             <span class="info-value">Active</span>
         </div>
     </div>
 
-    <div class="actions">
-        <a href="{{ url_for('article.list_articles') }}" class="btn">Go to Home</a>
-        <form action="{{ url_for('auth.logout') }}" method="POST" style="display:inline">
+    {% if is_own_profile %}
+    <div class="profile-actions">
+        {% if current_user.account_role == 'admin' %}
+        <a href="{{ url_for('auth.list_all_users') }}" class="btn btn-secondary">Manage Users</a>
+        {% endif %}
+        <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary">Sign Out</button>
         </form>
     </div>
+    {% endif %}
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}
         <span>Return to home</span>
     </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script defer src="{{ url_for('static', filename='scripts/profile-avatar.js') }}"></script>
 {% endblock %}

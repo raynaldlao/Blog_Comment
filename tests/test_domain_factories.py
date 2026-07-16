@@ -12,6 +12,7 @@ def create_test_account(
     account_email: str = "leia@galaxy.com",
     account_role: AccountRole = AccountRole.USER,
     account_created_at: datetime | None = None,
+    account_avatar_file_id: str | None = None,
 ) -> Account:
     """Factory to create a test Account entity with sensible defaults."""
     if account_created_at is None:
@@ -24,6 +25,7 @@ def create_test_account(
         account_email=account_email,
         account_role=account_role,
         account_created_at=account_created_at,
+        avatar_file_id=account_avatar_file_id,
     )
 
 

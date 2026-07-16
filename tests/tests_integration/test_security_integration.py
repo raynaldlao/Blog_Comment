@@ -364,6 +364,38 @@ class TestSecurityHeaders:
             response = _add_cache_headers(Response())
             assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
+    def test_cache_no_store_on_html_pages(self, client):
+        """Verifies HTML page responses prevent browser caching (no-store).
+
+        Non-static routes must set Cache-Control: no-store to prevent the
+        browser from serving cached pages after logout via the back button.
+        """
+        response = client.get("/login")
+        assert response.status_code == 200
+        assert response.headers.get("Cache-Control") == "no-store"
+        assert response.headers.get("Pragma") == "no-cache"
+
+    def test_cache_immutable_on_uploaded_files(self, app_with_db):
+        """Verifies uploaded file paths get immutable cache (UUID-based URLs).
+
+        Uploaded files have unique UUIDs in their URLs, so they can be
+        cached indefinitely. Changing the uploaded file produces a new
+        UUID, invalidating the old URL.
+        """
+        with app_with_db.test_request_context(path="/uploads/some-uuid/image.jpg"):
+            from flask import Response
+
+            from flask_setup.middleware import _add_cache_headers
+            response = _add_cache_headers(Response())
+            assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
+
+    def test_forbidden_returns_custom_error_page(self, client):
+        """Verifies 403 errors render the custom error template."""
+        response = client.get("/admin/users")
+        assert response.status_code == 403
+        assert b"You do not have permission" in response.data
+        assert b"Return to home" in response.data
+
 
 class TestCompression:
     """Tests focused on HTTP response compression (flask-compress)."""

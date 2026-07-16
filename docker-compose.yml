@@ -24,7 +24,7 @@ services:
       - pgdata_test:/var/lib/postgresql
 
   flyway_prod:
-    image: flyway/flyway:11
+    image: flyway/flyway:12
     container_name: flyway_prod
     command: >
       -url=jdbc:postgresql://db_prod:5432/${POSTGRES_DB}
@@ -36,7 +36,7 @@ services:
       - db_prod
 
   flyway_test:
-    image: flyway/flyway:11
+    image: flyway/flyway:12
     container_name: flyway_test
     command: >
       -url=jdbc:postgresql://db_test:5432/${TEST_POSTGRES_DB}

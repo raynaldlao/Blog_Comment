@@ -73,12 +73,39 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     log = adapters["login_adapter"]
     reg = adapters["registration_adapter"]
     acc = adapters["account_session_adapter"]
+    csrf = app.extensions["csrf"]
     app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
     app.add_url_rule("/register", view_func=reg.register, methods=["POST"], endpoint="registration.register_action")
     app.add_url_rule("/profile", view_func=acc.display_profile, endpoint="auth.profile")
+    app.add_url_rule(
+        "/users/<username>",
+        view_func=acc.display_user_profile,
+        endpoint="auth.user_profile",
+    )
     app.add_url_rule("/logout", view_func=acc.logout, methods=["POST"], endpoint="auth.logout")
+    app.add_url_rule(
+        "/api/profile/photo",
+        view_func=acc.upload_profile_photo,
+        methods=["POST"],
+        endpoint="auth.upload_profile_photo",
+    )
+    csrf.exempt(acc.upload_profile_photo)
+
+    app.add_url_rule(
+        "/profile/photo/delete",
+        view_func=acc.remove_profile_photo,
+        methods=["POST"],
+        endpoint="auth.remove_profile_photo",
+    )
+
+    app.add_url_rule(
+        "/admin/users",
+        view_func=acc.list_all_users,
+        methods=["GET"],
+        endpoint="auth.list_all_users",
+    )
 
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:

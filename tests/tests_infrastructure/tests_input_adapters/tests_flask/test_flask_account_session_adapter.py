@@ -4,6 +4,7 @@ from flask import g as global_request_context
 
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from tests.test_domain_factories import create_test_account
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
@@ -15,7 +16,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(session_service=self.mock_session_service)
+        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.adapter = AccountSessionAdapter(
+            session_service=self.mock_session_service,
+            file_service=self.mock_file_service,
+        )
 
         self.app.add_url_rule(
             "/logout",
@@ -34,6 +39,39 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/login", "auth.login", "login")
         self._register_dummy_route("/register", "registration.register", "registration")
         self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
+
+        self.app.add_url_rule(
+            "/users/<username>",
+            view_func=self.adapter.display_user_profile,
+            endpoint="auth.user_profile",
+        )
+
+        self.app.add_url_rule(
+            "/api/profile/photo",
+            view_func=self.adapter.upload_profile_photo,
+            methods=["POST"],
+            endpoint="auth.upload_profile_photo",
+        )
+
+        self._register_dummy_route(
+            "/uploads/<string:file_id>/<string:filename>",
+            "file.serve_file",
+            "file_serve",
+        )
+
+        self.app.add_url_rule(
+            "/profile/photo/delete",
+            view_func=self.adapter.remove_profile_photo,
+            methods=["POST"],
+            endpoint="auth.remove_profile_photo",
+        )
+
+        self.app.add_url_rule(
+            "/admin/users",
+            view_func=self.adapter.list_all_users,
+            methods=["GET"],
+            endpoint="auth.list_all_users",
+        )
 
     def test_logout_clears_session(self):
         response = self.client.post("/logout", follow_redirects=True)
@@ -72,6 +110,149 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"alert-error" in response.data
         assert b"login" in response.data
 
+    def test_get_user_profile_found(self):
+        fake_user = create_test_account(account_username="yoda", account_email="yoda@dagobah.com")
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/yoda")
+        assert response.status_code == 200
+        assert b"yoda" in response.data
+        assert b"yoda@dagobah.com" not in response.data
+        self.mock_session_service.get_account_by_username.assert_called_once_with("yoda")
+
+    def test_get_user_profile_not_found(self):
+        self.mock_session_service.get_account_by_username.return_value = None
+        response = self.client.get("/users/nobody")
+        assert response.status_code == 404
+
+    def test_get_user_profile_own_profile(self):
+        fake_user = create_test_account(account_username="luke", account_email="luke@tatooine.com")
+        self.set_current_user(fake_user)
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/luke")
+        assert response.status_code == 200
+        assert b"luke@tatooine.com" in response.data
+        assert b"Sign Out" in response.data
+
+    def test_get_user_profile_admin_view(self):
+        profile_user = create_test_account(account_id=2, account_username="han", account_email="han@falcon.com")
+        admin_user = create_test_account(account_id=99, account_username="admin", account_role=AccountRole.ADMIN)
+        self.set_current_user(admin_user)
+        self.mock_session_service.get_account_by_username.return_value = profile_user
+        response = self.client.get("/users/han")
+        assert response.status_code == 200
+        assert b"han@falcon.com" in response.data
+        assert b"Sign Out" not in response.data
+
+    def test_get_user_profile_anonymous(self):
+        fake_user = create_test_account(account_username="leia", account_email="leia@galaxy.com")
+        self.mock_session_service.get_account_by_username.return_value = fake_user
+        response = self.client.get("/users/leia")
+        assert response.status_code == 200
+        assert b"leia@galaxy.com" not in response.data
+        assert b"Sign Out" not in response.data
+
+    def test_upload_profile_photo_unauthenticated(self):
+        response = self.client.post("/api/profile/photo")
+        assert response.status_code == 401
+
+    def test_upload_profile_photo_success(self):
+        from datetime import datetime
+        from io import BytesIO
+
+        from src.application.domain.file_record import FileRecord
+
+        fake_user = create_test_account()
+        self.set_current_user(fake_user)
+        fake_file = FileRecord(
+            file_id="abc-123",
+            original_filename="avatar.jpg",
+            mime_type="image/jpeg",
+            size=1024,
+            data=b"fake-image-data",
+            created_at=datetime.now(),
+        )
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        response = self.client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"fake-image"), "avatar.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data["avatar_url"] == "/uploads/abc-123/avatar"
+        self.mock_file_service.upload_file.assert_called_once()
+        self.mock_session_service.update_avatar.assert_called_once_with("abc-123")
+
+    def test_upload_profile_photo_replaces_old_avatar(self):
+        from datetime import datetime
+        from io import BytesIO
+
+        from src.application.domain.file_record import FileRecord
+
+        fake_user = create_test_account(account_avatar_file_id="old-avatar-id")
+        self.set_current_user(fake_user)
+        fake_file = FileRecord(
+            file_id="new-avatar-id",
+            original_filename="new_avatar.jpg",
+            mime_type="image/jpeg",
+            size=1024,
+            data=b"new-image-data",
+            created_at=datetime.now(),
+        )
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        response = self.client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"new-image"), "new_avatar.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 200
+        self.mock_file_service.delete_file.assert_called_once_with("old-avatar-id")
+        self.mock_session_service.update_avatar.assert_called_once_with("new-avatar-id")
+
+    def test_remove_profile_photo_unauthenticated(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"Please sign in." in response.data
+        assert b"alert-error" in response.data
+
+    def test_remove_profile_photo_success(self):
+        fake_user = create_test_account(account_avatar_file_id="abc-123")
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"Profile photo removed." in response.data
+        assert b"alert-success" in response.data
+        self.mock_file_service.delete_file.assert_called_once_with("abc-123")
+        self.mock_session_service.update_avatar.assert_called_once_with(None)
+
+    def test_remove_profile_photo_no_avatar(self):
+        fake_user = create_test_account(account_avatar_file_id=None)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.post("/profile/photo/delete", follow_redirects=True)
+        assert b"No avatar to remove." in response.data
+        assert b"alert-error" in response.data
+
+    def test_list_all_users_as_admin(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_users = [
+            create_test_account(account_id=1, account_username="alice"),
+            create_test_account(account_id=2, account_username="bob"),
+        ]
+        self.mock_session_service.get_all_accounts.return_value = fake_users
+
+        response = self.client.get("/admin/users")
+        assert response.status_code == 200
+        assert b"alice" in response.data
+        assert b"bob" in response.data
+
+    def test_list_all_users_as_non_admin_returns_403(self):
+        fake_user = create_test_account(account_role=AccountRole.USER)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.get("/admin/users")
+        assert response.status_code == 403
+
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     """
@@ -83,7 +264,11 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(session_service=self.mock_session_service)
+        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.adapter = AccountSessionAdapter(
+            session_service=self.mock_session_service,
+            file_service=self.mock_file_service,
+        )
 
     def _capture_handler(self, **kwargs):
         """Route handler that captures the current_user from flask.g."""

@@ -48,7 +48,12 @@
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
         <div class="item-meta">
-            <span class="meta-author">{{ article.author_username }}</span>
+            <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">
+                {% if article.author_avatar_file_id %}
+                    <img src="{{ url_for('file.serve_file', file_id=article.author_avatar_file_id, filename='avatar') }}" alt="{{ article.author_username }}" class="meta-author-avatar">
+                {% endif %}
+                {{ article.author_username }}
+            </a>
             <span class="meta-divider">•</span>
             <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
         </div>
@@ -79,7 +84,13 @@
         <div class="comment comment-depth-{{ display_depth }}{% if is_deleted %} comment-deleted{% endif %}">
             <div class="comment-avatar">
                 {% if not is_deleted %}
-                    <span class="comment-avatar-initial">{{ node.comment.author_username[0]|upper }}</span>
+                    <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
+                        {% if node.comment.author_avatar_file_id %}
+                            <img src="{{ url_for('file.serve_file', file_id=node.comment.author_avatar_file_id, filename='avatar') }}" alt="{{ node.comment.author_username }}" class="comment-avatar-img">
+                        {% else %}
+                            <span class="comment-avatar-initial">{{ node.comment.author_username[0]|upper }}</span>
+                        {% endif %}
+                    </a>
                 {% else %}
                     <span class="comment-avatar-initial comment-avatar-deleted">?</span>
                 {% endif %}
@@ -87,7 +98,11 @@
             <div class="comment-content">
                 <div class="comment-header-section">
                     <div class="comment-header">
-                        <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% if not is_deleted %}
+                            <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
+                        {% else %}
+                            <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% endif %}
                         <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
                             <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">

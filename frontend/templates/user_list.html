@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Users - DevJournal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-list.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="user-card profile-card">
+    <h1>Manage Users</h1>
+    <div class="user-search-wrapper">
+        <input type="search" id="user-search" class="user-search-input" placeholder="Filter by username or email..." autocomplete="off">
+    </div>
+    <div class="user-table-wrapper">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Member Since</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td><a href="{{ url_for('auth.user_profile', username=user.account_username) }}">{{ user.account_username }}</a></td>
+                    <td>{{ user.account_email }}</td>
+                    <td>{{ user.account_role }}</td>
+                    <td>{{ user.account_created_at|date_format if user.account_created_at else 'N/A' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{{ url_for('article.list_articles') }}" class="back-link">
+        {{ icon('home') }}
+        <span>Return to home</span>
+    </a>
+</div>
+<script defer src="{{ url_for('static', filename='scripts/user-search.js') }}"></script>
+{% endblock %}
