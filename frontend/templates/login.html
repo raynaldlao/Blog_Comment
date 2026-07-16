@@ -18,12 +18,12 @@
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label for="login-username">Username</label>
-            <input type="text" id="login-username" name="username" placeholder="dev_username" autocomplete="username" value="{{ username or '' }}" required>
+            <input type="text" id="login-username" name="username" placeholder="e.g., dev_journey" autocomplete="username" value="{{ username or '' }}" required>
         </div>
         <div class="form-group account-form-group">
             <label for="login-password">Password</label>
             <div class="password-wrapper">
-                <input type="password" id="login-password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                <input type="password" id="login-password" name="password" placeholder="e.g., MyP@ssw0rd!" autocomplete="current-password" required>
                 <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
             </div>
         </div>
