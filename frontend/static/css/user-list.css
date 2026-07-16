@@ -97,3 +97,18 @@
 .user-card .back-link span:last-child {
     transform: translateY(1.5px);
 }
+
+.user-table .btn-danger {
+    font-size: var(--font-body-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    white-space: nowrap;
+}
+
+.user-table-form {
+    margin: 0;
+}
+
+.user-table-na {
+    color: var(--on-surface-variant);
+    font-size: var(--font-body-sm);
+}

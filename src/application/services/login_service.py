@@ -92,6 +92,18 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.find_by_username(username)
 
+    def get_account_by_id(self, account_id: int) -> Account | None:
+        """
+        Retrieves a domain Account by its unique identifier via the repository.
+
+        Args:
+            account_id: The unique identifier of the account.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        return self.account_repository.get_by_id(account_id)
+
     def update_avatar(self, avatar_file_id: str | None) -> None:
         """
         Sets or clears the avatar_file_id for the currently authenticated account.
@@ -172,3 +184,23 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             list[Account]: A list of all Account domain entities.
         """
         return self.account_repository.get_all()
+
+    def delete_account(self, account_id: int) -> None:
+        """
+        Deletes a user account by its unique identifier.
+
+        The caller is responsible for cleaning up the avatar file and
+        ensuring proper authorization before calling this method.
+        The database handles orphaned articles (ON DELETE SET NULL)
+        and comments (ON DELETE CASCADE).
+
+        Args:
+            account_id: The unique identifier of the account to delete.
+
+        Raises:
+            ValueError: If no account with the given ID exists.
+        """
+        existing = self.account_repository.get_by_id(account_id)
+        if not existing:
+            raise ValueError(f"Account with id {account_id} not found.")
+        self.account_repository.delete(account_id)

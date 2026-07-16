@@ -50,3 +50,12 @@ class TestArticleResponse:
         )
         result = ArticleResponse.from_domain(domain_article, "yoda")
         assert result.author_avatar_file_id is None
+
+    def test_from_domain_with_none_author_id(self):
+        domain_article = Article(
+            article_id=1, article_author_id=None, article_title="Title",
+            article_content="Content", article_published_at=datetime.now()
+        )
+        result = ArticleResponse.from_domain(domain_article, "Anonymous")
+        assert result.article_author_id is None
+        assert result.author_username == "Anonymous"

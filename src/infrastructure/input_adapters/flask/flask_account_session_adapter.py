@@ -285,3 +285,64 @@ class AccountSessionAdapter(MethodView):
             users=users_dto,
             current_user=current_account,
         )
+
+    def delete_account(self):
+        """
+        Handles account deletion form submission.
+
+        Supports two modes:
+        - Self-delete: account_id not provided or matches current user
+          (admin self-delete is forbidden and returns 403).
+          Session is terminated and user is redirected to the home page.
+        - Admin delete: account_id is provided and current user is admin.
+          Session is preserved and admin is redirected to the user list.
+
+        Avatar file is cleaned up before deleting the account record.
+        The database automatically sets article_author_id to NULL
+        (ON DELETE SET NULL) and cascades comment deletion.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If a non-admin tries to delete another account,
+                 or if an admin tries to delete another admin,
+                 or if an admin tries to delete their own account.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        target_id = request.form.get("account_id", type=int) or current_account.account_id
+        is_self = target_id == current_account.account_id
+
+        if is_self and current_account.account_role == AccountRole.ADMIN:
+            abort(403)
+
+        if not is_self:
+            if current_account.account_role != AccountRole.ADMIN:
+                abort(403)
+            target = self.session_service.get_account_by_id(target_id)
+            if not target:
+                flash("Account not found.", "error")
+                return redirect(url_for("auth.list_all_users"))
+            if target.account_role == AccountRole.ADMIN:
+                abort(403)
+
+        account = self.session_service.get_account_by_id(target_id)
+        if account and account.avatar_file_id:
+            try:
+                self.file_service.delete_file(account.avatar_file_id)
+            except Exception:
+                logger.warning("Failed to delete avatar %s for account %s", account.avatar_file_id, target_id)
+
+        self.session_service.delete_account(target_id)
+
+        if is_self:
+            self.session_service.terminate_session()
+            flash("Account deleted.", "success")
+            return redirect(url_for("article.list_articles"))
+
+        flash("Account deleted.", "success")
+        return redirect(url_for("auth.list_all_users"))

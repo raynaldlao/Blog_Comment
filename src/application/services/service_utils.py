@@ -33,7 +33,7 @@ def build_comment_nested_tree(
     def _build_node(comment: Comment, depth: int) -> CommentNode:
         cwa = CommentWithAuthor(
             comment=comment,
-            author_name=author_map.get(comment.comment_written_account_id, "Unknown"),
+            author_name=author_map.get(comment.comment_written_account_id, "Anonymous"),
             author_avatar_file_id=(
                 avatar_map.get(comment.comment_written_account_id)
                 if avatar_map else None

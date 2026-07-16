@@ -120,3 +120,16 @@ class AccountRepository(ABC):
             list[Account]: A list of all Account domain entities.
         """
         pass
+
+    @abstractmethod
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier.
+
+        The database will apply ON DELETE SET NULL for articles authored
+        by this account and ON DELETE CASCADE for their comments.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
+        """
+        pass

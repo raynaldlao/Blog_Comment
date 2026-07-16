@@ -225,3 +225,22 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         """
         models = self._session.query(AccountModel).all()
         return [self._to_domain(model) for model in models]
+
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier.
+
+        The database will apply ON DELETE SET NULL for articles authored
+        by this account and ON DELETE CASCADE for their comments.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
+
+        Raises:
+            ValueError: If no account with the given ID exists.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            raise ValueError(f"Account with id {account_id} not found.")
+        self._session.delete(model)
+        self._session.commit()

@@ -116,6 +116,26 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary">Sign Out</button>
         </form>
+        {% if current_user.account_role != 'admin' %}
+        <form id="delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="button" class="btn btn-danger confirm-trigger"
+                data-form-id="delete-account-form"
+                data-confirm-message="Are you sure you want to delete your account ? This action is irreversible.">Delete Account</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
+    <div class="profile-actions">
+        <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="account_id" value="{{ user.account_id }}">
+            <button type="button" class="btn btn-danger confirm-trigger"
+                data-form-id="admin-delete-account-form"
+                data-confirm-message="Delete user &quot;{{ user.account_username }}&quot; ? This action is irreversible.">Delete Account</button>
+        </form>
     </div>
     {% endif %}
 

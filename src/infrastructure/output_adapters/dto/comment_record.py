@@ -16,7 +16,7 @@ class CommentRecord(BaseModel):
 
     comment_id: int
     comment_article_id: int
-    comment_written_account_id: int
+    comment_written_account_id: int | None
     comment_reply_to: int | None
     comment_content: str
     comment_posted_at: datetime

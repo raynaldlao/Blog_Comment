@@ -10,7 +10,8 @@ class Article:
 
     Attributes:
         article_id (int): Unique identifier for the article.
-        article_author_id (int): Reference to the author's Account.
+        article_author_id (int | None): Reference to the author's Account.
+            None when the author's account has been deleted.
         article_title (str): Title of the article.
         article_content (str): Full text content of the article.
         article_published_at (datetime): Timestamp of publication.
@@ -19,7 +20,7 @@ class Article:
     def __init__(
         self,
         article_id: int,
-        article_author_id: int,
+        article_author_id: int | None,
         article_title: str,
         article_content: str,
         article_published_at: datetime | None,
@@ -29,7 +30,8 @@ class Article:
 
         Args:
             article_id (int): Unique identifier for the article.
-            article_author_id (int): Reference to the author's Account.
+            article_author_id (int | None): Reference to the author's Account.
+                None when the author's account has been deleted.
             article_title (str): Title of the article.
             article_content (str): Full text content of the article.
             article_published_at (datetime): Timestamp of publication.

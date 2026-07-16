@@ -142,3 +142,16 @@ class TestLoginService:
         assert result == "Password is required."
         self.mock_hasher.hash.assert_not_called()
         self.mock_repo.update_password.assert_not_called()
+
+    def test_delete_account_success(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_repo.get_by_id.return_value = fake_account
+        self.service.delete_account(fake_account.account_id)
+        self.mock_repo.delete.assert_called_once_with(fake_account.account_id)
+
+    def test_delete_account_not_found_raises_value_error(self):
+        self.mock_repo.get_by_id.return_value = None
+        import pytest
+        with pytest.raises(ValueError, match="not found"):
+            self.service.delete_account(999)
+        self.mock_repo.delete.assert_not_called()

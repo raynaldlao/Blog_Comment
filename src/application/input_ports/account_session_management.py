@@ -41,6 +41,19 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def get_account_by_id(self, account_id: int) -> Account | None:
+        """
+        Retrieves a domain Account by its unique identifier.
+
+        Args:
+            account_id: The unique identifier of the account.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        pass
+
+    @abstractmethod
     def update_avatar(self, avatar_file_id: str | None) -> None:
         """
         Sets or clears the avatar_file_id for the currently authenticated account.
@@ -95,5 +108,19 @@ class AccountSessionManagementPort(ABC):
 
         Returns:
             list[Account]: A list of all Account domain entities.
+        """
+        pass
+
+    @abstractmethod
+    def delete_account(self, account_id: int) -> None:
+        """
+        Deletes a user account by its unique identifier.
+
+        The associated avatar file should be cleaned up by the caller
+        before invoking this method. The database handles orphaned
+        articles via ON DELETE SET NULL and comments via ON DELETE CASCADE.
+
+        Args:
+            account_id: The unique identifier of the account to delete.
         """
         pass

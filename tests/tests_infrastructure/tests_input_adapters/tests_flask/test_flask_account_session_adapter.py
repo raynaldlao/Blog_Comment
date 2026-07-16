@@ -41,6 +41,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self._register_dummy_route("/articles/new", "article.render_create_page", "new_article")
 
         self.app.add_url_rule(
+            "/account/delete",
+            view_func=self.adapter.delete_account,
+            methods=["POST"],
+            endpoint="auth.delete_account",
+        )
+
+        self.app.add_url_rule(
             "/users/<username>",
             view_func=self.adapter.display_user_profile,
             endpoint="auth.user_profile",
@@ -266,6 +273,53 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_current_account.return_value = fake_user
         response = self.client.get("/admin/users")
         assert response.status_code == 403
+
+    def test_non_admin_post_delete_another_returns_403(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        self.mock_session_service.get_current_account.return_value = user
+        response = self.client.post("/account/delete", data={"account_id": 2})
+        assert response.status_code == 403
+
+    def test_admin_self_delete_returns_403(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.get_account_by_id.return_value = admin
+        response = self.client.post("/account/delete")
+        assert response.status_code == 403
+
+    def test_self_delete_redirects(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        self.mock_session_service.get_current_account.return_value = user
+        self.mock_session_service.get_account_by_id.return_value = user
+        self.mock_session_service.delete_account.return_value = None
+        response = self.client.post("/account/delete", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"articles" in response.data or b"Account deleted" in response.data
+
+    def test_admin_delete_another_user_redirects(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.get_account_by_id.return_value = target
+        self.mock_session_service.get_all_accounts.return_value = []
+        self.mock_session_service.delete_account.return_value = None
+        response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Manage Users" in response.data or b"Account deleted" in response.data
+
+    def test_admin_delete_nonexistent_target_redirects_with_flash(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.get_account_by_id.return_value = None
+        self.mock_session_service.get_all_accounts.return_value = []
+        response = self.client.post("/account/delete", data={"account_id": 999}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"not found" in response.data or b"Account not found" in response.data
 
     def test_update_email_success(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")

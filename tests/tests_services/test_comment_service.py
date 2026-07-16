@@ -256,7 +256,7 @@ class TestGetComments(CommentServiceTestBase):
         result = self.service.get_comments_for_article(article_id=1)
         assert not isinstance(result, str)
         comment_node, = result
-        assert comment_node.comment.author_name == "Unknown"
+        assert comment_node.comment.author_name == "Anonymous"
 
 
 class TestDeleteComment(CommentServiceTestBase):

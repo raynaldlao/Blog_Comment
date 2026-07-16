@@ -91,6 +91,20 @@ def test_from_domain_without_avatar_file_id():
     result = CommentResponse.from_domain(comment, "yoda")
     assert result.author_avatar_file_id is None
 
+def test_from_domain_with_none_author_id_maps_to_removed():
+    comment = Comment(
+        comment_id=4,
+        comment_article_id=10,
+        comment_written_account_id=None,
+        comment_reply_to=None,
+        comment_content="Original content",
+        comment_posted_at=datetime.now()
+    )
+    result = CommentResponse.from_domain(comment, "some_user")
+    assert result.author_username == "Anonymous"
+    assert result.comment_written_account_id is None
+    assert result.comment_content == "<em>Comment removed</em>"
+
 def test_map_nested_tree_threads_avatar():
     posted_at = datetime(2023, 10, 27, 14, 30)
     comment_1 = Comment(1, 10, 1, None, "Root", posted_at)

@@ -121,6 +121,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.list_all_users",
     )
 
+    app.add_url_rule(
+        "/account/delete",
+        view_func=acc.delete_account,
+        methods=["POST"],
+        endpoint="auth.delete_account",
+    )
+
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]

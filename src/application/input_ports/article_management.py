@@ -105,15 +105,17 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_author_name(self, author_id: int) -> str:
+    def get_author_name(self, author_id: int | None) -> str:
         """
         Retrieves the username of an author by their unique identifier.
 
         Args:
-            author_id (int): The unique identifier of the author.
+            author_id (int | None): The unique identifier of the author.
+                None when the author's account has been deleted.
 
         Returns:
-            str: The username of the author, or 'Unknown' if not found.
+            str: The username of the author, 'Anonymous' if the account was
+            deleted, or 'Unknown' if not found.
         """
         pass
 

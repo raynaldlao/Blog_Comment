@@ -10,12 +10,15 @@ class ArticleRecord(BaseModel):
     Pydantic DTO (Data Transfer Object) for article database records.
 
     Provides validation when loading data from the persistence layer.
+
+    article_author_id is nullable — None when the author account
+    has been deleted (articles are preserved via ON DELETE SET NULL).
     """
 
     model_config = ConfigDict(from_attributes=True)
 
     article_id: int
-    article_author_id: int
+    article_author_id: int | None = None
     article_title: str
     article_content: str
     article_published_at: datetime | None = None

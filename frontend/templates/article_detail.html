@@ -48,18 +48,22 @@
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
         <div class="item-meta">
+            {% if article.author_username == 'Anonymous' %}
+            <span class="meta-author">{{ article.author_username }}</span>
+            {% else %}
             <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">
                 {% if article.author_avatar_file_id %}
                     <img src="{{ url_for('file.serve_file', file_id=article.author_avatar_file_id, filename='avatar') }}" alt="{{ article.author_username }}" class="meta-author-avatar">
                 {% endif %}
                 {{ article.author_username }}
             </a>
+            {% endif %}
             <span class="meta-divider">•</span>
             <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
         </div>
         
         <div class="detail-actions">
-            {% if current_user and current_user.account_id == article.article_author_id %}
+            {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
                 <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
                 <a href="#" class="btn btn-sm btn-secondary btn-danger confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-{{ article.article_id }}">Delete</a>
                 <form id="delete-article-{{ article.article_id }}" action="{{ url_for('article.delete_article_html', article_id=article.article_id) }}" method="POST" hidden>
@@ -83,7 +87,11 @@
         {% set is_deleted = node.comment.comment_content in ('Comment removed', '[deleted]', '<em>Comment removed</em>') %}
         <div class="comment comment-depth-{{ display_depth }}{% if is_deleted %} comment-deleted{% endif %}">
             <div class="comment-avatar">
-                {% if not is_deleted %}
+                {% if is_deleted %}
+                    <span class="comment-avatar-initial comment-avatar-deleted">?</span>
+                {% elif node.comment.author_username == 'Anonymous' %}
+                    <span class="comment-avatar-initial">A</span>
+                {% else %}
                     <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
                         {% if node.comment.author_avatar_file_id %}
                             <img src="{{ url_for('file.serve_file', file_id=node.comment.author_avatar_file_id, filename='avatar') }}" alt="{{ node.comment.author_username }}" class="comment-avatar-img">
@@ -91,17 +99,15 @@
                             <span class="comment-avatar-initial">{{ node.comment.author_username[0]|upper }}</span>
                         {% endif %}
                     </a>
-                {% else %}
-                    <span class="comment-avatar-initial comment-avatar-deleted">?</span>
                 {% endif %}
             </div>
             <div class="comment-content">
                 <div class="comment-header-section">
                     <div class="comment-header">
-                        {% if not is_deleted %}
-                            <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
-                        {% else %}
+                        {% if is_deleted or node.comment.author_username == 'Anonymous' %}
                             <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% else %}
+                            <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
                         {% endif %}
                         <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
                         {% if current_user and current_user.account_role == 'admin' %}
@@ -180,19 +186,7 @@
     </section>
 </article>
 
-<dialog id="confirm-dialog" class="dialog">
-    <div class="modal-header">
-        <h2 class="modal-title">Confirm</h2>
-    </div>
-    <p id="confirm-message"></p>
-    <div class="modal-footer">
-        <button class="btn btn-dialog btn-secondary" id="confirm-cancel-btn" autofocus>Cancel</button>
-        <button class="btn btn-dialog btn-primary" id="confirm-yes-btn">Delete</button>
-    </div>
-</dialog>
-
 {% block extra_js %}
-<script defer src="{{ url_for('static', filename='scripts/confirm-dialog.js') }}"></script>
 <script defer src="{{ url_for('static', filename='scripts/code-copy.js') }}"></script>
 {% endblock %}
 {% endblock %}

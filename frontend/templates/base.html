@@ -99,6 +99,17 @@
         {% block content %}{% endblock %}
     </main>
 
+    <dialog id="confirm-dialog" class="dialog">
+        <div class="modal-header">
+            <h2 class="modal-title">Confirm</h2>
+        </div>
+        <p id="confirm-message"></p>
+        <div class="modal-footer">
+            <button class="btn btn-dialog btn-secondary" id="confirm-cancel-btn" autofocus>Cancel</button>
+            <button class="btn btn-dialog btn-primary" id="confirm-yes-btn">Delete</button>
+        </div>
+    </dialog>
+
     <!-- Simple Footer -->
     <footer class="footer">
         <div class="main-layout">
@@ -109,6 +120,7 @@
     </footer>
     <script defer src="{{ url_for('static', filename='scripts/flash-messages.js') }}"></script>
     <script defer src="{{ url_for('static', filename='scripts/theme-toggle.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/confirm-dialog.js') }}"></script>
     {% if page_with_editor and vite_js_url %}
     <script type="module" src="{{ url_for('static', filename=vite_js_url) }}"></script>
     {% endif %}

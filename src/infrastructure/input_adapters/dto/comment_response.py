@@ -18,7 +18,7 @@ class CommentResponse(BaseModel):
 
     comment_id: int
     comment_article_id: int
-    comment_written_account_id: int
+    comment_written_account_id: int | None
     author_username: str = "Unknown"
     author_avatar_file_id: str | None = None
     comment_reply_to: int | None
@@ -41,6 +41,11 @@ class CommentResponse(BaseModel):
             CommentResponse: The initialized DTO.
         """
         content = comment.comment_content
+
+        if comment.comment_written_account_id is None:
+            author_username = "Anonymous"
+            content = "<!--cmt-removed--><em>Comment removed</em>"
+
         if "<!--cmt-removed-->" in content or content in ("Comment removed", "[deleted]"):
             author_username = "Anonymous"
 

@@ -146,6 +146,18 @@ class TestInMemoryAccountRepository:
         assert updated is not None
         assert updated.account_password == "new_hash"
 
+    def test_delete_account(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        assert repo.get_by_id(account.account_id) is not None
+        repo.delete(account.account_id)
+        assert repo.get_by_id(account.account_id) is None
+
+    def test_delete_nonexistent_account_does_not_raise(self):
+        repo = InMemoryAccountRepository()
+        repo.delete(999)
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

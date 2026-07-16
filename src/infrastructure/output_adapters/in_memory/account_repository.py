@@ -128,3 +128,12 @@ class InMemoryAccountRepository(AccountRepository):
             list[Account]: A list of all Account domain entities.
         """
         return list(self._accounts.values())
+
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier from the in-memory store.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
+        """
+        self._accounts.pop(account_id, None)

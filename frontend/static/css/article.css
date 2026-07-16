@@ -101,7 +101,7 @@
     margin-right: var(--spacing-xs);
 }
 
-.meta-author:hover {
+a.meta-author:hover {
     color: var(--primary);
     text-decoration: underline;
 }
@@ -293,47 +293,6 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
     appearance: textfield;
-}
-
-/* Shared dialog (modal) styles */
-.dialog {
-    border: 1px solid var(--outline-variant);
-    border-radius: var(--radius-lg);
-    background: var(--surface-container-high);
-    color: var(--on-surface);
-    padding: var(--spacing-xl);
-    width: 90%;
-    max-width: 25rem;
-    box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: var(--z-modal);
-}
-
-.dialog-sm {
-    max-width: 20rem;
-}
-
-.dialog::backdrop {
-    background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
-    backdrop-filter: blur(8px);
-}
-
-.dialog .modal-footer {
-    margin-top: var(--spacing-xl);
-}
-
-.modal-header {
-    margin-bottom: var(--spacing-md);
-}
-
-.modal-title {
-    font-family: var(--font-primary);
-    font-size: var(--font-headline-md);
-    font-weight: 700;
-    margin: 0;
 }
 
 .modal-body {
@@ -592,7 +551,7 @@ input[type=number] {
     text-decoration: none;
 }
 
-.comment-author:hover {
+a.comment-author:hover {
     color: var(--primary);
     text-decoration: underline;
 }
