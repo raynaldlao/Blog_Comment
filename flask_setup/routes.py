@@ -108,6 +108,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
 
     app.add_url_rule(
+        "/profile/password",
+        view_func=acc.update_password,
+        methods=["POST"],
+        endpoint="auth.update_password",
+    )
+
+    app.add_url_rule(
         "/admin/users",
         view_func=acc.list_all_users,
         methods=["GET"],

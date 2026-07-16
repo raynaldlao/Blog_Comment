@@ -107,6 +107,19 @@ class InMemoryAccountRepository(AccountRepository):
             return
         account.account_email = new_email
 
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new password hash to store.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_password = new_hashed_password
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the in-memory store.

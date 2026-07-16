@@ -101,6 +101,17 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new Argon2 hash to store.
+        """
+        pass
+
+    @abstractmethod
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the data store.

@@ -200,6 +200,22 @@ class SqlAlchemyAccountAdapter(AccountRepository):
                 raise AccountAlreadyExistsError("This email is already taken.") from None
             raise
 
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for the given account directly in the database.
+
+        Performs a targeted column update and commits the transaction.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new Argon2 hash to store.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_password = new_hashed_password
+        self._session.commit()
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the database.

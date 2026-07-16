@@ -151,6 +151,30 @@ class TestEmailUpdate:
         assert b"before@test.com" not in profile.data
 
 
+class TestPasswordUpdate:
+    """Tests for account password change flow via the full Flask stack."""
+
+    def test_update_password_flow(self, client, db_session):
+        auth = AccountModel(
+            account_username="pass_user",
+            account_email="pass@test.com",
+            account_password="old_pass",
+            account_role="user",
+        )
+        db_session.add(auth)
+        db_session.commit()
+
+        client.post("/login", data={"username": "pass_user", "password": "old_pass"}, follow_redirects=True)
+
+        response = client.post("/profile/password", data={"new_password": "new_pass"}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Password updated." in response.data
+
+        client.post("/logout", follow_redirects=True)
+        login = client.post("/login", data={"username": "pass_user", "password": "new_pass"}, follow_redirects=True)
+        assert b"Profile" in login.data
+
+
 class TestConcurrency:
     """Grouped tests for high-concurrency race condition scenarios."""
 

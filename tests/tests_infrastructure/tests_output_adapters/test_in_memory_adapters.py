@@ -137,6 +137,15 @@ class TestInMemoryAccountRepository:
         assert updated is not None
         assert updated.account_email == "new@test.com"
 
+    def test_update_password_changes_password(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "old_hash", "e@t.com", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_password(account.account_id, "new_hash")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_password == "new_hash"
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

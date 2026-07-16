@@ -74,6 +74,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         )
 
         self.app.add_url_rule(
+            "/profile/password",
+            view_func=self.adapter.update_password,
+            methods=["POST"],
+            endpoint="auth.update_password",
+        )
+
+        self.app.add_url_rule(
             "/admin/users",
             view_func=self.adapter.list_all_users,
             methods=["GET"],
@@ -298,6 +305,31 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"This email is already taken." in response.data
         assert b"alert-error" in response.data
         self.mock_session_service.update_email.assert_called_once_with("taken@test.com")
+
+    def test_update_password_success(self):
+        fake_user = create_test_account(account_id=1)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.update_password.return_value = None
+        response = self.client.post(
+            "/profile/password",
+            data={"new_password": "new_secret"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"Password updated." in response.data
+        assert b"alert-success" in response.data
+        self.mock_session_service.update_password.assert_called_once_with("new_secret")
+
+    def test_update_password_unauthenticated(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post(
+            "/profile/password",
+            data={"new_password": "new_secret"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"Please sign in." in response.data
+        self.mock_session_service.update_password.assert_not_called()
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

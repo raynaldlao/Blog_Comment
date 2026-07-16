@@ -94,6 +94,11 @@
     margin-top: var(--spacing-lg);
 }
 
+.profile-actions .btn-secondary {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-body-base);
+}
+
 .info-right-group {
     display: flex;
     align-items: center;
@@ -179,6 +184,9 @@
 }
 
 .dialog .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
     margin-top: var(--spacing-xl);
 }
 

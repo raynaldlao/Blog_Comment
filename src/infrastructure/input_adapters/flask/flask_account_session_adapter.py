@@ -232,6 +232,34 @@ class AccountSessionAdapter(MethodView):
             flash("Email updated.", "success")
         return redirect(url_for("auth.profile"))
 
+    def update_password(self):
+        """
+        Handles password change form submission.
+
+        Validates authentication, extracts the new password from the form data,
+        and delegates the update to the session service. Redirects back to
+        the profile page with a flash message on success or error.
+
+        Returns:
+            Response: A Flask redirect response to the profile page.
+        """
+        account = self.session_service.get_current_account()
+        if not account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        new_password = request.form.get("new_password", "")
+        if not new_password:
+            flash("Password is required.", "error")
+            return redirect(url_for("auth.profile"))
+
+        result = self.session_service.update_password(new_password)
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Password updated.", "success")
+        return redirect(url_for("auth.profile"))
+
     def list_all_users(self):
         """
         Renders the admin-only user list page.

@@ -138,6 +138,32 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         self.account_repository.update_email(account.account_id, new_email)
         return None
 
+    def update_password(self, new_password: str) -> str | None:
+        """
+        Updates the password for the currently logged-in account.
+
+        Retrieves the current account from the session, hashes the new
+        password using the password hasher, and persists the change
+        via the account repository.
+
+        Args:
+            new_password: The new plaintext password to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the user is not authenticated or the password is empty.
+        """
+        account = self.get_current_account()
+        if not account:
+            return "You must be signed in to update your password."
+
+        if not new_password:
+            return "Password is required."
+
+        new_hash = self.password_hasher_repository.hash(new_password)
+        self.account_repository.update_password(account.account_id, new_hash)
+        return None
+
     def get_all_accounts(self) -> list[Account]:
         """
         Retrieves all accounts via the account repository.

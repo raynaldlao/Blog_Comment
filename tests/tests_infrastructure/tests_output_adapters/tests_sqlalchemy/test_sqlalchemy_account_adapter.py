@@ -157,6 +157,15 @@ class TestAccountUpdateEmail(SqlAlchemyAccountAdapterTestBase):
             self.repository.update_email(second.account_id, "first@test.com")
 
 
+class TestAccountUpdatePassword(SqlAlchemyAccountAdapterTestBase):
+    def test_update_password_success(self):
+        account = self.account_builder.create(username="pass_user", password="old_hash")
+        self.repository.update_password(account.account_id, "new_hash")
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.account_password == "new_hash"
+
+
 class TestAccountGetAll(SqlAlchemyAccountAdapterTestBase):
     def test_get_all_returns_all_accounts(self):
         self.account_builder.create(username="user_one", email="one@test.com")

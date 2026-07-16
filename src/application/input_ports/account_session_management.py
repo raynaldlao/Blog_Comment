@@ -70,6 +70,22 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def update_password(self, new_password: str) -> str | None:
+        """
+        Updates the password for the currently authenticated account.
+
+        Hashes the new password and persists it via the account repository.
+
+        Args:
+            new_password: The new plaintext password to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the user is not authenticated.
+        """
+        pass
+
+    @abstractmethod
     def get_all_accounts(self) -> list[Account]:
         """
         Retrieves all registered accounts.

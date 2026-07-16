@@ -118,3 +118,27 @@ class TestLoginService:
         result = self.service.update_email("new@test.com")
         assert result == "You must be signed in to update your email."
         self.mock_repo.update_email.assert_not_called()
+
+    def test_update_password_success(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_hasher.hash.return_value = "$argon2id$new_hash"
+        result = self.service.update_password("new_secret")
+        assert result is None
+        self.mock_hasher.hash.assert_called_once_with("new_secret")
+        self.mock_repo.update_password.assert_called_once_with(1, "$argon2id$new_hash")
+
+    def test_update_password_unauthenticated_returns_error(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.update_password("new_secret")
+        assert result == "You must be signed in to update your password."
+        self.mock_hasher.hash.assert_not_called()
+        self.mock_repo.update_password.assert_not_called()
+
+    def test_update_password_empty_returns_error(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_session_repo.get_account.return_value = fake_account
+        result = self.service.update_password("")
+        assert result == "Password is required."
+        self.mock_hasher.hash.assert_not_called()
+        self.mock_repo.update_password.assert_not_called()
