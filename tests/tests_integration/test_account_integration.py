@@ -127,6 +127,30 @@ class TestProfilePhoto:
         assert deleted_new_file is None
 
 
+class TestEmailUpdate:
+    """Tests for account email change flow via the full Flask stack."""
+
+    def test_update_email_flow(self, client, db_session):
+        auth = AccountModel(
+            account_username="email_user",
+            account_email="before@test.com",
+            account_password="p",
+            account_role="user",
+        )
+        db_session.add(auth)
+        db_session.commit()
+
+        client.post("/login", data={"username": "email_user", "password": "p"}, follow_redirects=True)
+
+        response = client.post("/profile/email", data={"email": "after@test.com"}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Email updated." in response.data
+
+        profile = client.get("/profile")
+        assert b"after@test.com" in profile.data
+        assert b"before@test.com" not in profile.data
+
+
 class TestConcurrency:
     """Grouped tests for high-concurrency race condition scenarios."""
 

@@ -109,6 +109,35 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             return
         self.account_repository.update_avatar(account.account_id, avatar_file_id)
 
+    def update_email(self, new_email: str) -> str | None:
+        """
+        Updates the email address for the currently logged-in account.
+
+        Retrieves the current account from the session, checks that the new
+        email is not already used by a different account, and persists the
+        change via the account repository.
+
+        Args:
+            new_email: The new email address to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the email is already taken or the user is unauthenticated.
+        """
+        account = self.get_current_account()
+        if not account:
+            return "You must be signed in to update your email."
+
+        if new_email == account.account_email:
+            return None
+
+        existing = self.account_repository.find_by_email(new_email)
+        if existing and existing.account_id != account.account_id:
+            return "This email is already taken."
+
+        self.account_repository.update_email(account.account_id, new_email)
+        return None
+
     def get_all_accounts(self) -> list[Account]:
         """
         Retrieves all accounts via the account repository.

@@ -94,6 +94,19 @@ class InMemoryAccountRepository(AccountRepository):
             return
         account.avatar_file_id = avatar_file_id
 
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_email = new_email
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the in-memory store.

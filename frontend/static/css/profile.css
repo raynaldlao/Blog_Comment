@@ -94,13 +94,119 @@
     margin-top: var(--spacing-lg);
 }
 
+.info-right-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.email-edit-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: var(--font-body-xs);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 0;
+}
+
+.email-edit-btn:hover {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    border-radius: var(--radius-xs);
+    filter: brightness(1.1);
+}
+
 @media (max-width: 22.5em) {
+    .profile-card {
+        padding: var(--spacing-md);
+    }
+
+    .info-row {
+        gap: var(--spacing-xs);
+    }
+
+    .info-right-group {
+        flex-wrap: nowrap;
+        min-width: 0;
+    }
+
+    .info-value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        max-width: 50%;
+    }
+
+    .email-edit-btn {
+        flex-shrink: 0;
+    }
+
     .profile-actions {
         flex-direction: column;
     }
     .profile-actions .btn-secondary {
         width: 100%;
     }
+}
+
+.dialog {
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    background: var(--surface-container-high);
+    color: var(--on-surface);
+    padding: var(--spacing-xl);
+    width: 90%;
+    max-width: 25rem;
+    box-shadow: 0 20px 40px color-mix(in srgb, var(--on-surface) 10%, transparent);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: var(--z-modal);
+}
+
+.dialog-sm {
+    max-width: 20rem;
+}
+
+.dialog::backdrop {
+    background: color-mix(in srgb, var(--surface-container-lowest) 80%, transparent);
+    backdrop-filter: blur(8px);
+}
+
+.dialog .modal-footer {
+    margin-top: var(--spacing-xl);
+}
+
+.modal-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-title {
+    font-family: var(--font-primary);
+    font-size: var(--font-headline-md);
+    font-weight: 700;
+    margin: 0;
+}
+
+.modal-body {
+    margin-bottom: var(--spacing-xl);
+}
+
+.modal-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.modal-input-group label {
+    font-size: var(--font-body-base);
+    color: var(--on-surface-variant);
+    font-family: var(--font-mono);
 }
 
 .back-link {

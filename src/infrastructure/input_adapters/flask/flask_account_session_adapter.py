@@ -204,6 +204,34 @@ class AccountSessionAdapter(MethodView):
         flash("Profile photo removed.", "success")
         return redirect(url_for("auth.profile"))
 
+    def update_email(self):
+        """
+        Handles email address change form submission.
+
+        Validates authentication, extracts the new email from the form data,
+        and delegates the update to the session service. Redirects back to
+        the profile page with a flash message on success or error.
+
+        Returns:
+            Response: A Flask redirect response to the profile page.
+        """
+        account = self.session_service.get_current_account()
+        if not account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        new_email = request.form.get("email", "").strip()
+        if not new_email:
+            flash("Email is required.", "error")
+            return redirect(url_for("auth.profile"))
+
+        result = self.session_service.update_email(new_email)
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Email updated.", "success")
+        return redirect(url_for("auth.profile"))
+
     def list_all_users(self):
         """
         Renders the admin-only user list page.

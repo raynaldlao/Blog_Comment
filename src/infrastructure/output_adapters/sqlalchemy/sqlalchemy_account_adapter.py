@@ -172,6 +172,34 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.avatar_file_id = avatar_file_id
         self._session.commit()
 
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for the given account directly in the database.
+
+        Performs a targeted column update and commits the transaction.
+        Catches unique constraint violations and re-raises as a domain exception.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+
+        Raises:
+            AccountAlreadyExistsError: If the new email is already taken
+                by another account.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_email = new_email
+        try:
+            self._session.commit()
+        except IntegrityError as e:
+            self._session.rollback()
+            constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
+            if constraint_name == "accounts_account_email_key":
+                raise AccountAlreadyExistsError("This email is already taken.") from None
+            raise
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the database.

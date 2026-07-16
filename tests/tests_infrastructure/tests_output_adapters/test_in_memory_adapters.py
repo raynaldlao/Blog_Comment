@@ -128,6 +128,15 @@ class TestInMemoryAccountRepository:
         assert a1 in results
         assert a2 in results
 
+    def test_update_email_changes_email(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "old@test.com", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_email(account.account_id, "new@test.com")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_email == "new@test.com"
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

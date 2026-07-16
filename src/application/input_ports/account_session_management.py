@@ -53,6 +53,23 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def update_email(self, new_email: str) -> str | None:
+        """
+        Updates the email address for the currently authenticated account.
+
+        Validates that the new email is not already in use by another account
+        before persisting the change.
+
+        Args:
+            new_email: The new email address to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the email is already taken or the user is not authenticated.
+        """
+        pass
+
+    @abstractmethod
     def get_all_accounts(self) -> list[Account]:
         """
         Retrieves all registered accounts.

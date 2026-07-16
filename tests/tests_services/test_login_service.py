@@ -95,3 +95,26 @@ class TestLoginService:
         self.mock_session_repo.save_account.side_effect = ExceptionTest("Storage failure")
         with pytest.raises(ExceptionTest, match="Storage failure"):
             self.service.authenticate_user("leia", "password123")
+
+    def test_update_email_success(self):
+        fake_account = create_test_account(account_id=1, account_email="old@test.com")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_repo.find_by_email.return_value = None
+        result = self.service.update_email("new@test.com")
+        assert result is None
+        self.mock_repo.update_email.assert_called_once_with(1, "new@test.com")
+
+    def test_update_email_taken_returns_error(self):
+        fake_account = create_test_account(account_id=1, account_email="old@test.com")
+        other = create_test_account(account_id=2, account_email="taken@test.com")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_repo.find_by_email.return_value = other
+        result = self.service.update_email("taken@test.com")
+        assert result == "This email is already taken."
+        self.mock_repo.update_email.assert_not_called()
+
+    def test_update_email_unauthenticated_returns_error(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.update_email("new@test.com")
+        assert result == "You must be signed in to update your email."
+        self.mock_repo.update_email.assert_not_called()

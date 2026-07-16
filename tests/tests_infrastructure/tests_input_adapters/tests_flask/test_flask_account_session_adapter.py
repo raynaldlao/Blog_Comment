@@ -67,6 +67,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         )
 
         self.app.add_url_rule(
+            "/profile/email",
+            view_func=self.adapter.update_email,
+            methods=["POST"],
+            endpoint="auth.update_email",
+        )
+
+        self.app.add_url_rule(
             "/admin/users",
             view_func=self.adapter.list_all_users,
             methods=["GET"],
@@ -252,6 +259,45 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_current_account.return_value = fake_user
         response = self.client.get("/admin/users")
         assert response.status_code == 403
+
+    def test_update_email_success(self):
+        fake_user = create_test_account(account_id=1, account_email="old@test.com")
+        self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.update_email.return_value = None
+        response = self.client.post(
+            "/profile/email",
+            data={"email": "new@test.com"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"Email updated." in response.data
+        assert b"alert-success" in response.data
+        self.mock_session_service.update_email.assert_called_once_with("new@test.com")
+
+    def test_update_email_unauthenticated(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post(
+            "/profile/email",
+            data={"email": "new@test.com"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"Please sign in." in response.data
+        self.mock_session_service.update_email.assert_not_called()
+
+    def test_update_email_error(self):
+        fake_user = create_test_account(account_id=1, account_email="old@test.com")
+        self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.update_email.return_value = "This email is already taken."
+        response = self.client.post(
+            "/profile/email",
+            data={"email": "taken@test.com"},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"This email is already taken." in response.data
+        assert b"alert-error" in response.data
+        self.mock_session_service.update_email.assert_called_once_with("taken@test.com")
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

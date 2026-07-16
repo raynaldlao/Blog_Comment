@@ -86,6 +86,21 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+
+        Raises:
+            AccountAlreadyExistsError: If the new email is already taken
+                by another account (detected at the database level).
+        """
+        pass
+
+    @abstractmethod
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the data store.
