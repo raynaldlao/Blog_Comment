@@ -105,10 +105,46 @@
 }
 
 .user-table-form {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
     margin: 0;
+}
+
+.user-table td:last-child {
+    white-space: nowrap;
+}
+
+.user-table-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
 }
 
 .user-table-na {
     color: var(--on-surface-variant);
     font-size: var(--font-body-sm);
+}
+
+.user-table-form select {
+    font-family: var(--font-mono);
+    font-size: var(--font-body-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    background: var(--surface);
+    color: var(--on-surface);
+    cursor: pointer;
+}
+
+.user-table-form select:hover {
+    border-color: var(--outline);
+}
+
+.user-table-form .btn-sm {
+    font-size: var(--font-body-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
 }

@@ -15,7 +15,7 @@ class CommentAdapter:
     Handles creation, replying, deletion, and listing of comments.
     """
 
-    COMMENT_INTERVAL = 1
+    COMMENT_INTERVAL = 60
 
     def __init__(self, comment_service: CommentManagementPort):
         """

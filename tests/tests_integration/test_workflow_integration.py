@@ -470,3 +470,71 @@ class TestUserProfileLinks:
         response = client.get("/")
         assert response.status_code == 200
         assert b'href="/users/link_test_author"' in response.data
+
+
+class TestAdminChangeRole:
+    """
+    Integration tests for admin promoting/demoting user roles.
+    """
+
+    def test_admin_promote_user_to_author_integ(self, client, db_session):
+        """
+        Verifies admin can change a user's role via POST /admin/users/<id>/role.
+        Role persists in DB after the change.
+        """
+        admin = AccountModel(
+            account_username="role_admin", account_email="role@t.com",
+            account_password="p", account_role="admin",
+        )
+        db_session.add(admin)
+        db_session.commit()
+
+        target = AccountModel(
+            account_username="target_user", account_email="target@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(target)
+        db_session.commit()
+
+        client.post("/login", data={"username": "role_admin", "password": "p"}, follow_redirects=True)
+
+        response = client.post(
+            f"/admin/users/{target.account_id}/role",
+            data={"role": "author"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Role updated." in response.data
+
+        db_session.expire_all()
+        updated = db_session.get(AccountModel, target.account_id)
+        assert updated.account_role == "author"
+
+    def test_non_admin_change_role_returns_error_integ(self, client, db_session):
+        """
+        Verifies non-admin user cannot change another user's role.
+        """
+        user = AccountModel(
+            account_username="plain_user", account_email="plain@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        target = AccountModel(
+            account_username="victim", account_email="victim@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(target)
+        db_session.commit()
+
+        client.post("/login", data={"username": "plain_user", "password": "p"}, follow_redirects=True)
+
+        response = client.post(
+            f"/admin/users/{target.account_id}/role",
+            data={"role": "author"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 403

@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
@@ -155,3 +155,61 @@ class TestLoginService:
         with pytest.raises(ValueError, match="not found"):
             self.service.delete_account(999)
         self.mock_repo.delete.assert_not_called()
+
+    def test_update_role_success(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
+
+        result = self.service.update_account_role(
+            admin_id=1, target_id=2, new_role="author"
+        )
+
+        assert result is None
+        self.mock_repo.update_role.assert_called_once_with(2, "author")
+
+    def test_update_role_account_not_found(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
+
+        result = self.service.update_account_role(
+            admin_id=1, target_id=999, new_role="author"
+        )
+
+        assert result == "Account not found."
+        self.mock_repo.update_role.assert_not_called()
+
+    def test_update_role_not_admin(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.return_value = user
+
+        result = self.service.update_account_role(
+            admin_id=1, target_id=2, new_role="author"
+        )
+
+        assert result == "Unauthorized."
+        self.mock_repo.update_role.assert_not_called()
+
+    def test_update_role_target_is_admin(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
+
+        result = self.service.update_account_role(
+            admin_id=1, target_id=2, new_role="user"
+        )
+
+        assert result == "Cannot change role of another admin."
+        self.mock_repo.update_role.assert_not_called()
+
+    def test_update_role_invalid_role(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
+
+        result = self.service.update_account_role(
+            admin_id=1, target_id=2, new_role="superadmin"
+        )
+
+        assert result == "Invalid role."
+        self.mock_repo.update_role.assert_not_called()

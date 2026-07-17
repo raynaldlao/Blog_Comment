@@ -216,6 +216,20 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.account_password = new_hashed_password
         self._session.commit()
 
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the role for the given account directly in the database.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_role = new_role
+        self._session.commit()
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the database.

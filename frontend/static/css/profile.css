@@ -237,3 +237,39 @@
     outline: 2px solid var(--primary);
     outline-offset: 2px;
 }
+
+.role-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-inline-form select {
+    font-family: var(--font-mono);
+    font-size: var(--font-body-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    background: var(--surface);
+    color: var(--on-surface);
+    cursor: pointer;
+}
+
+.role-inline-form select:hover {
+    border-color: var(--outline);
+}
+
+.role-inline-form .btn-sm {
+    font-size: var(--font-body-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}

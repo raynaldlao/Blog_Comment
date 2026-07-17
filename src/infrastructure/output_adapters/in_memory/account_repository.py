@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 
 
@@ -119,6 +119,19 @@ class InMemoryAccountRepository(AccountRepository):
         if account is None:
             return
         account.account_password = new_hashed_password
+
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the account_role for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_role = AccountRole(new_role)
 
     def get_all(self) -> list[Account]:
         """

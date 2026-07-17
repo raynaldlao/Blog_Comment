@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.login_management import LoginManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -204,3 +204,35 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         if not existing:
             raise ValueError(f"Account with id {account_id} not found.")
         self.account_repository.delete(account_id)
+
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+        """
+        Allows an admin user to update the role of another user account.
+
+        Validates that the requester is an admin, the target exists,
+        the target is not an admin, and the new role is valid.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_id: The unique identifier of the account whose role is to be updated.
+            new_role: The new role string ("user" or "author").
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        admin = self.account_repository.get_by_id(admin_id)
+        if not admin or admin.account_role != AccountRole.ADMIN:
+            return "Unauthorized."
+
+        target = self.account_repository.get_by_id(target_id)
+        if not target:
+            return "Account not found."
+
+        if target.account_role == AccountRole.ADMIN:
+            return "Cannot change role of another admin."
+
+        if new_role not in ("user", "author"):
+            return "Invalid role."
+
+        self.account_repository.update_role(target_id, new_role)
+        return None

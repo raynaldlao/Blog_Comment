@@ -112,6 +112,17 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the account_role for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        pass
+
+    @abstractmethod
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the data store.

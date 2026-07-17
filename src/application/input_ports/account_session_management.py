@@ -124,3 +124,18 @@ class AccountSessionManagementPort(ABC):
             account_id: The unique identifier of the account to delete.
         """
         pass
+
+    @abstractmethod
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+        """
+        Allows an admin user to update the role of another user account.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_id: The unique identifier of the account whose role is to be updated.
+            new_role: The new role string ("user" or "author").
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        pass

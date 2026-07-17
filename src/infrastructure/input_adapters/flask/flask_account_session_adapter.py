@@ -346,3 +346,44 @@ class AccountSessionAdapter(MethodView):
 
         flash("Account deleted.", "success")
         return redirect(url_for("auth.list_all_users"))
+
+    def change_role(self, account_id: int):
+        """
+        Handles role change form submission (Admin only).
+
+        Validates authentication, extracts the new role from the form data,
+        and delegates the update to the session service. Redirects back to
+        the target user's profile page with a flash message.
+
+        Args:
+            account_id: The ID of the account whose role to update.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If the current user is not authenticated or not an admin.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account or current_account.account_role != AccountRole.ADMIN:
+            abort(403)
+
+        new_role = request.form.get("role", "")
+        result = self.session_service.update_account_role(
+            admin_id=current_account.account_id,
+            target_id=account_id,
+            new_role=new_role,
+        )
+
+        target = self.session_service.get_account_by_id(account_id)
+
+        if result is not None:
+            flash(result, "error")
+            if target:
+                return redirect(url_for("auth.user_profile", username=target.account_username))
+            return redirect(url_for("auth.list_all_users"))
+
+        flash("Role updated.", "success")
+        if target:
+            return redirect(url_for("auth.user_profile", username=target.account_username))
+        return redirect(url_for("auth.list_all_users"))
