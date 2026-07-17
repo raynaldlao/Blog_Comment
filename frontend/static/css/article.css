@@ -435,6 +435,7 @@ input[type=number] {
     font-family: var(--font-primary);
     color: var(--on-surface-variant);
     line-height: 1.5;
+    text-align: justify;
 }
 
 .detail-description {
@@ -1091,6 +1092,7 @@ a.comment-author:hover {
     resize: vertical;
     min-height: 2.5rem;
     line-height: 1.6;
+    text-align: justify;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
