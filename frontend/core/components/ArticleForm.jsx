@@ -416,7 +416,7 @@ export default function ArticleForm() {
       />
       <div className="article-editor-description-wrap">
         <div className="article-editor-description-header">
-          <span className="comment-limit-hint">Maximum 300 characters</span>
+          <span className="desc-limit-hint">Maximum 300 characters</span>
           <span className="char-counter">{description.length}/300</span>
         </div>
         <textarea

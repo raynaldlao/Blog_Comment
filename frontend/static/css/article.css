@@ -630,7 +630,8 @@ a.comment-author:hover {
     font-size: var(--font-body-base);
 }
 
-.comment-limit-hint {
+.comment-limit-hint,
+.desc-limit-hint {
     display: block;
     font-size: 0.7rem;
     color: var(--text-secondary);
