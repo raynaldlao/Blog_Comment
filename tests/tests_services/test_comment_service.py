@@ -342,32 +342,12 @@ class TestDeleteComment(CommentServiceTestBase):
         result = self.service.delete_comment(
             comment_id=comment_to_delete.comment_id,
             user_id=admin_account.account_id,
-            cascade=True
         )
 
         assert result is True
         assert self.mock_comment_repo.delete.call_args_list[0].args[0] == 12
         assert self.mock_comment_repo.delete.call_args_list[1].args[0] == 11
         assert self.mock_comment_repo.delete.call_args_list[2].args[0] == 10
-
-    def test_delete_comment_second_click_no_cascade(self):
-        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.mock_account_repo.get_by_id.return_value = admin_account
-        comment_to_delete = create_test_comment(
-            comment_id=10,
-            comment_content="<!--cmt-removed--><em>Comment removed</em>"
-        )
-        self.mock_comment_repo.get_by_id.return_value = comment_to_delete
-
-        result = self.service.delete_comment(
-            comment_id=comment_to_delete.comment_id,
-            user_id=admin_account.account_id,
-            cascade=False
-        )
-
-        assert result is True
-        self.mock_comment_repo.orphan_children.assert_called_once_with(10)
-        self.mock_comment_repo.delete.assert_called_once_with(10)
 
     def test_delete_comment_unauthorized_not_admin(self):
         fake_account = create_test_account(account_id=2, account_role=AccountRole.USER)

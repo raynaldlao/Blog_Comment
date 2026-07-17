@@ -117,15 +117,3 @@ class SqlAlchemyCommentAdapter(CommentRepository):
             comment_id=comment_id,
         ).delete()
         self._session.commit()
-
-    def orphan_children(self, comment_id: int) -> None:
-        """
-        Sets comment_reply_to to NULL for all direct children of the given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment whose children should be orphaned.
-        """
-        self._session.query(CommentModel).filter_by(
-            comment_reply_to=comment_id,
-        ).update({"comment_reply_to": None})
-        self._session.commit()

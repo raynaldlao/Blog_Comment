@@ -67,13 +67,3 @@ class CommentRepository(ABC):
             comment_id (int): ID of the comment to remove.
         """
         pass
-
-    @abstractmethod
-    def orphan_children(self, comment_id: int) -> None:
-        """
-        Sets comment_reply_to to NULL for all direct children of the given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment whose children should be orphaned.
-        """
-        pass

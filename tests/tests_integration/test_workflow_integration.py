@@ -108,7 +108,7 @@ class TestWorkflows:
         rid = root.comment_id
         client.post(f"/articles/{aid}/comments/{rid}/reply", data={"content": "Child"})
 
-        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
         assert first_click.status_code == 302
         db_session.expire_all()
         soft = db_session.get(CommentModel, rid)
@@ -120,7 +120,7 @@ class TestWorkflows:
         assert b">?<" in detail.data
         assert b"comment-deleted" in detail.data
 
-        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
         assert second_click.status_code == 302
         db_session.expire_all()
         assert db_session.get(CommentModel, rid) is None

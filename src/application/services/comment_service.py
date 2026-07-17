@@ -221,15 +221,14 @@ class CommentService(CommentManagementPort):
         avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
         return build_comment_nested_tree(all_comments, author_map, avatar_map)
 
-    def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
         Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
-        Second click hard-deletes: if cascade=True, removes all descendants recursively.
+        Second click hard-deletes: removes the comment and all its descendants recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
-            cascade (bool): If True, also delete all child nodes recursively.
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.
@@ -251,11 +250,7 @@ class CommentService(CommentManagementPort):
             return "Comment not found."
 
         if "<!--cmt-removed-->" in comment.comment_content:
-            if cascade:
-                self._delete_with_descendants(comment_id)
-            else:
-                self.comment_repository.orphan_children(comment_id)
-                self.comment_repository.delete(comment_id)
+            self._delete_with_descendants(comment_id)
             return True
 
         comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
