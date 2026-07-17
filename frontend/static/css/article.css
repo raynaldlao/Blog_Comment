@@ -1631,6 +1631,51 @@ a.comment-author:hover {
 }
 
 @media (max-width: 30em) {
+    .article-editor {
+        gap: var(--spacing-md);
+    }
+
+    .article-editor-title {
+        font-size: 1.5rem;
+    }
+
+    .article-editor-description {
+        padding: var(--spacing-xs);
+    }
+
+    .article-editor-body-wrap {
+        align-items: stretch;
+    }
+
+    .article-editor .bn-editor {
+        padding-inline: var(--spacing-md);
+        overflow-x: auto;
+    }
+
+    .bn-toolbar {
+        gap: 1px;
+        padding: 1px;
+    }
+
+    /* DO NOT REMOVE !important
+       Mantine sets --ai-size as inline style on each ActionIcon element.
+       Inline styles beat stylesheet rules per CSS cascade spec.
+       The ONLY way to override an inline custom property from a stylesheet
+       is !important on the custom property declaration itself.
+       Remove !important only if Mantine stops using inline style for --ai-size. */
+    .bn-toolbar .mantine-ActionIcon-root {
+        --ai-size: 1.25rem !important;
+    }
+
+    /* Same rationale as above for Mantine Button height. */
+    .bn-toolbar .mantine-Button-root {
+        --button-height: 1.25rem !important;
+    }
+
+    .bn-toolbar .material-symbols-outlined {
+        font-size: 0.875rem;
+    }
+
     .emoji-picker-popup {
         position: fixed !important;
         top: 50% !important;

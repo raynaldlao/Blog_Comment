@@ -24,7 +24,8 @@ function buildYouTubeIFrame(url, isEditable) {
   if (isEditable) {
     iframe.style.pointerEvents = 'none';
 
-    wrapper.addEventListener('dblclick', () => {
+    wrapper.addEventListener('click', (e) => {
+      e.stopPropagation();
       iframe.style.pointerEvents = '';
       if (iframe.contentWindow) iframe.contentWindow.focus();
 

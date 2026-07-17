@@ -336,6 +336,12 @@ body {
     width: 100%;
 }
 
+@media (max-width: 30em) {
+    .main-layout {
+        padding: 0 var(--spacing-lg);
+    }
+}
+
 h1 {
     font-size: var(--font-headline-xl);
     font-weight: 700;
