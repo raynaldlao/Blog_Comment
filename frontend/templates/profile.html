@@ -28,14 +28,33 @@
         {% endif %}
         {% endif %}
         <h1>{{ user.account_username }}</h1>
-        <span class="role-badge">{{ user.account_role }}</span>
+        <div class="role-row">
+            <span class="role-badge">{{ user.account_role }}</span>
+            {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
+            <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="role">
+                    <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>User</option>
+                    <option value="author" {% if user.account_role == 'author' %}selected{% endif %}>Author</option>
+                </select>
+                <button type="submit" class="btn btn-sm">Update</button>
+            </form>
+            {% endif %}
+        </div>
     </div>
 
     <div class="info-section">
         {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
             <span class="info-label">Email</span>
+            {% if is_own_profile %}
+            <div class="info-right-group">
+                <span class="info-value">{{ user.account_email }}</span>
+                <button type="button" id="open-email-modal" class="email-edit-btn">[Edit]</button>
+            </div>
+            {% else %}
             <span class="info-value">{{ user.account_email }}</span>
+            {% endif %}
         </div>
         {% endif %}
         {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
@@ -57,13 +76,77 @@
     </div>
 
     {% if is_own_profile %}
+    <dialog id="email-modal" class="dialog dialog-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">Update Email</h2>
+        </div>
+        <form action="{{ url_for('auth.update_email') }}" method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-input-group">
+                    <label for="email-input">Email</label>
+<input type="email" id="email-input" name="email"
+       value="{{ user.account_email }}" placeholder="e.g., user@example.com" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dialog btn-secondary" id="email-modal-cancel" autofocus>Cancel</button>
+                <button type="submit" class="btn btn-dialog btn-primary">Save</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="password-modal" class="dialog dialog-sm">
+        <div class="modal-header">
+            <h2 class="modal-title">Update Password</h2>
+        </div>
+        <form action="{{ url_for('auth.update_password') }}" method="POST">
+            <div class="modal-body">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-input-group">
+                    <label for="new-password-input">New Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="new-password-input" name="new_password" placeholder="e.g., MyP@ssw0rd!" required>
+                        <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dialog btn-secondary" id="password-modal-cancel" autofocus>Cancel</button>
+                <button type="submit" class="btn btn-dialog btn-primary">Save</button>
+            </div>
+        </form>
+    </dialog>
+    {% endif %}
+    {% if is_own_profile %}
     <div class="profile-actions">
         {% if current_user.account_role == 'admin' %}
         <a href="{{ url_for('auth.list_all_users') }}" class="btn btn-secondary">Manage Users</a>
         {% endif %}
+        <button type="button" id="open-password-modal" class="btn btn-secondary">Change Password</button>
         <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary">Sign Out</button>
+        </form>
+        {% if current_user.account_role != 'admin' %}
+        <form id="delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="button" class="btn btn-danger confirm-trigger"
+                data-form-id="delete-account-form"
+                data-confirm-message="Are you sure you want to delete your account ? This action is irreversible.">Delete Account</button>
+        </form>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
+    <div class="profile-actions">
+        <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="account_id" value="{{ user.account_id }}">
+            <button type="button" class="btn btn-danger confirm-trigger"
+                data-form-id="admin-delete-account-form"
+                data-confirm-message="Delete user &quot;{{ user.account_username }}&quot; ? This action is irreversible.">Delete Account</button>
         </form>
     </div>
     {% endif %}
@@ -77,4 +160,7 @@
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='scripts/profile-avatar.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/profile-email.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/profile-password.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/password-toggle.js') }}"></script>
 {% endblock %}

@@ -41,6 +41,19 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def get_account_by_id(self, account_id: int) -> Account | None:
+        """
+        Retrieves a domain Account by its unique identifier.
+
+        Args:
+            account_id: The unique identifier of the account.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        pass
+
+    @abstractmethod
     def update_avatar(self, avatar_file_id: str | None) -> None:
         """
         Sets or clears the avatar_file_id for the currently authenticated account.
@@ -49,6 +62,39 @@ class AccountSessionManagementPort(ABC):
 
         Args:
             avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
+        """
+        pass
+
+    @abstractmethod
+    def update_email(self, new_email: str) -> str | None:
+        """
+        Updates the email address for the currently authenticated account.
+
+        Validates that the new email is not already in use by another account
+        before persisting the change.
+
+        Args:
+            new_email: The new email address to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the email is already taken or the user is not authenticated.
+        """
+        pass
+
+    @abstractmethod
+    def update_password(self, new_password: str) -> str | None:
+        """
+        Updates the password for the currently authenticated account.
+
+        Hashes the new password and persists it via the account repository.
+
+        Args:
+            new_password: The new plaintext password to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the user is not authenticated.
         """
         pass
 
@@ -62,5 +108,34 @@ class AccountSessionManagementPort(ABC):
 
         Returns:
             list[Account]: A list of all Account domain entities.
+        """
+        pass
+
+    @abstractmethod
+    def delete_account(self, account_id: int) -> None:
+        """
+        Deletes a user account by its unique identifier.
+
+        The associated avatar file should be cleaned up by the caller
+        before invoking this method. The database handles orphaned
+        articles via ON DELETE SET NULL and comments via ON DELETE CASCADE.
+
+        Args:
+            account_id: The unique identifier of the account to delete.
+        """
+        pass
+
+    @abstractmethod
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+        """
+        Allows an admin user to update the role of another user account.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_id: The unique identifier of the account whose role is to be updated.
+            new_role: The new role string ("user" or "author").
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
         """
         pass

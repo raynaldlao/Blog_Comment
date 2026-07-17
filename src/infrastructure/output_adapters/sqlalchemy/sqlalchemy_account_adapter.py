@@ -172,6 +172,64 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.avatar_file_id = avatar_file_id
         self._session.commit()
 
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for the given account directly in the database.
+
+        Performs a targeted column update and commits the transaction.
+        Catches unique constraint violations and re-raises as a domain exception.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+
+        Raises:
+            AccountAlreadyExistsError: If the new email is already taken
+                by another account.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_email = new_email
+        try:
+            self._session.commit()
+        except IntegrityError as e:
+            self._session.rollback()
+            constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
+            if constraint_name == "accounts_account_email_key":
+                raise AccountAlreadyExistsError("This email is already taken.") from None
+            raise
+
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for the given account directly in the database.
+
+        Performs a targeted column update and commits the transaction.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new Argon2 hash to store.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_password = new_hashed_password
+        self._session.commit()
+
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the role for the given account directly in the database.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.account_role = new_role
+        self._session.commit()
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the database.
@@ -181,3 +239,22 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         """
         models = self._session.query(AccountModel).all()
         return [self._to_domain(model) for model in models]
+
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier.
+
+        The database will apply ON DELETE SET NULL for articles authored
+        by this account and ON DELETE CASCADE for their comments.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
+
+        Raises:
+            ValueError: If no account with the given ID exists.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            raise ValueError(f"Account with id {account_id} not found.")
+        self._session.delete(model)
+        self._session.commit()

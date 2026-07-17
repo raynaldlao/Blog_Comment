@@ -204,6 +204,62 @@ class AccountSessionAdapter(MethodView):
         flash("Profile photo removed.", "success")
         return redirect(url_for("auth.profile"))
 
+    def update_email(self):
+        """
+        Handles email address change form submission.
+
+        Validates authentication, extracts the new email from the form data,
+        and delegates the update to the session service. Redirects back to
+        the profile page with a flash message on success or error.
+
+        Returns:
+            Response: A Flask redirect response to the profile page.
+        """
+        account = self.session_service.get_current_account()
+        if not account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        new_email = request.form.get("email", "").strip()
+        if not new_email:
+            flash("Email is required.", "error")
+            return redirect(url_for("auth.profile"))
+
+        result = self.session_service.update_email(new_email)
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Email updated.", "success")
+        return redirect(url_for("auth.profile"))
+
+    def update_password(self):
+        """
+        Handles password change form submission.
+
+        Validates authentication, extracts the new password from the form data,
+        and delegates the update to the session service. Redirects back to
+        the profile page with a flash message on success or error.
+
+        Returns:
+            Response: A Flask redirect response to the profile page.
+        """
+        account = self.session_service.get_current_account()
+        if not account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        new_password = request.form.get("new_password", "")
+        if not new_password:
+            flash("Password is required.", "error")
+            return redirect(url_for("auth.profile"))
+
+        result = self.session_service.update_password(new_password)
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Password updated.", "success")
+        return redirect(url_for("auth.profile"))
+
     def list_all_users(self):
         """
         Renders the admin-only user list page.
@@ -229,3 +285,105 @@ class AccountSessionAdapter(MethodView):
             users=users_dto,
             current_user=current_account,
         )
+
+    def delete_account(self):
+        """
+        Handles account deletion form submission.
+
+        Supports two modes:
+        - Self-delete: account_id not provided or matches current user
+          (admin self-delete is forbidden and returns 403).
+          Session is terminated and user is redirected to the home page.
+        - Admin delete: account_id is provided and current user is admin.
+          Session is preserved and admin is redirected to the user list.
+
+        Avatar file is cleaned up before deleting the account record.
+        The database automatically sets article_author_id to NULL
+        (ON DELETE SET NULL) and cascades comment deletion.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If a non-admin tries to delete another account,
+                 or if an admin tries to delete another admin,
+                 or if an admin tries to delete their own account.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account:
+            flash("Please sign in.", "error")
+            return redirect(url_for("auth.login"))
+
+        target_id = request.form.get("account_id", type=int) or current_account.account_id
+        is_self = target_id == current_account.account_id
+
+        if is_self and current_account.account_role == AccountRole.ADMIN:
+            abort(403)
+
+        if not is_self:
+            if current_account.account_role != AccountRole.ADMIN:
+                abort(403)
+            target = self.session_service.get_account_by_id(target_id)
+            if not target:
+                flash("Account not found.", "error")
+                return redirect(url_for("auth.list_all_users"))
+            if target.account_role == AccountRole.ADMIN:
+                abort(403)
+
+        account = self.session_service.get_account_by_id(target_id)
+        if account and account.avatar_file_id:
+            try:
+                self.file_service.delete_file(account.avatar_file_id)
+            except Exception:
+                logger.warning("Failed to delete avatar %s for account %s", account.avatar_file_id, target_id)
+
+        self.session_service.delete_account(target_id)
+
+        if is_self:
+            self.session_service.terminate_session()
+            flash("Account deleted.", "success")
+            return redirect(url_for("article.list_articles"))
+
+        flash("Account deleted.", "success")
+        return redirect(url_for("auth.list_all_users"))
+
+    def change_role(self, account_id: int):
+        """
+        Handles role change form submission (Admin only).
+
+        Validates authentication, extracts the new role from the form data,
+        and delegates the update to the session service. Redirects back to
+        the target user's profile page with a flash message.
+
+        Args:
+            account_id: The ID of the account whose role to update.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If the current user is not authenticated or not an admin.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account or current_account.account_role != AccountRole.ADMIN:
+            abort(403)
+
+        new_role = request.form.get("role", "")
+        result = self.session_service.update_account_role(
+            admin_id=current_account.account_id,
+            target_id=account_id,
+            new_role=new_role,
+        )
+
+        target = self.session_service.get_account_by_id(account_id)
+
+        if result is not None:
+            flash(result, "error")
+            if target:
+                return redirect(url_for("auth.user_profile", username=target.account_username))
+            return redirect(url_for("auth.list_all_users"))
+
+        flash("Role updated.", "success")
+        if target:
+            return redirect(url_for("auth.user_profile", username=target.account_username))
+        return redirect(url_for("auth.list_all_users"))

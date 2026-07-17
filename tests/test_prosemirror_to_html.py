@@ -144,6 +144,13 @@ class TestProsemirrorToHtml:
         assert "&lt;script&gt;" in str(result)
         assert "<script>" not in str(result)
 
+    def test_paragraph_escapes_script_tags(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","text":"<script>alert(1)</script>"}]}]'
+        )
+        assert "&lt;script&gt;" in str(result)
+        assert "<script>" not in str(result)
+
     def test_inline_code_mark(self):
         result = prosemirror_to_html(
             '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"code"}],"text":"var x = 1;"}]}]'

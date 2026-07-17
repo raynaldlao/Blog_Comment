@@ -169,7 +169,8 @@ class ArticleService(ArticleManagementPort):
 
     def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | str:
         """
-        Updates an existing article ensuring the requester is the original author.
+        Updates an existing article. Only the original author or an admin can edit
+        (admins can also edit anonymous articles whose author account was deleted).
 
         Args:
             article_id (int): ID of the article to update.
@@ -190,7 +191,7 @@ class ArticleService(ArticleManagementPort):
             # TODO: Raise ArticleNotFoundException
             return "Article not found."
 
-        if article.article_author_id != user_id:
+        if account_or_error.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
             # TODO: Raise OwnershipException
             return "Unauthorized : You are not the author of this article."
 
@@ -256,14 +257,14 @@ class ArticleService(ArticleManagementPort):
             page = min_page
 
         domain_articles = self.article_repository.get_paginated(page, per_page)
-        author_ids = {a.article_author_id for a in domain_articles}
-        authors = self.account_repository.get_by_ids(list(author_ids))
+        known_ids = {a.article_author_id for a in domain_articles if a.article_author_id is not None}
+        authors = self.account_repository.get_by_ids(list(known_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
         avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
         return [ArticleWithAuthor(
             article=a,
-            author_name=author_map.get(a.article_author_id, "Unknown"),
-            author_avatar_file_id=avatar_map.get(a.article_author_id),
+            author_name=author_map.get(a.article_author_id, "Unknown") if a.article_author_id is not None else "Anonymous",
+            author_avatar_file_id=avatar_map.get(a.article_author_id) if a.article_author_id in avatar_map else None,
         ) for a in domain_articles]
 
     def get_total_count(self) -> int:
@@ -275,16 +276,20 @@ class ArticleService(ArticleManagementPort):
         """
         return self.article_repository.count_all()
 
-    def get_author_name(self, author_id: int) -> str:
+    def get_author_name(self, author_id: int | None) -> str:
         """
         Retrieves the username of an author by their unique identifier.
 
         Args:
-            author_id (int): The unique identifier of the author.
+            author_id (int | None): The unique identifier of the author.
+                None when the author's account has been deleted.
 
         Returns:
-            str: The username of the author, or 'Unknown' if not found.
+            str: The username of the author, 'Anonymous' if the account was
+            deleted, or 'Unknown' if not found.
         """
+        if author_id is None:
+            return "Anonymous"
         account = self.account_repository.get_by_id(author_id)
         return account.account_username if account else "Unknown"
 
@@ -305,16 +310,20 @@ class ArticleService(ArticleManagementPort):
             return "Article not found."
 
         all_comments = self.comment_repository.get_all_by_article_id(article_id)
-        author_ids = {article.article_author_id}
-        author_ids.update(c.comment_written_account_id for c in all_comments)
-        authors = self.account_repository.get_by_ids(list(author_ids))
+        known_ids = {article.article_author_id} if article.article_author_id is not None else set()
+        known_ids.update(c.comment_written_account_id for c in all_comments if c.comment_written_account_id is not None)
+        authors = self.account_repository.get_by_ids(list(known_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
         avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
         nested = build_comment_nested_tree(all_comments, author_map, avatar_map)
-        author_name = author_map.get(article.article_author_id, "Unknown")
+        author_name = (
+            author_map.get(article.article_author_id, "Unknown")
+            if article.article_author_id is not None
+            else "Anonymous"
+        )
         article_with_author = ArticleWithAuthor(
             article=article,
             author_name=author_name,
-            author_avatar_file_id=avatar_map.get(article.article_author_id),
+            author_avatar_file_id=avatar_map.get(article.article_author_id) if article.article_author_id in avatar_map else None,
         )
         return ArticleDetailView(article_with_author=article_with_author, nested_comments=nested)

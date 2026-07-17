@@ -215,7 +215,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
     def test_update_article_unauthorized(self):
         fake_article = create_test_article(article_author_id=1)
         self.mock_article_repo.get_by_id.return_value = fake_article
-        fake_account = create_test_account(account_id=99, account_role=AccountRole.ADMIN)
+        fake_account = create_test_account(account_id=99, account_role=AccountRole.AUTHOR)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
         result = self.service.update_article(

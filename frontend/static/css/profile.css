@@ -94,13 +94,87 @@
     margin-top: var(--spacing-lg);
 }
 
+.profile-actions .btn-secondary,
+.profile-actions .btn-danger {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-body-base);
+}
+
+
+.info-right-group {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.email-edit-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: var(--font-body-xs);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    padding: 0;
+}
+
+.email-edit-btn:hover {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    border-radius: var(--radius-xs);
+    filter: brightness(1.1);
+}
+
 @media (max-width: 22.5em) {
+    .profile-card {
+        padding: var(--spacing-md);
+    }
+
+    .info-row {
+        gap: var(--spacing-xs);
+    }
+
+    .info-right-group {
+        flex-wrap: nowrap;
+        min-width: 0;
+    }
+
+    .info-value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        max-width: 50%;
+    }
+
+    .email-edit-btn {
+        flex-shrink: 0;
+    }
+
     .profile-actions {
         flex-direction: column;
     }
-    .profile-actions .btn-secondary {
+    .profile-actions .btn-secondary,
+    .profile-actions .btn-danger {
         width: 100%;
     }
+}
+
+.modal-body {
+    margin-bottom: var(--spacing-xl);
+}
+
+.modal-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.modal-input-group label {
+    font-size: var(--font-body-base);
+    color: var(--on-surface-variant);
+    font-family: var(--font-mono);
 }
 
 .back-link {
@@ -129,4 +203,73 @@
 
 .back-link span:last-child {
     transform: translateY(1.5px);
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xs);
+    line-height: 1;
+}
+
+.password-toggle .icon {
+    font-size: 1.5rem;
+}
+
+.password-toggle:hover {
+    color: var(--on-surface);
+}
+
+.password-toggle:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.role-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.role-inline-form select {
+    font-family: var(--font-mono);
+    font-size: var(--font-body-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    background: var(--surface);
+    color: var(--on-surface);
+    cursor: pointer;
+}
+
+.role-inline-form select:hover {
+    border-color: var(--outline);
+}
+
+.role-inline-form .btn-sm {
+    font-size: var(--font-body-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
 }

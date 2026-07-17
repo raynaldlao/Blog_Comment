@@ -1,5 +1,6 @@
 import pytest
 
+from src.application.application_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
@@ -139,6 +140,30 @@ class TestAccountUpdateAvatar(SqlAlchemyAccountAdapterTestBase):
 
     def test_update_avatar_nonexistent_account_does_not_raise(self):
         self.repository.update_avatar(99999, "abc-123")
+
+
+class TestAccountUpdateEmail(SqlAlchemyAccountAdapterTestBase):
+    def test_update_email_success(self):
+        account = self.account_builder.create(username="email_user", email="old@test.com")
+        self.repository.update_email(account.account_id, "new@test.com")
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.account_email == "new@test.com"
+
+    def test_update_email_duplicate_raises_error(self):
+        self.account_builder.create(username="first", email="first@test.com")
+        second = self.account_builder.create(username="second", email="second@test.com")
+        with pytest.raises(AccountAlreadyExistsError, match="This email is already taken."):
+            self.repository.update_email(second.account_id, "first@test.com")
+
+
+class TestAccountUpdatePassword(SqlAlchemyAccountAdapterTestBase):
+    def test_update_password_success(self):
+        account = self.account_builder.create(username="pass_user", password="old_hash")
+        self.repository.update_password(account.account_id, "new_hash")
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.account_password == "new_hash"
 
 
 class TestAccountGetAll(SqlAlchemyAccountAdapterTestBase):

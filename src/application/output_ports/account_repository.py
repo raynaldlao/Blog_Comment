@@ -86,11 +86,61 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+
+        Raises:
+            AccountAlreadyExistsError: If the new email is already taken
+                by another account (detected at the database level).
+        """
+        pass
+
+    @abstractmethod
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new Argon2 hash to store.
+        """
+        pass
+
+    @abstractmethod
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the account_role for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        pass
+
+    @abstractmethod
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the data store.
 
         Returns:
             list[Account]: A list of all Account domain entities.
+        """
+        pass
+
+    @abstractmethod
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier.
+
+        The database will apply ON DELETE SET NULL for articles authored
+        by this account and ON DELETE CASCADE for their comments.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
         """
         pass

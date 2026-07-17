@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.login_management import LoginManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -92,6 +92,18 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.find_by_username(username)
 
+    def get_account_by_id(self, account_id: int) -> Account | None:
+        """
+        Retrieves a domain Account by its unique identifier via the repository.
+
+        Args:
+            account_id: The unique identifier of the account.
+
+        Returns:
+            Account | None: The domain Account if found, None otherwise.
+        """
+        return self.account_repository.get_by_id(account_id)
+
     def update_avatar(self, avatar_file_id: str | None) -> None:
         """
         Sets or clears the avatar_file_id for the currently authenticated account.
@@ -109,6 +121,61 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             return
         self.account_repository.update_avatar(account.account_id, avatar_file_id)
 
+    def update_email(self, new_email: str) -> str | None:
+        """
+        Updates the email address for the currently logged-in account.
+
+        Retrieves the current account from the session, checks that the new
+        email is not already used by a different account, and persists the
+        change via the account repository.
+
+        Args:
+            new_email: The new email address to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the email is already taken or the user is unauthenticated.
+        """
+        account = self.get_current_account()
+        if not account:
+            return "You must be signed in to update your email."
+
+        if new_email == account.account_email:
+            return None
+
+        existing = self.account_repository.find_by_email(new_email)
+        if existing and existing.account_id != account.account_id:
+            return "This email is already taken."
+
+        self.account_repository.update_email(account.account_id, new_email)
+        return None
+
+    def update_password(self, new_password: str) -> str | None:
+        """
+        Updates the password for the currently logged-in account.
+
+        Retrieves the current account from the session, hashes the new
+        password using the password hasher, and persists the change
+        via the account repository.
+
+        Args:
+            new_password: The new plaintext password to set.
+
+        Returns:
+            str | None: None on success, or an error message string if
+                the user is not authenticated or the password is empty.
+        """
+        account = self.get_current_account()
+        if not account:
+            return "You must be signed in to update your password."
+
+        if not new_password:
+            return "Password is required."
+
+        new_hash = self.password_hasher_repository.hash(new_password)
+        self.account_repository.update_password(account.account_id, new_hash)
+        return None
+
     def get_all_accounts(self) -> list[Account]:
         """
         Retrieves all accounts via the account repository.
@@ -117,3 +184,55 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             list[Account]: A list of all Account domain entities.
         """
         return self.account_repository.get_all()
+
+    def delete_account(self, account_id: int) -> None:
+        """
+        Deletes a user account by its unique identifier.
+
+        The caller is responsible for cleaning up the avatar file and
+        ensuring proper authorization before calling this method.
+        The database handles orphaned articles (ON DELETE SET NULL)
+        and comments (ON DELETE CASCADE).
+
+        Args:
+            account_id: The unique identifier of the account to delete.
+
+        Raises:
+            ValueError: If no account with the given ID exists.
+        """
+        existing = self.account_repository.get_by_id(account_id)
+        if not existing:
+            raise ValueError(f"Account with id {account_id} not found.")
+        self.account_repository.delete(account_id)
+
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+        """
+        Allows an admin user to update the role of another user account.
+
+        Validates that the requester is an admin, the target exists,
+        the target is not an admin, and the new role is valid.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_id: The unique identifier of the account whose role is to be updated.
+            new_role: The new role string ("user" or "author").
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        admin = self.account_repository.get_by_id(admin_id)
+        if not admin or admin.account_role != AccountRole.ADMIN:
+            return "Unauthorized."
+
+        target = self.account_repository.get_by_id(target_id)
+        if not target:
+            return "Account not found."
+
+        if target.account_role == AccountRole.ADMIN:
+            return "Cannot change role of another admin."
+
+        if new_role not in ("user", "author"):
+            return "Invalid role."
+
+        self.account_repository.update_role(target_id, new_role)
+        return None

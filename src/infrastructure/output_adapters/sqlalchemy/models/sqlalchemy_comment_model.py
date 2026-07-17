@@ -15,6 +15,9 @@ from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry im
 class CommentModel(SqlAlchemyModel):
     """
     SQLAlchemy ORM model for comments used in the new architecture.
+
+    comment_reply_to uses ON DELETE SET NULL so that replies to a deleted
+    comment become top-level comments instead of being cascaded away.
     """
 
     __tablename__ = "comments"
@@ -29,14 +32,14 @@ class CommentModel(SqlAlchemyModel):
         type_=Integer,
         nullable=False,
     )
-    comment_written_account_id: Mapped[int] = mapped_column(
-        ForeignKey("accounts.account_id", ondelete="CASCADE"),
+    comment_written_account_id: Mapped[int | None] = mapped_column(
+        ForeignKey("accounts.account_id", ondelete="SET NULL"),
         name="comment_written_account_id",
         type_=Integer,
-        nullable=False,
+        nullable=True,
     )
     comment_reply_to: Mapped[int | None] = mapped_column(
-        ForeignKey("comments.comment_id"),
+        ForeignKey("comments.comment_id", ondelete="SET NULL"),
         name="comment_reply_to",
         type_=Integer,
         nullable=True,

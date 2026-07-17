@@ -101,10 +101,38 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
 
     app.add_url_rule(
+        "/profile/email",
+        view_func=acc.update_email,
+        methods=["POST"],
+        endpoint="auth.update_email",
+    )
+
+    app.add_url_rule(
+        "/profile/password",
+        view_func=acc.update_password,
+        methods=["POST"],
+        endpoint="auth.update_password",
+    )
+
+    app.add_url_rule(
         "/admin/users",
         view_func=acc.list_all_users,
         methods=["GET"],
         endpoint="auth.list_all_users",
+    )
+
+    app.add_url_rule(
+        "/account/delete",
+        view_func=acc.delete_account,
+        methods=["POST"],
+        endpoint="auth.delete_account",
+    )
+
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/role",
+        view_func=acc.change_role,
+        methods=["POST"],
+        endpoint="auth.change_role",
     )
 
 

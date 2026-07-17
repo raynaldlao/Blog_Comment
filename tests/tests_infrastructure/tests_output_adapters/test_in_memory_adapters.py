@@ -128,6 +128,36 @@ class TestInMemoryAccountRepository:
         assert a1 in results
         assert a2 in results
 
+    def test_update_email_changes_email(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "old@test.com", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_email(account.account_id, "new@test.com")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_email == "new@test.com"
+
+    def test_update_password_changes_password(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "old_hash", "e@t.com", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_password(account.account_id, "new_hash")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_password == "new_hash"
+
+    def test_delete_account(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        assert repo.get_by_id(account.account_id) is not None
+        repo.delete(account.account_id)
+        assert repo.get_by_id(account.account_id) is None
+
+    def test_delete_nonexistent_account_does_not_raise(self):
+        repo = InMemoryAccountRepository()
+        repo.delete(999)
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

@@ -1,4 +1,4 @@
-from src.application.domain.account import Account
+from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 
 
@@ -94,6 +94,45 @@ class InMemoryAccountRepository(AccountRepository):
             return
         account.avatar_file_id = avatar_file_id
 
+    def update_email(self, account_id: int, new_email: str) -> None:
+        """
+        Updates the email address for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_email: The new email address to set.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_email = new_email
+
+    def update_password(self, account_id: int, new_hashed_password: str) -> None:
+        """
+        Updates the password hash for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_hashed_password: The new password hash to store.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_password = new_hashed_password
+
+    def update_role(self, account_id: int, new_role: str) -> None:
+        """
+        Updates the account_role for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            new_role: The new role string ("user" or "author").
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            return
+        account.account_role = AccountRole(new_role)
+
     def get_all(self) -> list[Account]:
         """
         Retrieves all accounts from the in-memory store.
@@ -102,3 +141,12 @@ class InMemoryAccountRepository(AccountRepository):
             list[Account]: A list of all Account domain entities.
         """
         return list(self._accounts.values())
+
+    def delete(self, account_id: int) -> None:
+        """
+        Deletes an account by its unique identifier from the in-memory store.
+
+        Args:
+            account_id (int): The unique identifier of the account to delete.
+        """
+        self._accounts.pop(account_id, None)

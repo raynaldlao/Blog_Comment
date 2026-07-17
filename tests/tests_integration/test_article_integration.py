@@ -93,7 +93,9 @@ class TestPersistence:
 
     def test_cascading_deletes_account_integ(self, client, db_session):
         """
-        Verifies that deleting an account removes all its articles and comments.
+        Verifies that deleting an account removes its comments but keeps
+        its articles (article_author_id becomes NULL, author shown as
+        "Anonymous").
         """
         auth = AccountModel(account_username="victim", account_email="v@t.com", account_password="p", account_role="author")
         db_session.add(auth)
@@ -101,19 +103,25 @@ class TestPersistence:
         art = ArticleModel(article_title="Ghost Article", article_content="...", article_author_id=auth.account_id)
         db_session.add(art)
         db_session.commit()
+
         cmt = CommentModel(
             comment_content="My last words",
             comment_article_id=art.article_id,
             comment_written_account_id=auth.account_id
         )
+
         db_session.add(cmt)
         db_session.commit()
         article_id = art.article_id
         comment_id = cmt.comment_id
         db_session.delete(auth)
         db_session.commit()
-        assert db_session.query(ArticleModel).filter_by(article_id=article_id).count() == 0
-        assert db_session.query(CommentModel).filter_by(comment_id=comment_id).count() == 0
+        assert db_session.query(ArticleModel).filter_by(article_id=article_id).count() == 1
+        orphan = db_session.query(ArticleModel).filter_by(article_id=article_id).first()
+        assert orphan.article_author_id is None
+        orphan_cmt = db_session.query(CommentModel).filter_by(comment_id=comment_id).first()
+        assert orphan_cmt is not None
+        assert orphan_cmt.comment_written_account_id is None
 
     def test_article_delete_end_to_end_integ(self, client, db_session):
         """

@@ -1,3 +1,5 @@
+import json
+
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 
@@ -45,6 +47,41 @@ class TestXSS:
         assert response.status_code == 200
         assert b"xss" in response.data
         assert f'data-article-id="{article_id}"'.encode() in response.data
+
+    def test_blocknote_article_xss_sanitized(self, client, db_session):
+        auth = AccountModel(
+            account_username="xss_bn", account_email="xss_bn@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "xss_bn", "password": "p"},
+                    follow_redirects=True)
+
+        xss_content = json.dumps({
+            "type": "doc",
+            "content": [{
+                "type": "paragraph",
+                "content": [{
+                    "type": "text",
+                    "text": "<script>alert('xss')</script>"
+                }]
+            }]
+        })
+
+        resp = client.post("/api/articles", json={
+            "title": "XSS BlockNote Test",
+            "content": xss_content
+        })
+
+        assert resp.status_code == 201
+        article_id = resp.get_json()["id"]
+        response = client.get(f"/articles/{article_id}")
+        assert response.status_code == 200
+        assert f'data-article-id="{article_id}"'.encode() in response.data
+        assert b"&lt;script&gt;alert" in response.data
+        assert b'<script id="article-data"' in response.data
 
     def test_comment_xss_with_newlines_escaped(self, client, db_session):
         """

@@ -108,7 +108,7 @@ class TestWorkflows:
         rid = root.comment_id
         client.post(f"/articles/{aid}/comments/{rid}/reply", data={"content": "Child"})
 
-        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
         assert first_click.status_code == 302
         db_session.expire_all()
         soft = db_session.get(CommentModel, rid)
@@ -120,7 +120,7 @@ class TestWorkflows:
         assert b">?<" in detail.data
         assert b"comment-deleted" in detail.data
 
-        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", data={"cascade": "true"}, follow_redirects=False)
+        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
         assert second_click.status_code == 302
         db_session.expire_all()
         assert db_session.get(CommentModel, rid) is None
@@ -167,11 +167,41 @@ class TestWorkflows:
         db_session.add(comment_3)
         db_session.commit()
 
+        comment_4 = CommentModel(
+            comment_content="Level 4",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_3.comment_id
+        )
+        db_session.add(comment_4)
+        db_session.commit()
+
+        comment_5 = CommentModel(
+            comment_content="Level 5",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_4.comment_id
+        )
+        db_session.add(comment_5)
+        db_session.commit()
+
+        comment_6 = CommentModel(
+            comment_content="Level 6",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_5.comment_id
+        )
+        db_session.add(comment_6)
+        db_session.commit()
+
         response = client.get(f"/articles/{article.article_id}")
         assert response.status_code == 200
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
         assert b"Level 3" in response.data
+        assert b"Level 4" in response.data
+        assert b"Level 5" not in response.data
+        assert b"Level 6" not in response.data
 
     def test_registration_login_profile_flow_integ(self, client, db_session):
         client.post("/register", data={
@@ -440,3 +470,71 @@ class TestUserProfileLinks:
         response = client.get("/")
         assert response.status_code == 200
         assert b'href="/users/link_test_author"' in response.data
+
+
+class TestAdminChangeRole:
+    """
+    Integration tests for admin promoting/demoting user roles.
+    """
+
+    def test_admin_promote_user_to_author_integ(self, client, db_session):
+        """
+        Verifies admin can change a user's role via POST /admin/users/<id>/role.
+        Role persists in DB after the change.
+        """
+        admin = AccountModel(
+            account_username="role_admin", account_email="role@t.com",
+            account_password="p", account_role="admin",
+        )
+        db_session.add(admin)
+        db_session.commit()
+
+        target = AccountModel(
+            account_username="target_user", account_email="target@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(target)
+        db_session.commit()
+
+        client.post("/login", data={"username": "role_admin", "password": "p"}, follow_redirects=True)
+
+        response = client.post(
+            f"/admin/users/{target.account_id}/role",
+            data={"role": "author"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Role updated." in response.data
+
+        db_session.expire_all()
+        updated = db_session.get(AccountModel, target.account_id)
+        assert updated.account_role == "author"
+
+    def test_non_admin_change_role_returns_error_integ(self, client, db_session):
+        """
+        Verifies non-admin user cannot change another user's role.
+        """
+        user = AccountModel(
+            account_username="plain_user", account_email="plain@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(user)
+        db_session.commit()
+
+        target = AccountModel(
+            account_username="victim", account_email="victim@t.com",
+            account_password="p", account_role="user",
+        )
+        db_session.add(target)
+        db_session.commit()
+
+        client.post("/login", data={"username": "plain_user", "password": "p"}, follow_redirects=True)
+
+        response = client.post(
+            f"/admin/users/{target.account_id}/role",
+            data={"role": "author"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 403

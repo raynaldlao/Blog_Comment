@@ -31,12 +31,14 @@ class ArticleResponse(BaseModel):
     Protects the Domain entity from being exposed directly to the templates.
 
     Attributes:
+        article_author_id (int | None): Reference to the author's Account.
+            None when the author's account has been deleted.
         author_avatar_file_id (str | None): UUID of the author's avatar file, or None.
     """
     model_config = ConfigDict(from_attributes=True)
 
     article_id: int
-    article_author_id: int
+    article_author_id: int | None = None
     author_username: str = "Unknown"
     author_avatar_file_id: str | None = None
     article_title: str

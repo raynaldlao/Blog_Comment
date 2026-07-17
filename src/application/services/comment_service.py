@@ -10,6 +10,8 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.service_utils import build_comment_nested_tree
 
+MAX_REPLY_DEPTH = 3
+
 
 class CommentService(CommentManagementPort):
     """
@@ -57,6 +59,28 @@ class CommentService(CommentManagementPort):
             # TODO: Raise AccountNotFoundException
             return "Account not found."
         return account
+
+    @staticmethod
+    def _get_comment_depth(comment_id: int, comment_repo: CommentRepository) -> int:
+        """
+        Walks comment_reply_to chain up to root to compute nesting depth.
+
+        Args:
+            comment_id (int): ID of the comment to measure depth for.
+            comment_repo (CommentRepository): Repository for loading comments.
+
+        Returns:
+            int: Nesting depth (0 for root comment).
+        """
+        depth = 0
+        current_id = comment_id
+        for _ in range(10):
+            parent = comment_repo.get_by_id(current_id)
+            if not parent or parent.comment_reply_to is None:
+                break
+            current_id = parent.comment_reply_to
+            depth += 1
+        return depth
 
     def _delete_with_descendants(self, comment_id: int) -> None:
         """
@@ -144,6 +168,14 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Parent comment not found."
 
+        if "<!--cmt-removed-->" in parent_comment.comment_content:
+            # TODO: Raise CannotReplyException later
+            return "Cannot reply to a removed comment."
+
+        parent_depth = self._get_comment_depth(parent_comment.comment_id, self.comment_repository)
+        if parent_depth >= MAX_REPLY_DEPTH:
+            return "Cannot reply to a comment at maximum nesting depth."
+
         sanitized = nh3.clean(
             content,
             tags=self.ALLOWED_TAGS,
@@ -183,21 +215,20 @@ class CommentService(CommentManagementPort):
             return "Article not found."
 
         all_comments = self.comment_repository.get_all_by_article_id(article_id)
-        author_ids = {c.comment_written_account_id for c in all_comments}
+        author_ids = {c.comment_written_account_id for c in all_comments if c.comment_written_account_id is not None}
         authors = self.account_repository.get_by_ids(list(author_ids))
         author_map = {acc.account_id: acc.account_username for acc in authors}
         avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
         return build_comment_nested_tree(all_comments, author_map, avatar_map)
 
-    def delete_comment(self, comment_id: int, user_id: int, cascade: bool = True) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
         Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
-        Second click hard-deletes: if cascade=True, removes all descendants recursively.
+        Second click hard-deletes: removes the comment and all its descendants recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
-            cascade (bool): If True, also delete all child nodes recursively.
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.
@@ -219,11 +250,7 @@ class CommentService(CommentManagementPort):
             return "Comment not found."
 
         if "<!--cmt-removed-->" in comment.comment_content:
-            if cascade:
-                self._delete_with_descendants(comment_id)
-            else:
-                self.comment_repository.orphan_children(comment_id)
-                self.comment_repository.delete(comment_id)
+            self._delete_with_descendants(comment_id)
             return True
 
         comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"

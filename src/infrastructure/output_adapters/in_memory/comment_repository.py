@@ -73,14 +73,3 @@ class InMemoryCommentRepository(CommentRepository):
         """
         if comment_id in self._comments:
             del self._comments[comment_id]
-
-    def orphan_children(self, comment_id: int) -> None:
-        """
-        Sets comment_reply_to to NULL for all direct children of the given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment whose children should be orphaned.
-        """
-        for c in self._comments.values():
-            if c.comment_reply_to == comment_id:
-                c.comment_reply_to = None

@@ -60,3 +60,11 @@ class TestArticleRecordToDomain:
         assert domain.article_title == "Mapped"
         assert domain.article_content == "Properly"
         assert domain.article_published_at == dt
+
+    def test_to_domain_with_none_author_id(self):
+        record = ArticleRecord(
+            article_id=1, article_author_id=None, article_title="Title",
+            article_content="Content", article_published_at=datetime(2023, 1, 1, 12, 0, 0),
+        )
+        domain = record.to_domain()
+        assert domain.article_author_id is None
