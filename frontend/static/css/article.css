@@ -633,7 +633,7 @@ a.comment-author:hover {
 .comment-limit-hint,
 .desc-limit-hint {
     display: block;
-    font-size: 0.7rem;
+    font-size: var(--font-body-sm);
     color: var(--text-secondary);
 }
 
@@ -1038,22 +1038,47 @@ a.comment-author:hover {
 .article-editor-description-wrap {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: var(--spacing-xs);
 }
 
-.article-editor-description-header {
+.article-editor-label {
+    font-family: var(--font-primary);
+    font-size: var(--font-headline-sm);
+    font-weight: 600;
+    color: var(--on-surface);
+}
+
+.article-editor-section-title {
+    font-family: var(--font-primary);
+    font-size: var(--font-headline-sm);
+    font-weight: 600;
+    color: var(--on-surface);
+}
+
+.article-editor-body-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.article-editor-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+    max-width: 49.25rem;
 }
 
 .char-counter {
-    font-size: 0.7rem;
+    font-size: var(--font-body-sm);
     color: var(--text-secondary);
 }
 
 .article-editor-description {
     width: 100%;
+    max-width: 49.25rem;
     font-family: var(--font-primary);
     font-size: var(--font-body-base);
     font-weight: 400;

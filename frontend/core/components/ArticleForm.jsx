@@ -415,7 +415,10 @@ export default function ArticleForm() {
         onChange={(e) => setTitle(e.target.value)}
       />
       <div className="article-editor-description-wrap">
-        <div className="article-editor-description-header">
+        <div className="article-editor-section-header">
+          <span className="article-editor-label">Description</span>
+        </div>
+        <div className="article-editor-section-header">
           <span className="desc-limit-hint">Maximum 300 characters</span>
           <span className="char-counter">{description.length}/300</span>
         </div>
@@ -427,7 +430,12 @@ export default function ArticleForm() {
           onChange={(e) => setDescription(e.target.value)}
         />
       </div>
-      <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
+      <div className="article-editor-body-wrap">
+        <div className="article-editor-section-header">
+          <span className="article-editor-section-title">Content</span>
+        </div>
+        <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
+      </div>
       <div className="article-editor-actions">
         <button className="btn" onClick={handleSubmit} disabled={saving}>
           {saving ? 'Saving...' : page === 'create' ? 'Publish' : 'Save'}
