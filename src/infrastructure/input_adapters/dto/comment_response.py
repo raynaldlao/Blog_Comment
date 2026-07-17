@@ -70,19 +70,23 @@ class CommentResponse(BaseModel):
     @classmethod
     def map_nested_tree(cls, nodes: list, depth_limit: int = 4) -> list[CommentNodeResponse]:
         """
-        Recursively maps a list of CommentNode domain tree nodes into DTO tree nodes.
+        Maps domain CommentNode tree into DTO tree.
+        Stops nesting at depth_limit - 1; deeper nodes have empty replies.
 
         Args:
-            nodes (list[CommentNode]): The root tree nodes from the domain layer.
-            depth_limit (int): Maximum rendering depth; deeper nodes are flattened.
+            nodes (list[CommentNode]): Root tree nodes from domain layer.
+            depth_limit (int): Max nesting depth; deeper nodes truncated.
 
         Returns:
-            list[CommentNodeResponse]: The mapped DTO tree.
+            list[CommentNodeResponse]: Mapped DTO tree.
         """
         def _map(node) -> CommentNodeResponse:
             display_depth = node.depth if node.depth < depth_limit else depth_limit
             cr = cls.from_domain(node.comment.comment, node.comment.author_name, node.comment.author_avatar_file_id)
-            replies = [_map(child) for child in node.replies]
+            if node.depth < depth_limit - 1:
+                replies = [_map(child) for child in node.replies]
+            else:
+                replies = []
             return CommentNodeResponse(comment=cr, replies=replies, depth=display_depth)
         return [_map(n) for n in nodes]
 

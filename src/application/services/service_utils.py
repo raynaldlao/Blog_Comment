@@ -31,16 +31,20 @@ def build_comment_nested_tree(
     roots.sort(key=lambda c: c.comment_posted_at, reverse=True)
 
     def _build_node(comment: Comment, depth: int) -> CommentNode:
+        author_id = comment.comment_written_account_id
+        author_name = author_map.get(author_id, "Anonymous") if author_id is not None else "Anonymous"  # type: ignore  # safe: None handled
+        author_avatar_file_id = (
+            avatar_map.get(author_id)
+            if avatar_map and author_id is not None
+            else None
+        )
         cwa = CommentWithAuthor(
             comment=comment,
-            author_name=author_map.get(comment.comment_written_account_id, "Anonymous"),
-            author_avatar_file_id=(
-                avatar_map.get(comment.comment_written_account_id)
-                if avatar_map else None
-            ),
+            author_name=author_name,
+            author_avatar_file_id=author_avatar_file_id,
         )
         children = parent_map.pop(comment.comment_id, [])
-        children.sort(key=lambda c: c.comment_posted_at)
+        children.sort(key=lambda c: c.comment_posted_at, reverse=True)
         replies = [_build_node(child, depth + 1) for child in children]
         return CommentNode(comment=cwa, replies=replies, depth=depth)
 

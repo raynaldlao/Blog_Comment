@@ -124,3 +124,124 @@ def test_map_nested_tree_threads_avatar():
     result = CommentResponse.map_nested_tree(nodes)
     assert result[0].comment.author_avatar_file_id == "avatar-1"
     assert result[0].replies[0].comment.author_avatar_file_id == "avatar-2"
+
+def test_map_nested_tree_shallow_no_flatten():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    c1 = Comment(1, 10, 1, None, "Root", posted_at)
+    c2 = Comment(2, 10, 2, 1, "Lvl1", posted_at)
+    c3 = Comment(3, 10, 3, 2, "Lvl2", posted_at)
+    nodes = [
+        CommentNode(
+            comment=CommentWithAuthor(c1, "U1"),
+            replies=[
+                CommentNode(
+                    comment=CommentWithAuthor(c2, "U2"),
+                    replies=[
+                        CommentNode(
+                            comment=CommentWithAuthor(c3, "U3"),
+                            depth=2,
+                        )
+                    ],
+                    depth=1,
+                )
+            ],
+            depth=0,
+        )
+    ]
+    result = CommentResponse.map_nested_tree(nodes)
+    assert len(result) == 1
+    assert result[0].depth == 0
+    assert len(result[0].replies) == 1
+    assert result[0].replies[0].depth == 1
+    assert len(result[0].replies[0].replies) == 1
+    assert result[0].replies[0].replies[0].depth == 2
+
+def test_map_nested_tree_truncate_deep():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    c1 = Comment(1, 10, 1, None, "Root", posted_at)
+    c2 = Comment(2, 10, 2, 1, "Lvl1", posted_at)
+    c3 = Comment(3, 10, 3, 2, "Lvl2", posted_at)
+    c4 = Comment(4, 10, 4, 3, "Lvl3", posted_at)
+    c5 = Comment(5, 10, 5, 4, "Lvl4", posted_at)
+    nodes = [
+        CommentNode(
+            comment=CommentWithAuthor(c1, "U1"),
+            replies=[
+                CommentNode(
+                    comment=CommentWithAuthor(c2, "U2"),
+                    replies=[
+                        CommentNode(
+                            comment=CommentWithAuthor(c3, "U3"),
+                            replies=[
+                                CommentNode(
+                                    comment=CommentWithAuthor(c4, "U4"),
+                                    replies=[
+                                        CommentNode(
+                                            comment=CommentWithAuthor(c5, "U5"),
+                                            depth=4,
+                                        )
+                                    ],
+                                    depth=3,
+                                )
+                            ],
+                            depth=2,
+                        )
+                    ],
+                    depth=1,
+                )
+            ],
+            depth=0,
+        )
+    ]
+    result = CommentResponse.map_nested_tree(nodes)
+    assert len(result) == 1
+    root = result[0]
+    assert root.depth == 0
+    assert len(root.replies) == 1
+    lvl1 = root.replies[0]
+    assert lvl1.depth == 1
+    assert len(lvl1.replies) == 1
+    lvl2 = lvl1.replies[0]
+    assert lvl2.depth == 2
+    assert len(lvl2.replies) == 1
+    lvl3 = lvl2.replies[0]
+    assert lvl3.comment.comment_id == 4
+    assert lvl3.depth == 3
+    assert len(lvl3.replies) == 0
+    assert lvl3.comment.comment_content == "Lvl3"
+
+def test_map_nested_tree_flatten_multiple_children():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    c1 = Comment(1, 10, 1, None, "Root", posted_at)
+    c2 = Comment(2, 10, 2, 1, "Lvl1_A", posted_at)
+    c3 = Comment(3, 10, 3, 1, "Lvl1_B", posted_at)
+    c4 = Comment(4, 10, 4, 2, "Lvl2", posted_at)
+    nodes = [
+        CommentNode(
+            comment=CommentWithAuthor(c1, "U1"),
+            replies=[
+                CommentNode(
+                    comment=CommentWithAuthor(c2, "U2"),
+                    replies=[
+                        CommentNode(
+                            comment=CommentWithAuthor(c4, "U4"),
+                            depth=2,
+                        )
+                    ],
+                    depth=1,
+                ),
+                CommentNode(
+                    comment=CommentWithAuthor(c3, "U3"),
+                    depth=1,
+                ),
+            ],
+            depth=0,
+        )
+    ]
+    result = CommentResponse.map_nested_tree(nodes)
+    assert len(result) == 1
+    assert len(result[0].replies) == 2
+    assert result[0].replies[0].comment.comment_id == 2
+    assert result[0].replies[0].depth == 1
+    assert result[0].replies[1].comment.comment_id == 3
+    assert result[0].replies[1].depth == 1

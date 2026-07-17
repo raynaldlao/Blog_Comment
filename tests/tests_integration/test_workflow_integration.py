@@ -167,11 +167,41 @@ class TestWorkflows:
         db_session.add(comment_3)
         db_session.commit()
 
+        comment_4 = CommentModel(
+            comment_content="Level 4",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_3.comment_id
+        )
+        db_session.add(comment_4)
+        db_session.commit()
+
+        comment_5 = CommentModel(
+            comment_content="Level 5",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_4.comment_id
+        )
+        db_session.add(comment_5)
+        db_session.commit()
+
+        comment_6 = CommentModel(
+            comment_content="Level 6",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id,
+            comment_reply_to=comment_5.comment_id
+        )
+        db_session.add(comment_6)
+        db_session.commit()
+
         response = client.get(f"/articles/{article.article_id}")
         assert response.status_code == 200
         assert b"Level 1" in response.data
         assert b"Level 2" in response.data
         assert b"Level 3" in response.data
+        assert b"Level 4" in response.data
+        assert b"Level 5" not in response.data
+        assert b"Level 6" not in response.data
 
     def test_registration_login_profile_flow_integ(self, client, db_session):
         client.post("/register", data={

@@ -113,7 +113,7 @@ class TestCreateReply(CommentServiceTestBase):
             comment_content="Root comment",
         )
 
-        self.mock_comment_repo.get_by_id.return_value = parent_comment
+        self.mock_comment_repo.get_by_id.side_effect = lambda cid: parent_comment if cid == 10 else None
 
         result = self.service.create_reply(
             parent_comment_id=parent_comment.comment_id,
@@ -121,7 +121,7 @@ class TestCreateReply(CommentServiceTestBase):
         )
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
-        self.mock_comment_repo.get_by_id.assert_called_once_with(parent_comment.comment_id)
+        self.mock_comment_repo.get_by_id.assert_any_call(parent_comment.comment_id)
         self.mock_comment_repo.save.assert_called_once()
         index_first_arg = 0
         saved_reply = self.mock_comment_repo.save.call_args.args[index_first_arg]
@@ -135,6 +135,10 @@ class TestCreateReply(CommentServiceTestBase):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
+        root_comment = create_test_comment(
+            comment_id=10,
+            comment_reply_to=None,
+        )
         parent_comment = create_test_comment(
             comment_id=15,
             comment_article_id=5,
@@ -142,7 +146,12 @@ class TestCreateReply(CommentServiceTestBase):
             comment_reply_to=10,
             comment_content="I am a reply",
         )
-        self.mock_comment_repo.get_by_id.return_value = parent_comment
+
+        def mock_get_by_id(cid):
+            mapping = {10: root_comment, 15: parent_comment}
+            return mapping.get(cid)
+
+        self.mock_comment_repo.get_by_id.side_effect = mock_get_by_id
 
         result = self.service.create_reply(
             parent_comment_id=parent_comment.comment_id,
@@ -169,6 +178,42 @@ class TestCreateReply(CommentServiceTestBase):
         self.mock_comment_repo.get_by_id.assert_called_once_with(999)
         self.mock_comment_repo.save.assert_not_called()
         assert result == "Parent comment not found."
+
+    def test_create_reply_to_removed_comment_returns_error(self):
+        self.mock_account_repo.get_by_id.return_value = create_test_account(
+            account_id=99, account_role=AccountRole.ADMIN
+        )
+
+        removed = create_test_comment(
+            comment_id=5,
+            comment_content="<!--cmt-removed--><em>Comment removed</em>"
+        )
+
+        self.mock_comment_repo.get_by_id.return_value = removed
+        result = self.service.create_reply(5, 99, "Reply to removed")
+        self.mock_comment_repo.save.assert_not_called()
+        assert isinstance(result, str)
+        assert "removed" in result.lower()
+
+    def test_create_reply_too_deep_returns_error(self):
+        self.mock_account_repo.get_by_id.return_value = create_test_account(
+            account_id=1, account_role=AccountRole.USER
+        )
+        deep_comment_1 = create_test_comment(comment_id=1, comment_reply_to=None)
+        deep_comment_2 = create_test_comment(comment_id=2, comment_reply_to=1)
+        deep_comment_3 = create_test_comment(comment_id=3, comment_reply_to=2)
+        deep_parent = create_test_comment(comment_id=4, comment_reply_to=3)
+
+        def mock_get_by_id(cid):
+            mapping = {1: deep_comment_1, 2: deep_comment_2, 3: deep_comment_3, 4: deep_parent}
+            return mapping.get(cid)
+
+        self.mock_comment_repo.get_by_id.side_effect = mock_get_by_id
+
+        result = self.service.create_reply(4, 1, "Too deep reply")
+        self.mock_comment_repo.save.assert_not_called()
+        assert isinstance(result, str)
+        assert "maximum nesting depth" in result.lower()
 
 
 class TestGetComments(CommentServiceTestBase):
@@ -244,8 +289,8 @@ class TestGetComments(CommentServiceTestBase):
         latest_reply, oldest_reply = result[0].replies
         assert latest_root.comment.comment.comment_id == comment_2.comment_id
         assert oldest_root.comment.comment.comment_id == comment_1.comment_id
-        assert latest_reply.comment.comment.comment_id == reply_2.comment_id
-        assert oldest_reply.comment.comment.comment_id == reply_1.comment_id
+        assert latest_reply.comment.comment.comment_id == reply_1.comment_id
+        assert oldest_reply.comment.comment.comment_id == reply_2.comment_id
 
     def test_get_comments_for_article_unknown_author(self):
         fake_article = create_test_article(article_id=1, article_author_id=2)

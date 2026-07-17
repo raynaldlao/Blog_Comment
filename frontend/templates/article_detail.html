@@ -83,7 +83,7 @@
 
     {% macro render_comment(node, depth=0) %}
         {% set display_depth = depth if depth < 3 else 3 %}
-        {% set should_cascade = display_depth < 3 and node.replies %}
+        {% set should_cascade = node.replies %}
         {% set is_deleted = node.comment.comment_content in ('Comment removed', '[deleted]', '<em>Comment removed</em>') %}
         <div class="comment comment-depth-{{ display_depth }}{% if is_deleted %} comment-deleted{% endif %}">
             <div class="comment-avatar">
@@ -121,10 +121,10 @@
                     <div class="comment-body-text">
                         {{ node.comment.comment_content | safe }}
                     </div>
-                    {% if current_user and not is_deleted %}
+                    {% if current_user and not is_deleted and depth < 3 %}
                     <div class="comment-actions">
                         <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
-                        {% if node.replies and display_depth < 3 %}
+                        {% if node.replies %}
                         <button type="button" class="view-replies-btn">View replies</button>
                         {% endif %}
                     </div>
@@ -141,7 +141,7 @@
                                 </div>
                             </form>
                         </div>
-                    {% elif node.replies and display_depth < 3 %}
+                    {% elif node.replies %}
                     <div class="comment-actions">
                         <button type="button" class="view-replies-btn">View replies</button>
                     </div>

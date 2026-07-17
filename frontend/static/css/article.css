@@ -520,10 +520,6 @@ input[type=number] {
     display: block;
 }
 
-.comment-depth-3 > .comment-content > .comment-replies {
-    display: block;
-}
-
 .comment-actions {
     display: flex;
     gap: var(--spacing-sm);
@@ -632,10 +628,6 @@ a.comment-author:hover {
 
 .comment-replies {
     margin-top: var(--spacing-sm);
-}
-
-.comment-depth-3 .comment-replies > .comment-depth-3 > .comment-avatar {
-    display: none;
 }
 
 @media (max-width: 30em) {
