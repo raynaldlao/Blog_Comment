@@ -347,6 +347,18 @@ export default function ArticleForm() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const editorRef = useRef(null);
+  const lastTapRef = useRef({ time: 0, target: null });
+
+  const handleDoubleTapSelect = useCallback((e) => {
+    const now = Date.now();
+    const last = lastTapRef.current;
+    if (last.target === e.currentTarget && now - last.time < 400) {
+      e.currentTarget.select();
+      lastTapRef.current = { time: 0, target: null };
+    } else {
+      lastTapRef.current = { time: now, target: e.currentTarget };
+    }
+  }, []);
 
   useEffect(() => {
     if (loadedTitle) setTitle(loadedTitle);
@@ -413,6 +425,7 @@ export default function ArticleForm() {
         placeholder="Article title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        onClick={handleDoubleTapSelect}
       />
       <div className="article-editor-description-wrap">
         <div className="article-editor-section-header">
@@ -428,6 +441,7 @@ export default function ArticleForm() {
           maxLength={300}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          onClick={handleDoubleTapSelect}
         />
       </div>
       <div className="article-editor-body-wrap">
