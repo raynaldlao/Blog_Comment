@@ -10,7 +10,7 @@ class ArticleManagementPort(ABC):
     """
 
     @abstractmethod
-    def create_article(self, title: str, content: str, author_id: int, author_role: str) -> Article | str:
+    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article | str:
         """
         Creates a new article if the user has sufficient permissions.
 
@@ -19,6 +19,7 @@ class ArticleManagementPort(ABC):
             content (str): The body content of the new article.
             author_id (int): The unique identifier of the user creating the article.
             author_role (str): The role of the user.
+            description (str): Short description displayed in article list. Optional.
 
         Returns:
             Article | str: The newly created Article domain entity,
@@ -50,7 +51,7 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | str:
+    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article | str:
         """
         Updates an existing article ensuring the requester is the original author.
 
@@ -59,6 +60,7 @@ class ArticleManagementPort(ABC):
             user_id (int): ID of the user requesting the update.
             title (str): New title for the article.
             content (str): New content for the article.
+            description (str): Short description displayed in article list. Optional.
 
         Returns:
             Article | str: The updated Article domain entity,

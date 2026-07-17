@@ -34,6 +34,10 @@ class ArticleResponse(BaseModel):
         article_author_id (int | None): Reference to the author's Account.
             None when the author's account has been deleted.
         author_avatar_file_id (str | None): UUID of the author's avatar file, or None.
+        article_description (str): Short description displayed in article list.
+            Empty string when no description was provided.
+        meta_description (str): Alias for article_description, used for
+            <meta name="description"> and list view excerpt.
     """
     model_config = ConfigDict(from_attributes=True)
 
@@ -42,18 +46,14 @@ class ArticleResponse(BaseModel):
     author_username: str = "Unknown"
     author_avatar_file_id: str | None = None
     article_title: str
+    article_description: str = ""
     article_content: str
     article_published_at: datetime | None = None
     meta_description: str = ""
 
     @classmethod
     def from_domain(cls, article, author_username: str = "Unknown", author_avatar_file_id: str | None = None):
-        plain_text = _blocks_to_plain_text(article.article_content).replace("\n", " ").strip()
-        limit_character = 155
-        if len(plain_text) > limit_character:
-            meta = f"{plain_text[:limit_character]}..."
-        else:
-            meta = plain_text
+        description = article.article_description or ""
 
         return cls(
             article_id=article.article_id,
@@ -61,7 +61,8 @@ class ArticleResponse(BaseModel):
             author_username=author_username,
             author_avatar_file_id=author_avatar_file_id,
             article_title=article.article_title,
+            article_description=description,
             article_content=article.article_content,
             article_published_at=article.article_published_at,
-            meta_description=meta
+            meta_description=description,
         )

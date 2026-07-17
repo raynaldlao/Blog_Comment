@@ -90,7 +90,9 @@
                             {{ article.article_title }}
                         </a>
                     </h2>
-                    <p class="item-excerpt">{{ article.meta_description }}</p>
+                    {% if article.meta_description %}
+                    <span class="article-description list-description">{{ article.meta_description }}</span>
+                    {% endif %}
                 </div>
                 <div class="item-meta">
                     {% if article.author_username == 'Anonymous' %}

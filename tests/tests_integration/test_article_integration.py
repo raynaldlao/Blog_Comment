@@ -1,3 +1,4 @@
+
 from datetime import datetime
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
@@ -183,3 +184,114 @@ class TestPersistence:
                 assert response.status_code == 200
                 assert b"Ghost Story" in response.data
                 assert b"Unknown" in response.data or b"identifi" in response.data
+
+
+class TestArticleDescription:
+    """Tests for the article description field."""
+
+    def test_create_article_with_description_integ(self, client, db_session):
+        auth = AccountModel(
+            account_username="desc_author", account_email="desc@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "desc_author", "password": "p"},
+                    follow_redirects=True)
+
+        resp = client.post("/api/articles", json={
+            "title": "Desc Test",
+            "description": "A short description",
+            "content": "Article body"
+        })
+        assert resp.status_code == 201
+        article_id = resp.get_json()["id"]
+
+        api_resp = client.get(f"/api/articles/{article_id}")
+        assert api_resp.status_code == 200
+        data = api_resp.get_json()
+        assert data["description"] == "A short description"
+
+    def test_create_article_without_description_integ(self, client, db_session):
+        auth = AccountModel(
+            account_username="no_desc", account_email="nd@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "no_desc", "password": "p"},
+                    follow_redirects=True)
+
+        resp = client.post("/api/articles", json={
+            "title": "No Desc",
+            "description": "",
+            "content": "Article body"
+        })
+        assert resp.status_code == 201
+        article_id = resp.get_json()["id"]
+
+        api_resp = client.get(f"/api/articles/{article_id}")
+        data = api_resp.get_json()
+        assert data["description"] == ""
+
+    def test_description_shown_in_detail_template(self, client, db_session):
+        auth = AccountModel(
+            account_username="desc_detail", account_email="dd@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "desc_detail", "password": "p"},
+                    follow_redirects=True)
+
+        resp = client.post("/api/articles", json={
+            "title": "Detail Desc",
+            "description": "Visible in detail",
+            "content": "Content"
+        })
+        article_id = resp.get_json()["id"]
+
+        detail_resp = client.get(f"/articles/{article_id}")
+        assert detail_resp.status_code == 200
+        assert b"Visible in detail" in detail_resp.data
+
+    def test_update_article_description(self, client, db_session):
+        auth = AccountModel(
+            account_username="update_desc", account_email="ud@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "update_desc", "password": "p"},
+                    follow_redirects=True)
+
+        create_resp = client.post("/api/articles", json={
+            "title": "Update Desc", "description": "Old desc", "content": "Body"
+        })
+        article_id = create_resp.get_json()["id"]
+
+        put_resp = client.put(f"/api/articles/{article_id}", json={
+            "title": "Update Desc", "description": "New desc", "content": "Body"
+        })
+        assert put_resp.status_code == 200
+
+        get_resp = client.get(f"/api/articles/{article_id}")
+        assert get_resp.get_json()["description"] == "New desc"
+
+    def test_description_shown_in_list_template(self, client, db_session):
+        auth = AccountModel(
+            account_username="desc_list", account_email="dl@t.com",
+            account_password="p", account_role="author"
+        )
+        db_session.add(auth)
+        db_session.commit()
+        client.post("/login", data={"username": "desc_list", "password": "p"},
+                    follow_redirects=True)
+
+        client.post("/api/articles", json={
+            "title": "List Desc", "description": "Seen in list", "content": "Body"
+        })
+
+        list_resp = client.get("/")
+        assert list_resp.status_code == 200
+        assert b"Seen in list" in list_resp.data

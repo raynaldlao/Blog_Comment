@@ -8,6 +8,7 @@ export default function useArticle(articleId) {
   const [loaded, setLoaded] = useState(!articleId || !!ssrContent);
   const [contentStr, setContentStr] = useState(ssrContent || '');
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function useArticle(articleId) {
         const r = await fetch(`/api/articles/${articleId}`);
         const data = await r.json();
         setTitle(data.title || '');
+        setDescription(data.description || '');
         setContentStr(data.content || '');
       } catch {
         setError('Failed to load article.');
@@ -32,5 +34,5 @@ export default function useArticle(articleId) {
     })();
   }, [articleId]);
 
-  return { loaded, contentStr, title, error };
+  return { loaded, contentStr, title, description, error };
 }

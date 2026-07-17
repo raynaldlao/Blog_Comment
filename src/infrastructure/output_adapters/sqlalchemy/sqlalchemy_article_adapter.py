@@ -80,6 +80,7 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
                 article_id=article.article_id,
             ).update({
                 ArticleModel.article_title: article.article_title,
+                ArticleModel.article_description: article.article_description,
                 ArticleModel.article_content: article.article_content,
             })
             self._session.commit()
@@ -88,6 +89,7 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         model = ArticleModel()
         model.article_author_id = article.article_author_id
         model.article_title = article.article_title
+        model.article_description = article.article_description
         model.article_content = article.article_content
         self._session.add(model)
         self._session.commit()

@@ -47,6 +47,9 @@
             <span>Back to articles</span>
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
+        {% if article.article_description %}
+        <strong class="article-description detail-description">{{ article.article_description }}</strong>
+        {% endif %}
         <div class="item-meta">
             {% if article.author_username == 'Anonymous' %}
             <span class="meta-author">{{ article.author_username }}</span>

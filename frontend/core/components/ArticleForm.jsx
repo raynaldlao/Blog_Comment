@@ -196,6 +196,8 @@ function BlockNoteEditor({ initialContent, onReady }) {
       }
       const mod = e.ctrlKey || e.metaKey;
       if (!mod || (e.key !== 'z' && e.key !== 'y')) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       const editorEl = editor.dom?.closest('.bn-editor') || editor.dom;
       if (editorEl?.contains(document.activeElement)) return;
       e.preventDefault();
@@ -337,10 +339,11 @@ export default function ArticleForm() {
   const page = root?.dataset.page;
   const articleId = root?.dataset.articleId;
 
-  const { loaded, contentStr, title: loadedTitle, error: loadError } = useArticle(
+  const { loaded, contentStr, title: loadedTitle, description: loadedDescription, error: loadError } = useArticle(
     page === 'edit' ? articleId : null,
   );
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const editorRef = useRef(null);
@@ -348,6 +351,10 @@ export default function ArticleForm() {
   useEffect(() => {
     if (loadedTitle) setTitle(loadedTitle);
   }, [loadedTitle]);
+
+  useEffect(() => {
+    if (loadedDescription) setDescription(loadedDescription);
+  }, [loadedDescription]);
 
   useCodeBlockGapClick(editorRef);
 
@@ -367,7 +374,7 @@ export default function ArticleForm() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, content }),
+        body: JSON.stringify({ title, description, content }),
       });
 
       if (res.ok) {
@@ -407,6 +414,19 @@ export default function ArticleForm() {
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
+      <div className="article-editor-description-wrap">
+        <div className="article-editor-description-header">
+          <span className="comment-limit-hint">Maximum 300 characters</span>
+          <span className="char-counter">{description.length}/300</span>
+        </div>
+        <textarea
+          className="article-editor-description"
+          placeholder="Short description (optional)"
+          maxLength={300}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
       <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
       <div className="article-editor-actions">
         <button className="btn" onClick={handleSubmit} disabled={saving}>

@@ -59,16 +59,15 @@ class TestXSS:
         client.post("/login", data={"username": "xss_bn", "password": "p"},
                     follow_redirects=True)
 
-        xss_content = json.dumps({
-            "type": "doc",
-            "content": [{
+        xss_content = json.dumps([
+            {
                 "type": "paragraph",
                 "content": [{
                     "type": "text",
                     "text": "<script>alert('xss')</script>"
                 }]
-            }]
-        })
+            }
+        ])
 
         resp = client.post("/api/articles", json={
             "title": "XSS BlockNote Test",

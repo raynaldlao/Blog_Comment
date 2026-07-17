@@ -180,6 +180,7 @@ class ArticleAdapter:
         return jsonify({
             "id": article.article_id,
             "title": article.article_title,
+            "description": article.article_description,
             "content": content,
             "author_id": article.article_author_id,
             "author_username": username,
@@ -211,6 +212,7 @@ class ArticleAdapter:
             req_data = ArticleRequest(
                 title=data.get("title", ""),
                 content=data.get("content", ""),
+                description=data.get("description", ""),
             )
         except ValidationError as e:
             for error in e.errors():
@@ -218,7 +220,9 @@ class ArticleAdapter:
             return jsonify({"error": "Validation error."}), 400
 
         result = self.article_service.create_article(
-            title=req_data.title, content=req_data.content, author_id=user.account_id, author_role=user.account_role,
+            title=req_data.title, content=req_data.content,
+            author_id=user.account_id, author_role=user.account_role,
+            description=req_data.description,
         )
         if isinstance(result, str):
             return jsonify({"error": result}), 403
@@ -253,6 +257,7 @@ class ArticleAdapter:
             req_data = ArticleRequest(
                 title=data.get("title", ""),
                 content=data.get("content", ""),
+                description=data.get("description", ""),
             )
         except ValidationError as e:
             for error in e.errors():
@@ -260,7 +265,9 @@ class ArticleAdapter:
             return jsonify({"error": "Validation error."}), 400
 
         result = self.article_service.update_article(
-            article_id=article_id, user_id=user.account_id, title=req_data.title, content=req_data.content,
+            article_id=article_id, user_id=user.account_id,
+            title=req_data.title, content=req_data.content,
+            description=req_data.description,
         )
         if isinstance(result, str):
             return jsonify({"error": result}), 403
