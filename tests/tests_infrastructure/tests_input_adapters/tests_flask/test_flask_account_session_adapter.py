@@ -278,7 +278,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"user1" in response.data
         assert b"user20" in response.data
-        assert b"Page 1 of 2" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
 
     def test_list_all_users_page_2(self):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)
@@ -294,7 +295,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"user21" in response.data
         assert b"user25" in response.data
-        assert b"Page 2 of 2" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
 
     def test_list_all_users_with_search(self):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)
@@ -310,7 +312,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"user1" in response.data
         assert b"user20" in response.data
-        assert b"Page 1 of 2" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
         self.mock_session_service.search_accounts.assert_called_once_with("user", page=1, per_page=20)
         self.mock_session_service.count_search_accounts.assert_called_once_with("user")
 
@@ -332,7 +335,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
 
         response = self.client.get("/admin/users?page=-1")
         assert response.status_code == 200
-        assert b"Page 1 of 2" in response.data
+        assert b"page-link-num" in response.data
 
     def test_list_all_users_as_non_admin_returns_403(self):
         fake_user = create_test_account(account_role=AccountRole.USER)

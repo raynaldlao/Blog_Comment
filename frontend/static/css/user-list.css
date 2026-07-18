@@ -211,55 +211,253 @@ input.search-input {
     padding: var(--spacing-xs) var(--spacing-sm);
 }
 
-.user-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--spacing-sm);
+.editorial-pagination {
     margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-md);
-    border-top: 1px solid var(--outline-variant);
+    padding-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-sm);
+    border-top: 1px solid var(--outline);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--outline) transparent;
 }
 
-.user-page-link {
+.editorial-pagination::-webkit-scrollbar {
+    width: 0.375rem;
+    height: 0.375rem;
+}
+
+.editorial-pagination::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.editorial-pagination::-webkit-scrollbar-thumb {
+    background: var(--outline);
+    border-radius: var(--radius-full);
+}
+
+.pagination-prev,
+.pagination-info,
+.pagination-next {
+    display: flex;
+    align-items: center;
+}
+
+.pagination-info {
+    margin: 0 var(--spacing-xl);
+    font-family: var(--font-mono);
+    font-size: var(--font-body-base);
+    color: var(--on-surface-variant);
+    white-space: nowrap;
+}
+
+.page-link-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin: 0 var(--spacing-xs);
+    border-radius: var(--radius-default);
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline-variant);
+    color: var(--on-surface-variant);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: var(--font-body-base);
+    font-weight: 600;
+}
+
+.page-link-num.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+}
+
+.pagination-link {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border: 1px solid var(--outline-variant);
-    border-radius: var(--radius-default);
-    color: var(--on-surface);
     text-decoration: none;
+    color: var(--primary);
+    font-weight: 600;
     font-size: var(--font-body-base);
-    transition: background 0.2s;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transition: color 0.2s ease;
 }
 
-.user-page-link:hover {
-    background: var(--surface-container);
+.pagination-link:hover {
+    color: var(--primary-hover);
 }
 
-.user-page-link .icon {
+.pagination-link .icon {
     font-size: var(--font-headline-sm);
     display: flex;
     align-items: center;
 }
 
-.user-page-link.disabled {
-    opacity: 0.4;
+.pagination-link--hidden {
+    visibility: hidden;
     pointer-events: none;
 }
 
-.user-page-label {
-    display: inline;
-}
+@media (max-width: 48em) {
+    .editorial-pagination {
+        overflow-x: visible;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding-bottom: var(--spacing-sm);
+    }
 
-@media (max-width: 30em) {
-    .user-page-label {
-        display: none;
+    .pagination-info {
+        order: -1;
+        width: 100%;
+        margin: 0 0 var(--spacing-xl) 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: var(--spacing-xs);
+        white-space: normal;
+    }
+
+    .pagination-info .page-link-num {
+        margin: 0;
+    }
+
+    .pagination-prev {
+        order: 2;
+    }
+
+    .pagination-next {
+        order: 3;
     }
 }
 
-.user-page-info {
+.dialog .modal-body {
+    margin-bottom: var(--spacing-xl);
+}
+
+.dialog .modal-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.dialog .modal-input-group label {
     font-size: var(--font-body-base);
     color: var(--on-surface-variant);
+    font-family: var(--font-mono);
+}
+
+.dialog .stepper-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+#jump-page-input {
+    background: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    padding: var(--spacing-md);
+    padding-right: 3rem;
+    color: var(--on-surface);
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    text-align: center;
+    width: 100%;
+    outline: none;
+    -moz-appearance: textfield;
+    appearance: textfield;
+    transition: border-color 0.2s ease;
+}
+
+#jump-page-input:focus {
+    border-color: var(--primary);
+}
+
+.dialog .stepper-controls {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 2.75rem;
+    border-left: 1px solid var(--outline-variant);
+    background: transparent;
+    border-radius: 0 var(--radius-default) var(--radius-default) 0;
+    transition: border-color 0.2s ease;
+}
+
+#jump-page-input:focus ~ .stepper-controls {
+    border-left-color: var(--primary);
+}
+
+#jump-page-input:focus ~ .stepper-controls .stepper-btn.up {
+    border-bottom-color: var(--primary);
+}
+
+#jump-page-input.input-error ~ .stepper-controls {
+    border-left-color: var(--error);
+}
+
+#jump-page-input.input-error ~ .stepper-controls .stepper-btn.up {
+    border-bottom-color: var(--error);
+}
+
+.dialog .stepper-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--on-surface-variant);
+    transition: color 0.15s ease, border-color 0.2s ease;
+    user-select: none;
+    border: none;
+    background: transparent;
+    padding: 0;
+    line-height: 1;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.dialog .stepper-btn:focus-visible {
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    color: var(--primary);
+    z-index: var(--z-base);
+}
+
+.dialog .stepper-btn:hover {
+    color: var(--on-surface);
+    background: transparent;
+}
+
+.dialog .stepper-btn:active {
+    color: var(--primary);
+    background: transparent;
+}
+
+.dialog .stepper-btn span {
+    font-size: 1.5rem;
+    display: block;
+}
+
+.dialog .stepper-btn.up {
+    border-bottom: 1px solid var(--outline-variant);
+    border-top-right-radius: var(--radius-default);
+}
+
+.dialog .stepper-btn.down {
+    border-bottom-right-radius: var(--radius-default);
 }

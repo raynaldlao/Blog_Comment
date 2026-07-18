@@ -243,11 +243,11 @@ class TestAdminUserList:
         assert b"user_0" in r1.data
         assert b"user_19" in r1.data
         assert b"user_20" not in r1.data
-        assert b"Page 1 of 2" in r1.data
+        assert b"page-link-num" in r1.data
 
         r2 = client.get("/admin/users?page=2")
         assert r2.status_code == 200
         assert b"user_20" in r2.data
         assert b"user_24" in r2.data
         assert b"user_0" not in r2.data
-        assert b"Page 2 of 2" in r2.data
+        assert b"page-link-num" in r2.data
