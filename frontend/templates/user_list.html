@@ -25,6 +25,23 @@
             <button type="submit" class="search-submit-btn" aria-label="Search">{% include 'icons/search.svg' %}</button>
         </div>
     </form>
+    <nav class="editorial-pagination top">
+        <div class="pagination-prev">
+            <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
+               class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
+                {{ icon('arrow_back') }}
+                <span>Previous</span>
+            </a>
+        </div>
+        {{ render_pagination_info(page, total_pages, 'auth.list_all_users', query) }}
+        <div class="pagination-next">
+            <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
+               class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
+                <span>Next</span>
+                {{ icon('arrow_forward') }}
+            </a>
+        </div>
+    </nav>
     <div class="user-table-wrapper">
         <table class="user-table">
             <thead>

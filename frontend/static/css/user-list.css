@@ -228,6 +228,15 @@ input.search-input {
     scrollbar-color: var(--outline) transparent;
 }
 
+.editorial-pagination.top {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    padding-top: var(--spacing-sm);
+    padding-bottom: var(--spacing-lg);
+    border-top: none;
+    border-bottom: 1px solid var(--outline);
+}
+
 .editorial-pagination::-webkit-scrollbar {
     width: 0.375rem;
     height: 0.375rem;
@@ -306,7 +315,7 @@ input.search-input {
 }
 
 .pagination-link--hidden {
-    visibility: hidden;
+    display: none;
     pointer-events: none;
 }
 
@@ -379,6 +388,12 @@ input.search-input {
     -moz-appearance: textfield;
     appearance: textfield;
     transition: border-color 0.2s ease;
+}
+
+#jump-page-input::-webkit-inner-spin-button,
+#jump-page-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 #jump-page-input:focus {
