@@ -15,17 +15,18 @@
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='scripts/pagination.js') }}"></script>
+<script defer src="{{ url_for('static', filename='scripts/double-tap-select.js') }}"></script>
 {% endblock %}
 
-{% macro render_pagination_info(current_page, total_pages) %}
+{% macro render_pagination_info(current_page, total_pages, query="") %}
     <div class="pagination-info">
         {% if total_pages <= 13 %}
             {% for p in range(1, total_pages + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+                <a href="{{ url_for('article.list_articles', page=p, q=query if query else None) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
             {% endfor %}
         {% else %}
             <!-- First Page -->
-            <a href="{{ url_for('article.list_articles', page=1) }}" class="page-link-num {% if 1 == current_page %}active{% endif %}">1</a>
+            <a href="{{ url_for('article.list_articles', page=1, q=query if query else None) }}" class="page-link-num {% if 1 == current_page %}active{% endif %}">1</a>
             
             <!-- Window Calculation -->
             {% if current_page <= 7 %}
@@ -46,7 +47,7 @@
             
             <!-- Window Pages -->
             {% for p in range(start_p, end_p + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
+                <a href="{{ url_for('article.list_articles', page=p, q=query if query else None) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
             {% endfor %}
             
             <!-- Right Dots -->
@@ -55,25 +56,36 @@
             {% endif %}
             
             <!-- Last Page -->
-            <a href="{{ url_for('article.list_articles', page=total_pages) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
+            <a href="{{ url_for('article.list_articles', page=total_pages, q=query if query else None) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
         {% endif %}
     </div>
 {% endmacro %}
 
 {% block content %}
+<form action="{{ url_for('article.list_articles') }}" method="GET" class="search-bar-form">
+    <div class="search-wrapper">
+        <input type="text" name="q" class="search-input" placeholder="Search by title, description or author..."
+               value="{{ query or '' }}" autocomplete="off">
+        {% if query %}
+        <a href="{{ url_for('article.list_articles') }}" class="search-clear-btn">&times;</a>
+        {% endif %}
+        <button type="submit" class="search-submit-btn" aria-label="Search">{% include 'icons/search.svg' %}</button>
+    </div>
+</form>
+
 <!-- Top Pagination Component -->
 <nav class="editorial-pagination top">
     <div class="pagination-prev">
-        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
+        <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
     
-    {{ render_pagination_info(page, total_pages) }}
+    {{ render_pagination_info(page, total_pages, query) }}
     
     <div class="pagination-next">
-        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
+        <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
             {{ icon('arrow_forward') }}
         </a>
@@ -115,7 +127,7 @@
     {% else %}
         <div class="empty-state">
             {{ icon('folder_open', 'empty-state-icon') }}
-            <p class="empty-state-text">No articles found in the database.</p>
+            <p class="empty-state-text">{% if query %}No articles match "{{ query }}".{% else %}No articles found in the database.{% endif %}</p>
         </div>
     {% endfor %}
 </section>
@@ -123,16 +135,16 @@
 <!-- Pagination Component -->
 <nav class="editorial-pagination">
     <div class="pagination-prev">
-        <a href="{{ url_for('article.list_articles', page=page-1) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
+        <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
             <span>Previous</span>
         </a>
     </div>
     
-    {{ render_pagination_info(page, total_pages) }}
+    {{ render_pagination_info(page, total_pages, query) }}
     
     <div class="pagination-next">
-        <a href="{{ url_for('article.list_articles', page=page+1) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
+        <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
             <span>Next</span>
             {{ icon('arrow_forward') }}
         </a>

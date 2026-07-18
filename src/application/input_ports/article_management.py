@@ -136,3 +136,34 @@ class ArticleManagementPort(ABC):
         """
         pass
 
+    @abstractmethod
+    def search_articles(self, query: str, page: int, per_page: int) -> list[ArticleWithAuthor]:
+        """
+        Searches articles by title or description.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+            page: The page number (1-indexed).
+            per_page: The number of items per page.
+
+        Returns:
+            A list of ArticleWithAuthor read models matching the query
+            for the given page, ordered by publication date descending.
+        """
+        pass
+
+    @abstractmethod
+    def count_search(self, query: str) -> int:
+        """
+        Counts articles matching a search query.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+
+        Returns:
+            The total number of matching articles.
+        """
+        pass
+

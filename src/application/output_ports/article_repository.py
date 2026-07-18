@@ -79,3 +79,36 @@ class ArticleRepository(ABC):
             int: The total count of articles.
         """
         pass
+
+    @abstractmethod
+    def search(self, query: str, page: int, per_page: int) -> list[Article]:
+        """
+        Searches articles by title, description, or author username using a
+        case-insensitive substring match.
+
+        Args:
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
+            page: The page number (1-indexed).
+            per_page: The number of items per page.
+
+        Returns:
+            A list of Article domain entities matching the search query
+            for the given page, ordered by publication date descending.
+        """
+        pass
+
+    @abstractmethod
+    def count_search(self, query: str) -> int:
+        """
+        Counts articles matching a search query across title, description,
+        or author username.
+
+        Args:
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
+
+        Returns:
+            The total number of articles matching the query.
+        """
+        pass

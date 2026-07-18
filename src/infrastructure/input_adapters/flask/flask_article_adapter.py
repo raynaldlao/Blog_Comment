@@ -53,14 +53,25 @@ class ArticleAdapter:
     def list_articles(self) -> str:
         """
         Renders the blog homepage with a paginated list of articles.
-        Retrieves the current user from global_request_context for UI conditional rendering.
+        Supports an optional "q" query parameter for searching articles
+        by title or description.
+
+        Retrieves the current user from global_request_context for UI
+        conditional rendering.
 
         Returns:
             str: The rendered HTML content of the 'article_list.html' template.
         """
+        query = request.args.get("q", "").strip()
         page = request.args.get("page", 1, type=int)
-        domain_articles = self.article_service.get_paginated_articles(page=page, per_page=10)
-        total_count = self.article_service.get_total_count()
+
+        if query:
+            domain_articles = self.article_service.search_articles(query, page=page, per_page=10)
+            total_count = self.article_service.count_search(query)
+        else:
+            domain_articles = self.article_service.get_paginated_articles(page=page, per_page=10)
+            total_count = self.article_service.get_total_count()
+
         articles = []
 
         for item in domain_articles:
@@ -82,7 +93,8 @@ class ArticleAdapter:
             page=page,
             has_next=has_next,
             has_prev=has_prev,
-            total_pages=total_pages
+            total_pages=total_pages,
+            query=query,
         )
 
     def read_article(self, article_id: int) -> str | Response:

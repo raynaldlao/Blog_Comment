@@ -1,9 +1,10 @@
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
 
 from src.application.domain.article import Article
 from src.application.output_ports.article_repository import ArticleRepository
 from src.infrastructure.output_adapters.dto.article_record import ArticleRecord
+from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
 
 
@@ -137,3 +138,69 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
             int: The total count of articles in the database.
         """
         return self._session.query(ArticleModel).count()
+
+    def search(self, query: str, page: int, per_page: int) -> list[Article]:
+        """
+        Searches articles by title, description, or author username using a
+        case-insensitive ILIKE match on the database.
+
+        Args:
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
+            page: The page number (1-indexed).
+            per_page: The number of items per page.
+
+        Returns:
+            A list of Article domain entities matching the search query
+            for the given page, ordered by publication date descending.
+        """
+        like = f"%{query}%"
+        offset = (page - 1) * per_page
+        models = (
+            self._session.query(ArticleModel)
+            .outerjoin(
+                AccountModel,
+                ArticleModel.article_author_id == AccountModel.account_id,
+            )
+            .filter(
+                or_(
+                    ArticleModel.article_title.ilike(like),
+                    ArticleModel.article_description.ilike(like),
+                    AccountModel.account_username.ilike(like),
+                )
+            )
+            .order_by(desc(ArticleModel.article_published_at))
+            .offset(offset)
+            .limit(per_page)
+            .all()
+        )
+        return [self._to_domain(model) for model in models]
+
+    def count_search(self, query: str) -> int:
+        """
+        Counts articles matching a search query across title, description,
+        or author username.
+
+        Args:
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
+
+        Returns:
+            The total number of articles matching the query.
+        """
+        like = f"%{query}%"
+        return (
+            self._session.query(ArticleModel)
+            .outerjoin(
+                AccountModel,
+                ArticleModel.article_author_id == AccountModel.account_id,
+            )
+            .filter(
+                or_(
+                    ArticleModel.article_title.ilike(like),
+                    ArticleModel.article_description.ilike(like),
+                    AccountModel.account_username.ilike(like),
+                )
+            )
+            .count()
+        )

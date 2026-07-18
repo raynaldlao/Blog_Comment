@@ -295,3 +295,31 @@ class TestArticleDescription:
         list_resp = client.get("/")
         assert list_resp.status_code == 200
         assert b"Seen in list" in list_resp.data
+
+
+class TestArticleSearch:
+    def test_search_by_author_via_list_endpoint(self, client, db_session):
+        auth = AccountModel(
+            account_username="searchable_author",
+            account_email="sa@test.com",
+            account_password="p",
+            account_role="author",
+        )
+        db_session.add(auth)
+        db_session.commit()
+
+        art = ArticleModel(
+            article_title="Author Search Test",
+            article_content="Content",
+            article_author_id=auth.account_id,
+        )
+        db_session.add(art)
+        db_session.commit()
+
+        resp = client.get("/?q=searchable")
+        assert resp.status_code == 200
+        assert b"Author Search Test" in resp.data
+
+        resp_no_match = client.get("/?q=nonexistentuser")
+        assert resp_no_match.status_code == 200
+        assert b"No articles" in resp_no_match.data
