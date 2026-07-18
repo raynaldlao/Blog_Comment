@@ -176,14 +176,27 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         self.account_repository.update_password(account.account_id, new_hash)
         return None
 
-    def get_all_accounts(self) -> list[Account]:
+    def get_all_accounts(self, page: int = 1, per_page: int = 20) -> list[Account]:
         """
-        Retrieves all accounts via the account repository.
+        Retrieves a paginated list of all registered accounts.
+
+        Args:
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
 
         Returns:
-            list[Account]: A list of all Account domain entities.
+            list[Account]: A list of Account domain entities for the given page.
         """
-        return self.account_repository.get_all()
+        return self.account_repository.get_all_paginated(page, per_page)
+
+    def count_all_accounts(self) -> int:
+        """
+        Returns the total number of registered accounts.
+
+        Returns:
+            int: The total count of accounts.
+        """
+        return self.account_repository.count_all()
 
     def delete_account(self, account_id: int) -> None:
         """

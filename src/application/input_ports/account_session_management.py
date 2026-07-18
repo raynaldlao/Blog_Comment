@@ -99,15 +99,32 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_all_accounts(self) -> list[Account]:
+    def get_all_accounts(self, page: int = 1, per_page: int = 20) -> list[Account]:
         """
-        Retrieves all registered accounts.
+        Retrieves a paginated list of all registered accounts.
 
         Intended for admin use only. The calling adapter is responsible
         for enforcing role-based access control.
 
+        Args:
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
         Returns:
-            list[Account]: A list of all Account domain entities.
+            list[Account]: A list of Account domain entities for the given page.
+        """
+        pass
+
+    @abstractmethod
+    def count_all_accounts(self) -> int:
+        """
+        Returns the total number of registered accounts.
+
+        Intended for admin use only, paired with get_all_accounts()
+        to compute pagination metadata.
+
+        Returns:
+            int: The total count of accounts.
         """
         pass
 

@@ -16,6 +16,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
+        self.mock_session_service.count_all_accounts.return_value = 0
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
@@ -265,15 +266,43 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)
         self.mock_session_service.get_current_account.return_value = fake_admin
         fake_users = [
-            create_test_account(account_id=1, account_username="alice"),
-            create_test_account(account_id=2, account_username="bob"),
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(1, 26)
         ]
-        self.mock_session_service.get_all_accounts.return_value = fake_users
+        self.mock_session_service.get_all_accounts.return_value = fake_users[:20]
+        self.mock_session_service.count_all_accounts.return_value = 25
 
         response = self.client.get("/admin/users")
         assert response.status_code == 200
-        assert b"alice" in response.data
-        assert b"bob" in response.data
+        assert b"user1" in response.data
+        assert b"user20" in response.data
+        assert b"Page 1 of 2" in response.data
+
+    def test_list_all_users_page_2(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_users_page2 = [
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(21, 26)
+        ]
+        self.mock_session_service.get_all_accounts.return_value = fake_users_page2
+        self.mock_session_service.count_all_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?page=2")
+        assert response.status_code == 200
+        assert b"user21" in response.data
+        assert b"user25" in response.data
+        assert b"Page 2 of 2" in response.data
+
+    def test_list_all_users_page_invalid(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        self.mock_session_service.get_all_accounts.return_value = []
+        self.mock_session_service.count_all_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?page=-1")
+        assert response.status_code == 200
+        assert b"Page 1 of 2" in response.data
 
     def test_list_all_users_as_non_admin_returns_403(self):
         fake_user = create_test_account(account_role=AccountRole.USER)

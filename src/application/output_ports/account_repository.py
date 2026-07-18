@@ -133,6 +133,30 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def get_all_paginated(self, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Retrieves a paginated list of accounts, ordered by creation date descending.
+
+        Args:
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of Account domain entities for the given page.
+        """
+        pass
+
+    @abstractmethod
+    def count_all(self) -> int:
+        """
+        Returns the total number of accounts in the data store.
+
+        Returns:
+            int: The total count of accounts.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier.

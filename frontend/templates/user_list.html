@@ -58,6 +58,21 @@
             </tbody>
         </table>
     </div>
+    {% if total_pages > 1 %}
+    <nav class="user-pagination" aria-label="User list pagination">
+        <a href="{{ url_for('auth.list_all_users', page=page-1) }}"
+           class="user-page-link{% if not has_prev %} disabled{% endif %}">
+            {{ icon('arrow_back') }}
+            <span class="user-page-label">Previous</span>
+        </a>
+        <span class="user-page-info">Page {{ page }} of {{ total_pages }}</span>
+        <a href="{{ url_for('auth.list_all_users', page=page+1) }}"
+           class="user-page-link{% if not has_next %} disabled{% endif %}">
+            <span class="user-page-label">Next</span>
+            {{ icon('arrow_forward') }}
+        </a>
+    </nav>
+    {% endif %}
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}
         <span>Return to home</span>

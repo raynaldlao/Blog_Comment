@@ -240,6 +240,35 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         models = self._session.query(AccountModel).all()
         return [self._to_domain(model) for model in models]
 
+    def get_all_paginated(self, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Retrieves a paginated list of accounts, ordered by creation date desc.
+
+        Args:
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of Account domain entities for the given page.
+        """
+        models = (
+            self._session.query(AccountModel)
+            .order_by(AccountModel.account_created_at.desc())
+            .limit(per_page)
+            .offset((page - 1) * per_page)
+            .all()
+        )
+        return [self._to_domain(model) for model in models]
+
+    def count_all(self) -> int:
+        """
+        Returns the total number of accounts in the database.
+
+        Returns:
+            int: The total count of accounts.
+        """
+        return self._session.query(AccountModel).count()
+
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier.

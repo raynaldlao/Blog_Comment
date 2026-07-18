@@ -174,3 +174,29 @@ class TestAccountGetAll(SqlAlchemyAccountAdapterTestBase):
         assert len(results) == 2
         usernames = {r.account_username for r in results}
         assert usernames == {"user_one", "user_two"}
+
+
+class TestAccountGetAllPaginated(SqlAlchemyAccountAdapterTestBase):
+    def test_get_all_paginated_page_1(self):
+        for i in range(5):
+            self.account_builder.create(username=f"user{i}", email=f"user{i}@t.com")
+        results = self.repository.get_all_paginated(page=1, per_page=2)
+        assert len(results) == 2
+
+    def test_get_all_paginated_page_2(self):
+        for i in range(5):
+            self.account_builder.create(username=f"user{i}", email=f"user{i}@t.com")
+        results = self.repository.get_all_paginated(page=2, per_page=2)
+        assert len(results) == 2
+
+    def test_get_all_paginated_empty_page(self):
+        for i in range(3):
+            self.account_builder.create(username=f"user{i}", email=f"user{i}@t.com")
+        results = self.repository.get_all_paginated(page=2, per_page=3)
+        assert len(results) == 0
+
+    def test_count_all(self):
+        assert self.repository.count_all() == 0
+        self.account_builder.create(username="u1", email="u1@t.com")
+        self.account_builder.create(username="u2", email="u2@t.com")
+        assert self.repository.count_all() == 2

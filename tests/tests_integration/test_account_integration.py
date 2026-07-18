@@ -214,3 +214,40 @@ class TestConcurrency:
                 success_count += 1
 
         assert success_count == 1
+
+
+class TestAdminUserList:
+    """Tests for admin user list with pagination."""
+
+    def test_admin_user_list_pagination(self, client, db_session):
+        for i in range(25):
+            db_session.add(AccountModel(
+                account_username=f"user_{i}",
+                account_email=f"user_{i}@test.com",
+                account_password="p",
+                account_role="user"
+            ))
+        admin = AccountModel(
+            account_username="admin_user",
+            account_email="admin@test.com",
+            account_password="admin_pass",
+            account_role="admin"
+        )
+        db_session.add(admin)
+        db_session.commit()
+
+        client.post("/login", data={"username": "admin_user", "password": "admin_pass"}, follow_redirects=True)
+
+        r1 = client.get("/admin/users")
+        assert r1.status_code == 200
+        assert b"user_0" in r1.data
+        assert b"user_19" in r1.data
+        assert b"user_20" not in r1.data
+        assert b"Page 1 of 2" in r1.data
+
+        r2 = client.get("/admin/users?page=2")
+        assert r2.status_code == 200
+        assert b"user_20" in r2.data
+        assert b"user_24" in r2.data
+        assert b"user_0" not in r2.data
+        assert b"Page 2 of 2" in r2.data
