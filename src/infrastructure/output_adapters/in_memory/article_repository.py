@@ -85,3 +85,58 @@ class InMemoryArticleRepository(ArticleRepository):
         """
         if article.article_id in self._articles:
             del self._articles[article.article_id]
+
+    def search(self, query: str, page: int, per_page: int) -> list[Article]:
+        """
+        Searches articles by title or description using a case-insensitive
+        substring match against the in-memory dictionary.
+
+        Note: This in-memory implementation does NOT search by author
+        username. The production SQL adapter supports author search via
+        a JOIN on the accounts table.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+            page: The page number (1-indexed).
+            per_page: The number of items per page.
+
+        Returns:
+            A list of Article domain entities matching the search query
+            for the given page, ordered by publication date descending.
+        """
+        q = query.lower()
+        filtered = [
+            a for a in self._articles.values()
+            if q in a.article_title.lower()
+            or (a.article_description and q in a.article_description.lower())
+        ]
+        sorted_list = sorted(
+            filtered,
+            key=lambda a: a.article_published_at or datetime.min,
+            reverse=True,
+        )
+        start = (page - 1) * per_page
+        return sorted_list[start:start + per_page]
+
+    def count_search(self, query: str) -> int:
+        """
+        Counts articles matching a search query by title or description.
+
+        Note: This in-memory implementation does NOT search by author
+        username. The production SQL adapter supports author search via
+        a JOIN on the accounts table.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+
+        Returns:
+            The total number of matching articles.
+        """
+        q = query.lower()
+        return sum(
+            1 for a in self._articles.values()
+            if q in a.article_title.lower()
+            or (a.article_description and q in a.article_description.lower())
+        )

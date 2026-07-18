@@ -80,6 +80,37 @@ class TestInMemoryArticleRepository:
         assert account_3.article_id == 3
         assert repo.count_all() == 3
 
+    def test_search_by_title(self):
+        repo = InMemoryArticleRepository()
+        repo.save(Article(1, 1, "Learning BlockNote", "Content", datetime(2023, 1, 3)))
+        repo.save(Article(2, 1, "Python Tips", "Some python content", datetime(2023, 1, 2)))
+        repo.save(Article(3, 1, "Advanced BlockNote", "More content", datetime(2023, 1, 1)))
+        results = repo.search("BlockNote", page=1, per_page=10)
+        assert len(results) == 2
+        assert [a.article_id for a in results] == [1, 3]
+
+    def test_search_by_description(self):
+        repo = InMemoryArticleRepository()
+        repo.save(Article(1, 1, "Title A", "Content", datetime(2023, 1, 2), article_description="This is a great tutorial"))
+        repo.save(Article(2, 1, "Title B", "Content", datetime(2023, 1, 1)))
+        results = repo.search("tutorial", page=1, per_page=10)
+        assert len(results) == 1
+        assert results[0].article_id == 1
+
+    def test_search_count(self):
+        repo = InMemoryArticleRepository()
+        repo.save(Article(1, 1, "Python Guide", "Learn python", datetime(2023, 1, 3)))
+        repo.save(Article(2, 1, "JS Guide", "Learn javascript", datetime(2023, 1, 2)))
+        repo.save(Article(3, 1, "Rust Guide", "Learn rust", datetime(2023, 1, 1)))
+        assert repo.count_search("Guide") == 3
+        assert repo.count_search("Python") == 1
+        assert repo.count_search("Nonexistent") == 0
+
+    def test_search_no_match(self):
+        repo = InMemoryArticleRepository()
+        repo.save(Article(1, 1, "Title", "Content", datetime.now()))
+        assert repo.search("xyznonexistent", page=1, per_page=10) == []
+
 
 class TestInMemoryAccountRepository:
     def test_save_new_account(self):

@@ -23,19 +23,4 @@ if (root && Component) {
       </ErrorBoundary>
     </React.StrictMode>,
   );
-
-  if (window.innerWidth <= 768) {
-    const setPad = () => {
-      const ed = root.querySelector('.bn-editor');
-      if (!ed) return false;
-      ed.style.setProperty('padding-inline', '28px 2px');
-      return true;
-    };
-    if (!setPad()) {
-      const obs = new MutationObserver(() => {
-        if (setPad()) obs.disconnect();
-      });
-      obs.observe(root, { childList: true, subtree: true });
-    }
-  }
 }

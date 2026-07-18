@@ -116,7 +116,7 @@ class ArticleService(ArticleManagementPort):
 
         return account
 
-    def create_article(self, title: str, content: str, author_id: int, author_role: str) -> Article | str:
+    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article | str:
         """
         Creates a new article and saves it via the repository if the account exists and the user has
         the correct permissions.
@@ -126,6 +126,7 @@ class ArticleService(ArticleManagementPort):
             content (str): The body content of the new article.
             author_id (int): The unique identifier of the user creating the article.
             author_role (AccountRole): The role of the user.
+            description (str): Short description displayed in article list. Optional.
 
         Returns:
             Article | str: The newly created Article domain entity,
@@ -141,6 +142,7 @@ class ArticleService(ArticleManagementPort):
             article_title=title,
             article_content=content,
             article_published_at=None,
+            article_description=description,
         )
 
         self.article_repository.save(new_article)
@@ -167,7 +169,7 @@ class ArticleService(ArticleManagementPort):
         """
         return self.article_repository.get_by_id(article_id)
 
-    def update_article(self, article_id: int, user_id: int, title: str, content: str) -> Article | str:
+    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article | str:
         """
         Updates an existing article. Only the original author or an admin can edit
         (admins can also edit anonymous articles whose author account was deleted).
@@ -177,6 +179,7 @@ class ArticleService(ArticleManagementPort):
             user_id (int): ID of the user requesting the update.
             title (str): New title for the article.
             content (str): New content for the article.
+            description (str): Short description displayed in article list. Optional.
 
         Returns:
             Article | str: The updated Article domain entity,
@@ -197,6 +200,7 @@ class ArticleService(ArticleManagementPort):
 
         old_content = article.article_content
         article.article_title = title
+        article.article_description = description
         article.article_content = content
         self.article_repository.save(article)
 
@@ -327,3 +331,46 @@ class ArticleService(ArticleManagementPort):
             author_avatar_file_id=avatar_map.get(article.article_author_id) if article.article_author_id in avatar_map else None,
         )
         return ArticleDetailView(article_with_author=article_with_author, nested_comments=nested)
+
+    def search_articles(self, query: str, page: int, per_page: int) -> list[ArticleWithAuthor]:
+        """
+        Searches articles by title or description.
+
+        Delegates to the repository's search method, then merges author
+        information (username and avatar) from the account repository.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+            page: The page number (1-indexed).
+            per_page: The number of items per page.
+
+        Returns:
+            A list of ArticleWithAuthor read models matching the query
+            for the given page, ordered by publication date descending.
+        """
+        domain_articles = self.article_repository.search(query, page, per_page)
+        known_ids = {a.article_author_id for a in domain_articles if a.article_author_id is not None}
+        authors = self.account_repository.get_by_ids(list(known_ids))
+        author_map = {acc.account_id: acc.account_username for acc in authors}
+        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
+        return [ArticleWithAuthor(
+            article=a,
+            author_name=author_map.get(a.article_author_id, "Unknown") if a.article_author_id is not None else "Anonymous",
+            author_avatar_file_id=avatar_map.get(a.article_author_id) if a.article_author_id in avatar_map else None,
+        ) for a in domain_articles]
+
+    def count_search(self, query: str) -> int:
+        """
+        Counts articles matching a search query.
+
+        Delegates to the repository's count_search method.
+
+        Args:
+            query: The search term to match against article titles
+                and descriptions.
+
+        Returns:
+            The total number of matching articles.
+        """
+        return self.article_repository.count_search(query)

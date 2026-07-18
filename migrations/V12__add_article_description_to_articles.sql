@@ -1,0 +1,2 @@
+ALTER TABLE articles
+    ADD COLUMN IF NOT EXISTS article_description VARCHAR(300) DEFAULT '' NOT NULL;

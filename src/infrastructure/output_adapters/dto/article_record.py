@@ -13,6 +13,7 @@ class ArticleRecord(BaseModel):
 
     article_author_id is nullable — None when the author account
     has been deleted (articles are preserved via ON DELETE SET NULL).
+    article_description is optional and defaults to an empty string.
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -20,6 +21,7 @@ class ArticleRecord(BaseModel):
     article_id: int
     article_author_id: int | None = None
     article_title: str
+    article_description: str = ""
     article_content: str
     article_published_at: datetime | None = None
 
@@ -34,6 +36,7 @@ class ArticleRecord(BaseModel):
             article_id=self.article_id,
             article_author_id=self.article_author_id,
             article_title=self.article_title,
+            article_description=self.article_description,
             article_content=self.article_content,
             article_published_at=self.article_published_at,
         )

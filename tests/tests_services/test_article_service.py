@@ -48,6 +48,23 @@ class TestCreateArticle(ArticleServiceTestBase):
         assert result.article_title == "My First Article"
         assert result.article_content == "Hello World !"
         assert result.article_author_id == fake_account.account_id
+        assert result.article_description == ""
+
+    def test_create_article_with_description(self):
+        fake_account = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.create_article(
+            title="Desc Article",
+            content="Content",
+            author_id=fake_account.account_id,
+            author_role=fake_account.account_role,
+            description="Short description",
+        )
+
+        assert isinstance(result, Article)
+        assert result.article_description == "Short description"
+        self.mock_article_repo.save.assert_called_once()
 
     def test_create_article_unauthorized_role(self):
         fake_account = create_test_account(

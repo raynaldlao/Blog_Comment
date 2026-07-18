@@ -125,3 +125,42 @@ class TestArticleGetAllOrderedByDateDesc(SqlAlchemyArticleAdapterTestBase):
     def test_returns_empty_list_when_no_articles(self):
         results = self.repository.get_all_ordered_by_date_desc()
         assert results == []
+
+
+class TestArticleSearch(SqlAlchemyArticleAdapterTestBase):
+    def test_search_by_author_name(self):
+        author = self.account_builder.create(username="john_doe", email="john@test.com")
+        self.article_builder.create(author_id=author.account_id, title="Post One")
+        self.article_builder.create(author_id=author.account_id, title="Post Two")
+        other = self.account_builder.create(username="jane_doe", email="jane@test.com")
+        self.article_builder.create(author_id=other.account_id, title="Jane Post")
+        results = self.repository.search("john", page=1, per_page=10)
+        assert len(results) == 2
+        assert all("Post" in a.article_title for a in results)
+
+    def test_search_by_author_case_insensitive(self):
+        author = self.account_builder.create(username="JohnDoe", email="johncase@test.com")
+        self.article_builder.create(author_id=author.account_id, title="Some Post")
+        results = self.repository.search("johndoe", page=1, per_page=10)
+        assert len(results) == 1
+
+    def test_search_by_author_no_match(self):
+        author = self.account_builder.create(username="alice", email="alice@test.com")
+        self.article_builder.create(author_id=author.account_id, title="Post")
+        results = self.repository.search("inexistant", page=1, per_page=10)
+        assert results == []
+
+    def test_search_title_still_works_with_join(self):
+        author = self.account_builder.create(username="someauthor", email="some@test.com")
+        self.article_builder.create(author_id=author.account_id, title="Unique Title")
+        self.article_builder.create(author_id=author.account_id, title="Other")
+        results = self.repository.search("Unique", page=1, per_page=10)
+        assert len(results) == 1
+        assert results[0].article_title == "Unique Title"
+
+    def test_count_search_by_author(self):
+        author = self.account_builder.create(username="bob", email="bob@test.com")
+        self.article_builder.create(author_id=author.account_id, title="Post 1")
+        self.article_builder.create(author_id=author.account_id, title="Post 2")
+        assert self.repository.count_search("bob") == 2
+        assert self.repository.count_search("alice") == 0

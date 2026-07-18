@@ -10,6 +10,7 @@ function TestHarness({ articleId }) {
     'data-content': state.contentStr,
     'data-error': state.error,
     'data-title': state.title,
+    'data-description': state.description,
   });
 }
 
@@ -46,7 +47,7 @@ describe('useArticle', () => {
 
   it('fetches article on mount and returns content', async () => {
     globalThis.fetch.mockResolvedValue({
-      json: () => Promise.resolve({ title: 'My Title', content: '{"type":"doc"}' }),
+      json: () => Promise.resolve({ title: 'My Title', description: 'A short description', content: '{"type":"doc"}' }),
     });
 
     const container = render(React.createElement(TestHarness, { articleId: '42' }));
@@ -58,7 +59,23 @@ describe('useArticle', () => {
 
     expect(container.querySelector('[data-loaded="true"]')).not.toBeNull();
     expect(container.querySelector('[data-title="My Title"]')).not.toBeNull();
+    expect(container.querySelector('[data-description="A short description"]')).not.toBeNull();
     expect(container.querySelector('[data-content]')?.dataset.content).toBe('{"type":"doc"}');
+  });
+
+  it('returns empty description when API returns no description', async () => {
+    globalThis.fetch.mockResolvedValue({
+      json: () => Promise.resolve({ title: 'No Desc', content: '{}' }),
+    });
+
+    const container = render(React.createElement(TestHarness, { articleId: '42' }));
+
+    await act(async () => {
+      await flushMicrotasks();
+    });
+
+    expect(container.querySelector('[data-title="No Desc"]')).not.toBeNull();
+    expect(container.querySelector('[data-description=""]')).not.toBeNull();
   });
 
   it('sets error when fetch fails', async () => {

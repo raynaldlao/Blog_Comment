@@ -110,6 +110,21 @@
                     }
                 }
             }, true);
+
+            let lastTap = null;
+            wysiwyg.addEventListener('click', () => {
+                const now = Date.now();
+                if (lastTap && now - lastTap < 400) {
+                    const range = document.createRange();
+                    range.selectNodeContents(wysiwyg);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    lastTap = null;
+                } else {
+                    lastTap = now;
+                }
+            });
         }
 
         editor.insertImage = function () {
