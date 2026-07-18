@@ -26,12 +26,6 @@
     border-bottom-color: var(--primary);
 }
 
-.article-title-link::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-}
-
 .item-content {
     display: flex;
     flex-direction: column;
