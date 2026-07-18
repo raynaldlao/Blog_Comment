@@ -103,7 +103,21 @@ function BlockNoteViewer({ initialContent }) {
     return () => { document.removeEventListener('mousedown', handler, true); };
   }, [editor]);
 
-  return <BlockNoteView editor={editor} theme={theme} editable={false} formattingToolbar={false} />;
+  return (
+    <BlockNoteView
+      editor={editor}
+      theme={theme}
+      editable={false}
+      formattingToolbar={false}
+      sideMenu={false}
+      slashMenu={false}
+      linkToolbar={false}
+      filePanel={false}
+      tableHandles={false}
+      emojiPicker={false}
+      comments={false}
+    />
+  );
 }
 
 export default function ArticleViewer() {
