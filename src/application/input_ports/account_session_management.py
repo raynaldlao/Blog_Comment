@@ -129,6 +129,41 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def search_accounts(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Searches accounts by username or email with pagination.
+
+        Intended for admin use only. The calling adapter is responsible
+        for enforcing role-based access control.
+
+        Args:
+            query: The search string to match against username or email.
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of matching Account domain entities
+                for the given page.
+        """
+        pass
+
+    @abstractmethod
+    def count_search_accounts(self, query: str) -> int:
+        """
+        Returns the total number of accounts matching the search query.
+
+        Intended for admin use only, paired with search_accounts()
+        to compute pagination metadata.
+
+        Args:
+            query: The search string to match against username or email.
+
+        Returns:
+            int: The total count of matching accounts.
+        """
+        pass
+
+    @abstractmethod
     def delete_account(self, account_id: int) -> None:
         """
         Deletes a user account by its unique identifier.

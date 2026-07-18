@@ -172,6 +172,49 @@ class InMemoryAccountRepository(AccountRepository):
         """
         return len(self._accounts)
 
+    def search(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Searches accounts by username or email with pagination.
+        Case-insensitive substring match.
+
+        Args:
+            query: The search string to match against username or email.
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of matching Account domain entities
+                for the given page.
+        """
+        q = query.lower()
+        matched = [
+            a for a in self._accounts.values()
+            if q in a.account_username.lower() or q in a.account_email.lower()
+        ]
+        sorted_matched = sorted(
+            matched,
+            key=lambda a: a.account_created_at or datetime.min,
+            reverse=True,
+        )
+        start = (page - 1) * per_page
+        return sorted_matched[start:start + per_page]
+
+    def count_search(self, query: str) -> int:
+        """
+        Returns the total number of accounts matching the search query.
+
+        Args:
+            query: The search string to match against username or email.
+
+        Returns:
+            int: The total count of matching accounts.
+        """
+        q = query.lower()
+        return sum(
+            1 for a in self._accounts.values()
+            if q in a.account_username.lower() or q in a.account_email.lower()
+        )
+
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier from the in-memory store.

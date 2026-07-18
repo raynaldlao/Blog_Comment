@@ -263,12 +263,12 @@ class AccountSessionAdapter(MethodView):
 
     def list_all_users(self):
         """
-        Renders the admin-only user list page with pagination.
+        Renders the admin-only user list page with pagination and search.
 
         Access restricted to admin role. Non-admin users receive a 403.
-        Supports pagination via ?page=N query parameter.
-        Displays up to 20 users per page with username, email, role,
-        join date, and action buttons.
+        Supports pagination via ?page=N query parameter and search via
+        ?q=query parameter. Displays up to 20 users per page with
+        username, email, role, join date, and action buttons.
 
         Returns:
             str: The rendered user_list.html template.
@@ -280,11 +280,17 @@ class AccountSessionAdapter(MethodView):
         if not current_account or current_account.account_role != AccountRole.ADMIN:
             abort(403)
 
+        query = request.args.get("q", "").strip()
         page = max(1, request.args.get("page", 1, type=int))
         per_page = 20
 
-        accounts = self.session_service.get_all_accounts(page=page, per_page=per_page)
-        total = self.session_service.count_all_accounts()
+        if query:
+            accounts = self.session_service.search_accounts(query, page=page, per_page=per_page)
+            total = self.session_service.count_search_accounts(query)
+        else:
+            accounts = self.session_service.get_all_accounts(page=page, per_page=per_page)
+            total = self.session_service.count_all_accounts()
+
         total_pages = max(1, math.ceil(total / per_page))
 
         users_dto = [AccountResponse.from_domain(acc) for acc in accounts]
@@ -296,6 +302,7 @@ class AccountSessionAdapter(MethodView):
             total_pages=total_pages,
             has_prev=(page > 1),
             has_next=(page < total_pages),
+            query=query,
             current_user=current_account,
         )
 

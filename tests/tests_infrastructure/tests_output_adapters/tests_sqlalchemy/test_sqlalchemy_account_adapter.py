@@ -200,3 +200,30 @@ class TestAccountGetAllPaginated(SqlAlchemyAccountAdapterTestBase):
         self.account_builder.create(username="u1", email="u1@t.com")
         self.account_builder.create(username="u2", email="u2@t.com")
         assert self.repository.count_all() == 2
+
+
+class TestAccountSearch(SqlAlchemyAccountAdapterTestBase):
+    def test_search_by_username(self):
+        self.account_builder.create(username="alice", email="alice@t.com")
+        self.account_builder.create(username="bob", email="bob@t.com")
+        results = self.repository.search("alice", page=1, per_page=10)
+        assert len(results) == 1
+        assert results[0].account_username == "alice"
+
+    def test_search_by_email(self):
+        self.account_builder.create(username="alice", email="alice@test.com")
+        self.account_builder.create(username="bob", email="bob@test.com")
+        results = self.repository.search("@test.com", page=1, per_page=10)
+        assert len(results) == 2
+
+    def test_search_no_match(self):
+        self.account_builder.create(username="alice", email="alice@t.com")
+        results = self.repository.search("zzz", page=1, per_page=10)
+        assert len(results) == 0
+
+    def test_search_count(self):
+        self.account_builder.create(username="alice", email="alice@t.com")
+        self.account_builder.create(username="bob", email="bob@t.com")
+        assert self.repository.count_search("alice") == 1
+        assert self.repository.count_search("@t.com") == 2
+        assert self.repository.count_search("zzz") == 0

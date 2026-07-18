@@ -1,6 +1,7 @@
 from typing import cast
 
 from psycopg2.errors import UniqueViolation
+from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -268,6 +269,58 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             int: The total count of accounts.
         """
         return self._session.query(AccountModel).count()
+
+    def search(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Searches accounts by username or email with pagination.
+        Uses case-insensitive ILIKE on PostgreSQL.
+
+        Args:
+            query: The search string to match against username or email.
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of matching Account domain entities
+                for the given page.
+        """
+        like = f"%{query}%"
+        models = (
+            self._session.query(AccountModel)
+            .filter(
+                or_(
+                    AccountModel.account_username.ilike(like),
+                    AccountModel.account_email.ilike(like),
+                )
+            )
+            .order_by(AccountModel.account_created_at.desc())
+            .limit(per_page)
+            .offset((page - 1) * per_page)
+            .all()
+        )
+        return [self._to_domain(model) for model in models]
+
+    def count_search(self, query: str) -> int:
+        """
+        Returns the total number of accounts matching the search query.
+
+        Args:
+            query: The search string to match against username or email.
+
+        Returns:
+            int: The total count of matching accounts.
+        """
+        like = f"%{query}%"
+        return (
+            self._session.query(AccountModel)
+            .filter(
+                or_(
+                    AccountModel.account_username.ilike(like),
+                    AccountModel.account_email.ilike(like),
+                )
+            )
+            .count()
+        )
 
     def delete(self, account_id: int) -> None:
         """

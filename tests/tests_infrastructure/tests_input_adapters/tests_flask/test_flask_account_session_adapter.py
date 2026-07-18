@@ -17,6 +17,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
         self.mock_session_service.count_all_accounts.return_value = 0
+        self.mock_session_service.search_accounts.return_value = []
+        self.mock_session_service.count_search_accounts.return_value = 0
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
@@ -293,6 +295,34 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"user21" in response.data
         assert b"user25" in response.data
         assert b"Page 2 of 2" in response.data
+
+    def test_list_all_users_with_search(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_results = [
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(1, 26)
+        ]
+        self.mock_session_service.search_accounts.return_value = fake_results[:20]
+        self.mock_session_service.count_search_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?q=user")
+        assert response.status_code == 200
+        assert b"user1" in response.data
+        assert b"user20" in response.data
+        assert b"Page 1 of 2" in response.data
+        self.mock_session_service.search_accounts.assert_called_once_with("user", page=1, per_page=20)
+        self.mock_session_service.count_search_accounts.assert_called_once_with("user")
+
+    def test_list_all_users_search_no_results(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+
+        response = self.client.get("/admin/users?q=zzz")
+        assert response.status_code == 200
+        assert b"Manage Users" in response.data
+        self.mock_session_service.search_accounts.assert_called_once_with("zzz", page=1, per_page=20)
+        self.mock_session_service.count_search_accounts.assert_called_once_with("zzz")
 
     def test_list_all_users_page_invalid(self):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)

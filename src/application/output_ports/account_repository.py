@@ -157,6 +157,36 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def search(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Searches accounts by username or email with pagination.
+        Case-insensitive substring match.
+
+        Args:
+            query: The search string to match against username or email.
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of matching Account domain entities
+                for the given page.
+        """
+        pass
+
+    @abstractmethod
+    def count_search(self, query: str) -> int:
+        """
+        Returns the total number of accounts matching the search query.
+
+        Args:
+            query: The search string to match against username or email.
+
+        Returns:
+            int: The total count of matching accounts.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier.

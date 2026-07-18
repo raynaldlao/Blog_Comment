@@ -9,9 +9,17 @@
 {% block content %}
 <div class="user-card profile-card">
     <h1>Manage Users</h1>
-    <div class="user-search-wrapper">
-        <input type="search" id="user-search" class="user-search-input" placeholder="Filter by username or email..." autocomplete="off">
-    </div>
+    <form action="{{ url_for('auth.list_all_users') }}" method="GET" class="search-bar-form">
+        <div class="search-wrapper">
+            <input type="text" name="q" class="search-input"
+                   placeholder="Filter by username or email..." autocomplete="off"
+                   value="{{ query or '' }}">
+            {% if query %}
+            <a href="{{ url_for('auth.list_all_users') }}" class="search-clear-btn">&times;</a>
+            {% endif %}
+            <button type="submit" class="search-submit-btn" aria-label="Search">{% include 'icons/search.svg' %}</button>
+        </div>
+    </form>
     <div class="user-table-wrapper">
         <table class="user-table">
             <thead>
@@ -60,13 +68,13 @@
     </div>
     {% if total_pages > 1 %}
     <nav class="user-pagination" aria-label="User list pagination">
-        <a href="{{ url_for('auth.list_all_users', page=page-1) }}"
+        <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
            class="user-page-link{% if not has_prev %} disabled{% endif %}">
             {{ icon('arrow_back') }}
             <span class="user-page-label">Previous</span>
         </a>
         <span class="user-page-info">Page {{ page }} of {{ total_pages }}</span>
-        <a href="{{ url_for('auth.list_all_users', page=page+1) }}"
+        <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
            class="user-page-link{% if not has_next %} disabled{% endif %}">
             <span class="user-page-label">Next</span>
             {{ icon('arrow_forward') }}
@@ -78,5 +86,4 @@
         <span>Return to home</span>
     </a>
 </div>
-<script defer src="{{ url_for('static', filename='scripts/user-search.js') }}"></script>
 {% endblock %}
