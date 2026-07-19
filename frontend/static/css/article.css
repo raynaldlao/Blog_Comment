@@ -255,6 +255,18 @@ input.search-input {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
+[data-theme="light"] input.search-input,
+[data-theme="light"] .search-clear-btn,
+[data-theme="light"] .search-submit-btn {
+    background: var(--surface);
+}
+
+[data-theme="dark"] input.search-input,
+[data-theme="dark"] .search-clear-btn,
+[data-theme="dark"] .search-submit-btn {
+    background: var(--surface-container);
+}
+
 .search-clear-btn {
     display: flex;
     align-items: center;

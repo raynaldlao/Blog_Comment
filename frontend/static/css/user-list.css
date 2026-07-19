@@ -127,6 +127,18 @@ input.search-input {
     color: var(--on-surface-variant);
 }
 
+[data-theme="light"] input.search-input,
+[data-theme="light"] .search-clear-btn,
+[data-theme="light"] .search-submit-btn {
+    background: var(--surface);
+}
+
+[data-theme="dark"] input.search-input,
+[data-theme="dark"] .search-clear-btn,
+[data-theme="dark"] .search-submit-btn {
+    background: var(--surface-container);
+}
+
 .user-card h1 {
     text-align: center;
     font-family: var(--font-mono);
