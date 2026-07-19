@@ -320,10 +320,9 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_list_all_users_search_no_results(self):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)
         self.mock_session_service.get_current_account.return_value = fake_admin
-
         response = self.client.get("/admin/users?q=zzz")
         assert response.status_code == 200
-        assert b"Manage Users" in response.data
+        assert b"Manage Users (0 users)" in response.data
         self.mock_session_service.search_accounts.assert_called_once_with("zzz", page=1, per_page=20)
         self.mock_session_service.count_search_accounts.assert_called_once_with("zzz")
 
@@ -336,6 +335,26 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.get("/admin/users?page=-1")
         assert response.status_code == 200
         assert b"page-link-num" in response.data
+
+    def test_list_all_users_shows_total_count(self):
+        """
+        Verifies that the admin user list page displays the total
+        account count in the page title.
+
+        The count_all_accounts mock is set to 47 and the assertion
+        checks that the rendered HTML contains "Manage Users (47 users)".
+        """
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+
+        self.mock_session_service.get_all_accounts.return_value = [
+            create_test_account(account_id=i) for i in range(1, 21)
+        ]
+
+        self.mock_session_service.count_all_accounts.return_value = 47
+        response = self.client.get("/admin/users")
+        assert response.status_code == 200
+        assert b"Manage Users (47 users)" in response.data
 
     def test_list_all_users_as_non_admin_returns_403(self):
         fake_user = create_test_account(account_role=AccountRole.USER)
@@ -378,7 +397,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.delete_account.return_value = None
         response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
         assert response.status_code == 200
-        assert b"Manage Users" in response.data or b"Account deleted" in response.data
+        assert b"Manage Users (0 users)" in response.data or b"Account deleted" in response.data
 
     def test_admin_delete_nonexistent_target_redirects_with_flash(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)

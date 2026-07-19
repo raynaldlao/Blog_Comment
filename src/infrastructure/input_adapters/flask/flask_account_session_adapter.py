@@ -263,12 +263,15 @@ class AccountSessionAdapter(MethodView):
 
     def list_all_users(self):
         """
-        Renders the admin-only user list page with pagination and search.
+        Renders the admin-only user list page with pagination, search,
+        and total account count.
 
         Access restricted to admin role. Non-admin users receive a 403.
         Supports pagination via ?page=N query parameter and search via
         ?q=query parameter. Displays up to 20 users per page with
-        username, email, role, join date, and action buttons.
+        username, email, role, join date, and action buttons. The
+        total_count reflects the number of accounts matching the current
+        query (or all accounts when no search is active).
 
         Returns:
             str: The rendered user_list.html template.
@@ -304,6 +307,7 @@ class AccountSessionAdapter(MethodView):
             has_next=(page < total_pages),
             query=query,
             current_user=current_account,
+            total_count=total,
         )
 
     def delete_account(self):

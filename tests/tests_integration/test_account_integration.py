@@ -227,24 +227,25 @@ class TestAdminUserList:
                 account_password="p",
                 account_role="user"
             ))
+
         admin = AccountModel(
             account_username="admin_user",
             account_email="admin@test.com",
             account_password="admin_pass",
             account_role="admin"
         )
+
         db_session.add(admin)
         db_session.commit()
-
         client.post("/login", data={"username": "admin_user", "password": "admin_pass"}, follow_redirects=True)
-
+        total_accounts = db_session.query(AccountModel).count()
         r1 = client.get("/admin/users")
         assert r1.status_code == 200
         assert b"user_0" in r1.data
         assert b"user_19" in r1.data
         assert b"user_20" not in r1.data
         assert b"page-link-num" in r1.data
-
+        assert f"Manage Users ({total_accounts} users)".encode() in r1.data
         r2 = client.get("/admin/users?page=2")
         assert r2.status_code == 200
         assert b"user_20" in r2.data

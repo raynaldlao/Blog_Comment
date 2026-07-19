@@ -13,7 +13,7 @@
 
 {% block content %}
 <div class="user-card profile-card">
-    <h1>Manage Users</h1>
+    <h1>Manage Users ({{ total_count }} users)</h1>
     <form action="{{ url_for('auth.list_all_users') }}" method="GET" class="search-bar-form">
         <div class="search-wrapper">
             <input type="text" name="q" class="search-input"
