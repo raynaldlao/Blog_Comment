@@ -64,6 +64,21 @@ class InMemoryCommentRepository(CommentRepository):
         """
         return [c for c in self._comments.values() if c.comment_reply_to == comment_id]
 
+    def get_by_account_id(self, account_id: int) -> list[Comment]:
+        """
+        Retrieves all comments authored by a specific account.
+
+        Args:
+            account_id (int): ID of the account.
+
+        Returns:
+            list[Comment]: A list of Comment domain entities for this author.
+        """
+        return [
+            c for c in self._comments.values()
+            if c.comment_written_account_id == account_id
+        ]
+
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID.

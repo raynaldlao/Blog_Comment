@@ -59,6 +59,20 @@ class CommentRepository(ABC):
         pass
 
     @abstractmethod
+    @abstractmethod
+    def get_by_account_id(self, account_id: int) -> list[Comment]:
+        """
+        Retrieves all comments authored by a specific account.
+
+        Args:
+            account_id (int): ID of the account.
+
+        Returns:
+            list[Comment]: A list of Comment domain entities for this author.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

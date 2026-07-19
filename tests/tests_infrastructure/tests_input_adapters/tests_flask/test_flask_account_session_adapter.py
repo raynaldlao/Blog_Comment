@@ -4,6 +4,7 @@ from flask import g as global_request_context
 
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from tests.test_domain_factories import create_test_account
@@ -20,9 +21,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.search_accounts.return_value = []
         self.mock_session_service.count_search_accounts.return_value = 0
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
             file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
         )
 
         self.app.add_url_rule(
@@ -376,6 +379,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_account_by_id.return_value = admin
         response = self.client.post("/account/delete")
         assert response.status_code == 403
+        self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
 
     def test_self_delete_redirects(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
@@ -386,6 +390,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", follow_redirects=True)
         assert response.status_code == 200
         assert b"articles" in response.data or b"Account deleted" in response.data
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
 
     def test_admin_delete_another_user_redirects(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
@@ -398,6 +403,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Manage Users (0 users)" in response.data or b"Account deleted" in response.data
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(2)
 
     def test_admin_delete_nonexistent_target_redirects_with_flash(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
@@ -408,6 +414,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", data={"account_id": 999}, follow_redirects=True)
         assert response.status_code == 200
         assert b"not found" in response.data or b"Account not found" in response.data
+        self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
 
     def test_update_email_success(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")
@@ -483,9 +490,11 @@ class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
             file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
         )
         self.app.add_url_rule(
             "/admin/users/<int:account_id>/role",
@@ -555,9 +564,11 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
             file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
         )
 
     def _capture_handler(self, **kwargs):

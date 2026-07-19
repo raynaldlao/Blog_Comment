@@ -7,6 +7,7 @@ from flask.views import MethodView
 from src.application.application_exceptions import FileTooLargeError, FileTypeError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
@@ -29,6 +30,7 @@ class AccountSessionAdapter(MethodView):
         self,
         session_service: AccountSessionManagementPort,
         file_service: FileManagementPort,
+        comment_service: CommentManagementPort,
     ):
         """
         Initializes the AccountSessionAdapter with the required session service.
@@ -36,9 +38,11 @@ class AccountSessionAdapter(MethodView):
         Args:
             session_service (AccountSessionManagementPort): The input port for session management.
             file_service (FileManagementPort): The input port for file management.
+            comment_service (CommentManagementPort): The input port for comment management.
         """
         self.session_service = session_service
         self.file_service = file_service
+        self.comment_service = comment_service
 
     def _identify_user(self):
         """Injects the current user into the global request context."""
@@ -361,6 +365,7 @@ class AccountSessionAdapter(MethodView):
             except Exception:
                 logger.warning("Failed to delete avatar %s for account %s", account.avatar_file_id, target_id)
 
+        self.comment_service.mask_comments_by_account_id(target_id)
         self.session_service.delete_account(target_id)
 
         if is_self:
