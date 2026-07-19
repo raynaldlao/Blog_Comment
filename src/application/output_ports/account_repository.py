@@ -187,6 +187,18 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
+        """
+        Sets or clears the ban status for a given account.
+
+        Args:
+            account_id: The ID of the account to update.
+            is_banned: True to ban, False to unban.
+            ban_reason: Optional reason for the ban, or None to clear.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier.

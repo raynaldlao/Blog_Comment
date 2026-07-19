@@ -44,3 +44,37 @@ def test_from_domain():
     response_dict = response.model_dump()
     assert "account_password" not in response_dict
     assert "password" not in response_dict
+
+
+def test_from_domain_with_banned_true():
+    fixed_date = datetime(2026, 4, 7, 10, 0, 0)
+
+    domain_account = create_test_account(
+        account_id=1,
+        account_username="leia",
+        account_email="leia@galaxy.com",
+        account_role=AccountRole.USER,
+        account_created_at=fixed_date,
+        is_banned=True,
+        ban_reason="Spam",
+    )
+
+    response = AccountResponse.from_domain(domain_account)
+    assert response.is_banned is True
+    assert response.ban_reason == "Spam"
+
+
+def test_from_domain_with_banned_false():
+    fixed_date = datetime(2026, 4, 7, 10, 0, 0)
+
+    domain_account = create_test_account(
+        account_id=1,
+        account_username="leia",
+        account_email="leia@galaxy.com",
+        account_role=AccountRole.USER,
+        account_created_at=fixed_date,
+    )
+
+    response = AccountResponse.from_domain(domain_account)
+    assert response.is_banned is False
+    assert response.ban_reason is None

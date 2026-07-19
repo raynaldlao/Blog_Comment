@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, Integer, Text, func
+from sqlalchemy import TIMESTAMP, Boolean, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry import SqlAlchemyModel
@@ -11,8 +11,8 @@ class AccountModel(SqlAlchemyModel):
     SQLAlchemy ORM model for the 'accounts' table.
 
     This class defines the database schema for user profiles, including
-    authentication credentials, contact information, and roles.
-    It also stores an optional reference to the user's avatar image
+    authentication credentials, contact information, roles, ban status,
+    and an optional reference to the user's avatar image
     in the ``uploaded_files`` table via ``avatar_file_id``.
     """
 
@@ -25,3 +25,5 @@ class AccountModel(SqlAlchemyModel):
     account_role: Mapped[str] = mapped_column(Text, nullable=False)
     account_created_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
     avatar_file_id: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
+    is_banned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    ban_reason: Mapped[str | None] = mapped_column(String(150), nullable=True, default=None)

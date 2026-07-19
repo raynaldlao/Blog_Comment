@@ -88,3 +88,17 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/login", data={"username": ""}, follow_redirects=True)
         assert b"Validation Error" in response.data or b"field required" in response.data.lower()
         assert b"alert-error" in response.data
+
+    def test_post_login_banned(self):
+        banned_account = create_test_account(is_banned=True)
+        self.mock_repo.find_by_username.return_value = banned_account
+
+        response = self.client.post("/login", data={
+            "username": "leia",
+            "password": "password123"
+        }, follow_redirects=True)
+
+        assert b"This account has been banned." in response.data
+        assert b"alert-error" in response.data
+        self.mock_repo.find_by_username.assert_called_once_with("leia")
+        self.mock_session_repo.save_account.assert_not_called()

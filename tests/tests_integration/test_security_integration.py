@@ -236,6 +236,34 @@ class TestSQLi:
 class TestAccessControl:
     """Tests focused on enforcing authorization and permission boundaries."""
 
+    def test_ban_workflow_integ(self, client, db_session):
+        """
+        Verifies the full ban/unban workflow:
+        admin bans user → banned user cannot login → admin unbans → user can login.
+        """
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
+
+        admin = AccountModel(account_username="admin_ban", account_email="ab@t.com", account_password="p", account_role="admin")
+        target = AccountModel(account_username="target_user", account_email="tu@t.com", account_password="p", account_role="user")
+        db_session.add(admin)
+        db_session.add(target)
+        db_session.commit()
+
+        client.post("/login", data={"username": "admin_ban", "password": "p"}, follow_redirects=True)
+        client.post(f"/admin/users/{target.account_id}/ban", data={"ban_reason": "Test ban"}, follow_redirects=True)
+        client.get("/logout", follow_redirects=True)
+
+        response = client.post("/login", data={"username": "target_user", "password": "p"}, follow_redirects=True)
+        assert b"This account has been banned." in response.data
+
+        client.post("/login", data={"username": "admin_ban", "password": "p"}, follow_redirects=True)
+        client.post(f"/admin/users/{target.account_id}/unban", follow_redirects=True)
+        client.get("/logout", follow_redirects=True)
+
+        response = client.post("/login", data={"username": "target_user", "password": "p"}, follow_redirects=True)
+        assert b"articles" in response.data or b"DevJournal" in response.data
+
+
     def test_unauthorized_article_deletion(self, client, db_session):
         """
         Ensures that a user cannot delete another author's article.

@@ -135,6 +135,20 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.change_role",
     )
 
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/ban",
+        view_func=acc.ban_account,
+        methods=["POST"],
+        endpoint="auth.ban_account",
+    )
+
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/unban",
+        view_func=acc.unban_account,
+        methods=["POST"],
+        endpoint="auth.unban_account",
+    )
+
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]

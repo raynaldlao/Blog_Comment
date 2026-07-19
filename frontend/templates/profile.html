@@ -71,7 +71,7 @@
         {% endif %}
         <div class="info-row">
             <span class="info-label">Status</span>
-            <span class="info-value">Active</span>
+            <span class="info-value">{% if user.is_banned %}Banned{% if user.ban_reason %}: {{ user.ban_reason }}{% endif %}{% else %}Active{% endif %}</span>
         </div>
     </div>
 
@@ -141,6 +141,16 @@
 
     {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
     <div class="profile-actions">
+        {% if user.is_banned %}
+        <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-secondary">Unban</button>
+        </form>
+        {% else %}
+        <button type="button" class="btn btn-danger ban-trigger"
+            data-user-id="{{ user.account_id }}"
+            data-username="{{ user.account_username }}">Ban</button>
+        {% endif %}
         <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="account_id" value="{{ user.account_id }}">

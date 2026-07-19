@@ -154,9 +154,12 @@
 
     .profile-actions {
         flex-direction: column;
+        align-items: stretch;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
     }
-    .profile-actions .btn-secondary,
-    .profile-actions .btn-danger {
+    .profile-actions .btn {
         width: 100%;
     }
 }

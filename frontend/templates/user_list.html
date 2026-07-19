@@ -49,6 +49,8 @@
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Status</th>
+                    <th>Reason</th>
                     <th>Member Since</th>
                     <th>Actions</th>
                 </tr>
@@ -59,6 +61,8 @@
                     <td><a href="{{ url_for('auth.user_profile', username=user.account_username) }}">{{ user.account_username }}</a></td>
                     <td>{{ user.account_email }}</td>
                     <td>{{ user.account_role }}</td>
+                    <td>{{ "Banned" if user.is_banned else "Active" }}</td>
+                    <td>{{ user.ban_reason or '—' }}</td>
                     <td>{{ user.account_created_at|date_format if user.account_created_at else 'N/A' }}</td>
                     <td>
                         {% if user.account_role == 'admin' %}
@@ -73,6 +77,16 @@
                             </select>
                             <button type="submit" class="btn btn-sm">Update</button>
                         </form>
+                        {% if user.is_banned %}
+                        <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="user-table-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-secondary">Unban</button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-sm btn-danger ban-trigger"
+                            data-user-id="{{ user.account_id }}"
+                            data-username="{{ user.account_username }}">Ban</button>
+                        {% endif %}
                         <form id="delete-user-{{ user.account_id }}" action="{{ url_for('auth.delete_account') }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="account_id" value="{{ user.account_id }}">

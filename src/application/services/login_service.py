@@ -54,6 +54,9 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             return "Invalid username or password."
 
         if self.password_hasher_repository.verify(password, account.account_password):
+            if account.is_banned:
+                return "This account has been banned."
+
             if self.password_hasher_repository.check_needs_rehash(account.account_password):
                 new_hash = self.password_hasher_repository.hash(password)
                 account.account_password = new_hash
@@ -275,4 +278,52 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             return "Invalid role."
 
         self.account_repository.update_role(target_id, new_role)
+        return None
+
+    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> str | None:
+        """
+        Bans a user account. Only admins can ban non-admin accounts.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_account_id: The unique identifier of the account to ban.
+            ban_reason: Optional reason for the ban.
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        admin = self.account_repository.get_by_id(admin_id)
+        if not admin or admin.account_role != AccountRole.ADMIN:
+            return "Unauthorized."
+
+        target = self.account_repository.get_by_id(target_account_id)
+        if not target:
+            return "Account not found."
+
+        if target.account_role == AccountRole.ADMIN:
+            return "Cannot ban another admin."
+
+        self.account_repository.update_ban_status(target_account_id, True, ban_reason)
+        return None
+
+    def unban_account(self, admin_id: int, target_account_id: int) -> str | None:
+        """
+        Unbans a user account. Only admins can unban accounts.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_account_id: The unique identifier of the account to unban.
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        admin = self.account_repository.get_by_id(admin_id)
+        if not admin or admin.account_role != AccountRole.ADMIN:
+            return "Unauthorized."
+
+        target = self.account_repository.get_by_id(target_account_id)
+        if not target:
+            return "Account not found."
+
+        self.account_repository.update_ban_status(target_account_id, False, None)
         return None

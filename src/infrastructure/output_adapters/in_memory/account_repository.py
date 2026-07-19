@@ -215,6 +215,24 @@ class InMemoryAccountRepository(AccountRepository):
             if q in a.account_username.lower() or q in a.account_email.lower()
         )
 
+    def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
+        """
+        Sets or clears the ban status for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            is_banned: True to ban, False to unban.
+            ban_reason: Optional reason for the ban, or None to clear.
+
+        Raises:
+            ValueError: If no account with the given ID exists.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            raise ValueError(f"Account with id {account_id} not found.")
+        account.is_banned = is_banned
+        account.ban_reason = ban_reason
+
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier from the in-memory store.

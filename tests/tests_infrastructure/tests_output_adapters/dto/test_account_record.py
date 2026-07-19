@@ -14,6 +14,8 @@ class MockAccountModel:
         self.account_email = "orm@example.com"
         self.account_role = "author"
         self.account_created_at = datetime(2024, 6, 15)
+        self.is_banned = False
+        self.ban_reason = None
 
 
 class TestAccountRecordCreation:
@@ -117,3 +119,33 @@ class TestAccountRecordToDomain:
 
         domain_account = record.to_domain()
         assert domain_account.account_created_at is None
+
+    def test_to_domain_preserves_ban_status(self):
+        record = AccountRecord(
+            account_id=1,
+            account_username="testuser",
+            account_password="password",
+            account_email="test@example.com",
+            account_role="user",
+            account_created_at=None,
+            is_banned=True,
+            ban_reason="Spam",
+        )
+
+        domain_account = record.to_domain()
+        assert domain_account.is_banned is True
+        assert domain_account.ban_reason == "Spam"
+
+    def test_to_domain_without_ban_reason(self):
+        record = AccountRecord(
+            account_id=1,
+            account_username="testuser",
+            account_password="password",
+            account_email="test@example.com",
+            account_role="user",
+            account_created_at=None,
+        )
+
+        domain_account = record.to_domain()
+        assert domain_account.is_banned is False
+        assert domain_account.ban_reason is None

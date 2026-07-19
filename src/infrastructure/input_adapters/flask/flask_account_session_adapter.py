@@ -416,3 +416,68 @@ class AccountSessionAdapter(MethodView):
         if target:
             return redirect(url_for("auth.user_profile", username=target.account_username))
         return redirect(url_for("auth.list_all_users"))
+
+    def ban_account(self, account_id: int):
+        """
+        Handles ban form submission (Admin only).
+
+        Validates authentication, reads the optional ban_reason from the form,
+        and delegates the ban to the session service.
+
+        Args:
+            account_id: The ID of the account to ban.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If the current user is not authenticated or not an admin.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account or current_account.account_role != AccountRole.ADMIN:
+            abort(403)
+
+        ban_reason = request.form.get("ban_reason", "").strip() or None
+        result = self.session_service.ban_account(
+            admin_id=current_account.account_id,
+            target_account_id=account_id,
+            ban_reason=ban_reason,
+        )
+
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Account banned.", "success")
+
+        return redirect(url_for("auth.list_all_users"))
+
+    def unban_account(self, account_id: int):
+        """
+        Handles unban form submission (Admin only).
+
+        Validates authentication and delegates the unban to the session service.
+
+        Args:
+            account_id: The ID of the account to unban.
+
+        Returns:
+            Response: A Flask redirect response.
+
+        Raises:
+            403: If the current user is not authenticated or not an admin.
+        """
+        current_account = self.session_service.get_current_account()
+        if not current_account or current_account.account_role != AccountRole.ADMIN:
+            abort(403)
+
+        result = self.session_service.unban_account(
+            admin_id=current_account.account_id,
+            target_account_id=account_id,
+        )
+
+        if result is not None:
+            flash(result, "error")
+        else:
+            flash("Account unbanned.", "success")
+
+        return redirect(url_for("auth.list_all_users"))

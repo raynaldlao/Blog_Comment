@@ -213,3 +213,55 @@ class TestLoginService:
 
         assert result == "Invalid role."
         self.mock_repo.update_role.assert_not_called()
+
+    def test_ban_account_success(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
+
+        result = self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+
+        assert result is None
+        self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
+
+    def test_ban_account_not_found(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
+
+        result = self.service.ban_account(admin_id=1, target_account_id=999, ban_reason="Spam")
+
+        assert result == "Account not found."
+        self.mock_repo.update_ban_status.assert_not_called()
+
+    def test_ban_account_target_is_admin(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
+
+        result = self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+
+        assert result == "Cannot ban another admin."
+        self.mock_repo.update_ban_status.assert_not_called()
+
+    def test_unban_account_success(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
+
+        result = self.service.unban_account(admin_id=1, target_account_id=2)
+
+        assert result is None
+        self.mock_repo.update_ban_status.assert_called_once_with(2, False, None)
+
+    def test_authenticate_user_banned(self):
+        fake_account = create_test_account(is_banned=True)
+        self.mock_repo.find_by_username.return_value = fake_account
+
+        result = self.service.authenticate_user(
+            username=fake_account.account_username,
+            password=fake_account.account_password
+        )
+
+        self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
+        self.mock_session_repo.save_account.assert_not_called()
+        assert result == "This account has been banned."

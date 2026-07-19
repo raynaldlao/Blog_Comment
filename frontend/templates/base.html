@@ -110,6 +110,31 @@
         </div>
     </dialog>
 
+    <dialog id="ban-modal" class="dialog">
+        <div class="modal-header">
+            <h2 class="modal-title">Ban <span id="ban-username"></span></h2>
+        </div>
+        <form method="POST" id="ban-form">
+            <div class="modal-body">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-input-group">
+                    <label for="ban-reason-input">Reason (optional)</label>
+                    <div class="hint-row">
+                        <span class="hint-text">Maximum 150 characters</span>
+                        <span class="char-count"><span id="ban-reason-count">0</span> / 150</span>
+                    </div>
+                    <textarea id="ban-reason-input" name="ban_reason"
+                        rows="3" placeholder="e.g., Spam, harassment..."
+                        class="ban-reason-textarea" maxlength="150"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dialog btn-secondary" id="ban-modal-cancel" autofocus>Cancel</button>
+                <button type="submit" class="btn btn-dialog btn-primary">Ban</button>
+            </div>
+        </form>
+    </dialog>
+
     <!-- Simple Footer -->
     <footer class="footer">
         <div class="main-layout">
