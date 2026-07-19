@@ -176,14 +176,54 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         self.account_repository.update_password(account.account_id, new_hash)
         return None
 
-    def get_all_accounts(self) -> list[Account]:
+    def get_all_accounts(self, page: int = 1, per_page: int = 20) -> list[Account]:
         """
-        Retrieves all accounts via the account repository.
+        Retrieves a paginated list of all registered accounts.
+
+        Args:
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
 
         Returns:
-            list[Account]: A list of all Account domain entities.
+            list[Account]: A list of Account domain entities for the given page.
         """
-        return self.account_repository.get_all()
+        return self.account_repository.get_all_paginated(page, per_page)
+
+    def count_all_accounts(self) -> int:
+        """
+        Returns the total number of registered accounts.
+
+        Returns:
+            int: The total count of accounts.
+        """
+        return self.account_repository.count_all()
+
+    def search_accounts(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
+        """
+        Searches accounts by username or email with pagination.
+
+        Args:
+            query: The search string to match against username or email.
+            page: The page number (1-indexed). Defaults to 1.
+            per_page: The number of items per page. Defaults to 20.
+
+        Returns:
+            list[Account]: A list of matching Account domain entities
+                for the given page.
+        """
+        return self.account_repository.search(query, page, per_page)
+
+    def count_search_accounts(self, query: str) -> int:
+        """
+        Returns the total number of accounts matching the search query.
+
+        Args:
+            query: The search string to match against username or email.
+
+        Returns:
+            int: The total count of matching accounts.
+        """
+        return self.account_repository.count_search(query)
 
     def delete_account(self, account_id: int) -> None:
         """

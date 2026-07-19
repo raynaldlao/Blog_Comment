@@ -26,12 +26,6 @@
     border-bottom-color: var(--primary);
 }
 
-.article-title-link::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-}
-
 .item-content {
     display: flex;
     flex-direction: column;
@@ -215,7 +209,12 @@ a.meta-author:hover {
     .pagination-next {
         order: 3;
     }
+}
 
+/* Force text selection in read-only BlockNote viewer (mobile Firefox) */
+.article-detail-view .bn-editor[contenteditable="false"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* Search bar */

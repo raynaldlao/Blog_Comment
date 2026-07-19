@@ -16,6 +16,9 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
+        self.mock_session_service.count_all_accounts.return_value = 0
+        self.mock_session_service.search_accounts.return_value = []
+        self.mock_session_service.count_search_accounts.return_value = 0
         self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
@@ -265,15 +268,93 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         fake_admin = create_test_account(account_role=AccountRole.ADMIN)
         self.mock_session_service.get_current_account.return_value = fake_admin
         fake_users = [
-            create_test_account(account_id=1, account_username="alice"),
-            create_test_account(account_id=2, account_username="bob"),
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(1, 26)
         ]
-        self.mock_session_service.get_all_accounts.return_value = fake_users
+        self.mock_session_service.get_all_accounts.return_value = fake_users[:20]
+        self.mock_session_service.count_all_accounts.return_value = 25
 
         response = self.client.get("/admin/users")
         assert response.status_code == 200
-        assert b"alice" in response.data
-        assert b"bob" in response.data
+        assert b"user1" in response.data
+        assert b"user20" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
+
+    def test_list_all_users_page_2(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_users_page2 = [
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(21, 26)
+        ]
+        self.mock_session_service.get_all_accounts.return_value = fake_users_page2
+        self.mock_session_service.count_all_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?page=2")
+        assert response.status_code == 200
+        assert b"user21" in response.data
+        assert b"user25" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
+
+    def test_list_all_users_with_search(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        fake_results = [
+            create_test_account(account_id=i, account_username=f"user{i}")
+            for i in range(1, 26)
+        ]
+        self.mock_session_service.search_accounts.return_value = fake_results[:20]
+        self.mock_session_service.count_search_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?q=user")
+        assert response.status_code == 200
+        assert b"user1" in response.data
+        assert b"user20" in response.data
+        assert b"page-link-num" in response.data
+        assert b"jump-modal" in response.data
+        self.mock_session_service.search_accounts.assert_called_once_with("user", page=1, per_page=20)
+        self.mock_session_service.count_search_accounts.assert_called_once_with("user")
+
+    def test_list_all_users_search_no_results(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        response = self.client.get("/admin/users?q=zzz")
+        assert response.status_code == 200
+        assert b"Manage Users (0 users)" in response.data
+        self.mock_session_service.search_accounts.assert_called_once_with("zzz", page=1, per_page=20)
+        self.mock_session_service.count_search_accounts.assert_called_once_with("zzz")
+
+    def test_list_all_users_page_invalid(self):
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+        self.mock_session_service.get_all_accounts.return_value = []
+        self.mock_session_service.count_all_accounts.return_value = 25
+
+        response = self.client.get("/admin/users?page=-1")
+        assert response.status_code == 200
+        assert b"page-link-num" in response.data
+
+    def test_list_all_users_shows_total_count(self):
+        """
+        Verifies that the admin user list page displays the total
+        account count in the page title.
+
+        The count_all_accounts mock is set to 47 and the assertion
+        checks that the rendered HTML contains "Manage Users (47 users)".
+        """
+        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
+        self.mock_session_service.get_current_account.return_value = fake_admin
+
+        self.mock_session_service.get_all_accounts.return_value = [
+            create_test_account(account_id=i) for i in range(1, 21)
+        ]
+
+        self.mock_session_service.count_all_accounts.return_value = 47
+        response = self.client.get("/admin/users")
+        assert response.status_code == 200
+        assert b"Manage Users (47 users)" in response.data
 
     def test_list_all_users_as_non_admin_returns_403(self):
         fake_user = create_test_account(account_role=AccountRole.USER)
@@ -316,7 +397,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.delete_account.return_value = None
         response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
         assert response.status_code == 200
-        assert b"Manage Users" in response.data or b"Account deleted" in response.data
+        assert b"Manage Users (0 users)" in response.data or b"Account deleted" in response.data
 
     def test_admin_delete_nonexistent_target_redirects_with_flash(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)

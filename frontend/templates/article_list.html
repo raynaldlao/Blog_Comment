@@ -1,4 +1,5 @@
 {% from "macros/icons.html" import icon %}
+{% from "macros/pagination.html" import render_pagination_info %}
 {% extends "base.html" %}
 
 {% block title %}Latest Articles - DevJournal{% endblock %}
@@ -15,51 +16,9 @@
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='scripts/pagination.js') }}"></script>
-<script defer src="{{ url_for('static', filename='scripts/double-tap-select.js') }}"></script>
 {% endblock %}
 
-{% macro render_pagination_info(current_page, total_pages, query="") %}
-    <div class="pagination-info">
-        {% if total_pages <= 13 %}
-            {% for p in range(1, total_pages + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p, q=query if query else None) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
-            {% endfor %}
-        {% else %}
-            <!-- First Page -->
-            <a href="{{ url_for('article.list_articles', page=1, q=query if query else None) }}" class="page-link-num {% if 1 == current_page %}active{% endif %}">1</a>
-            
-            <!-- Window Calculation -->
-            {% if current_page <= 7 %}
-                {% set start_p = 2 %}
-                {% set end_p = 12 %}
-            {% elif current_page >= total_pages - 6 %}
-                {% set start_p = total_pages - 11 %}
-                {% set end_p = total_pages - 1 %}
-            {% else %}
-                {% set start_p = current_page - 5 %}
-                {% set end_p = current_page + 5 %}
-            {% endif %}
-            
-            <!-- Left Dots -->
-            {% if start_p > 2 %}
-                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
-            {% endif %}
-            
-            <!-- Window Pages -->
-            {% for p in range(start_p, end_p + 1) %}
-                <a href="{{ url_for('article.list_articles', page=p, q=query if query else None) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
-            {% endfor %}
-            
-            <!-- Right Dots -->
-            {% if end_p < total_pages - 1 %}
-                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
-            {% endif %}
-            
-            <!-- Last Page -->
-            <a href="{{ url_for('article.list_articles', page=total_pages, q=query if query else None) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
-        {% endif %}
-    </div>
-{% endmacro %}
+
 
 {% block content %}
 <form action="{{ url_for('article.list_articles') }}" method="GET" class="search-bar-form">
@@ -82,7 +41,7 @@
         </a>
     </div>
     
-    {{ render_pagination_info(page, total_pages, query) }}
+    {{ render_pagination_info(page, total_pages, 'article.list_articles', query) }}
     
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
@@ -141,7 +100,7 @@
         </a>
     </div>
     
-    {{ render_pagination_info(page, total_pages, query) }}
+    {{ render_pagination_info(page, total_pages, 'article.list_articles', query) }}
     
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">

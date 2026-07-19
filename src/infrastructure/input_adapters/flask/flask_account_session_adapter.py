@@ -1,4 +1,5 @@
 import logging
+import math
 
 from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
@@ -262,10 +263,15 @@ class AccountSessionAdapter(MethodView):
 
     def list_all_users(self):
         """
-        Renders the admin-only user list page.
+        Renders the admin-only user list page with pagination, search,
+        and total account count.
 
         Access restricted to admin role. Non-admin users receive a 403.
-        Displays all registered users with username, email, role, and join date.
+        Supports pagination via ?page=N query parameter and search via
+        ?q=query parameter. Displays up to 20 users per page with
+        username, email, role, join date, and action buttons. The
+        total_count reflects the number of accounts matching the current
+        query (or all accounts when no search is active).
 
         Returns:
             str: The rendered user_list.html template.
@@ -277,13 +283,31 @@ class AccountSessionAdapter(MethodView):
         if not current_account or current_account.account_role != AccountRole.ADMIN:
             abort(403)
 
-        accounts = self.session_service.get_all_accounts()
+        query = request.args.get("q", "").strip()
+        page = max(1, request.args.get("page", 1, type=int))
+        per_page = 20
+
+        if query:
+            accounts = self.session_service.search_accounts(query, page=page, per_page=per_page)
+            total = self.session_service.count_search_accounts(query)
+        else:
+            accounts = self.session_service.get_all_accounts(page=page, per_page=per_page)
+            total = self.session_service.count_all_accounts()
+
+        total_pages = max(1, math.ceil(total / per_page))
+
         users_dto = [AccountResponse.from_domain(acc) for acc in accounts]
 
         return render_template(
             "user_list.html",
             users=users_dto,
+            page=page,
+            total_pages=total_pages,
+            has_prev=(page > 1),
+            has_next=(page < total_pages),
+            query=query,
             current_user=current_account,
+            total_count=total,
         )
 
     def delete_account(self):

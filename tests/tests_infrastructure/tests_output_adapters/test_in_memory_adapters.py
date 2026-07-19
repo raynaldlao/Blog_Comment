@@ -159,6 +159,66 @@ class TestInMemoryAccountRepository:
         assert a1 in results
         assert a2 in results
 
+    def test_get_all_paginated_page_1(self):
+        repo = InMemoryAccountRepository()
+        for i in range(5):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime(2024, 1, 1, 0, 0, i)))
+        results = repo.get_all_paginated(page=1, per_page=2)
+        assert len(results) == 2
+        assert results[0].account_username == "user4"
+        assert results[1].account_username == "user3"
+
+    def test_get_all_paginated_page_2(self):
+        repo = InMemoryAccountRepository()
+        for i in range(5):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime(2024, 1, 1, 0, 0, i)))
+        results = repo.get_all_paginated(page=2, per_page=2)
+        assert len(results) == 2
+        assert results[0].account_username == "user2"
+        assert results[1].account_username == "user1"
+
+    def test_get_all_paginated_empty_page(self):
+        repo = InMemoryAccountRepository()
+        for i in range(3):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime(2024, 1, 1, 0, 0, i)))
+        results = repo.get_all_paginated(page=2, per_page=3)
+        assert len(results) == 0
+
+    def test_count_all_accounts(self):
+        repo = InMemoryAccountRepository()
+        assert repo.count_all() == 0
+        repo.save(Account(0, "u1", "p", "e1@t.com", AccountRole.USER, datetime.now()))
+        repo.save(Account(0, "u2", "p", "e2@t.com", AccountRole.USER, datetime.now()))
+        assert repo.count_all() == 2
+
+    def test_search_accounts_by_username(self):
+        repo = InMemoryAccountRepository()
+        for i in range(5):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime(2024, 1, 1, 0, 0, i)))
+        results = repo.search("user3", page=1, per_page=10)
+        assert len(results) == 1
+        assert results[0].account_username == "user3"
+
+    def test_search_accounts_by_email(self):
+        repo = InMemoryAccountRepository()
+        for i in range(5):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime(2024, 1, 1, 0, 0, i)))
+        results = repo.search("@t.com", page=1, per_page=10)
+        assert len(results) == 5
+
+    def test_search_accounts_no_match(self):
+        repo = InMemoryAccountRepository()
+        repo.save(Account(0, "user1", "pass", "em1@t.com", AccountRole.USER, datetime.now()))
+        results = repo.search("zzz", page=1, per_page=10)
+        assert len(results) == 0
+
+    def test_search_accounts_count(self):
+        repo = InMemoryAccountRepository()
+        for i in range(5):
+            repo.save(Account(0, f"user{i}", "pass", f"em{i}@t.com", AccountRole.USER, datetime.now()))
+        assert repo.count_search("user") == 5
+        assert repo.count_search("zzz") == 0
+
     def test_update_email_changes_email(self):
         repo = InMemoryAccountRepository()
         account = Account(0, "user", "pass", "old@test.com", AccountRole.USER, datetime.now())
