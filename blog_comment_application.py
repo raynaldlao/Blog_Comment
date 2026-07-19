@@ -123,6 +123,7 @@ def _init_web_adapters(services: dict) -> dict:
         "account_session_adapter": AccountSessionAdapter(
             services["login_service"],
             services["file_service"],
+            services["comment_service"],
         ),
         "file_adapter": FlaskFileAdapter(services["file_service"]),
     }

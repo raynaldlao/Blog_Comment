@@ -56,10 +56,26 @@ class CommentManagementPort(ABC):
         pass
 
     @abstractmethod
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """
+        Masks all comments authored by the given account as removed.
+        Sets the comment content to a "Comment removed" marker.
+
+        Called during account deletion to soft-remove the user's comments
+        before the account record is deleted.
+
+        Args:
+            account_id (int): ID of the account whose comments to mask.
+        """
+        pass
+
+    @abstractmethod
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
-        Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
-        Second click hard-deletes: removes the comment and all its descendants recursively.
+        Deletes a comment.
+        - If comment_written_account_id is None (author deleted), hard-deletes immediately.
+        - Otherwise, first click soft-deletes (content → "Comment removed").
+          Second click hard-deletes recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.

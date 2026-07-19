@@ -305,10 +305,14 @@ class TestGetComments(CommentServiceTestBase):
 
 
 class TestDeleteComment(CommentServiceTestBase):
-    def test_delete_comment_success_as_admin(self):
+    def test_delete_comment_normal_first_click_soft_delete(self):
         admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_account_repo.get_by_id.return_value = admin_account
-        comment_to_delete = create_test_comment(comment_id=10, comment_written_account_id=2)
+        comment_to_delete = create_test_comment(
+            comment_id=10,
+            comment_written_account_id=2,
+            comment_content="Original content",
+        )
         self.mock_comment_repo.get_by_id.return_value = comment_to_delete
 
         result = self.service.delete_comment(
@@ -374,3 +378,44 @@ class TestDeleteComment(CommentServiceTestBase):
         self.mock_comment_repo.get_by_id.assert_not_called()
         self.mock_comment_repo.delete.assert_not_called()
         assert result == "Account not found."
+
+    def test_delete_comment_orphan_hard_delete(self):
+        admin_account = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_account_repo.get_by_id.return_value = admin_account
+        orphan_comment = create_test_comment(
+            comment_id=10,
+            comment_written_account_id=None,
+            comment_content="Original content",
+        )
+        self.mock_comment_repo.get_by_id.return_value = orphan_comment
+        self.mock_comment_repo.get_by_reply_to.return_value = []
+
+        result = self.service.delete_comment(
+            comment_id=orphan_comment.comment_id,
+            user_id=admin_account.account_id,
+        )
+
+        self.mock_comment_repo.save.assert_not_called()
+        self.mock_comment_repo.delete.assert_called_once_with(10)
+        assert result is True
+
+
+class TestMaskCommentsByAccountId(CommentServiceTestBase):
+    def test_mask_comments_success(self):
+        target_id = 5
+        c1 = create_test_comment(comment_id=1, comment_written_account_id=target_id, comment_content="Hello")
+        c2 = create_test_comment(comment_id=2, comment_written_account_id=target_id, comment_content="World")
+        self.mock_comment_repo.get_by_account_id.return_value = [c1, c2]
+
+        self.service.mask_comments_by_account_id(target_id)
+
+        self.mock_comment_repo.get_by_account_id.assert_called_once_with(target_id)
+        assert self.mock_comment_repo.save.call_count == 2
+        assert c1.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
+        assert c2.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
+
+    def test_mask_comments_no_comments(self):
+        self.mock_comment_repo.get_by_account_id.return_value = []
+        self.service.mask_comments_by_account_id(999)
+        self.mock_comment_repo.get_by_account_id.assert_called_once_with(999)
+        self.mock_comment_repo.save.assert_not_called()

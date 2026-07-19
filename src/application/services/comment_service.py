@@ -221,10 +221,28 @@ class CommentService(CommentManagementPort):
         avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
         return build_comment_nested_tree(all_comments, author_map, avatar_map)
 
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """
+        Masks all comments authored by the given account as removed.
+
+        Iterates over comments found via the repository and replaces
+        their content with a "Comment removed" marker. Called during
+        account deletion before the account record is deleted.
+
+        Args:
+            account_id (int): ID of the account whose comments to mask.
+        """
+        comments = self.comment_repository.get_by_account_id(account_id)
+        for comment in comments:
+            comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
+            self.comment_repository.save(comment)
+
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
-        Deletes a comment. First click soft-deletes (content → "Comment removed", author → Anonymous).
-        Second click hard-deletes: removes the comment and all its descendants recursively.
+        Deletes a comment.
+        - If comment_written_account_id is None (author deleted), hard-deletes immediately.
+        - Otherwise, first click soft-deletes (content → "Comment removed").
+          Second click hard-deletes recursively.
 
         Args:
             comment_id (int): ID of the comment to delete.
@@ -249,7 +267,10 @@ class CommentService(CommentManagementPort):
             # TODO: Raise CommentNotFoundException later
             return "Comment not found."
 
-        if "<!--cmt-removed-->" in comment.comment_content:
+        if (
+            "<!--cmt-removed-->" in comment.comment_content
+            or comment.comment_written_account_id is None
+        ):
             self._delete_with_descendants(comment_id)
             return True
 

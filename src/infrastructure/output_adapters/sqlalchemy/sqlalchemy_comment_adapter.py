@@ -106,6 +106,21 @@ class SqlAlchemyCommentAdapter(CommentRepository):
         ).all()
         return [self._to_domain(model) for model in models]
 
+    def get_by_account_id(self, account_id: int) -> list[Comment]:
+        """
+        Retrieves all comments authored by a specific account.
+
+        Args:
+            account_id (int): ID of the account.
+
+        Returns:
+            list[Comment]: A list of Comment domain entities for this author.
+        """
+        models = self._session.query(CommentModel).filter_by(
+            comment_written_account_id=account_id,
+        ).all()
+        return [self._to_domain(model) for model in models]
+
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

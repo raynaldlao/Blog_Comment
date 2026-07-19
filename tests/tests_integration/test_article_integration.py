@@ -94,9 +94,10 @@ class TestPersistence:
 
     def test_cascading_deletes_account_integ(self, client, db_session):
         """
-        Verifies that deleting an account removes its comments but keeps
-        its articles (article_author_id becomes NULL, author shown as
-        "Anonymous").
+        Verifies that deleting an account sets FK columns to NULL:
+        article_author_id and comment_written_account_id become NULL.
+        The comment content is NOT masked here because the test bypasses
+        the service layer (masking happens in AccountSessionAdapter).
         """
         auth = AccountModel(account_username="victim", account_email="v@t.com", account_password="p", account_role="author")
         db_session.add(auth)
@@ -123,6 +124,64 @@ class TestPersistence:
         orphan_cmt = db_session.query(CommentModel).filter_by(comment_id=comment_id).first()
         assert orphan_cmt is not None
         assert orphan_cmt.comment_written_account_id is None
+        assert orphan_cmt.comment_content == "My last words"
+
+    def test_orphan_comment_hard_delete_single_click_integ(self, client, db_session):
+        """
+        Verifies that an orphaned comment (author deleted) is hard-deleted
+        in a single click via the full Flask endpoint pipeline.
+        """
+        author = AccountModel(
+            account_username="orphan_author", account_email="orphan@t.com",
+            account_password="p", account_role="author"
+        )
+
+        db_session.add(author)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="Orphan Test", article_content="...",
+            article_author_id=author.account_id
+        )
+
+        db_session.add(article)
+        db_session.commit()
+
+        comment = CommentModel(
+            comment_content="I will be orphaned",
+            comment_article_id=article.article_id,
+            comment_written_account_id=author.account_id
+        )
+
+        db_session.add(comment)
+        db_session.commit()
+        comment_id = comment.comment_id
+        article_id = article.article_id
+
+        admin = AccountModel(
+            account_username="admin_orphan", account_email="admin_o@t.com",
+            account_password="p", account_role="admin"
+        )
+
+        db_session.add(admin)
+        db_session.commit()
+        client.post("/login", data={"username": "admin_orphan", "password": "p"}, follow_redirects=True)
+        resp = client.post("/account/delete", data={"account_id": author.account_id}, follow_redirects=True)
+        assert resp.status_code == 200
+        db_session.expire_all()
+        orphan = db_session.get(CommentModel, comment_id)
+        assert orphan is not None
+        assert orphan.comment_written_account_id is None
+        assert "<!--cmt-removed-->" in orphan.comment_content
+
+        resp = client.post(
+            f"/articles/{article_id}/comments/{comment_id}/delete",
+            follow_redirects=False,
+        )
+
+        assert resp.status_code == 302
+        db_session.expire_all()
+        assert db_session.get(CommentModel, comment_id) is None
 
     def test_article_delete_end_to_end_integ(self, client, db_session):
         """

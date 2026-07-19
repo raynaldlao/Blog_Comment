@@ -52,7 +52,7 @@ def create_test_article(
 def create_test_comment(
     comment_id: int = 1,
     comment_article_id: int = 1,
-    comment_written_account_id: int = 1,
+    comment_written_account_id: int | None = 1,
     comment_reply_to: int | None = None,
     comment_content: str = "Test comment content.",
     comment_posted_at: datetime | None = None,

@@ -286,6 +286,22 @@ class TestInMemoryCommentRepository:
         repo.delete(999)
         assert repo.get_by_id(999) is None
 
+    def test_get_by_account_id(self):
+        repo = InMemoryCommentRepository()
+        c1 = Comment(1, 10, 5, None, "c1", datetime.now())
+        c2 = Comment(2, 10, 5, None, "c2", datetime.now())
+        c3 = Comment(3, 10, 6, None, "c3", datetime.now())
+        repo.save(c1)
+        repo.save(c2)
+        repo.save(c3)
+        found = repo.get_by_account_id(5)
+        assert len(found) == 2
+        assert all(c.comment_written_account_id == 5 for c in found)
+
+    def test_get_by_account_id_empty(self):
+        repo = InMemoryCommentRepository()
+        assert repo.get_by_account_id(999) == []
+
 
 class TestInMemoryAccountSessionRepository:
     def test_store_and_retrieve(self):
