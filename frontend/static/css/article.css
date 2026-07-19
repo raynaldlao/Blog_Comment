@@ -1187,7 +1187,6 @@ a.comment-author:hover {
     font-size: var(--font-body-base);
     font-weight: 400;
     color: var(--on-surface);
-    background: var(--surface-container);
     border: 1px solid var(--outline-variant);
     border-radius: var(--radius-default);
     padding: var(--spacing-sm);
@@ -1217,10 +1216,12 @@ a.comment-author:hover {
 
 .article-editor .bn-editor {
     min-height: 18.75rem;
+    background: transparent;
 }
 
 .article-detail-view #root .bn-editor {
     padding: 0;
+    background: transparent;
 }
 
 /* Code block language selector with search */
@@ -1533,6 +1534,10 @@ a.comment-author:hover {
 .article-edit-view {
     max-width: var(--content-narrow);
     margin: 0 auto;
+}
+
+.article-editor .bn-root {
+    width: 100%;
 }
 
 .bn-visual-media-wrapper img {
