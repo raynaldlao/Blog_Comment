@@ -11,7 +11,7 @@ class AccountResponse(BaseModel):
 
     This class securely exposes account information to the client,
     intentionally omitting the password field. It also includes the
-    optional avatar file reference for profile display.
+    optional avatar file reference for profile display and ban status fields.
     """
 
     model_config = ConfigDict(from_attributes=True)
@@ -22,6 +22,8 @@ class AccountResponse(BaseModel):
     account_role: str
     account_created_at: datetime | None
     avatar_file_id: str | None = None
+    is_banned: bool = False
+    ban_reason: str | None = None
 
     @classmethod
     def from_domain(cls, account: Account) -> "AccountResponse":
@@ -33,7 +35,7 @@ class AccountResponse(BaseModel):
 
         Returns:
             AccountResponse: The safe representation for Web output,
-            including the optional avatar_file_id.
+            including the optional avatar_file_id and ban status fields.
         """
         return cls(
             account_id=account.account_id,
@@ -42,4 +44,6 @@ class AccountResponse(BaseModel):
             account_role=account.account_role.value if account.account_role else "user",
             account_created_at=account.account_created_at,
             avatar_file_id=account.avatar_file_id,
+            is_banned=account.is_banned,
+            ban_reason=account.ban_reason,
         )

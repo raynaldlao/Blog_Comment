@@ -553,6 +553,82 @@ class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
         assert response.status_code == 403
 
 
+class TestAccountSessionBan(FlaskInputAdapterTestBase):
+    def setup_method(self):
+        super().setup_method()
+        self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
+        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
+        self.adapter = AccountSessionAdapter(
+            session_service=self.mock_session_service,
+            file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
+        )
+        self.app.add_url_rule(
+            "/admin/users/<int:account_id>/ban",
+            view_func=self.adapter.ban_account,
+            methods=["POST"],
+            endpoint="auth.ban_account",
+        )
+        self.app.add_url_rule(
+            "/admin/users/<int:account_id>/unban",
+            view_func=self.adapter.unban_account,
+            methods=["POST"],
+            endpoint="auth.unban_account",
+        )
+        self._register_dummy_route("/admin/users", "auth.list_all_users", "users")
+
+    def test_admin_ban_user_redirects(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.ban_account.return_value = None
+        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"})
+        assert response.status_code == 302
+        self.mock_session_service.ban_account.assert_called_once_with(
+            admin_id=1, target_account_id=2, ban_reason="Spam",
+        )
+
+    def test_admin_unban_user_redirects(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.unban_account.return_value = None
+        response = self.client.post("/admin/users/2/unban")
+        assert response.status_code == 302
+        self.mock_session_service.unban_account.assert_called_once_with(
+            admin_id=1, target_account_id=2,
+        )
+
+    def test_non_admin_ban_returns_403(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        self.mock_session_service.get_current_account.return_value = user
+        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"})
+        assert response.status_code == 403
+        self.mock_session_service.ban_account.assert_not_called()
+
+    def test_admin_ban_another_admin_returns_302_with_flash(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.ban_account.return_value = "Cannot ban another admin."
+        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Cannot ban another admin" in response.data
+        self.mock_session_service.ban_account.assert_called_once()
+
+    def test_admin_ban_nonexistent_user_redirects_with_flash(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_session_service.get_current_account.return_value = admin
+        self.mock_session_service.ban_account.return_value = "Account not found."
+        response = self.client.post("/admin/users/999/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Account not found" in response.data
+        self.mock_session_service.ban_account.assert_called_once()
+
+
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     """
     Tests for the 'before_request' lifecycle hook registered by AccountSessionAdapter.

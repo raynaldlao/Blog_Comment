@@ -217,6 +217,26 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.account_password = new_hashed_password
         self._session.commit()
 
+    def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
+        """
+        Sets or clears the ban status for the given account directly in the database.
+
+        Performs a targeted column update without loading or saving the full
+        Account entity, keeping the responsibility focused and avoiding
+        accidental overwrites of other fields.
+
+        Args:
+            account_id: The ID of the account to update.
+            is_banned: True to ban, False to unban.
+            ban_reason: Optional reason for the ban, or None to clear.
+        """
+        model = self._session.get(AccountModel, account_id)
+        if model is None:
+            return
+        model.is_banned = is_banned
+        model.ban_reason = ban_reason
+        self._session.commit()
+
     def update_role(self, account_id: int, new_role: str) -> None:
         """
         Updates the role for the given account directly in the database.

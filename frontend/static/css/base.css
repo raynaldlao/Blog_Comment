@@ -562,6 +562,62 @@ button:hover,
     margin: 0;
 }
 
+#ban-modal {
+    max-width: 32rem;
+}
+
+#ban-modal .modal-input-group {
+    gap: 0;
+}
+
+#ban-modal .modal-input-group label {
+    margin-bottom: var(--spacing-sm);
+    font-family: var(--font-primary);
+}
+
+#ban-modal .char-count {
+    font-family: var(--font-primary);
+}
+
+#ban-modal .ban-reason-textarea {
+    margin-top: var(--spacing-xs);
+}
+
+.ban-reason-textarea {
+    width: 100%;
+    min-height: 4.5rem;
+    height: auto;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-default);
+    background: var(--surface-container);
+    color: var(--on-surface);
+    font-family: var(--font-primary);
+    font-size: var(--font-body-base);
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.ban-reason-textarea:focus {
+    border-color: var(--primary);
+}
+
+.hint-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-body-sm);
+    color: var(--on-surface-variant);
+}
+
+.char-count {
+    font-size: var(--font-body-sm);
+    color: var(--on-surface-variant);
+    font-family: var(--font-mono);
+}
+
 button:focus-visible,
 .btn:focus-visible,
 a:focus-visible {

@@ -249,6 +249,27 @@ class TestInMemoryAccountRepository:
         repo = InMemoryAccountRepository()
         repo.delete(999)
 
+    def test_update_ban_status_ban(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_ban_status(account.account_id, True, "Spam")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.is_banned is True
+        assert updated.ban_reason == "Spam"
+
+    def test_update_ban_status_unban(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_ban_status(account.account_id, True, "Spam")
+        repo.update_ban_status(account.account_id, False, None)
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.is_banned is False
+        assert updated.ban_reason is None
+
 
 class TestInMemoryCommentRepository:
     def test_save_and_get(self):

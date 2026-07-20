@@ -114,6 +114,9 @@ class ArticleService(ArticleManagementPort):
             # TODO: Raise InsufficientPermissionsException
             return "Insufficient permissions."
 
+        if account.is_banned:
+            return "Account is banned."
+
         return account
 
     def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article | str:

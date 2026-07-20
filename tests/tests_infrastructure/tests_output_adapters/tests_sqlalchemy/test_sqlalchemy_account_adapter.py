@@ -227,3 +227,22 @@ class TestAccountSearch(SqlAlchemyAccountAdapterTestBase):
         assert self.repository.count_search("alice") == 1
         assert self.repository.count_search("@t.com") == 2
         assert self.repository.count_search("zzz") == 0
+
+
+class TestAccountUpdateBanStatus(SqlAlchemyAccountAdapterTestBase):
+    def test_update_ban_status_ban(self):
+        account = self.account_builder.create(username="ban_target")
+        self.repository.update_ban_status(account.account_id, True, "Spam")
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.is_banned is True
+        assert result.ban_reason == "Spam"
+
+    def test_update_ban_status_unban(self):
+        account = self.account_builder.create(username="unban_target")
+        self.repository.update_ban_status(account.account_id, True, "Spam")
+        self.repository.update_ban_status(account.account_id, False, None)
+        result = self.repository.get_by_id(account.account_id)
+        assert result is not None
+        assert result.is_banned is False
+        assert result.ban_reason is None

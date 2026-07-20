@@ -24,6 +24,8 @@ class Account:
         account_role (AccountRole): Permissions role.
         account_created_at (datetime): Timestamp of account creation.
         avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
+        is_banned (bool): Whether the account is currently banned.
+        ban_reason (str | None): Optional reason provided by admin when banning.
     """
 
     def __init__(
@@ -35,6 +37,8 @@ class Account:
         account_role: AccountRole,
         account_created_at: datetime | None,
         avatar_file_id: str | None = None,
+        is_banned: bool = False,
+        ban_reason: str | None = None,
     ):
         """
         Initialize a user account.
@@ -47,6 +51,8 @@ class Account:
             account_role (AccountRole): Permissions role.
             account_created_at (datetime): Timestamp of account creation.
             avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
+            is_banned (bool): Whether the account is currently banned. Defaults to False.
+            ban_reason (str | None): Optional reason provided by admin when banning.
         """
         self.account_id = account_id
         self.account_username = account_username
@@ -55,3 +61,5 @@ class Account:
         self.account_role = account_role
         self.account_created_at = account_created_at
         self.avatar_file_id = avatar_file_id
+        self.is_banned = is_banned
+        self.ban_reason = ban_reason

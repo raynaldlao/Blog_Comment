@@ -58,6 +58,8 @@ class CommentService(CommentManagementPort):
         if not account:
             # TODO: Raise AccountNotFoundException
             return "Account not found."
+        if account.is_banned:
+            return "Account is banned."
         return account
 
     @staticmethod

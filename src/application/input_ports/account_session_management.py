@@ -164,6 +164,35 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
+    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> str | None:
+        """
+        Bans a user account. Only admins can ban non-admin accounts.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_account_id: The unique identifier of the account to ban.
+            ban_reason: Optional reason for the ban.
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        pass
+
+    @abstractmethod
+    def unban_account(self, admin_id: int, target_account_id: int) -> str | None:
+        """
+        Unbans a user account. Only admins can unban accounts.
+
+        Args:
+            admin_id: The unique identifier of the admin performing the action.
+            target_account_id: The unique identifier of the account to unban.
+
+        Returns:
+            str | None: None on success, or an error message string if the operation fails.
+        """
+        pass
+
+    @abstractmethod
     def delete_account(self, account_id: int) -> None:
         """
         Deletes a user account by its unique identifier.

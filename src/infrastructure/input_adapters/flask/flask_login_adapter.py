@@ -62,5 +62,8 @@ class LoginAdapter(MethodView):
         if not isinstance(result, str):
             return redirect(url_for("article.list_articles"))
 
-        flash("Invalid username or password.", "error")
+        if result == "This account has been banned.":
+            flash(result, "error")
+        else:
+            flash("Invalid username or password.", "error")
         return render_template("login.html", current_user=user, username=login_data.username)
