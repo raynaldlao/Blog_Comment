@@ -86,7 +86,9 @@
 
     {% macro render_comment(node, depth=0) %}
         {% set display_depth = depth if depth < 3 else 3 %}
-        {% set is_deleted = node.comment.comment_content in ('Comment removed', '[deleted]', '<em>Comment removed</em>') %}
+        {% set is_deleted = node.comment.is_deleted %}
+        {% set is_author = current_user and current_user.account_id == node.comment.comment_written_account_id %}
+        {% set is_admin = current_user and current_user.account_role == 'admin' %}
         <div class="comment comment-depth-{{ display_depth }}{% if is_deleted %} comment-deleted{% endif %}">
             <div class="comment-avatar">
                 {% if is_deleted %}
@@ -112,23 +114,52 @@
                             <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
                         {% endif %}
                         <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
-                        {% if current_user and current_user.account_role == 'admin' %}
+                        {% if current_user and is_author and not is_deleted %}
+                            <button type="button" class="comment-edit-toggle" data-comment-id="{{ node.comment.comment_id }}">[Edit]</button>
+                        {% endif %}
+                        {% if current_user and (is_author or is_admin) and not is_deleted %}
                             <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="comment-delete-btn confirm-trigger" data-confirm-message="Delete this comment permanently ?" data-form-id="delete-comment-{{ node.comment.comment_id }}">[Delete]</button>
+                                <button type="submit" class="comment-delete-btn">[Delete]</button>
+                            </form>
+                        {% endif %}
+                        {% if current_user and is_admin and is_deleted %}
+                            <form action="{{ url_for('comment.hard_delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form" onsubmit="return confirm('Permanently delete this comment? This cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="comment-delete-btn">[Delete]</button>
                             </form>
                         {% endif %}
                     </div>
-                    <div class="comment-body-text">
+                    <div class="comment-body-text" id="comment-body-{{ node.comment.comment_id }}">
                         {{ node.comment.comment_content | safe }}
                     </div>
-                    {% if current_user and not is_deleted and depth < 3 %}
+                    {% if node.comment.edited_at and not node.comment.is_deleted %}
+                        <div class="comment-edited-line">edited at {{ node.comment.edited_at_formatted }}</div>
+                    {% endif %}
+                    {% if current_user and is_author and not is_deleted %}
+                    <div class="edit-form-container" id="edit-form-{{ node.comment.comment_id }}" style="display: none;">
+                        <form method="POST" action="{{ url_for('comment.edit_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" class="edit-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="content" id="edit-content-{{ node.comment.comment_id }}">
+                            <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
+                            <textarea id="edit-editor-{{ node.comment.comment_id }}" class="edit-editor" maxlength="5000">{{ node.comment.comment_content }}</textarea>
+                            <div class="edit-actions">
+                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                                <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endif %}
+                    {% if current_user and not is_deleted %}
                     <div class="comment-actions">
+                        {% if depth < 3 %}
                         <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
+                        {% endif %}
                         {% if node.replies %}
                         <button type="button" class="view-replies-btn">View replies</button>
                         {% endif %}
                     </div>
+                        {% if depth < 3 %}
                         <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
                             <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -142,6 +173,7 @@
                                 </div>
                             </form>
                         </div>
+                        {% endif %}
                     {% elif node.replies %}
                     <div class="comment-actions">
                         <button type="button" class="view-replies-btn">View replies</button>

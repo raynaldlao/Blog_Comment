@@ -773,9 +773,52 @@ a.comment-author:hover {
     }
 }
 
-.comment-delete-form {
-    display: inline;
-    margin-left: 0.625rem;
+.comment-edited {
+    font-size: var(--font-body-xs);
+    color: var(--on-surface-variant);
+    font-style: italic;
+}
+
+.edit-form-container {
+    margin-top: var(--spacing-sm);
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.edit-editor {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    min-height: 4rem;
+    font-size: var(--font-body-base);
+}
+
+.edit-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.cancel-edit {
+    cursor: pointer;
+}
+
+.comment-edit-toggle {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: var(--font-body-xs);
+    font-family: var(--font-mono);
+    padding: 0;
+    text-transform: uppercase;
+}
+
+.comment-edit-toggle:hover {
+    text-decoration: underline;
 }
 
 .comment-delete-btn {
@@ -796,6 +839,12 @@ a.comment-author:hover {
     filter: brightness(1.1);
     box-shadow: none;
     transform: none;
+}
+
+.comment-edited-line {
+    font-size: var(--font-body-sm);
+    color: var(--on-surface-variant);
+    margin-top: var(--spacing-xs);
 }
 
 .comment-empty {

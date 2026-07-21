@@ -85,46 +85,83 @@ class TestWorkflows:
         comments = db_session.query(CommentModel).filter_by(comment_article_id=aid).all()
         assert len(comments) == 0
 
-    def test_two_click_delete_cascade(self, client, db_session):
+    def test_comment_soft_delete_integration(self, client, db_session):
         """
-        Verifies two-click delete + cascade across the full stack.
-        First click soft-deletes (content → marker + Anonymous).
-        Second click hard-deletes parent + children from DB.
+        Verifies soft-delete across the full stack.
+        Author deletes own comment → is_deleted=True, content preserved in DB,
+        "[deleted]" shown on page, author name still visible.
         """
-        admin = AccountModel(
-            account_username="del_admin", account_email="del@t.com",
-            account_password="p", account_role="admin"
+        author = AccountModel(
+            account_username="soft_author", account_email="soft@t.com",
+            account_password="p", account_role="author",
         )
 
-        db_session.add(admin)
+        db_session.add(author)
         db_session.commit()
-        client.post("/login", data={"username": "del_admin", "password": "p"}, follow_redirects=True)
-        r = client.post("/api/articles", json={"title": "Del Test", "content": "Content"})
+        client.post("/login", data={"username": "soft_author", "password": "p"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Soft Del Test", "content": "Content"})
         aid = r.get_json()["id"]
 
-        client.post(f"/articles/{aid}/comments", data={"content": "Root"})
+        client.post(f"/articles/{aid}/comments", data={"content": "Root comment"})
         db_session.commit()
         root = db_session.query(CommentModel).filter_by(comment_article_id=aid).first()
         rid = root.comment_id
-        client.post(f"/articles/{aid}/comments/{rid}/reply", data={"content": "Child"})
 
-        first_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
-        assert first_click.status_code == 302
+        delete_resp = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
+        assert delete_resp.status_code == 302
         db_session.expire_all()
         soft = db_session.get(CommentModel, rid)
-        assert "<!--cmt-removed-->" in soft.comment_content
-        assert "<em>Comment removed</em>" in soft.comment_content
+        assert soft.is_deleted is True
+        assert soft.deleted_at is not None
+        assert soft.comment_content == "Root comment"
 
         detail = client.get(f"/articles/{aid}")
         assert b"Anonymous" in detail.data
-        assert b">?<" in detail.data
-        assert b"comment-deleted" in detail.data
+        assert b"Comment removed" in detail.data
+        assert b"Root comment" not in detail.data
 
-        second_click = client.post(f"/articles/{aid}/comments/{rid}/delete", follow_redirects=False)
-        assert second_click.status_code == 302
+    def test_comment_edit_and_soft_delete_integration(self, client, db_session):
+        """
+        Verifies comment edit then soft-delete across the full stack.
+        Author creates comment, edits it, then soft-deletes it.
+        """
+        author = AccountModel(
+            account_username="edit_user", account_email="edit@t.com",
+            account_password="p", account_role="author",
+        )
+        db_session.add(author)
+        db_session.commit()
+        client.post("/login", data={"username": "edit_user", "password": "p"}, follow_redirects=True)
+        r = client.post("/api/articles", json={"title": "Edit Test", "content": "Content"})
+        aid = r.get_json()["id"]
+
+        client.post(f"/articles/{aid}/comments", data={"content": "Original"})
+        db_session.commit()
+        comment = db_session.query(CommentModel).filter_by(comment_article_id=aid).first()
+        cid = comment.comment_id
+
+        edit_resp = client.post(f"/articles/{aid}/comments/{cid}/edit", data={"content": "Updated"}, follow_redirects=False)
+        assert edit_resp.status_code == 302
         db_session.expire_all()
-        assert db_session.get(CommentModel, rid) is None
-        assert db_session.query(CommentModel).filter_by(comment_reply_to=rid).count() == 0
+        edited = db_session.get(CommentModel, cid)
+        assert edited.comment_content == "Updated"
+        assert edited.edited_at is not None
+
+        detail = client.get(f"/articles/{aid}")
+        assert b"Updated" in detail.data
+        assert b"edited at" in detail.data
+
+        delete_resp = client.post(f"/articles/{aid}/comments/{cid}/delete", follow_redirects=False)
+        assert delete_resp.status_code == 302
+        db_session.expire_all()
+        deleted = db_session.get(CommentModel, cid)
+        assert deleted.is_deleted is True
+        assert deleted.comment_content == "Updated"
+
+        detail_after_delete = client.get(f"/articles/{aid}")
+        assert b"Anonymous" in detail_after_delete.data
+        assert b"Updated" not in detail_after_delete.data
+        assert b"Comment removed" in detail_after_delete.data
 
     def test_deep_comment_threading_integ(self, client, db_session):
         """
@@ -538,3 +575,41 @@ class TestAdminChangeRole:
         )
 
         assert response.status_code == 403
+
+
+class TestCommentHardDeleteIntegration:
+    def test_comment_hard_delete_integration(self, client, db_session):
+        admin = AccountModel(
+            account_username="hard_del_admin", account_email="hda@t.com",
+            account_password="p", account_role="admin",
+        )
+        db_session.add(admin)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="Hard Delete Test", article_content="Content",
+            article_author_id=admin.account_id,
+        )
+        db_session.add(article)
+        db_session.commit()
+
+        comment = CommentModel(
+            comment_content="To be hard deleted",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(comment)
+        db_session.commit()
+
+        client.post("/login", data={"username": "hard_del_admin", "password": "p"})
+
+        cid = comment.comment_id
+        aid = article.article_id
+        resp = client.post(f"/articles/{aid}/comments/{cid}/delete-permanent", follow_redirects=True)
+        assert resp.status_code == 200
+
+        db_session.expire_all()
+        assert db_session.get(CommentModel, cid) is None
+        assert b"Comment permanently deleted" in resp.data

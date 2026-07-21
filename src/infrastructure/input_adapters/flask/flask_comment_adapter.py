@@ -139,7 +139,7 @@ class CommentAdapter:
 
     def delete_comment(self, article_id: int, comment_id: int) -> Response:
         """
-        Handles the deletion of a comment (Admin only).
+        Handles soft-deletion of a comment. Author or admin only. Single-click, no confirm-dialog.
 
         Args:
             article_id (int): ID of the article (for redirection).
@@ -162,6 +162,68 @@ class CommentAdapter:
             flash(result, "error")
         elif result is True:
             flash("Comment deleted.", "success")
+        else:
+            flash("Unauthorized or error.", "error")
+
+        return redirect(url_for("article.read_article", article_id=article_id))
+
+    def edit_comment(self, article_id: int, comment_id: int) -> Response:
+        """
+        Handles editing a comment's content. Author only (not admin).
+        Inline textarea toggle in the template. No rate-limit, no honeypot.
+
+        Args:
+            article_id (int): ID of the article (for redirection).
+            comment_id (int): ID of the comment to edit.
+
+        Returns:
+            Response: A redirect to the article detail page.
+        """
+        user = global_request_context.get("current_user")
+        if not user:
+            flash("You must be signed in to edit comments.", "error")
+            return redirect(url_for("auth.login"))
+
+        content = request.form.get("content", "")
+        result = self.comment_service.edit_comment(
+            comment_id=comment_id,
+            user_id=user.account_id,
+            content=content,
+        )
+
+        if isinstance(result, str):
+            flash(result, "error")
+        else:
+            flash("Comment updated.", "success")
+
+        return redirect(url_for("article.read_article", article_id=article_id))
+
+    def hard_delete_comment(self, article_id: int, comment_id: int) -> Response:
+        """
+        Handles permanent hard-deletion of a comment. Admin only.
+        Called on already soft-deleted comments to purge them from the database.
+
+        Args:
+            article_id (int): ID of the article (for redirection).
+            comment_id (int): ID of the comment to permanently delete.
+
+        Returns:
+            Response: A redirect to the article detail page.
+        """
+        user = global_request_context.get("current_user")
+        if not user:
+            flash("You must be signed in to delete comments.", "error")
+            return redirect(url_for("auth.login"))
+
+        result = self.comment_service.hard_delete_comment(
+            comment_id=comment_id,
+            user_id=user.account_id,
+        )
+
+        if isinstance(result, str):
+            flash(result, "error")
+        elif result is True:
+            flash("Comment permanently deleted.", "success")
         else:
             flash("Unauthorized or error.", "error")
 

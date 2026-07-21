@@ -12,7 +12,7 @@ def test_comment_response_from_domain_mapping():
         comment_written_account_id=5,
         comment_reply_to=None,
         comment_content="Hello world",
-        comment_posted_at=posted_at
+        comment_posted_at=posted_at,
     )
 
     response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
@@ -22,7 +22,9 @@ def test_comment_response_from_domain_mapping():
     assert response.author_username == "johndoe"
     assert response.comment_reply_to is None
     assert response.comment_content == "Hello world"
-    assert response.comment_posted_at_formatted == "October 27, 2023 at 14:30"
+    assert response.comment_posted_at_formatted == "October 27, 2023 at 16:30"
+    assert response.is_deleted is False
+    assert response.edited_at is None
 
 def test_comment_response_from_domain_with_reply():
     domain_comment = Comment(
@@ -38,19 +40,87 @@ def test_comment_response_from_domain_with_reply():
     assert response.comment_reply_to == 1
     assert response.author_username == "Unknown"
 
-def test_comment_response_from_domain_legacy_deleted_maps_to_anonymous():
+def test_comment_response_from_domain_deleted():
+    posted_at = datetime(2023, 10, 27, 14, 30)
     domain_comment = Comment(
         comment_id=3,
         comment_article_id=10,
         comment_written_account_id=5,
         comment_reply_to=None,
-        comment_content="[deleted]",
-        comment_posted_at=datetime.now()
+        comment_content="Original content",
+        comment_posted_at=posted_at,
+        is_deleted=True,
     )
 
-    response = CommentResponse.from_domain(domain_comment, author_username="original_user")
+    response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
     assert response.author_username == "Anonymous"
-    assert response.comment_content == "[deleted]"
+    assert response.comment_content == "<em>Comment removed</em>"
+    assert response.is_deleted is True
+
+def test_comment_response_from_domain_edited():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    edited_at = datetime(2023, 10, 28, 10, 0)
+    domain_comment = Comment(
+        comment_id=4,
+        comment_article_id=10,
+        comment_written_account_id=5,
+        comment_reply_to=None,
+        comment_content="Edited content",
+        comment_posted_at=posted_at,
+        edited_at=edited_at,
+    )
+
+    response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
+    assert response.comment_content == "Edited content"
+    assert response.is_deleted is False
+    assert response.edited_at == edited_at
+    assert response.edited_at_formatted == "12:00"
+
+def test_comment_response_from_domain_deleted_with_edited_at():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    edited_at = datetime(2023, 10, 28, 10, 0)
+    domain_comment = Comment(
+        comment_id=5,
+        comment_article_id=10,
+        comment_written_account_id=5,
+        comment_reply_to=None,
+        comment_content="Edited then deleted",
+        comment_posted_at=posted_at,
+        is_deleted=True,
+        edited_at=edited_at,
+    )
+
+    response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
+    assert response.author_username == "Anonymous"
+    assert response.comment_content == "<em>Comment removed</em>"
+    assert response.is_deleted is True
+    assert response.edited_at == edited_at
+    assert response.edited_at_formatted == "12:00"
+
+def test_comment_response_from_domain_with_all_fields():
+    posted_at = datetime(2023, 10, 27, 14, 30)
+    domain_comment = Comment(
+        comment_id=6,
+        comment_article_id=10,
+        comment_written_account_id=5,
+        comment_reply_to=1,
+        comment_content="Full data",
+        comment_posted_at=posted_at,
+        is_deleted=False,
+        edited_at=None,
+    )
+
+    response = CommentResponse.from_domain(
+        domain_comment,
+        author_username="johndoe",
+        author_avatar_file_id="avatar-uuid",
+    )
+    assert response.comment_id == 6
+    assert response.comment_reply_to == 1
+    assert response.author_avatar_file_id == "avatar-uuid"
+    assert response.is_deleted is False
+    assert response.edited_at is None
+    assert response.edited_at_formatted == ""
 
 def test_map_nested_tree():
     posted_at = datetime(2023, 10, 27, 14, 30)

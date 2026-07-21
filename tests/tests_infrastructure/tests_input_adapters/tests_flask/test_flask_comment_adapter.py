@@ -3,7 +3,7 @@ from unittest.mock import Mock
 from src.application.domain.account import AccountRole
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
-from tests.test_domain_factories import create_test_account
+from tests.test_domain_factories import create_test_account, create_test_comment
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
     FlaskInputAdapterTestBase,
 )
@@ -34,6 +34,20 @@ class CommentAdapterTestBase(FlaskInputAdapterTestBase):
             view_func=self.adapter.delete_comment,
             methods=["POST"],
             endpoint="comment.delete_comment"
+        )
+
+        self.app.add_url_rule(
+            "/articles/<int:article_id>/comments/<int:comment_id>/edit",
+            view_func=self.adapter.edit_comment,
+            methods=["POST"],
+            endpoint="comment.edit_comment"
+        )
+
+        self.app.add_url_rule(
+            "/articles/<int:article_id>/comments/<int:comment_id>/delete-permanent",
+            view_func=self.adapter.hard_delete_comment,
+            methods=["POST"],
+            endpoint="comment.hard_delete_comment"
         )
 
         self._register_dummy_route("/login", "auth.login")
@@ -142,7 +156,7 @@ class TestCommentReply(CommentAdapterTestBase):
 
 class TestCommentDelete(CommentAdapterTestBase):
     def test_delete_comment_success(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
         self.mock_comment_service.delete_comment.return_value = True
         response = self.client.post("/articles/1/comments/99/delete")
@@ -160,7 +174,7 @@ class TestCommentDelete(CommentAdapterTestBase):
         assert b"alert-error" in response.data
 
     def test_delete_comment_service_error_string(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
         self.mock_comment_service.delete_comment.return_value = "Comment not found"
         response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
@@ -168,9 +182,67 @@ class TestCommentDelete(CommentAdapterTestBase):
         assert b"alert-error" in response.data
 
     def test_delete_comment_unauthorized_none_return(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
         self.mock_comment_service.delete_comment.return_value = None
         response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
         assert b"Unauthorized or error" in response.data
+        assert b"alert-error" in response.data
+
+
+class TestCommentEdit(CommentAdapterTestBase):
+    def test_edit_comment_author_only(self):
+        user = create_test_account(account_id=1)
+        self.set_current_user(user)
+        self.mock_comment_service.edit_comment.return_value = create_test_comment(
+            comment_id=10, comment_written_account_id=1,
+        )
+        response = self.client.post("/articles/1/comments/10/edit", data={"content": "Updated"})
+        assert response.status_code == 302
+        assert response.location.endswith("/articles/1")
+        self.mock_comment_service.edit_comment.assert_called_once_with(
+            comment_id=10, user_id=1, content="Updated",
+        )
+
+    def test_edit_comment_missing_content(self):
+        user = create_test_account(account_id=1)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments/10/edit", data={"content": ""})
+        assert response.status_code == 302
+        self.mock_comment_service.edit_comment.assert_called_once_with(
+            comment_id=10, user_id=1, content="",
+        )
+
+    def test_edit_comment_not_authenticated(self):
+        response = self.client.post("/articles/1/comments/10/edit", data={"content": "Hack"}, follow_redirects=True)
+        assert b"You must be signed in to edit comments" in response.data
+        assert b"alert-error" in response.data
+        self.mock_comment_service.edit_comment.assert_not_called()
+
+
+class TestCommentHardDelete(CommentAdapterTestBase):
+    def test_hard_delete_comment_success(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        self.mock_comment_service.hard_delete_comment.return_value = True
+        response = self.client.post("/articles/1/comments/99/delete-permanent")
+        assert response.status_code == 302
+        assert response.location.endswith("/articles/1")
+        self.mock_comment_service.hard_delete_comment.assert_called_once_with(
+            comment_id=99,
+            user_id=1,
+        )
+
+    def test_hard_delete_comment_not_authenticated(self):
+        response = self.client.post("/articles/1/comments/99/delete-permanent", follow_redirects=True)
+        assert b"You must be signed in to delete comments" in response.data
+        assert b"alert-error" in response.data
+        self.mock_comment_service.hard_delete_comment.assert_not_called()
+
+    def test_hard_delete_comment_service_error_string(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        self.mock_comment_service.hard_delete_comment.return_value = "Comment not found"
+        response = self.client.post("/articles/1/comments/99/delete-permanent", follow_redirects=True)
+        assert b"Comment not found" in response.data
         assert b"alert-error" in response.data
