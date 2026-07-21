@@ -97,14 +97,15 @@
 .meta-author-initial {
     width: 3rem;
     height: 3rem;
-    border-radius: 9999px;
-    background: var(--primary-container);
-    color: var(--on-primary-container);
+    border-radius: var(--radius-full);
+    background: var(--surface-container-high);
+    color: var(--primary);
+    border: 1px solid var(--outline);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: var(--font-body-base);
+    font-weight: bold;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
 
@@ -618,8 +619,9 @@ input[type=number] {
     flex-shrink: 0;
     width: 3rem;
     height: 3rem;
-    border-radius: 9999px;
-    background: var(--primary-container);
+    border-radius: var(--radius-full);
+    background: var(--surface-container-high);
+    border: 1px solid var(--outline);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -634,9 +636,9 @@ input[type=number] {
 }
 
 .comment-avatar-initial {
-    font-size: var(--font-body-base);
-    font-weight: 600;
-    color: var(--on-primary-container);
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary);
     line-height: 1;
 }
 
@@ -648,7 +650,8 @@ input[type=number] {
 }
 
 .comment-avatar-deleted {
-    background: var(--surface-container-high);
+    background: var(--surface);
+    border: none;
 }
 
 .comment-avatar-deleted .comment-avatar-initial {
