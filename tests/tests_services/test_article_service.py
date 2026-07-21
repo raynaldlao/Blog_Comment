@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 from src.application.domain.account import AccountRole
@@ -561,3 +561,23 @@ class TestUpdateArticleOrphanCleanup(ArticleServiceTestBase):
 
         assert isinstance(result, Article)
         self.mock_article_repo.save.assert_called_once()
+
+    def test_update_article_sets_article_edited_at(self):
+        """update_article() set article_edited_at=now(UTC) avant save.
+
+        L'article doit avoir article_edited_at défini après mise à jour,
+        pas None comme initialement.
+        """
+        fake_article = create_test_article(article_id=1, article_author_id=1)
+        fake_article.article_edited_at = None
+        self.mock_article_repo.get_by_id.return_value = fake_article
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+
+        result = self.service.update_article(
+            article_id=1, user_id=1, title="New", content="New Content",
+        )
+
+        assert isinstance(result, Article)
+        assert result.article_edited_at is not None
+        assert (datetime.now(UTC) - result.article_edited_at).total_seconds() < 5

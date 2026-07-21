@@ -444,6 +444,8 @@ class TestArticleLegacyContent(ArticleAdapterTestBase):
         assert response.status_code == 200
         data = response.get_json()
         assert data["content"] == bn_content
+        assert "article_edited_at" in data
+        assert data["article_edited_at"] is None
 
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):

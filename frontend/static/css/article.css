@@ -861,6 +861,10 @@ a.comment-author:hover {
     margin-top: var(--spacing-xs);
 }
 
+.article-edited-line {
+    color: var(--on-surface-variant);
+}
+
 .comment-empty {
     color: var(--on-surface-variant);
     font-size: var(--font-body-base);

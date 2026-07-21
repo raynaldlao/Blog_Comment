@@ -1,28 +1,7 @@
-import json
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict
-
-
-def _blocks_to_plain_text(blocks_json: str) -> str:
-    try:
-        blocks = json.loads(blocks_json)
-    except (json.JSONDecodeError, TypeError):
-        return blocks_json
-
-    if not isinstance(blocks, list):
-        return blocks_json
-
-    texts = []
-    for block in blocks:
-        content = block.get("content")
-        if isinstance(content, list):
-            for node in content:
-                if isinstance(node, dict) and "text" in node:
-                    texts.append(node["text"])
-        elif isinstance(content, str):
-            texts.append(content)
-    return " ".join(texts)
 
 
 class ArticleResponse(BaseModel):
@@ -38,6 +17,9 @@ class ArticleResponse(BaseModel):
             Empty string when no description was provided.
         meta_description (str): Alias for article_description, used for
             <meta name="description"> and list view excerpt.
+        article_edited_at (datetime | None): Last edit timestamp. None if never edited.
+        article_edited_at_formatted (str): Human-readable edit time in Europe/Paris.
+            Empty string if never edited.
     """
     model_config = ConfigDict(from_attributes=True)
 
@@ -50,10 +32,44 @@ class ArticleResponse(BaseModel):
     article_content: str
     article_published_at: datetime | None = None
     meta_description: str = ""
+    article_edited_at: datetime | None = None
+    article_edited_at_formatted: str = ""
+
+    @staticmethod
+    def _to_local_full(dt: datetime) -> str:
+        """Convert a UTC datetime to a Europe/Paris formatted string for display.
+
+        Args:
+            dt (datetime): The datetime to convert (assumed UTC; naive treated as UTC).
+
+        Returns:
+            str: Formatted string like "January 27, 2023 at 13:00".
+        """
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ZoneInfo("UTC"))
+        local = dt.astimezone(ZoneInfo("Europe/Paris"))
+        return local.strftime("%B %d, %Y at %H:%M")
 
     @classmethod
     def from_domain(cls, article, author_username: str = "Unknown", author_avatar_file_id: str | None = None):
+        """Build an ArticleResponse from a domain Article entity.
+
+        Maps all fields from the domain object into the DTO. Formats
+        article_edited_at into a human-readable Europe/Paris string.
+
+        Args:
+            article: The domain Article instance to convert.
+            author_username (str): The author's display name. Defaults to "Unknown".
+            author_avatar_file_id (str | None): UUID of the author's avatar file.
+
+        Returns:
+            ArticleResponse: The populated response DTO.
+        """
         description = article.article_description or ""
+
+        article_edited_at_formatted = ""
+        if article.article_edited_at:
+            article_edited_at_formatted = cls._to_local_full(article.article_edited_at)
 
         return cls(
             article_id=article.article_id,
@@ -65,4 +81,6 @@ class ArticleResponse(BaseModel):
             article_content=article.article_content,
             article_published_at=article.article_published_at,
             meta_description=description,
+            article_edited_at=article.article_edited_at,
+            article_edited_at_formatted=article_edited_at_formatted,
         )
