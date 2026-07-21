@@ -649,15 +649,6 @@ input[type=number] {
     border-radius: 9999px;
 }
 
-.comment-avatar-deleted {
-    background: var(--surface);
-    border: none;
-}
-
-.comment-avatar-deleted .comment-avatar-initial {
-    color: var(--on-surface-variant);
-}
-
 .comment-content {
     flex: 1;
     min-width: 0;
