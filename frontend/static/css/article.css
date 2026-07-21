@@ -92,7 +92,25 @@
     border-radius: 9999px;
     object-fit: cover;
     vertical-align: middle;
-    margin-right: var(--spacing-xs);
+}
+
+.meta-author-initial {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 9999px;
+    background: var(--primary-container);
+    color: var(--on-primary-container);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-body-base);
+    flex-shrink: 0;
+}
+
+.meta-author-avatar-link {
+    display: flex;
+    text-decoration: none;
 }
 
 a.meta-author:hover {
@@ -611,6 +629,8 @@ input[type=number] {
     display: flex;
     width: 100%;
     height: 100%;
+    align-items: center;
+    justify-content: center;
 }
 
 .comment-avatar-initial {
