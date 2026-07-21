@@ -108,7 +108,7 @@ class CommentResponse(BaseModel):
 
         edited_at_formatted = ""
         if comment.edited_at:
-            edited_at_formatted = cls._to_local_time(comment.edited_at)
+            edited_at_formatted = cls._to_local_full(comment.edited_at)
 
         return cls(
             comment_id=comment.comment_id,

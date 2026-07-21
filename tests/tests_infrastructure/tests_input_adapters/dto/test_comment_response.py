@@ -74,7 +74,7 @@ def test_comment_response_from_domain_edited():
     assert response.comment_content == "Edited content"
     assert response.is_deleted is False
     assert response.edited_at == edited_at
-    assert response.edited_at_formatted == "12:00"
+    assert response.edited_at_formatted == "October 28, 2023 at 12:00"
 
 def test_comment_response_from_domain_deleted_with_edited_at():
     posted_at = datetime(2023, 10, 27, 14, 30)
@@ -95,7 +95,7 @@ def test_comment_response_from_domain_deleted_with_edited_at():
     assert response.comment_content == "<em>Comment removed</em>"
     assert response.is_deleted is True
     assert response.edited_at == edited_at
-    assert response.edited_at_formatted == "12:00"
+    assert response.edited_at_formatted == "October 28, 2023 at 12:00"
 
 def test_comment_response_from_domain_with_all_fields():
     posted_at = datetime(2023, 10, 27, 14, 30)
