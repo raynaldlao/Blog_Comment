@@ -69,12 +69,16 @@
                     {% if article.author_username == 'Anonymous' %}
                     <span class="meta-author">{{ article.author_username }}</span>
                     {% else %}
-                    <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">
+                    <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author-avatar-link">
                     {% if article.author_avatar_file_id %}
                         <img src="{{ url_for('file.serve_file', file_id=article.author_avatar_file_id, filename='avatar') }}" alt="{{ article.author_username }}" class="meta-author-avatar">
+                    {% else %}
+                        <span class="meta-author-initial">{{ article.author_username[0]|upper }}</span>
                     {% endif %}
-                    {{ article.author_username }}
-                </a>
+                    </a>
+                    <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author">
+                        {{ article.author_username }}
+                    </a>
                     {% endif %}
                     {% if article.article_published_at %}
                     <span class="meta-divider">•</span>

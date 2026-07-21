@@ -151,6 +151,10 @@
         initCommentEditor('reply-editor-' + commentId, 'reply-content-' + commentId);
     };
 
+    window.initEditEditor = function (commentId) {
+        initCommentEditor('edit-editor-' + commentId, 'edit-content-' + commentId);
+    };
+
     document.addEventListener('DOMContentLoaded', () => {
         initCommentEditor('comment-editor', 'comment-content');
     });

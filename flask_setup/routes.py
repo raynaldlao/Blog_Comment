@@ -67,6 +67,18 @@ def _register_comment_routes(app: Flask, adapters: dict) -> None:
         methods=["POST"],
         endpoint="comment.delete_comment",
     )
+    app.add_url_rule(
+        "/articles/<int:article_id>/comments/<int:comment_id>/edit",
+        view_func=com.edit_comment,
+        methods=["POST"],
+        endpoint="comment.edit_comment",
+    )
+    app.add_url_rule(
+        "/articles/<int:article_id>/comments/<int:comment_id>/delete-permanent",
+        view_func=com.hard_delete_comment,
+        methods=["POST"],
+        endpoint="comment.hard_delete_comment",
+    )
 
 
 def _register_auth_routes(app: Flask, adapters: dict) -> None:

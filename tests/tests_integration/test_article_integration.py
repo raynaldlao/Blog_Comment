@@ -181,7 +181,9 @@ class TestPersistence:
 
         assert resp.status_code == 302
         db_session.expire_all()
-        assert db_session.get(CommentModel, comment_id) is None
+        soft = db_session.get(CommentModel, comment_id)
+        assert soft is not None
+        assert soft.is_deleted is True
 
     def test_article_delete_end_to_end_integ(self, client, db_session):
         """

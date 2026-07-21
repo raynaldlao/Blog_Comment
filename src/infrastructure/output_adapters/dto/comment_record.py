@@ -20,10 +20,16 @@ class CommentRecord(BaseModel):
     comment_reply_to: int | None
     comment_content: str
     comment_posted_at: datetime
+    is_deleted: bool = False
+    deleted_at: datetime | None = None
+    edited_at: datetime | None = None
 
     def to_domain(self) -> Comment:
         """
         Converts the database record into a domain Comment entity.
+
+        Maps all fields including is_deleted, deleted_at, and edited_at
+        to the domain Comment object.
 
         Returns:
             Comment: The corresponding domain entity.
@@ -35,4 +41,7 @@ class CommentRecord(BaseModel):
             comment_reply_to=self.comment_reply_to,
             comment_content=self.comment_content,
             comment_posted_at=self.comment_posted_at,
+            is_deleted=self.is_deleted,
+            deleted_at=self.deleted_at,
+            edited_at=self.edited_at,
         )

@@ -19,6 +19,17 @@
                     }
                 });
 
+                document.querySelectorAll('.edit-form-container').forEach(other => {
+                    if (other.style.display === 'block') {
+                        other.style.display = 'none';
+                        const otherId = other.id.replace('edit-form-', '');
+                        const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
+                        if (otherToggle) otherToggle.textContent = '[Edit]';
+                        const otherBody = document.getElementById('comment-body-' + otherId);
+                        if (otherBody) otherBody.style.display = '';
+                    }
+                });
+
                 const isHidden = container.style.display === 'none';
                 container.style.display = isHidden ? 'block' : 'none';
                 replyToggle.textContent = isHidden ? 'Cancel' : 'Reply';
@@ -51,6 +62,58 @@
                 return;
             }
 
+            const editToggle = e.target.closest('.comment-edit-toggle');
+            if (editToggle) {
+                e.preventDefault();
+                const commentId = editToggle.dataset.commentId;
+                const container = document.getElementById('edit-form-' + commentId);
+                if (!container) return;
+
+                document.querySelectorAll('.edit-form-container').forEach(other => {
+                    if (other.style.display === 'block' && other.id !== container.id) {
+                        other.style.display = 'none';
+                        const otherId = other.id.replace('edit-form-', '');
+                        const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
+                        if (otherToggle) otherToggle.textContent = '[Edit]';
+                        const otherBody = document.getElementById('comment-body-' + otherId);
+                        if (otherBody) {
+                            otherBody.style.display = '';
+                            const otherEdited = otherBody.nextElementSibling;
+                            if (otherEdited && otherEdited.classList.contains('comment-edited-line')) {
+                                otherEdited.style.display = '';
+                            }
+                        }
+                    }
+                });
+
+                document.querySelectorAll('.reply-form-container').forEach(other => {
+                    if (other.style.display === 'block') {
+                        other.style.display = 'none';
+                        const otherId = other.id.replace('reply-form-', '');
+                        const otherToggle = document.querySelector('.reply-toggle[data-comment-id="' + otherId + '"]');
+                        if (otherToggle) otherToggle.textContent = 'Reply';
+                    }
+                });
+
+                const isHidden = container.style.display === 'none';
+                container.style.display = isHidden ? 'block' : 'none';
+                editToggle.textContent = isHidden ? 'Cancel' : '[Edit]';
+
+                const bodyText = document.getElementById('comment-body-' + commentId);
+                if (bodyText) {
+                    bodyText.style.display = isHidden ? 'none' : '';
+                    const editedLine = bodyText.nextElementSibling;
+                    if (editedLine && editedLine.classList.contains('comment-edited-line')) {
+                        editedLine.style.display = isHidden ? 'none' : '';
+                    }
+                }
+
+                if (isHidden && window.initEditEditor) {
+                    window.initEditEditor(commentId);
+                }
+                return;
+            }
+
             const cancelBtn = e.target.closest('.cancel-reply');
             if (cancelBtn) {
                 const container = cancelBtn.closest('.reply-form-container');
@@ -61,6 +124,28 @@
                 if (toggle) {
                     toggle.textContent = 'Reply';
                 }
+                return;
+            }
+
+            const cancelEdit = e.target.closest('.cancel-edit');
+            if (cancelEdit) {
+                const container = cancelEdit.closest('.edit-form-container');
+                if (!container) return;
+                container.style.display = 'none';
+                const commentId = container.id.replace('edit-form-', '');
+                const toggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + commentId + '"]');
+                if (toggle) {
+                    toggle.textContent = '[Edit]';
+                }
+                const bodyText = document.getElementById('comment-body-' + commentId);
+                if (bodyText) {
+                    bodyText.style.display = '';
+                    const editedLine = bodyText.nextElementSibling;
+                    if (editedLine && editedLine.classList.contains('comment-edited-line')) {
+                        editedLine.style.display = '';
+                    }
+                }
+                return;
             }
         });
     });

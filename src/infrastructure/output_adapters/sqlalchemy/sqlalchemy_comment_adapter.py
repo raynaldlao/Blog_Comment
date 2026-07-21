@@ -38,10 +38,12 @@ class SqlAlchemyCommentAdapter(CommentRepository):
 
     def save(self, comment: Comment) -> None:
         """
-        Saves a new comment or updates an existing one.
+        Saves a new comment or updates an existing one in the database.
+        If the comment has a valid positive ID, an UPDATE is performed.
+        Otherwise, a new record is INSERTed.
 
         Args:
-            comment (Comment): The Comment domain entity to save.
+            comment (Comment): The domain Comment entity to persist.
         """
         if comment.comment_id and comment.comment_id > 0:
             self._session.query(CommentModel).filter_by(
@@ -51,6 +53,9 @@ class SqlAlchemyCommentAdapter(CommentRepository):
                 CommentModel.comment_written_account_id: comment.comment_written_account_id,
                 CommentModel.comment_reply_to: comment.comment_reply_to,
                 CommentModel.comment_content: comment.comment_content,
+                CommentModel.is_deleted: comment.is_deleted,
+                CommentModel.deleted_at: comment.deleted_at,
+                CommentModel.edited_at: comment.edited_at,
             })
             self._session.commit()
             return
@@ -61,6 +66,9 @@ class SqlAlchemyCommentAdapter(CommentRepository):
         model.comment_written_account_id = comment.comment_written_account_id
         model.comment_reply_to = comment.comment_reply_to
         model.comment_content = comment.comment_content
+        model.is_deleted = comment.is_deleted
+        model.deleted_at = comment.deleted_at
+        model.edited_at = comment.edited_at
         self._session.commit()
 
     def get_by_id(self, comment_id: int) -> Comment | None:

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     TIMESTAMP,
+    Boolean,
     ForeignKey,
     Integer,
     String,
@@ -49,4 +50,13 @@ class CommentModel(SqlAlchemyModel):
     )
     comment_posted_at: Mapped[datetime] = mapped_column(
         name="comment_posted_at", type_=TIMESTAMP, server_default=func.now()
+    )
+    is_deleted: Mapped[bool] = mapped_column(
+        name="is_deleted", type_=Boolean, default=False, nullable=False,
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        name="deleted_at", type_=TIMESTAMP, nullable=True,
+    )
+    edited_at: Mapped[datetime | None] = mapped_column(
+        name="edited_at", type_=TIMESTAMP, nullable=True,
     )

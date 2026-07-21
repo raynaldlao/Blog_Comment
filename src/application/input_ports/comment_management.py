@@ -72,14 +72,49 @@ class CommentManagementPort(ABC):
     @abstractmethod
     def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
         """
-        Deletes a comment.
-        - If comment_written_account_id is None (author deleted), hard-deletes immediately.
-        - Otherwise, first click soft-deletes (content → "Comment removed").
-          Second click hard-deletes recursively.
+        Soft-deletes a comment.
+        Sets is_deleted=True and deleted_at=now.
+        Author and admin can soft-delete.
+        Content preserved in DB but display shows "Comment removed".
+        Author displayed as "Anonymous" after deletion.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
+
+        Returns:
+            bool | str: True if deletion was successful, or an error message string.
+        """
+        pass
+
+    @abstractmethod
+    def edit_comment(self, comment_id: int, user_id: int, content: str) -> Comment | str:
+        """
+        Edits a comment's content.
+        Author only (not admin).
+        Updates content and sets edited_at=now.
+        Cannot edit a deleted comment.
+
+        Args:
+            comment_id (int): ID of the comment to edit.
+            user_id (int): ID of the user requesting the edit.
+            content (str): New text content of the comment.
+
+        Returns:
+            Comment | str: The updated Comment entity, or an error message string.
+        """
+        pass
+
+    @abstractmethod
+    def hard_delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+        """
+        Permanently deletes a comment from the database. Admin only.
+        Intended for removing already soft-deleted comments.
+        Children comments get comment_reply_to set to NULL via FK.
+
+        Args:
+            comment_id (int): ID of the comment to permanently delete.
+            user_id (int): ID of the requesting user (must be admin).
 
         Returns:
             bool | str: True if deletion was successful, or an error message string.
