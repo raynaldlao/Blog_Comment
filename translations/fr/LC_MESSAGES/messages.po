@@ -154,6 +154,10 @@ msgstr "Copier le bloc"
 msgid "Copied to clipboard"
 msgstr "Copié dans le presse-papier"
 
+#: frontend/static/scripts/code-copy.js
+msgid "Failed to copy"
+msgstr "Échec de la copie"
+
 #: frontend/templates/article_create.html:52
 #: frontend/templates/article_edit.html:81
 msgid "Move Up"

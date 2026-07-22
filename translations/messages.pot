@@ -153,6 +153,9 @@ msgstr ""
 msgid "Copied to clipboard"
 msgstr ""
 
+msgid "Failed to copy"
+msgstr ""
+
 #: frontend/templates/article_create.html:52
 #: frontend/templates/article_edit.html:81
 msgid "Move Up"
