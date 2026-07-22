@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 15:55+0200\n"
+"POT-Creation-Date: 2026-07-23 00:37+0200\n"
 "PO-Revision-Date: 2026-07-22 14:15+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.18.0\n"
+"Generated-By: Babel 2.10.3\n"
 
 #: frontend/templates/article_create.html:3
 msgid "Write an Article - DevJournal"
@@ -43,21 +43,8 @@ msgstr "Échec de la sauvegarde."
 msgid "Network error."
 msgstr "Erreur réseau."
 
-#: frontend/core/components/ArticleForm.jsx:85
-msgid "Upload failed."
-msgstr "Échec du téléchargement."
-
-#: frontend/static/scripts/suneditor-init.js:140
-msgid "Comment cannot be empty"
-msgstr "Le commentaire ne peut pas être vide."
-
-#: frontend/static/scripts/suneditor-init.js:15
-#: frontend/templates/article_detail.html:239
-msgid "Insert Emoji"
-msgstr "Insérer un émoticône"
-
 #: frontend/templates/article_create.html:31
-#: frontend/templates/article_detail.html:234
+#: frontend/templates/article_detail.html:238
 #: frontend/templates/article_edit.html:60
 msgid "Loading..."
 msgstr "Chargement..."
@@ -103,7 +90,7 @@ msgid "Publish"
 msgstr "Publier"
 
 #: frontend/templates/article_create.html:40
-#: frontend/templates/article_detail.html:155
+#: frontend/templates/article_detail.html:159
 #: frontend/templates/article_edit.html:69 frontend/templates/profile.html:94
 #: frontend/templates/profile.html:116
 msgid "Save"
@@ -145,26 +132,16 @@ msgid "Only YouTube links are supported"
 msgstr "Seules les liens YouTube sont supportés"
 
 #: frontend/templates/article_create.html:48
+#: frontend/templates/article_detail.html:242
 #: frontend/templates/article_edit.html:77
 msgid "Failed to load article."
 msgstr "Échec du chargement de l'article."
 
 #: frontend/templates/article_create.html:49
+#: frontend/templates/article_detail.html:244
 #: frontend/templates/article_edit.html:78
 msgid "Copy"
 msgstr "Copier"
-
-#: frontend/core/utils/custom-code-block-spec.js
-msgid "Plain Text"
-msgstr "Texte simple"
-
-#: frontend/core/utils/custom-code-block-spec.js
-msgid "Search languages..."
-msgstr "Rechercher un langage..."
-
-#: frontend/core/utils/custom-code-block-spec.js
-msgid "No languages found"
-msgstr "Aucun langage trouvé"
 
 #: frontend/templates/article_create.html:50
 #: frontend/templates/article_edit.html:79
@@ -172,6 +149,7 @@ msgid "Copy Block"
 msgstr "Copier le bloc"
 
 #: frontend/templates/article_create.html:51
+#: frontend/templates/article_detail.html:240
 #: frontend/templates/article_edit.html:80
 msgid "Copied to clipboard"
 msgstr "Copié dans le presse-papier"
@@ -199,13 +177,35 @@ msgid "Align text justify"
 msgstr "Justifier le texte"
 
 #: frontend/templates/article_create.html:56
-#: frontend/templates/article_detail.html:236
+#: frontend/templates/article_detail.html:243
 #: frontend/templates/article_edit.html:85
+msgid "Plain Text"
+msgstr "Texte simple"
+
+#: frontend/templates/article_create.html:57
+#: frontend/templates/article_edit.html:86
+msgid "Search languages..."
+msgstr "Rechercher un langage..."
+
+#: frontend/templates/article_create.html:58
+#: frontend/templates/article_edit.html:87
+msgid "No languages found"
+msgstr "Aucun langage trouvé"
+
+#: frontend/templates/article_create.html:59
+#: frontend/templates/article_detail.html:246
+#: frontend/templates/article_edit.html:88
 msgid "Something went wrong. Please reload the page."
 msgstr "Une erreur est survenue. Veuillez recharger la page."
 
+#: frontend/templates/article_detail.html:55
+#: frontend/templates/article_detail.html:120
+#: frontend/templates/article_list.html:70
+msgid "Anonymous"
+msgstr "Anonyme"
+
 #: frontend/templates/article_detail.html:72
-#: frontend/templates/article_detail.html:145
+#: frontend/templates/article_detail.html:149
 #: frontend/templates/article_list.html:88
 #, python-format
 msgid "edited at %(date)s"
@@ -224,6 +224,16 @@ msgstr "Supprimer définitivement cet article ?"
 msgid "[Edit]"
 msgstr "[Modifier]"
 
+#: frontend/templates/article_detail.html:126
+#: frontend/templates/article_detail.html:160
+#: frontend/templates/article_detail.html:168
+#: frontend/templates/article_detail.html:184
+#: frontend/templates/article_list.html:143 frontend/templates/base.html:108
+#: frontend/templates/base.html:132 frontend/templates/profile.html:93
+#: frontend/templates/profile.html:115 frontend/templates/user_list.html:143
+msgid "Cancel"
+msgstr "Annuler"
+
 #: frontend/templates/article_detail.html:131
 #: frontend/templates/article_detail.html:137
 msgid "[Delete]"
@@ -233,65 +243,69 @@ msgstr "[Supprimer]"
 msgid "Permanently delete this comment? This cannot be undone."
 msgstr "Supprimer définitivement ce commentaire ? Action irréversible."
 
-#: frontend/templates/article_detail.html:152
-#: frontend/templates/article_detail.html:176
-#: frontend/templates/article_detail.html:213
-msgid "Comment must be between 1 and 5000 characters"
-msgstr "Le commentaire doit contenir entre 1 et 5 000 caractères"
+#: frontend/templates/article_detail.html:143
+msgid "Comment removed"
+msgstr "Commentaire supprimé."
 
 #: frontend/templates/article_detail.html:156
 #: frontend/templates/article_detail.html:180
-#: frontend/templates/article_list.html:143 frontend/templates/base.html:108
-#: frontend/templates/base.html:132 frontend/templates/profile.html:93
-#: frontend/templates/profile.html:115 frontend/templates/user_list.html:143
-msgid "Cancel"
-msgstr "Annuler"
+#: frontend/templates/article_detail.html:217
+msgid "Comment must be between 1 and 5000 characters"
+msgstr "Le commentaire doit contenir entre 1 et 5 000 caractères"
 
-#: frontend/templates/article_detail.html:164
+#: frontend/templates/article_detail.html:168
 msgid "Reply"
 msgstr "Répondre"
 
-#: frontend/templates/article_detail.html:167
-#: frontend/templates/article_detail.html:187
+#: frontend/templates/article_detail.html:171
+#: frontend/templates/article_detail.html:191
 msgid "View replies"
 msgstr "Voir les réponses"
 
-#: frontend/templates/article_detail.html:167
-#: frontend/templates/article_detail.html:187
+#: frontend/templates/article_detail.html:171
+#: frontend/templates/article_detail.html:191
 msgid "Hide replies"
 msgstr "Masquer les réponses"
 
-#: frontend/templates/article_detail.html:179
+#: frontend/templates/article_detail.html:183
 msgid "Post Reply"
 msgstr "Publier la réponse"
 
-#: frontend/templates/article_detail.html:203
+#: frontend/templates/article_detail.html:207
 #, python-format
 msgid "Comments (%(count)s)"
 msgstr "Commentaires (%(count)s)"
 
-#: frontend/templates/article_detail.html:207
+#: frontend/templates/article_detail.html:211
 msgid "No comments yet."
 msgstr "Aucun commentaire pour l'instant."
 
-#: frontend/templates/article_detail.html:212
+#: frontend/templates/article_detail.html:216
 msgid "Join the discussion"
 msgstr "Participer à la discussion"
 
-#: frontend/templates/article_detail.html:219
+#: frontend/templates/article_detail.html:223
 msgid "Post Comment"
 msgstr "Publier le commentaire"
 
-#: frontend/templates/article_detail.html:225
+#: frontend/templates/article_detail.html:229
 #, python-format
 msgid ""
 "Please <a href=\"%(url)s\" class=\"comment-auth-link\">sign in</a> to "
 "join the conversation."
 msgstr ""
 
-#: frontend/templates/article_detail.html:235
+#: frontend/templates/article_detail.html:239
 msgid "Unable to render article content."
 msgstr "Impossible d'afficher le contenu de l'article."
+
+#: frontend/templates/article_detail.html:241
+msgid "Comment cannot be empty"
+msgstr "Le commentaire ne peut pas être vide."
+
+#: frontend/templates/article_detail.html:245
+msgid "Insert Emoji"
+msgstr "Insérer un émoticône"
 
 #: frontend/templates/article_edit.html:3
 msgid "Edit Article - DevJournal"
@@ -483,18 +497,6 @@ msgstr "Utilisateur"
 msgid "Author"
 msgstr "Auteur"
 
-#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
-msgid "admin"
-msgstr "Administrateur"
-
-#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
-msgid "author"
-msgstr "Auteur"
-
-#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
-msgid "user"
-msgstr "Utilisateur"
-
 #: frontend/templates/profile.html:40 frontend/templates/user_list.html:78
 msgid "Update"
 msgstr "Mettre à jour"
@@ -556,7 +558,9 @@ msgstr "Déconnexion"
 msgid ""
 "Are you sure you want to delete your account ? This action is "
 "irreversible."
-msgstr "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
+msgstr ""
+"Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est "
+"irréversible."
 
 #: frontend/templates/profile.html:136 frontend/templates/profile.html:159
 msgid "Delete Account"
@@ -641,75 +645,75 @@ msgstr "—"
 msgid "Enter page number (1 - %(max)d)"
 msgstr "Entrez le numéro de page (1 - %(max)d)"
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:77
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:78
 msgid "You have been logged out."
 msgstr "Vous avez été déconnecté."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:91
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:92
 msgid "Please sign in to view your profile."
 msgstr "Veuillez vous connecter pour voir votre profil."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:148
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:149
 msgid "Authentication required."
 msgstr "Authentification requise."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:152
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:153
 msgid "No file provided."
 msgstr "Aucun fichier fourni."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:195
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:226
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:254
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:343
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:196
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:227
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:255
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:344
 msgid "Please sign in."
 msgstr "Veuillez vous connecter."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:200
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:201
 msgid "No avatar to remove."
 msgstr "Aucun avatar à supprimer."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:207
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:208
 msgid "Failed to remove profile photo."
 msgstr "Échec de la suppression de la photo de profil."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:210
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:211
 msgid "Profile photo removed."
 msgstr "Photo de profil supprimée."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:231
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:232
 msgid "Email is required."
 msgstr "L'email est requis."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:238
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:239
 msgid "Email updated."
 msgstr "Email mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:259
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:260
 msgid "Password is required."
 msgstr "Le mot de passe est requis."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:266
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:267
 msgid "Password updated."
 msgstr "Mot de passe mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:357
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:358
 msgid "Account not found."
 msgstr "Compte introuvable."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:374
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:377
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:375
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:378
 msgid "Account deleted."
 msgstr "Compte supprimé."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:416
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:417
 msgid "Role updated."
 msgstr "Rôle mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:451
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:452
 msgid "Account banned."
 msgstr "Compte banni."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:482
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:483
 msgid "Account unbanned."
 msgstr "Compte débanni."
 
@@ -829,11 +833,11 @@ msgstr "Commentaire mis à jour."
 msgid "Comment permanently deleted."
 msgstr "Commentaire définitivement supprimé."
 
-#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:32
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:33
 msgid "No file provided"
 msgstr "Aucun fichier fourni"
 
-#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:72
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:73
 msgid "File not found"
 msgstr "Fichier introuvable"
 
@@ -888,4 +892,16 @@ msgstr "Inscription réussie. Veuillez vous connecter."
 #~ msgstr ""
 #~ "Vous postez trop vite. Veuillez attendre"
 #~ " %(remaining)ss avant de reposter."
+
+#~ msgid "Upload failed."
+#~ msgstr "Échec du téléchargement."
+
+#~ msgid "admin"
+#~ msgstr "Administrateur"
+
+#~ msgid "author"
+#~ msgstr "Auteur"
+
+#~ msgid "user"
+#~ msgstr "Utilisateur"
 

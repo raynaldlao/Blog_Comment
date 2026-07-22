@@ -51,8 +51,8 @@
         <strong class="article-description detail-description">{{ article.article_description }}</strong>
         {% endif %}
         <div class="item-meta">
-            {% if article.author_username == 'Anonymous' %}
-            <span class="meta-author">{{ article.author_username }}</span>
+            {% if article.article_author_id is none %}
+            <span class="meta-author">{{ _('Anonymous') }}</span>
             {% else %}
             <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author-avatar-link">
                 {% if article.author_avatar_file_id %}
@@ -101,7 +101,7 @@
             <div class="comment-avatar">
                 {% if is_deleted %}
                     <span class="comment-avatar-initial comment-avatar-deleted">?</span>
-                {% elif node.comment.author_username == 'Anonymous' %}
+                {% elif node.comment.comment_written_account_id is none %}
                     <span class="comment-avatar-initial">A</span>
                 {% else %}
                     <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
@@ -116,8 +116,8 @@
             <div class="comment-content">
                 <div class="comment-header-section">
                     <div class="comment-header">
-                        {% if is_deleted or node.comment.author_username == 'Anonymous' %}
-                            <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% if is_deleted or node.comment.comment_written_account_id is none %}
+                            <span class="comment-author">{{ _('Anonymous') }}</span>
                         {% else %}
                             <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
                         {% endif %}
@@ -139,7 +139,11 @@
                         {% endif %}
                     </div>
                     <div class="comment-body-text" id="comment-body-{{ node.comment.comment_id }}">
-                        {{ node.comment.comment_content | safe }}
+                        {% if is_deleted or node.comment.comment_written_account_id is none %}
+                            <em>{{ _('Comment removed') }}</em>
+                        {% else %}
+                            {{ node.comment.comment_content | safe }}
+                        {% endif %}
                     </div>
                     {% if node.comment.edited_at and not node.comment.is_deleted %}
                         <div class="comment-edited-line">{{ _('edited at %(date)s', date=node.comment.edited_at|format_datetime_locale) }}</div>

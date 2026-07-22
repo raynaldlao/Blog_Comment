@@ -66,8 +66,8 @@
                     {% endif %}
                 </div>
                 <div class="item-meta">
-                    {% if article.author_username == 'Anonymous' %}
-                    <span class="meta-author">{{ article.author_username }}</span>
+                    {% if article.article_author_id is none %}
+                    <span class="meta-author">{{ _('Anonymous') }}</span>
                     {% else %}
                     <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author-avatar-link">
                     {% if article.author_avatar_file_id %}

@@ -47,7 +47,7 @@ class CommentResponse(BaseModel):
 
         If the comment's author account has been deleted (comment_written_account_id is None)
         or the comment has been soft-deleted (is_deleted is True),
-        the author is displayed as "Anonymous" and content shows as '<em>Comment removed</em>'.
+        the author is set to "Anonymous". Content display is handled by the template.
 
         Args:
             comment: The domain Comment entity to convert.
@@ -60,13 +60,8 @@ class CommentResponse(BaseModel):
         content = comment.comment_content
         is_deleted = comment.is_deleted
 
-        if comment.comment_written_account_id is None:
+        if comment.comment_written_account_id is None or is_deleted:
             author_username = "Anonymous"
-            content = "<em>Comment removed</em>"
-
-        elif is_deleted:
-            author_username = "Anonymous"
-            content = "<em>Comment removed</em>"
 
         return cls(
             comment_id=comment.comment_id,

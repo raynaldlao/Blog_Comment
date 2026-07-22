@@ -56,8 +56,8 @@
         for (const [key, ...path] of mappings) {
             if (flat[key] === undefined) continue;
             let obj = dst;
-            for (let i = 0; i < path.length; i++) obj = obj[path[i]];
-            obj[key] = flat[key];
+                for (let i = 0; i < path.length; i++) obj = obj[path[i]];
+                obj[key] = flat[key];
         }
 
         const menuKeys = ['menu_bordered', 'menu_code', 'menu_neon', 'menu_shadow', 'menu_spaced', 'menu_translucent'];
@@ -200,11 +200,11 @@
             let lastTap = null;
             wysiwyg.addEventListener('blur', () => {
                 lastTap = null;
-                touchTap = null;
             });
             wysiwyg.addEventListener('click', () => {
                 const now = Date.now();
                 if (lastTap && now - lastTap < 400) {
+                    console.log('[debug] double-tap select-all fired');
                     lastTap = null;
                 } else {
                     lastTap = now;
@@ -223,6 +223,9 @@
                 } else {
                     touchTap = now;
                 }
+            });
+            wysiwyg.addEventListener('keydown', () => {
+                console.log('[debug] wysiwyg keydown');
             });
         }
 

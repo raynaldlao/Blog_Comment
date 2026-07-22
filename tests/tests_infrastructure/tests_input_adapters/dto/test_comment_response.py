@@ -54,7 +54,7 @@ def test_comment_response_from_domain_deleted():
 
     response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
     assert response.author_username == "Anonymous"
-    assert response.comment_content == "<em>Comment removed</em>"
+    assert response.comment_content == "Original content"
     assert response.is_deleted is True
 
 def test_comment_response_from_domain_edited():
@@ -91,7 +91,7 @@ def test_comment_response_from_domain_deleted_with_edited_at():
 
     response = CommentResponse.from_domain(domain_comment, author_username="johndoe")
     assert response.author_username == "Anonymous"
-    assert response.comment_content == "<em>Comment removed</em>"
+    assert response.comment_content == "Edited then deleted"
     assert response.is_deleted is True
     assert response.edited_at == edited_at
 
@@ -170,7 +170,7 @@ def test_from_domain_with_none_author_id_maps_to_removed():
     result = CommentResponse.from_domain(comment, "some_user")
     assert result.author_username == "Anonymous"
     assert result.comment_written_account_id is None
-    assert result.comment_content == "<em>Comment removed</em>"
+    assert result.comment_content == "Original content"
 
 def test_map_nested_tree_threads_avatar():
     posted_at = datetime(2023, 10, 27, 14, 30)
