@@ -29,3 +29,4 @@ class ArticleModel(SqlAlchemyModel):
     )
     article_content: Mapped[str] = mapped_column(Text, nullable=False)
     article_published_at: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    article_edited_at: Mapped[datetime | None] = mapped_column(TIMESTAMP, nullable=True)

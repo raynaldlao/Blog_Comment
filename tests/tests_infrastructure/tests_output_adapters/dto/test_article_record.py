@@ -13,6 +13,7 @@ class MockArticleModel:
         self.article_title = "ORM Title"
         self.article_content = "ORM Content"
         self.article_published_at = datetime(2023, 1, 1, 12, 0, 0)
+        self.article_edited_at = None
 
 
 class TestArticleRecordCreation:

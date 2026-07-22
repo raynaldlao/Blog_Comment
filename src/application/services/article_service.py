@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import UTC, datetime
 
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
@@ -205,6 +206,7 @@ class ArticleService(ArticleManagementPort):
         article.article_title = title
         article.article_description = description
         article.article_content = content
+        article.article_edited_at = datetime.now(UTC)
         self.article_repository.save(article)
 
         if self.file_service:

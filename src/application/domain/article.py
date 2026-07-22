@@ -16,6 +16,7 @@ class Article:
         article_description (str): Short description shown in article list.
         article_content (str): Full text content of the article.
         article_published_at (datetime): Timestamp of publication.
+        article_edited_at (datetime | None): Timestamp of last edit. None if never edited.
     """
 
     def __init__(
@@ -26,26 +27,15 @@ class Article:
         article_content: str,
         article_published_at: datetime | None,
         article_description: str = "",
+        article_edited_at: datetime | None = None,
     ):
-        """
-        Initialize a blog article.
-
-        Args:
-            article_id (int): Unique identifier for the article.
-            article_author_id (int | None): Reference to the author's Account.
-                None when the author's account has been deleted.
-            article_title (str): Title of the article.
-            article_content (str): Full text content of the article.
-            article_published_at (datetime): Timestamp of publication.
-            article_description (str): Short description displayed in article
-                list. Optional, defaults to empty string.
-        """
         self.article_id = article_id
         self.article_author_id = article_author_id
         self.article_title = article_title
         self.article_description = article_description
         self.article_content = article_content
         self.article_published_at = article_published_at
+        self.article_edited_at = article_edited_at
 
 @dataclass
 class ArticleWithAuthor:

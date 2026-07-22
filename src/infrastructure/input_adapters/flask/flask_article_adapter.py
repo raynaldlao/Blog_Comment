@@ -197,6 +197,7 @@ class ArticleAdapter:
             "author_id": article.article_author_id,
             "author_username": username,
             "published_at": article.article_published_at,
+            "article_edited_at": article.article_edited_at,
         })
 
     def api_create_article(self) -> Response | tuple[Response, int]:

@@ -24,14 +24,9 @@ class ArticleRecord(BaseModel):
     article_description: str = ""
     article_content: str
     article_published_at: datetime | None = None
+    article_edited_at: datetime | None = None
 
     def to_domain(self) -> Article:
-        """
-        Converts the database record into a domain Article entity.
-
-        Returns:
-            Article: The corresponding domain entity.
-        """
         return Article(
             article_id=self.article_id,
             article_author_id=self.article_author_id,
@@ -39,4 +34,5 @@ class ArticleRecord(BaseModel):
             article_description=self.article_description,
             article_content=self.article_content,
             article_published_at=self.article_published_at,
+            article_edited_at=self.article_edited_at,
         )

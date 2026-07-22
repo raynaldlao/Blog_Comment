@@ -83,6 +83,10 @@
                     {% if article.article_published_at %}
                     <span class="meta-divider">•</span>
                     <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
+                    {% if article.article_edited_at %}
+                    <span class="meta-divider">•</span>
+                    <span class="article-edited-line">edited at {{ article.article_edited_at_formatted }}</span>
+                    {% endif %}
                     {% endif %}
                 </div>
             </div>

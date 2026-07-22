@@ -613,3 +613,42 @@ class TestCommentHardDeleteIntegration:
         db_session.expire_all()
         assert db_session.get(CommentModel, cid) is None
         assert b"Comment permanently deleted" in resp.data
+
+
+class TestArticleEditEditedAtIntegration:
+    def test_article_edit_sets_edited_at_integration(self, client, db_session):
+        """Création → édition → edited_at persiste en base.
+
+        Vérifie le round-trip complet : après édition d'un article,
+        recharger depuis la DB donne un edited_at non-None.
+        """
+        author = AccountModel(
+            account_username="edit_test_author", account_email="eta@t.com",
+            account_password="p", account_role="author",
+        )
+        db_session.add(author)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="Original Title", article_content="Original Content",
+            article_author_id=author.account_id,
+        )
+        db_session.add(article)
+        db_session.commit()
+
+        art_id = article.article_id
+        assert article.article_edited_at is None
+
+        client.post("/login", data={"username": "edit_test_author", "password": "p"})
+
+        resp = client.put(f"/api/articles/{art_id}", json={
+            "title": "Updated Title",
+            "content": "Updated Content",
+        })
+        assert resp.status_code == 200
+        assert resp.get_json() == {"ok": True}
+
+        db_session.expire_all()
+        updated = db_session.get(ArticleModel, art_id)
+        assert updated.article_title == "Updated Title"
+        assert updated.article_edited_at is not None
