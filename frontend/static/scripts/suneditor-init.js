@@ -1,5 +1,11 @@
 'use strict';
 
+const _t = key => {
+    const el = document.getElementById('app-translations');
+    if (!el) return key;
+    try { return JSON.parse(el.textContent)[key] || key; } catch { return key; }
+};
+
 (() => {
     function createEmojiPlugin(textareaId) {
         return {
@@ -137,7 +143,7 @@
                 const text = html.replace(/<[^>]+>/g, '').trim();
                 if (!text) {
                     e.preventDefault();
-                    showToast('Comment cannot be empty');
+                    showToast(_t('Comment cannot be empty'));
                     return;
                 }
                 hiddenInput.value = html;

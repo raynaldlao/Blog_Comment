@@ -43,6 +43,14 @@ msgstr "Échec de la sauvegarde."
 msgid "Network error."
 msgstr "Erreur réseau."
 
+#: frontend/core/components/ArticleForm.jsx:85
+msgid "Upload failed."
+msgstr "Échec du téléchargement."
+
+#: frontend/static/scripts/suneditor-init.js:140
+msgid "Comment cannot be empty"
+msgstr "Le commentaire ne peut pas être vide."
+
 #: frontend/templates/article_create.html:31
 #: frontend/templates/article_detail.html:234
 #: frontend/templates/article_edit.html:60
@@ -141,6 +149,18 @@ msgstr "Échec du chargement de l'article."
 msgid "Copy"
 msgstr "Copier"
 
+#: frontend/core/utils/custom-code-block-spec.js
+msgid "Plain Text"
+msgstr "Texte simple"
+
+#: frontend/core/utils/custom-code-block-spec.js
+msgid "Search languages..."
+msgstr "Rechercher un langage..."
+
+#: frontend/core/utils/custom-code-block-spec.js
+msgid "No languages found"
+msgstr "Aucun langage trouvé"
+
 #: frontend/templates/article_create.html:50
 #: frontend/templates/article_edit.html:79
 msgid "Copy Block"
@@ -230,6 +250,11 @@ msgstr "Répondre"
 #: frontend/templates/article_detail.html:187
 msgid "View replies"
 msgstr "Voir les réponses"
+
+#: frontend/templates/article_detail.html:167
+#: frontend/templates/article_detail.html:187
+msgid "Hide replies"
+msgstr "Masquer les réponses"
 
 #: frontend/templates/article_detail.html:179
 msgid "Post Reply"

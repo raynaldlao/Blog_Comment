@@ -82,7 +82,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
     const res = await fetch('/api/upload/image', { method: 'POST', body: formData });
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Upload failed.');
+      throw new Error(err.error || _('Upload failed.'));
     }
     const data = await res.json();
     return data.url;

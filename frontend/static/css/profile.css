@@ -85,6 +85,7 @@
 .logout-form {
     margin: 0;
     text-align: center;
+    display: contents;
 }
 
 .profile-actions {

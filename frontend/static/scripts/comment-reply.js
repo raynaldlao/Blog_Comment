@@ -15,7 +15,7 @@
                         other.style.display = 'none';
                         const otherId = other.id.replace('reply-form-', '');
                         const otherToggle = document.querySelector('.reply-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = 'Reply';
+                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.replyText;
                     }
                 });
 
@@ -24,7 +24,7 @@
                         other.style.display = 'none';
                         const otherId = other.id.replace('edit-form-', '');
                         const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = '[Edit]';
+                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.editText;
                         const otherBody = document.getElementById('comment-body-' + otherId);
                         if (otherBody) otherBody.style.display = '';
                     }
@@ -32,7 +32,7 @@
 
                 const isHidden = container.style.display === 'none';
                 container.style.display = isHidden ? 'block' : 'none';
-                replyToggle.textContent = isHidden ? 'Cancel' : 'Reply';
+                replyToggle.textContent = isHidden ? replyToggle.dataset.cancelText : replyToggle.dataset.replyText;
 
                 if (isHidden && window.initReplyEditor) {
                     window.initReplyEditor(commentId);
@@ -46,7 +46,7 @@
                 if (!commentEl) return;
                 commentEl.classList.toggle('replies-visible');
                 const isVisible = commentEl.classList.contains('replies-visible');
-                viewBtn.textContent = isVisible ? 'Hide replies' : 'View replies';
+                viewBtn.textContent = isVisible ? viewBtn.dataset.hideText : viewBtn.dataset.showText;
 
                 const cascade = (el, visible) => {
                     const replies = el.querySelector(':scope > .comment-content > .comment-replies');
@@ -54,7 +54,7 @@
                     replies.querySelectorAll(':scope > .comment').forEach(child => {
                         child.classList.toggle('replies-visible', visible);
                         const btn = child.querySelector('.view-replies-btn');
-                        if (btn) btn.textContent = visible ? 'Hide replies' : 'View replies';
+                        if (btn) btn.textContent = visible ? btn.dataset.hideText : btn.dataset.showText;
                         cascade(child, visible);
                     });
                 };
@@ -74,7 +74,7 @@
                         other.style.display = 'none';
                         const otherId = other.id.replace('edit-form-', '');
                         const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = '[Edit]';
+                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.editText;
                         const otherBody = document.getElementById('comment-body-' + otherId);
                         if (otherBody) {
                             otherBody.style.display = '';
@@ -91,13 +91,13 @@
                         other.style.display = 'none';
                         const otherId = other.id.replace('reply-form-', '');
                         const otherToggle = document.querySelector('.reply-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = 'Reply';
+                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.replyText;
                     }
                 });
 
                 const isHidden = container.style.display === 'none';
                 container.style.display = isHidden ? 'block' : 'none';
-                editToggle.textContent = isHidden ? 'Cancel' : '[Edit]';
+                editToggle.textContent = isHidden ? editToggle.dataset.cancelText : editToggle.dataset.editText;
 
                 const bodyText = document.getElementById('comment-body-' + commentId);
                 if (bodyText) {
@@ -122,7 +122,7 @@
                 const commentId = container.id.replace('reply-form-', '');
                 const toggle = document.querySelector('.reply-toggle[data-comment-id="' + commentId + '"]');
                 if (toggle) {
-                    toggle.textContent = 'Reply';
+                    toggle.textContent = toggle.dataset.replyText;
                 }
                 return;
             }
@@ -135,7 +135,7 @@
                 const commentId = container.id.replace('edit-form-', '');
                 const toggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + commentId + '"]');
                 if (toggle) {
-                    toggle.textContent = '[Edit]';
+                    toggle.textContent = toggle.dataset.editText;
                 }
                 const bodyText = document.getElementById('comment-body-' + commentId);
                 if (bodyText) {

@@ -1,4 +1,5 @@
 import { createCodeBlockSpec as createOriginalCodeBlockSpec } from '@blocknote/core';
+import { _ } from './i18n.js';
 
 function createLanguageSelectorWidget(select, block, editor) {
   try {
@@ -7,7 +8,7 @@ function createLanguageSelectorWidget(select, block, editor) {
 
     const trigger = document.createElement('button');
     trigger.className = 'code-block-lang-trigger';
-    trigger.textContent = select.options[select.selectedIndex]?.text || 'Plain Text';
+    trigger.textContent = _(select.options[select.selectedIndex]?.text) || _('Plain Text');
     trigger.tabIndex = 0;
 
     const dropdown = document.createElement('div');
@@ -22,7 +23,7 @@ function createLanguageSelectorWidget(select, block, editor) {
 
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
-    searchInput.placeholder = 'Search languages...';
+    searchInput.placeholder = _('Search languages...');
     searchInput.className = 'code-block-lang-search';
 
     searchWrap.appendChild(searchIcon);
@@ -37,7 +38,7 @@ function createLanguageSelectorWidget(select, block, editor) {
     const items = [];
     const noResultsMsg = document.createElement('div');
     noResultsMsg.className = 'code-block-lang-no-results';
-    noResultsMsg.textContent = 'No languages found';
+    noResultsMsg.textContent = _('No languages found');
     noResultsMsg.style.display = 'none';
 
     Array.from(select.options).forEach((opt) => {
@@ -47,11 +48,11 @@ function createLanguageSelectorWidget(select, block, editor) {
         item.classList.add('code-block-lang-item--selected');
       }
       item.dataset.lang = opt.value;
-      item.textContent = opt.text;
+      item.textContent = _(opt.text);
       item.addEventListener('click', () => {
         select.value = opt.value;
         select.dispatchEvent(new Event('change'));
-        trigger.textContent = opt.text;
+        trigger.textContent = _(opt.text);
         closeDropdown();
       });
       list.appendChild(item);
@@ -176,7 +177,7 @@ function createLanguageSelectorWidget(select, block, editor) {
     });
 
     select.addEventListener('change', () => {
-      trigger.textContent = select.options[select.selectedIndex]?.text || 'Plain Text';
+      trigger.textContent = _(select.options[select.selectedIndex]?.text) || _('Plain Text');
     });
 
     dropdown.appendChild(searchWrap);
@@ -222,7 +223,7 @@ export function createCustomCodeBlockSpec(options) {
     function showCopyTooltip() {
       const tooltip = document.createElement('div');
       tooltip.className = 'code-block-tooltip';
-      tooltip.textContent = 'Copy';
+      tooltip.textContent = _('Copy');
       document.body.appendChild(tooltip);
       const rect = copyBtn.getBoundingClientRect();
       const th = tooltip.offsetHeight;
@@ -256,7 +257,7 @@ export function createCustomCodeBlockSpec(options) {
       function showTooltip() {
         const tooltip = document.createElement('div');
         tooltip.className = 'code-block-tooltip';
-        tooltip.textContent = 'Delete';
+        tooltip.textContent = _('Delete');
         document.body.appendChild(tooltip);
         const rect = deleteBtn.getBoundingClientRect();
         const th = tooltip.offsetHeight;
@@ -302,7 +303,7 @@ export function createCustomCodeBlockSpec(options) {
         const label = document.createElement('span');
         label.className = 'code-block-lang-trigger';
         label.dataset.readonly = '';
-        label.textContent = lang;
+        label.textContent = _(lang) || _('Plain Text');
         container.appendChild(label);
         result.dom.querySelector('[contenteditable="false"]')?.appendChild(container);
       }

@@ -2,6 +2,11 @@
   'use strict';
 
   const DEBUG = false;
+  const _t = key => {
+    const el = document.getElementById('app-translations');
+    if (!el) return key;
+    try { return JSON.parse(el.textContent)[key] || key; } catch { return key; }
+  };
 
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.code-copy-btn');
@@ -44,7 +49,7 @@
 
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = 'Copied to clipboard';
+    toast.textContent = _t('Copied to clipboard');
 
     document.body.appendChild(toast);
 

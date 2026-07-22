@@ -123,7 +123,7 @@
                         {% endif %}
                         <span class="comment-timestamp">{{ node.comment.comment_posted_at|format_datetime_locale }}</span>
                         {% if current_user and is_author and not is_deleted %}
-                            <button type="button" class="comment-edit-toggle" data-comment-id="{{ node.comment.comment_id }}">{{ _('[Edit]') }}</button>
+                            <button type="button" class="comment-edit-toggle" data-comment-id="{{ node.comment.comment_id }}" data-edit-text="{{ _('[Edit]') }}" data-cancel-text="{{ _('Cancel') }}">{{ _('[Edit]') }}</button>
                         {% endif %}
                         {% if current_user and (is_author or is_admin) and not is_deleted %}
                             <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
@@ -161,10 +161,10 @@
                     {% if current_user and not is_deleted %}
                     <div class="comment-actions">
                         {% if depth < 3 %}
-                        <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">{{ _('Reply') }}</button>
+                        <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}" data-reply-text="{{ _('Reply') }}" data-cancel-text="{{ _('Cancel') }}">{{ _('Reply') }}</button>
                         {% endif %}
                         {% if node.replies %}
-                        <button type="button" class="view-replies-btn">{{ _('View replies') }}</button>
+                        <button type="button" class="view-replies-btn" data-show-text="{{ _('View replies') }}" data-hide-text="{{ _('Hide replies') }}">{{ _('View replies') }}</button>
                         {% endif %}
                     </div>
                         {% if depth < 3 %}
@@ -184,7 +184,7 @@
                         {% endif %}
                     {% elif node.replies %}
                     <div class="comment-actions">
-                        <button type="button" class="view-replies-btn">{{ _('View replies') }}</button>
+                        <button type="button" class="view-replies-btn" data-show-text="{{ _('View replies') }}" data-hide-text="{{ _('Hide replies') }}">{{ _('View replies') }}</button>
                     </div>
                     {% endif %}
                 </div>
@@ -233,6 +233,11 @@
 {{ {
   'Loading...': _('Loading...'),
   'Unable to render article content.': _('Unable to render article content.'),
+  'Copied to clipboard': _('Copied to clipboard'),
+  'Comment cannot be empty': _('Comment cannot be empty'),
+  'Failed to load article.': _('Failed to load article.'),
+  'Plain Text': _('Plain Text'),
+  'Copy': _('Copy'),
   'Something went wrong. Please reload the page.': _('Something went wrong. Please reload the page.')
 } | tojson | safe }}
 </script>
