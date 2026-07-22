@@ -28,6 +28,34 @@
             maxFrequentRows: 4,
             previewPosition: 'none',
             skinTonePosition: 'none',
+            i18n: {
+                search: 'Rechercher',
+                'search_no_results_1': 'Oh non\u00a0!',
+                'search_no_results_2': 'Cet emoji est introuvable',
+                pick: 'Choisissez un emoji\u2026',
+                categories: {
+                    activity: 'Activit\u00e9s',
+                    custom: 'Personnalis\u00e9s',
+                    flags: 'Drapeaux',
+                    foods: 'Aliments & Boissons',
+                    frequent: 'Utilis\u00e9s fr\u00e9quemment',
+                    nature: 'Animaux & Nature',
+                    objects: 'Objets',
+                    people: 'Smileys & Personnes',
+                    places: 'Voyages & Lieux',
+                    search: 'R\u00e9sultats de recherche',
+                    symbols: 'Symboles',
+                },
+                skins: {
+                    '1': 'Par d\u00e9faut',
+                    '2': 'Clair',
+                    '3': 'Moyen-Clair',
+                    '4': 'Moyen',
+                    '5': 'Moyen-Fonc\u00e9',
+                    '6': 'Fonc\u00e9',
+                    choose: 'Choisir le teint de peau par d\u00e9faut',
+                },
+            },
             onEmojiSelect: function (data) {
                 const editor = window.suneditors[editorId];
                 if (editor) {

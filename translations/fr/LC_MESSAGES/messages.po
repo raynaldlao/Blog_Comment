@@ -51,6 +51,11 @@ msgstr "Échec du téléchargement."
 msgid "Comment cannot be empty"
 msgstr "Le commentaire ne peut pas être vide."
 
+#: frontend/static/scripts/suneditor-init.js:15
+#: frontend/templates/article_detail.html:239
+msgid "Insert Emoji"
+msgstr "Insérer un émoticône"
+
 #: frontend/templates/article_create.html:31
 #: frontend/templates/article_detail.html:234
 #: frontend/templates/article_edit.html:60
