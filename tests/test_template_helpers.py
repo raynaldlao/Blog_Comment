@@ -5,7 +5,7 @@ from flask import render_template_string
 from jinja2.exceptions import TemplateNotFound
 from markupsafe import Markup
 
-from utils.template_helpers import date_format_filter, date_iso_filter, nl2br_filter
+from utils.template_helpers import date_iso_filter, nl2br_filter
 
 
 class TestIconMacro:
@@ -87,21 +87,6 @@ class TestNl2brFilter:
         assert "<br>" in str(result)
         assert "<b>" not in str(result)
 
-
-class TestDateFormatFilter:
-    """Unit tests for the date_format Jinja2 filter."""
-
-    def test_formats_date_with_default_format(self):
-        result = date_format_filter(datetime(2026, 4, 29))
-        assert result == "Apr 29, 2026"
-
-    def test_returns_recent_for_none_date(self):
-        result = date_format_filter(None)
-        assert result == "RECENT"
-
-    def test_uses_custom_format(self):
-        result = date_format_filter(datetime(2026, 4, 29), "%Y-%m-%d")
-        assert result == "2026-04-29"
 
 
 class TestDateIsoFilter:

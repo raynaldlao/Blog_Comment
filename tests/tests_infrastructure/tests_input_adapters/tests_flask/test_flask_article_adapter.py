@@ -135,7 +135,7 @@ class TestArticleAnonymousAccess(ArticleAdapterTestBase):
         self.mock_account_repo.get_by_ids.return_value = [create_test_account(account_id=1, account_username="Author")]
         response = self.client.get("/")
         assert response.status_code == 200
-        assert b"Apr 29, 2026" in response.data
+        assert b"29 April 2026" in response.data
         assert b'datetime="2026-04-29"' in response.data
 
     def test_list_articles_no_date_hides_meta(self):

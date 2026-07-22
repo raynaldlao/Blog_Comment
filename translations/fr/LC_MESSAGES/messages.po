@@ -453,6 +453,18 @@ msgstr "Utilisateur"
 msgid "Author"
 msgstr "Auteur"
 
+#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
+msgid "admin"
+msgstr "Administrateur"
+
+#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
+msgid "author"
+msgstr "Auteur"
+
+#: frontend/templates/profile.html:32 frontend/templates/user_list.html:63
+msgid "user"
+msgstr "Utilisateur"
+
 #: frontend/templates/profile.html:40 frontend/templates/user_list.html:78
 msgid "Update"
 msgstr "Mettre à jour"
@@ -514,7 +526,7 @@ msgstr "Déconnexion"
 msgid ""
 "Are you sure you want to delete your account ? This action is "
 "irreversible."
-msgstr ""
+msgstr "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible."
 
 #: frontend/templates/profile.html:136 frontend/templates/profile.html:159
 msgid "Delete Account"

@@ -60,10 +60,10 @@
                 <tr>
                     <td><a href="{{ url_for('auth.user_profile', username=user.account_username) }}">{{ user.account_username }}</a></td>
                     <td>{{ user.account_email }}</td>
-                    <td>{{ user.account_role }}</td>
+                    <td>{{ _(user.account_role) }}</td>
                     <td>{{ _('Banned') if user.is_banned else _('Active') }}</td>
                     <td>{{ user.ban_reason or _('—') }}</td>
-                    <td>{{ user.account_created_at|date_format if user.account_created_at else _('N/A') }}</td>
+                    <td>{{ user.account_created_at|format_datetime_locale("d MMMM yyyy") if user.account_created_at else _('N/A') }}</td>
                     <td>
                         {% if user.account_role == 'admin' %}
                         <span class="user-table-na">—</span>

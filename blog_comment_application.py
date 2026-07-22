@@ -30,7 +30,6 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database imp
 from utils.prosemirror_to_html import prosemirror_to_html
 from utils.template_helpers import (
     ViteManifest,
-    date_format_filter,
     date_iso_filter,
     format_datetime_locale,
     inject_current_year,
@@ -170,7 +169,6 @@ def _init_template_utils(app: Flask) -> None:
     ViteManifest.init(os.path.join(app.static_folder or "", "dist"))
 
     app.jinja_env.filters["nl2br"] = nl2br_filter
-    app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
     app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
     app.jinja_env.filters["format_datetime_locale"] = format_datetime_locale

@@ -119,22 +119,6 @@ def inject_current_year() -> dict[str, int]:
     return {"current_year": datetime.now(UTC).year}
 
 
-def date_format_filter(date: datetime | None, format: str = "%b %d, %Y") -> str:
-    """
-    Jinja2 filter that formats a datetime into a human-readable date string.
-
-    Args:
-        date: A datetime object to format, or None.
-        format: A strftime format string (default: ``"%b %d, %Y"``).
-
-    Returns:
-        The formatted date string (e.g. ``"Apr 29, 2026"``).
-        Returns ``"RECENT"`` if the input is None.
-    """
-    if date is None:
-        return "RECENT"
-    return date.strftime(format)
-
 
 def format_datetime_locale(date: datetime | None, format: str = "d MMMM yyyy 'à' HH:mm") -> str:
     """
