@@ -40,43 +40,43 @@
                 <span class="logo-mobile">DJ</span>
             </a>
             <div class="nav-actions">
-                <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="Toggle Theme">
+                <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="{{ _('Toggle Theme') }}">
                     {{ icon('dark_mode', 'nav-item-icon') }}
                 </button>
 
                 <div class="nav-links">
-                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="Home">
+                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="{{ _('Home') }}">
                     {{ icon('home', 'nav-item-icon nav-item-home') }}
-                    <span>Home</span>
+                    <span>{{ _('Home') }}</span>
                 </a>
                 
                 {% if current_user %}
                     {% if current_user.account_role in ['admin', 'author'] %}
-                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="New Article">
+                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="{{ _('New Article') }}">
                         {{ icon('add_box', 'nav-item-icon') }}
-                        <span>New article</span>
+                        <span>{{ _('New article') }}</span>
                     </a>
                     {% endif %}
                     
-                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="Profile">
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="{{ _('Profile') }}">
                         {{ icon('account_circle', 'nav-item-icon') }}
-                        <span>Profile</span>
+                        <span>{{ _('Profile') }}</span>
                     </a>
                     <form action="{{ url_for('auth.logout') }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <button type="submit" class="btn btn-sm btn-secondary" title="Logout">
+                        <button type="submit" class="btn btn-sm btn-secondary" title="{{ _('Logout') }}">
                             {{ icon('logout', 'nav-item-icon') }}
-                            <span>Logout</span>
+                            <span>{{ _('Logout') }}</span>
                         </button>
                     </form>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="Sign In">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign In') }}">
                         {{ icon('person', 'nav-item-icon') }}
-                        <span>Sign In</span>
+                        <span>{{ _('Sign In') }}</span>
                     </a>
-                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="Sign Up">
+                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign Up') }}">
                         {{ icon('person_add', 'nav-item-icon') }}
-                        <span>Sign Up</span>
+                        <span>{{ _('Sign Up') }}</span>
                     </a>
                 {% endif %}
                 </div>
@@ -101,45 +101,47 @@
 
     <dialog id="confirm-dialog" class="dialog">
         <div class="modal-header">
-            <h2 class="modal-title">Confirm</h2>
+            <h2 class="modal-title">{{ _('Confirm') }}</h2>
         </div>
         <p id="confirm-message"></p>
         <div class="modal-footer">
-            <button class="btn btn-dialog btn-secondary" id="confirm-cancel-btn" autofocus>Cancel</button>
-            <button class="btn btn-dialog btn-primary" id="confirm-yes-btn">Delete</button>
+            <button class="btn btn-dialog btn-secondary" id="confirm-cancel-btn" autofocus>{{ _('Cancel') }}</button>
+            <button class="btn btn-dialog btn-primary" id="confirm-yes-btn">{{ _('Delete') }}</button>
         </div>
     </dialog>
 
     <dialog id="ban-modal" class="dialog">
         <div class="modal-header">
-            <h2 class="modal-title">Ban <span id="ban-username"></span></h2>
+            <h2 class="modal-title">{{ _('Ban') }} <span id="ban-username"></span></h2>
         </div>
         <form method="POST" id="ban-form">
             <div class="modal-body">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-input-group">
-                    <label for="ban-reason-input">Reason (optional)</label>
+                    <label for="ban-reason-input">{{ _('Reason (optional)') }}</label>
                     <div class="hint-row">
-                        <span class="hint-text">Maximum 150 characters</span>
+                        <span class="hint-text">{{ _('Maximum 150 characters') }}</span>
                         <span class="char-count"><span id="ban-reason-count">0</span> / 150</span>
                     </div>
                     <textarea id="ban-reason-input" name="ban_reason"
-                        rows="3" placeholder="e.g., Spam, harassment..."
+                        rows="3" placeholder="{{ _('e.g., Spam, harassment...') }}"
                         class="ban-reason-textarea" maxlength="150"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dialog btn-secondary" id="ban-modal-cancel" autofocus>Cancel</button>
-                <button type="submit" class="btn btn-dialog btn-primary">Ban</button>
+                <button type="button" class="btn btn-dialog btn-secondary" id="ban-modal-cancel" autofocus>{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-dialog btn-primary">{{ _('Ban') }}</button>
             </div>
         </form>
     </dialog>
+
+    {% block translations %}{% endblock %}
 
     <!-- Simple Footer -->
     <footer class="footer">
         <div class="main-layout">
             <p class="footer-copy">
-                © {{ current_year }} DevJournal. All rights reserved.
+                {{ _('© %(year)s DevJournal. All rights reserved.', year=current_year) }}
             </p>
         </div>
     </footer>

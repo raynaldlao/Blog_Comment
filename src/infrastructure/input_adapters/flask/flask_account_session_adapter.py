@@ -1,6 +1,8 @@
 import logging
 import math
 
+from flask_babel import gettext as _
+
 from flask import abort, flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -73,7 +75,7 @@ class AccountSessionAdapter(MethodView):
             Response: A Flask redirect response.
         """
         self.session_service.terminate_session()
-        flash("You have been logged out.", "info")
+        flash(_("You have been logged out."), "info")
         return redirect(url_for("article.list_articles"))
 
     def display_profile(self):
@@ -87,7 +89,7 @@ class AccountSessionAdapter(MethodView):
         account = self.session_service.get_current_account()
 
         if not account:
-            flash("Please sign in to view your profile.", "error")
+            flash(_("Please sign in to view your profile."), "error")
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)
@@ -144,11 +146,11 @@ class AccountSessionAdapter(MethodView):
         """
         current_account = getattr(global_request_context, "current_user", None)
         if not current_account:
-            return jsonify({"error": "Authentication required."}), 401
+            return jsonify({"error": _("Authentication required.")}), 401
 
         uploaded_file = request.files.get("file")
         if not uploaded_file or not uploaded_file.filename:
-            return jsonify({"error": "No file provided."}), 400
+            return jsonify({"error": _("No file provided.")}), 400
 
         file_data = uploaded_file.read()
         try:
@@ -191,22 +193,22 @@ class AccountSessionAdapter(MethodView):
         """
         account = self.session_service.get_current_account()
         if not account:
-            flash("Please sign in.", "error")
+            flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
         avatar_file_id = account.avatar_file_id
         if not avatar_file_id:
-            flash("No avatar to remove.", "error")
+            flash(_("No avatar to remove."), "error")
             return redirect(url_for("auth.profile"))
 
         try:
             self.file_service.delete_file(avatar_file_id)
             self.session_service.update_avatar(None)
         except Exception:
-            flash("Failed to remove profile photo.", "error")
+            flash(_("Failed to remove profile photo."), "error")
             return redirect(url_for("auth.profile"))
 
-        flash("Profile photo removed.", "success")
+        flash(_("Profile photo removed."), "success")
         return redirect(url_for("auth.profile"))
 
     def update_email(self):
@@ -222,19 +224,19 @@ class AccountSessionAdapter(MethodView):
         """
         account = self.session_service.get_current_account()
         if not account:
-            flash("Please sign in.", "error")
+            flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
         new_email = request.form.get("email", "").strip()
         if not new_email:
-            flash("Email is required.", "error")
+            flash(_("Email is required."), "error")
             return redirect(url_for("auth.profile"))
 
         result = self.session_service.update_email(new_email)
         if result is not None:
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Email updated.", "success")
+            flash(_("Email updated."), "success")
         return redirect(url_for("auth.profile"))
 
     def update_password(self):
@@ -250,19 +252,19 @@ class AccountSessionAdapter(MethodView):
         """
         account = self.session_service.get_current_account()
         if not account:
-            flash("Please sign in.", "error")
+            flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
         new_password = request.form.get("new_password", "")
         if not new_password:
-            flash("Password is required.", "error")
+            flash(_("Password is required."), "error")
             return redirect(url_for("auth.profile"))
 
         result = self.session_service.update_password(new_password)
         if result is not None:
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Password updated.", "success")
+            flash(_("Password updated."), "success")
         return redirect(url_for("auth.profile"))
 
     def list_all_users(self):
@@ -339,7 +341,7 @@ class AccountSessionAdapter(MethodView):
         """
         current_account = self.session_service.get_current_account()
         if not current_account:
-            flash("Please sign in.", "error")
+            flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
         target_id = request.form.get("account_id", type=int) or current_account.account_id
@@ -353,7 +355,7 @@ class AccountSessionAdapter(MethodView):
                 abort(403)
             target = self.session_service.get_account_by_id(target_id)
             if not target:
-                flash("Account not found.", "error")
+                flash(_("Account not found."), "error")
                 return redirect(url_for("auth.list_all_users"))
             if target.account_role == AccountRole.ADMIN:
                 abort(403)
@@ -370,10 +372,10 @@ class AccountSessionAdapter(MethodView):
 
         if is_self:
             self.session_service.terminate_session()
-            flash("Account deleted.", "success")
+            flash(_("Account deleted."), "success")
             return redirect(url_for("article.list_articles"))
 
-        flash("Account deleted.", "success")
+        flash(_("Account deleted."), "success")
         return redirect(url_for("auth.list_all_users"))
 
     def change_role(self, account_id: int):
@@ -407,12 +409,12 @@ class AccountSessionAdapter(MethodView):
         target = self.session_service.get_account_by_id(account_id)
 
         if result is not None:
-            flash(result, "error")
+            flash(_(result), "error")
             if target:
                 return redirect(url_for("auth.user_profile", username=target.account_username))
             return redirect(url_for("auth.list_all_users"))
 
-        flash("Role updated.", "success")
+        flash(_("Role updated."), "success")
         if target:
             return redirect(url_for("auth.user_profile", username=target.account_username))
         return redirect(url_for("auth.list_all_users"))
@@ -445,9 +447,9 @@ class AccountSessionAdapter(MethodView):
         )
 
         if result is not None:
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Account banned.", "success")
+            flash(_("Account banned."), "success")
 
         return redirect(url_for("auth.list_all_users"))
 
@@ -476,8 +478,8 @@ class AccountSessionAdapter(MethodView):
         )
 
         if result is not None:
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Account unbanned.", "success")
+            flash(_("Account unbanned."), "success")
 
         return redirect(url_for("auth.list_all_users"))

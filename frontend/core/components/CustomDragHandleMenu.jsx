@@ -6,6 +6,7 @@ import {
   useExtensionState,
 } from '@blocknote/react';
 import { Menu } from '@mantine/core';
+import { _ } from '../utils/i18n';
 
 function CustomDragHandleMenu() {
   const editor = useBlockNoteEditor();
@@ -25,9 +26,9 @@ function CustomDragHandleMenu() {
 
   return (
     <DragHandleMenu>
-      <Menu.Item onClick={moveUp}>Move Up</Menu.Item>
-      <Menu.Item onClick={moveDown}>Move Down</Menu.Item>
-      <RemoveBlockItem>Delete</RemoveBlockItem>
+      <Menu.Item onClick={moveUp}>{_('Move Up')}</Menu.Item>
+      <Menu.Item onClick={moveDown}>{_('Move Down')}</Menu.Item>
+      <RemoveBlockItem>{_('Delete')}</RemoveBlockItem>
     </DragHandleMenu>
   );
 }

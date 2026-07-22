@@ -1,6 +1,8 @@
 import React from 'react';
 import { useBlockNoteEditor, useComponentsContext } from '@blocknote/react';
 
+import { _ } from '../utils/i18n';
+
 export default function CopyBlockButton() {
   const editor = useBlockNoteEditor();
   const Components = useComponentsContext();
@@ -15,7 +17,7 @@ export default function CopyBlockButton() {
 
   return (
     <Components.FormattingToolbar.Button
-      mainTooltip={block.type === 'image' || block.type === 'video' ? 'Copy' : 'Copy Block'}
+      mainTooltip={block.type === 'image' || block.type === 'video' ? _('Copy') : _('Copy Block')}
       onClick={() => {
         const data = { type: block.type, props: block.props, content: block.content };
         const html = '<blocknote-block data-json=\'' + JSON.stringify(data).replace(/'/g, '&apos;') + '\'></blocknote-block>';
@@ -40,7 +42,7 @@ export default function CopyBlockButton() {
         if (old) old.remove();
         const toast = document.createElement('div');
         toast.className = 'toast';
-        toast.textContent = 'Copied to clipboard';
+        toast.textContent = _('Copied to clipboard');
         document.body.appendChild(toast);
         setTimeout(() => { if (toast.parentElement) toast.remove(); }, 2800);
       }}

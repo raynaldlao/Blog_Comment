@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 
 from flask import Flask, render_template
+from flask_babel import Babel
 from flask_compress import Compress
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,7 @@ from utils.template_helpers import (
     ViteManifest,
     date_format_filter,
     date_iso_filter,
+    format_datetime_locale,
     inject_current_year,
     inject_vite_assets,
     nl2br_filter,
@@ -171,6 +173,7 @@ def _init_template_utils(app: Flask) -> None:
     app.jinja_env.filters["date_format"] = date_format_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
     app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
+    app.jinja_env.filters["format_datetime_locale"] = format_datetime_locale
     app.context_processor(inject_current_year)
     app.context_processor(inject_vite_assets)
 
@@ -196,6 +199,7 @@ def create_app(db_session=None) -> Flask:
     services = _create_services(repositories)
     app = _init_web_facade_flask()
     Compress(app)
+    Babel(app, locale_selector=lambda: "fr")
     init_web_security(app)
     _init_template_utils(app)
     web_adapters = _init_web_adapters(services)

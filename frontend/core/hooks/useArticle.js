@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { _ } from '../utils/i18n';
 
 export default function useArticle(articleId) {
   const ssrEl = typeof document !== 'undefined'
@@ -27,7 +28,7 @@ export default function useArticle(articleId) {
         setDescription(data.description || '');
         setContentStr(data.content || '');
       } catch {
-        setError('Failed to load article.');
+        setError(_('Failed to load article.'));
       } finally {
         setLoaded(true);
       }

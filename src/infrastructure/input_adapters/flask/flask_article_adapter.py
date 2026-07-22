@@ -1,6 +1,7 @@
 import json
 import math
 
+from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
@@ -110,7 +111,7 @@ class ArticleAdapter:
         """
         result = self.article_service.get_article_with_comments(article_id)
         if isinstance(result, str):
-            flash(f"Error: {result}", "error")
+            flash(_("Error: %(error)s", error=result), "error")
             return redirect(url_for("article.list_articles"))
 
         detail = result
@@ -152,11 +153,11 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to author an article.", "error")
+            flash(_("You must be signed in to author an article."), "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
+            flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
         return render_template("article_create.html", current_user=user, page_with_editor=True)
@@ -177,7 +178,7 @@ class ArticleAdapter:
         """
         article = self.article_service.get_by_id(article_id)
         if not article:
-            return jsonify({"error": "Article not found."}), 404
+            return jsonify({"error": _("Article not found.")}), 404
 
         content = article.article_content
         try:
@@ -213,13 +214,13 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            return jsonify({"error": "Unauthorized."}), 401
+            return jsonify({"error": _("Unauthorized.")}), 401
         if user.account_role not in ["admin", "author"]:
-            return jsonify({"error": "Insufficient permissions."}), 403
+            return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
         if not data:
-            return jsonify({"error": "Invalid JSON body."}), 400
+            return jsonify({"error": _("Invalid JSON body.")}), 400
 
         try:
             req_data = ArticleRequest(
@@ -230,7 +231,7 @@ class ArticleAdapter:
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
-            return jsonify({"error": "Validation error."}), 400
+            return jsonify({"error": _("Validation error.")}), 400
 
         result = self.article_service.create_article(
             title=req_data.title, content=req_data.content,
@@ -258,13 +259,13 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            return jsonify({"error": "Unauthorized."}), 401
+            return jsonify({"error": _("Unauthorized.")}), 401
         if user.account_role not in ["admin", "author"]:
-            return jsonify({"error": "Insufficient permissions."}), 403
+            return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
         if not data:
-            return jsonify({"error": "Invalid JSON body."}), 400
+            return jsonify({"error": _("Invalid JSON body.")}), 400
 
         try:
             req_data = ArticleRequest(
@@ -275,7 +276,7 @@ class ArticleAdapter:
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
-            return jsonify({"error": "Validation error."}), 400
+            return jsonify({"error": _("Validation error.")}), 400
 
         result = self.article_service.update_article(
             article_id=article_id, user_id=user.account_id,
@@ -303,9 +304,9 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            return jsonify({"error": "Unauthorized."}), 401
+            return jsonify({"error": _("Unauthorized.")}), 401
         if user.account_role not in ["admin", "author"]:
-            return jsonify({"error": "Insufficient permissions."}), 403
+            return jsonify({"error": _("Insufficient permissions.")}), 403
 
         result = self.article_service.delete_article(
             article_id=article_id, user_id=user.account_id,
@@ -329,15 +330,15 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be logged in to delete articles.", "error")
+            flash(_("You must be logged in to delete articles."), "error")
             return redirect(url_for("auth.login"))
 
         result = self._api_delete_article(article_id)
 
         if isinstance(result, tuple):
-            flash(result[0].get_json()["error"], "error")
+            flash(_(result[0].get_json()["error"]), "error")
         else:
-            flash("Article deleted successfully.", "success")
+            flash(_("Article deleted successfully."), "success")
 
         return redirect(url_for("article.list_articles"))
 
@@ -354,20 +355,20 @@ class ArticleAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to edit an article.", "error")
+            flash(_("You must be signed in to edit an article."), "error")
             return redirect(url_for("auth.login"))
 
         if user.account_role not in ["admin", "author"]:
-            flash("Insufficient permissions: Only authors or admins can create articles.", "error")
+            flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
         domain_article = self.article_service.get_by_id(article_id)
         if not domain_article:
-            flash("Error: The requested article could not be found.", "error")
+            flash(_("Error: The requested article could not be found."), "error")
             return redirect(url_for("article.list_articles"))
 
         if user.account_role != "admin" and domain_article.article_author_id != user.account_id:
-            flash("You do not have permission to edit this article.", "error")
+            flash(_("You do not have permission to edit this article."), "error")
             return redirect(url_for("article.list_articles"))
 
         username = self.article_service.get_author_name(domain_article.article_author_id)

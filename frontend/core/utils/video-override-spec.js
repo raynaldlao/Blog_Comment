@@ -1,3 +1,5 @@
+import { _ } from './i18n';
+
 const YOUTUBE_RE = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
 function isYouTubeUrl(url) {
@@ -79,7 +81,7 @@ export function createYouTubeVideoSpec(videoSpec) {
         }
 
         if (url && editor.isEditable) {
-          showToast('Only YouTube links are supported');
+          showToast(_('Only YouTube links are supported'));
           setTimeout(() => { editor.removeBlocks([block.id]); }, 0);
           const empty = document.createElement('div');
           empty.style.cssText = 'display:none';
@@ -95,7 +97,7 @@ export function createYouTubeVideoSpec(videoSpec) {
         const result = origRender.call(this, block, editor);
         if (!editor.isEditable && result && result.dom) {
           const textEl = result.dom.querySelector('.bn-add-file-button-text');
-          if (textEl) textEl.textContent = 'Add YouTube video URL';
+          if (textEl) textEl.textContent = _('Add YouTube video URL');
         }
         return result;
       },

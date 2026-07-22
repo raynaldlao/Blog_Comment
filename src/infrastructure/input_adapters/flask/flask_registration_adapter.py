@@ -1,3 +1,4 @@
+from flask_babel import gettext as _
 from pydantic import ValidationError
 
 from flask import flash, redirect, render_template, request, url_for
@@ -54,7 +55,7 @@ class RegistrationAdapter(MethodView):
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(f"{location}: {error['msg']}", "error")
+                flash(_("%(location)s: %(message)s", location=location, message=error["msg"]), "error")
             return render_template("registration.html", current_user=user, username=submitted_username, email=submitted_email)
 
         result = self.registration_service.create_account(
@@ -64,8 +65,8 @@ class RegistrationAdapter(MethodView):
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
             return render_template("registration.html", current_user=user, username=reg_data.username, email=reg_data.email)
 
-        flash("Registration successful. Please sign in.", "success")
+        flash(_("Registration successful. Please sign in."), "success")
         return redirect(url_for("auth.login"))

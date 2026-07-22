@@ -2,7 +2,7 @@
 {% from "macros/pagination.html" import render_pagination_info %}
 {% extends "base.html" %}
 
-{% block title %}Latest Articles - DevJournal{% endblock %}
+{% block title %}{{ _('Latest Articles - DevJournal') }}{% endblock %}
 {% block extra_head %}
 <meta name="description" content="DevJournal - Personal thoughts on software development, programming and technology.">
 {% if vite_vendor_js_url %}
@@ -23,12 +23,12 @@
 {% block content %}
 <form action="{{ url_for('article.list_articles') }}" method="GET" class="search-bar-form">
     <div class="search-wrapper">
-        <input type="text" name="q" class="search-input" placeholder="Search by title, description or author..."
+        <input type="text" name="q" class="search-input" placeholder="{{ _('Search by title, description or author...') }}"
                value="{{ query or '' }}" autocomplete="off">
         {% if query %}
         <a href="{{ url_for('article.list_articles') }}" class="search-clear-btn">&times;</a>
         {% endif %}
-        <button type="submit" class="search-submit-btn" aria-label="Search">{% include 'icons/search.svg' %}</button>
+        <button type="submit" class="search-submit-btn" aria-label="{{ _('Search') }}">{% include 'icons/search.svg' %}</button>
     </div>
 </form>
 
@@ -37,7 +37,7 @@
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
-            <span>Previous</span>
+            <span>{{ _('Previous') }}</span>
         </a>
     </div>
     
@@ -45,7 +45,7 @@
     
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
-            <span>Next</span>
+            <span>{{ _('Next') }}</span>
             {{ icon('arrow_forward') }}
         </a>
     </div>
@@ -85,7 +85,7 @@
                     <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
                     {% if article.article_edited_at %}
                     <span class="meta-divider">•</span>
-                    <span class="article-edited-line">edited at {{ article.article_edited_at_formatted }}</span>
+                    <span class="article-edited-line">{{ _('edited at %(date)s', date=article.article_edited_at|format_datetime_locale) }}</span>
                     {% endif %}
                     {% endif %}
                 </div>
@@ -94,7 +94,7 @@
     {% else %}
         <div class="empty-state">
             {{ icon('folder_open', 'empty-state-icon') }}
-            <p class="empty-state-text">{% if query %}No articles match "{{ query }}".{% else %}No articles found in the database.{% endif %}</p>
+            <p class="empty-state-text">{% if query %}{{ _('No articles match "%(query)s".', query=query) }}{% else %}{{ _('No articles found in the database.') }}{% endif %}</p>
         </div>
     {% endfor %}
 </section>
@@ -104,7 +104,7 @@
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
-            <span>Previous</span>
+            <span>{{ _('Previous') }}</span>
         </a>
     </div>
     
@@ -112,7 +112,7 @@
     
     <div class="pagination-next">
         <a href="{{ url_for('article.list_articles', page=page+1, q=query if query else None) }}" class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
-            <span>Next</span>
+            <span>{{ _('Next') }}</span>
             {{ icon('arrow_forward') }}
         </a>
     </div>
@@ -121,18 +121,18 @@
 <!-- Jump to Page Modal -->
 <dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}">
     <div class="modal-header">
-        <h2 class="modal-title">Jump to page</h2>
+        <h2 class="modal-title">{{ _('Jump to page') }}</h2>
     </div>
     <div class="modal-body">
         <div class="modal-input-group">
-            <label for="jump-page-input">Enter page number (1 - {{ total_pages }})</label>
+            <label for="jump-page-input">{{ _('Enter page number (1 - %(max)s)', max=total_pages) }}</label>
             <div class="stepper-container">
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
-                    <button class="stepper-btn up" data-step="1" title="Increase page">
+                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}">
                         {{ icon('expand_less') }}
                     </button>
-                    <button class="stepper-btn down" data-step="-1" title="Decrease page">
+                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}">
                         {{ icon('expand_more') }}
                     </button>
                 </div>
@@ -140,8 +140,8 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-dialog btn-secondary" id="jump-cancel-btn">Cancel</button>
-        <button class="btn btn-dialog btn-primary" id="jump-execute-btn">Go</button>
+        <button class="btn btn-dialog btn-secondary" id="jump-cancel-btn">{{ _('Cancel') }}</button>
+        <button class="btn btn-dialog btn-primary" id="jump-execute-btn">{{ _('Go') }}</button>
     </div>
 </dialog>
 

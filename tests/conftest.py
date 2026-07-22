@@ -43,6 +43,7 @@ def app_with_db(db_session):
     app = create_app(db_session=db_session)
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
+    app.extensions["babel"].locale_selector = lambda: "en"
     return app
 
 @pytest.fixture(scope="function")

@@ -1,7 +1,7 @@
 {% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
-{% block title %}Sign In - DevJournal{% endblock %}
+{% block title %}{{ _('Sign In - DevJournal') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
@@ -10,36 +10,36 @@
 {% block content %}
 <div class="user-card account-card">
     <div class="account-header">
-        <h1 class="account-title">Welcome Back</h1>
-        <p class="account-subtitle">Access your developer journal accounts.</p>
+        <h1 class="account-title">{{ _('Welcome Back') }}</h1>
+        <p class="account-subtitle">{{ _('Access your developer journal accounts.') }}</p>
     </div>
 
     <form action="{{ url_for('auth.login') }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
-            <label for="login-username">Username</label>
-            <input type="text" id="login-username" name="username" placeholder="e.g., dev_journey" autocomplete="username" value="{{ username or '' }}" required>
+            <label for="login-username">{{ _('Username') }}</label>
+            <input type="text" id="login-username" name="username" placeholder="{{ _('e.g., dev_journey') }}" autocomplete="username" value="{{ username or '' }}" required>
         </div>
         <div class="form-group account-form-group">
-            <label for="login-password">Password</label>
+            <label for="login-password">{{ _('Password') }}</label>
             <div class="password-wrapper">
-                <input type="password" id="login-password" name="password" placeholder="e.g., MyP@ssw0rd!" autocomplete="current-password" required>
-                <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                <input type="password" id="login-password" name="password" placeholder="{{ _('e.g., MyP@ssw0rd!') }}" autocomplete="current-password" required>
+                <button type="button" class="password-toggle" aria-label="{{ _('Toggle password visibility') }}" aria-pressed="false">{{ icon('visibility') }}</button>
             </div>
         </div>
-        <button type="submit" class="full-width">Sign In</button>
+        <button type="submit" class="full-width">{{ _('Sign In') }}</button>
     </form>
 
     <hr>
 
     <div class="account-footer">
-        <p class="account-subtitle">New to the system ?</p>
-        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary full-width">Create an account</a>
+        <p class="account-subtitle">{{ _('New to the system ?') }}</p>
+        <a href="{{ url_for('registration.register') }}" class="btn btn-secondary full-width">{{ _('Create an account') }}</a>
         
         <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
                 {{ icon('home') }}
-                <span>Return to home</span>
+                <span>{{ _('Return to home') }}</span>
             </a>
         </div>
     </div>

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 from flask import render_template_string
@@ -118,3 +118,52 @@ class TestDateIsoFilter:
     def test_returns_empty_string_for_none(self):
         result = date_iso_filter(None)
         assert result == ""
+
+
+class TestFormatDatetimeLocaleFilter:
+    """Tests for the format_datetime_locale Jinja2 filter."""
+
+    def test_formats_datetime_in_default_locale(self, app_with_db):
+        from flask import render_template_string
+        dt = datetime(2023, 1, 27, 12, 0, 0)
+        with app_with_db.app_context():
+            result = render_template_string(
+                "{{ dt|format_datetime_locale }}", dt=dt
+            )
+        assert result == "27 January 2023 à 13:00"
+
+    def test_returns_empty_string_for_none(self, app_with_db):
+        from flask import render_template_string
+        with app_with_db.app_context():
+            result = render_template_string(
+                "{{ dt|format_datetime_locale }}", dt=None
+            )
+        assert result == ""
+
+    def test_formats_datetime_with_custom_format(self, app_with_db):
+        from flask import render_template_string
+        dt = datetime(2023, 6, 15, 8, 30)
+        with app_with_db.app_context():
+            result = render_template_string(
+                '{{ dt|format_datetime_locale("d MMMM yyyy") }}', dt=dt
+            )
+        assert result == "15 June 2023"
+
+    def test_converts_utc_to_paris_timezone(self, app_with_db):
+        from flask import render_template_string
+        dt = datetime(2023, 1, 27, 12, 0, 0, tzinfo=UTC)
+        with app_with_db.app_context():
+            result = render_template_string(
+                "{{ dt|format_datetime_locale }}", dt=dt
+            )
+        assert result == "27 January 2023 à 13:00"
+
+    def test_formats_in_french_locale(self, app_with_db):
+        from flask import render_template_string
+        dt = datetime(2023, 1, 27, 12, 0, 0)
+        with app_with_db.app_context():
+            app_with_db.extensions["babel"].locale_selector = lambda: "fr"
+            result = render_template_string(
+                "{{ dt|format_datetime_locale }}", dt=dt
+            )
+        assert result == "27 janvier 2023 à 13:00"

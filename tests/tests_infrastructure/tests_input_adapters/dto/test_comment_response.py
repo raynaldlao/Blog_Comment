@@ -22,7 +22,7 @@ def test_comment_response_from_domain_mapping():
     assert response.author_username == "johndoe"
     assert response.comment_reply_to is None
     assert response.comment_content == "Hello world"
-    assert response.comment_posted_at_formatted == "October 27, 2023 at 16:30"
+    assert response.comment_posted_at == posted_at
     assert response.is_deleted is False
     assert response.edited_at is None
 
@@ -74,7 +74,6 @@ def test_comment_response_from_domain_edited():
     assert response.comment_content == "Edited content"
     assert response.is_deleted is False
     assert response.edited_at == edited_at
-    assert response.edited_at_formatted == "October 28, 2023 at 12:00"
 
 def test_comment_response_from_domain_deleted_with_edited_at():
     posted_at = datetime(2023, 10, 27, 14, 30)
@@ -95,7 +94,6 @@ def test_comment_response_from_domain_deleted_with_edited_at():
     assert response.comment_content == "<em>Comment removed</em>"
     assert response.is_deleted is True
     assert response.edited_at == edited_at
-    assert response.edited_at_formatted == "October 28, 2023 at 12:00"
 
 def test_comment_response_from_domain_with_all_fields():
     posted_at = datetime(2023, 10, 27, 14, 30)
@@ -120,7 +118,6 @@ def test_comment_response_from_domain_with_all_fields():
     assert response.author_avatar_file_id == "avatar-uuid"
     assert response.is_deleted is False
     assert response.edited_at is None
-    assert response.edited_at_formatted == ""
 
 def test_map_nested_tree():
     posted_at = datetime(2023, 10, 27, 14, 30)

@@ -1,0 +1,810 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-22 15:55+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: frontend/templates/article_create.html:3
+msgid "Write an Article - DevJournal"
+msgstr ""
+
+#: frontend/templates/article_create.html:15
+#: frontend/templates/article_detail.html:47
+#: frontend/templates/article_edit.html:40
+msgid "Back to articles"
+msgstr ""
+
+#: frontend/templates/article_create.html:28
+#: frontend/templates/article_edit.html:57
+msgid "Title is required."
+msgstr ""
+
+#: frontend/templates/article_create.html:29
+#: frontend/templates/article_edit.html:58
+msgid "Failed to save."
+msgstr ""
+
+#: frontend/templates/article_create.html:30
+#: frontend/templates/article_edit.html:59
+msgid "Network error."
+msgstr ""
+
+#: frontend/templates/article_create.html:31
+#: frontend/templates/article_detail.html:234
+#: frontend/templates/article_edit.html:60
+msgid "Loading..."
+msgstr ""
+
+#: frontend/templates/article_create.html:32
+#: frontend/templates/article_edit.html:61
+msgid "Unable to parse article content."
+msgstr ""
+
+#: frontend/templates/article_create.html:33
+#: frontend/templates/article_edit.html:62
+msgid "Article title"
+msgstr ""
+
+#: frontend/templates/article_create.html:34
+#: frontend/templates/article_edit.html:63
+msgid "Description"
+msgstr ""
+
+#: frontend/templates/article_create.html:35
+#: frontend/templates/article_edit.html:64
+msgid "Maximum 300 characters"
+msgstr ""
+
+#: frontend/templates/article_create.html:36
+#: frontend/templates/article_edit.html:65
+msgid "Short description (optional)"
+msgstr ""
+
+#: frontend/templates/article_create.html:37
+#: frontend/templates/article_edit.html:66
+msgid "Content"
+msgstr ""
+
+#: frontend/templates/article_create.html:38
+#: frontend/templates/article_edit.html:67
+msgid "Saving..."
+msgstr ""
+
+#: frontend/templates/article_create.html:39
+#: frontend/templates/article_edit.html:68
+msgid "Publish"
+msgstr ""
+
+#: frontend/templates/article_create.html:40
+#: frontend/templates/article_detail.html:155
+#: frontend/templates/article_edit.html:69 frontend/templates/profile.html:94
+#: frontend/templates/profile.html:116
+msgid "Save"
+msgstr ""
+
+#: frontend/templates/article_create.html:41
+#: frontend/templates/article_edit.html:70
+msgid "YouTube"
+msgstr ""
+
+#: frontend/templates/article_create.html:42
+#: frontend/templates/article_edit.html:71
+msgid "Paste a YouTube video URL"
+msgstr ""
+
+#: frontend/templates/article_create.html:43
+#: frontend/templates/article_edit.html:72
+msgid "YouTube URL"
+msgstr ""
+
+#: frontend/templates/article_create.html:44
+#: frontend/templates/article_edit.html:73
+msgid "Paste YouTube video link"
+msgstr ""
+
+#: frontend/templates/article_create.html:45
+#: frontend/templates/article_edit.html:74
+msgid "Embed YouTube video"
+msgstr ""
+
+#: frontend/templates/article_create.html:46
+#: frontend/templates/article_edit.html:75
+msgid "Add YouTube video URL"
+msgstr ""
+
+#: frontend/templates/article_create.html:47
+#: frontend/templates/article_edit.html:76
+msgid "Only YouTube links are supported"
+msgstr ""
+
+#: frontend/templates/article_create.html:48
+#: frontend/templates/article_edit.html:77
+msgid "Failed to load article."
+msgstr ""
+
+#: frontend/templates/article_create.html:49
+#: frontend/templates/article_edit.html:78
+msgid "Copy"
+msgstr ""
+
+#: frontend/templates/article_create.html:50
+#: frontend/templates/article_edit.html:79
+msgid "Copy Block"
+msgstr ""
+
+#: frontend/templates/article_create.html:51
+#: frontend/templates/article_edit.html:80
+msgid "Copied to clipboard"
+msgstr ""
+
+#: frontend/templates/article_create.html:52
+#: frontend/templates/article_edit.html:81
+msgid "Move Up"
+msgstr ""
+
+#: frontend/templates/article_create.html:53
+#: frontend/templates/article_edit.html:82
+msgid "Move Down"
+msgstr ""
+
+#: frontend/templates/article_create.html:54
+#: frontend/templates/article_detail.html:79
+#: frontend/templates/article_edit.html:83 frontend/templates/base.html:109
+#: frontend/templates/user_list.html:95
+msgid "Delete"
+msgstr ""
+
+#: frontend/templates/article_create.html:55
+#: frontend/templates/article_edit.html:84
+msgid "Align text justify"
+msgstr ""
+
+#: frontend/templates/article_create.html:56
+#: frontend/templates/article_detail.html:236
+#: frontend/templates/article_edit.html:85
+msgid "Something went wrong. Please reload the page."
+msgstr ""
+
+#: frontend/templates/article_detail.html:72
+#: frontend/templates/article_detail.html:145
+#: frontend/templates/article_list.html:88
+#, python-format
+msgid "edited at %(date)s"
+msgstr ""
+
+#: frontend/templates/article_detail.html:78
+msgid "Edit"
+msgstr ""
+
+#: frontend/templates/article_detail.html:79
+msgid "Delete this article permanently ?"
+msgstr ""
+
+#: frontend/templates/article_detail.html:126
+#: frontend/templates/profile.html:53
+msgid "[Edit]"
+msgstr ""
+
+#: frontend/templates/article_detail.html:131
+#: frontend/templates/article_detail.html:137
+msgid "[Delete]"
+msgstr ""
+
+#: frontend/templates/article_detail.html:135
+msgid "Permanently delete this comment? This cannot be undone."
+msgstr ""
+
+#: frontend/templates/article_detail.html:152
+#: frontend/templates/article_detail.html:176
+#: frontend/templates/article_detail.html:213
+msgid "Comment must be between 1 and 5000 characters"
+msgstr ""
+
+#: frontend/templates/article_detail.html:156
+#: frontend/templates/article_detail.html:180
+#: frontend/templates/article_list.html:143 frontend/templates/base.html:108
+#: frontend/templates/base.html:132 frontend/templates/profile.html:93
+#: frontend/templates/profile.html:115 frontend/templates/user_list.html:143
+msgid "Cancel"
+msgstr ""
+
+#: frontend/templates/article_detail.html:164
+msgid "Reply"
+msgstr ""
+
+#: frontend/templates/article_detail.html:167
+#: frontend/templates/article_detail.html:187
+msgid "View replies"
+msgstr ""
+
+#: frontend/templates/article_detail.html:179
+msgid "Post Reply"
+msgstr ""
+
+#: frontend/templates/article_detail.html:203
+#, python-format
+msgid "Comments (%(count)s)"
+msgstr ""
+
+#: frontend/templates/article_detail.html:207
+msgid "No comments yet."
+msgstr ""
+
+#: frontend/templates/article_detail.html:212
+msgid "Join the discussion"
+msgstr ""
+
+#: frontend/templates/article_detail.html:219
+msgid "Post Comment"
+msgstr ""
+
+#: frontend/templates/article_detail.html:225
+#, python-format
+msgid ""
+"Please <a href=\"%(url)s\" class=\"comment-auth-link\">sign in</a> to "
+"join the conversation."
+msgstr ""
+
+#: frontend/templates/article_detail.html:235
+msgid "Unable to render article content."
+msgstr ""
+
+#: frontend/templates/article_edit.html:3
+msgid "Edit Article - DevJournal"
+msgstr ""
+
+#: frontend/templates/article_list.html:5
+msgid "Latest Articles - DevJournal"
+msgstr ""
+
+#: frontend/templates/article_list.html:26
+msgid "Search by title, description or author..."
+msgstr ""
+
+#: frontend/templates/article_list.html:31 frontend/templates/user_list.html:25
+msgid "Search"
+msgstr ""
+
+#: frontend/templates/article_list.html:40
+#: frontend/templates/article_list.html:107
+#: frontend/templates/user_list.html:33 frontend/templates/user_list.html:110
+msgid "Previous"
+msgstr ""
+
+#: frontend/templates/article_list.html:48
+#: frontend/templates/article_list.html:115
+#: frontend/templates/user_list.html:40 frontend/templates/user_list.html:117
+msgid "Next"
+msgstr ""
+
+#: frontend/templates/article_list.html:97
+#, python-format
+msgid "No articles match \"%(query)s\"."
+msgstr ""
+
+#: frontend/templates/article_list.html:97
+msgid "No articles found in the database."
+msgstr ""
+
+#: frontend/templates/article_list.html:124
+#: frontend/templates/macros/pagination.html:20
+#: frontend/templates/macros/pagination.html:26
+#: frontend/templates/user_list.html:124
+msgid "Jump to page"
+msgstr ""
+
+#: frontend/templates/article_list.html:128
+#, python-format
+msgid "Enter page number (1 - %(max)s)"
+msgstr ""
+
+#: frontend/templates/article_list.html:132
+#: frontend/templates/user_list.html:132
+msgid "Increase page"
+msgstr ""
+
+#: frontend/templates/article_list.html:135
+#: frontend/templates/user_list.html:135
+msgid "Decrease page"
+msgstr ""
+
+#: frontend/templates/article_list.html:144
+#: frontend/templates/user_list.html:144
+msgid "Go"
+msgstr ""
+
+#: frontend/templates/base.html:43
+msgid "Toggle Theme"
+msgstr ""
+
+#: frontend/templates/base.html:48 frontend/templates/base.html:50
+msgid "Home"
+msgstr ""
+
+#: frontend/templates/base.html:55
+msgid "New Article"
+msgstr ""
+
+#: frontend/templates/base.html:57
+msgid "New article"
+msgstr ""
+
+#: frontend/templates/base.html:61 frontend/templates/base.html:63
+#: frontend/templates/profile.html:4
+msgid "Profile"
+msgstr ""
+
+#: frontend/templates/base.html:67 frontend/templates/base.html:69
+msgid "Logout"
+msgstr ""
+
+#: frontend/templates/base.html:73 frontend/templates/base.html:75
+#: frontend/templates/login.html:30
+msgid "Sign In"
+msgstr ""
+
+#: frontend/templates/base.html:77 frontend/templates/base.html:79
+msgid "Sign Up"
+msgstr ""
+
+#: frontend/templates/base.html:104
+msgid "Confirm"
+msgstr ""
+
+#: frontend/templates/base.html:115 frontend/templates/base.html:133
+#: frontend/templates/profile.html:152 frontend/templates/user_list.html:88
+msgid "Ban"
+msgstr ""
+
+#: frontend/templates/base.html:121
+msgid "Reason (optional)"
+msgstr ""
+
+#: frontend/templates/base.html:123
+msgid "Maximum 150 characters"
+msgstr ""
+
+#: frontend/templates/base.html:127
+msgid "e.g., Spam, harassment..."
+msgstr ""
+
+#: frontend/templates/base.html:144
+#, python-format
+msgid "© %(year)s DevJournal. All rights reserved."
+msgstr ""
+
+#: frontend/templates/error.html:11 frontend/templates/login.html:42
+#: frontend/templates/profile.html:166 frontend/templates/registration.html:53
+#: frontend/templates/user_list.html:149
+msgid "Return to home"
+msgstr ""
+
+#: frontend/templates/login.html:4
+msgid "Sign In - DevJournal"
+msgstr ""
+
+#: frontend/templates/login.html:13
+msgid "Welcome Back"
+msgstr ""
+
+#: frontend/templates/login.html:14
+msgid "Access your developer journal accounts."
+msgstr ""
+
+#: frontend/templates/login.html:20 frontend/templates/user_list.html:49
+msgid "Username"
+msgstr ""
+
+#: frontend/templates/login.html:21 frontend/templates/registration.html:21
+msgid "e.g., dev_journey"
+msgstr ""
+
+#: frontend/templates/login.html:24 frontend/templates/registration.html:28
+msgid "Password"
+msgstr ""
+
+#: frontend/templates/login.html:26 frontend/templates/profile.html:109
+#: frontend/templates/registration.html:30
+#: frontend/templates/registration.html:37
+msgid "e.g., MyP@ssw0rd!"
+msgstr ""
+
+#: frontend/templates/login.html:27 frontend/templates/profile.html:110
+#: frontend/templates/registration.html:31
+#: frontend/templates/registration.html:38
+msgid "Toggle password visibility"
+msgstr ""
+
+#: frontend/templates/login.html:36
+msgid "New to the system ?"
+msgstr ""
+
+#: frontend/templates/login.html:37
+msgid "Create an account"
+msgstr ""
+
+#: frontend/templates/profile.html:21
+msgid "Upload Photo"
+msgstr ""
+
+#: frontend/templates/profile.html:26
+msgid "Remove Photo"
+msgstr ""
+
+#: frontend/templates/profile.html:37 frontend/templates/user_list.html:75
+msgid "User"
+msgstr ""
+
+#: frontend/templates/profile.html:38 frontend/templates/user_list.html:76
+msgid "Author"
+msgstr ""
+
+#: frontend/templates/profile.html:40 frontend/templates/user_list.html:78
+msgid "Update"
+msgstr ""
+
+#: frontend/templates/profile.html:49 frontend/templates/profile.html:87
+#: frontend/templates/user_list.html:50
+msgid "Email"
+msgstr ""
+
+#: frontend/templates/profile.html:62 frontend/templates/user_list.html:54
+msgid "Member Since"
+msgstr ""
+
+#: frontend/templates/profile.html:67 frontend/templates/user_list.html:66
+msgid "N/A"
+msgstr ""
+
+#: frontend/templates/profile.html:73 frontend/templates/user_list.html:52
+msgid "Status"
+msgstr ""
+
+#: frontend/templates/profile.html:74 frontend/templates/user_list.html:64
+msgid "Banned"
+msgstr ""
+
+#: frontend/templates/profile.html:74 frontend/templates/user_list.html:64
+msgid "Active"
+msgstr ""
+
+#: frontend/templates/profile.html:81
+msgid "Update Email"
+msgstr ""
+
+#: frontend/templates/profile.html:89 frontend/templates/registration.html:25
+msgid "e.g., user@example.com"
+msgstr ""
+
+#: frontend/templates/profile.html:101
+msgid "Update Password"
+msgstr ""
+
+#: frontend/templates/profile.html:107
+msgid "New Password"
+msgstr ""
+
+#: frontend/templates/profile.html:124
+msgid "Manage Users"
+msgstr ""
+
+#: frontend/templates/profile.html:126
+msgid "Change Password"
+msgstr ""
+
+#: frontend/templates/profile.html:129
+msgid "Sign Out"
+msgstr ""
+
+#: frontend/templates/profile.html:136
+msgid ""
+"Are you sure you want to delete your account ? This action is "
+"irreversible."
+msgstr ""
+
+#: frontend/templates/profile.html:136 frontend/templates/profile.html:159
+msgid "Delete Account"
+msgstr ""
+
+#: frontend/templates/profile.html:147 frontend/templates/user_list.html:83
+msgid "Unban"
+msgstr ""
+
+#: frontend/templates/profile.html:159 frontend/templates/user_list.html:95
+#, python-format
+msgid "Delete user \\\"%(username)s\\\" ? This action is irreversible."
+msgstr ""
+
+#: frontend/templates/registration.html:4
+msgid "Sign Up - DevJournal"
+msgstr ""
+
+#: frontend/templates/registration.html:13
+msgid "Join DevJournal"
+msgstr ""
+
+#: frontend/templates/registration.html:14
+msgid "Start your technical blog in seconds."
+msgstr ""
+
+#: frontend/templates/registration.html:20
+msgid "Choose Username"
+msgstr ""
+
+#: frontend/templates/registration.html:24
+msgid "Email Address"
+msgstr ""
+
+#: frontend/templates/registration.html:35
+msgid "Confirm Password"
+msgstr ""
+
+#: frontend/templates/registration.html:41
+msgid "Create Account"
+msgstr ""
+
+#: frontend/templates/registration.html:47
+msgid "Already have an account ?"
+msgstr ""
+
+#: frontend/templates/registration.html:48
+msgid "Sign In instead"
+msgstr ""
+
+#: frontend/templates/user_list.html:4
+msgid "Users"
+msgstr ""
+
+#: frontend/templates/user_list.html:16
+#, python-format
+msgid "Manage Users (%(count)d users)"
+msgstr ""
+
+#: frontend/templates/user_list.html:20
+msgid "Filter by username or email..."
+msgstr ""
+
+#: frontend/templates/user_list.html:51
+msgid "Role"
+msgstr ""
+
+#: frontend/templates/user_list.html:53
+msgid "Reason"
+msgstr ""
+
+#: frontend/templates/user_list.html:55
+msgid "Actions"
+msgstr ""
+
+#: frontend/templates/user_list.html:65
+msgid "—"
+msgstr ""
+
+#: frontend/templates/user_list.html:128
+#, python-format
+msgid "Enter page number (1 - %(max)d)"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:77
+msgid "You have been logged out."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:91
+msgid "Please sign in to view your profile."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:148
+msgid "Authentication required."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:152
+msgid "No file provided."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:195
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:226
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:254
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:343
+msgid "Please sign in."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:200
+msgid "No avatar to remove."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:207
+msgid "Failed to remove profile photo."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:210
+msgid "Profile photo removed."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:231
+msgid "Email is required."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:238
+msgid "Email updated."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:259
+msgid "Password is required."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:266
+msgid "Password updated."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:357
+msgid "Account not found."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:374
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:377
+msgid "Account deleted."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:416
+msgid "Role updated."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:451
+msgid "Account banned."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:482
+msgid "Account unbanned."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:114
+#, python-format
+msgid "Error: %(error)s"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:156
+msgid "You must be signed in to author an article."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:160
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:362
+msgid "Insufficient permissions: Only authors or admins can create articles."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:181
+msgid "Article not found."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:217
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:262
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:307
+msgid "Unauthorized."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:219
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:264
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:309
+msgid "Insufficient permissions."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:223
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:268
+msgid "Invalid JSON body."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:234
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:279
+msgid "Validation error."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:333
+msgid "You must be logged in to delete articles."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:339
+msgid "error"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:341
+msgid "Article deleted successfully."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:358
+msgid "You must be signed in to edit an article."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:367
+msgid "Error: The requested article could not be found."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:371
+msgid "You do not have permission to edit this article."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:64
+msgid "You must be signed in to post a comment."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:80
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:125
+#, python-format
+msgid "You're posting too fast. Please wait %(remaining)ss before posting again."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:92
+msgid "Comment added."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:109
+msgid "You must be signed in to reply."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:137
+msgid "Reply added."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:154
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:216
+msgid "You must be signed in to delete comments."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:165
+msgid "Comment deleted."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:167
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:229
+msgid "Unauthorized or error."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:185
+msgid "You must be signed in to edit comments."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:198
+msgid "Comment updated."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:227
+msgid "Comment permanently deleted."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:32
+msgid "No file provided"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:72
+msgid "File not found"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:55
+#, python-format
+msgid "Validation Error (%(location)s): %(message)s"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:69
+msgid "Invalid username or password."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:58
+#, python-format
+msgid "%(location)s: %(message)s"
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:71
+msgid "Registration successful. Please sign in."
+msgstr ""
+

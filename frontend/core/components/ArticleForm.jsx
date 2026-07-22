@@ -11,19 +11,21 @@ import createHighlighter from '../utils/shiki-highlighter-editor';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 import { createYouTubeVideoSpec } from '../utils/video-override-spec';
+import { fr } from '@blocknote/core/locales';
+import { _ } from '../utils/i18n';
 
 
 
 export function applyVideoDictOverrides(editor) {
-  editor.dictionary.slash_menu.video.title = 'YouTube';
-  editor.dictionary.slash_menu.video.subtext = 'Paste a YouTube video URL';
+  editor.dictionary.slash_menu.video.title = _('YouTube');
+  editor.dictionary.slash_menu.video.subtext = _('Paste a YouTube video URL');
   editor.dictionary.slash_menu.video.aliases = [
     'youtube', 'yt', 'video', 'videoUpload', 'upload', 'film', 'media', 'url',
   ];
-  editor.dictionary.file_panel.embed.title = 'YouTube URL';
-  editor.dictionary.file_panel.embed.url_placeholder = 'Paste YouTube video link';
-  editor.dictionary.file_panel.embed.embed_button.video = 'Embed YouTube video';
-  editor.dictionary.file_blocks.add_button_text.video = 'Add YouTube video URL';
+  editor.dictionary.file_panel.embed.title = _('YouTube URL');
+  editor.dictionary.file_panel.embed.url_placeholder = _('Paste YouTube video link');
+  editor.dictionary.file_panel.embed.embed_button.video = _('Embed YouTube video');
+  editor.dictionary.file_blocks.add_button_text.video = _('Add YouTube video URL');
 }
 
 function CustomFilePanel({ blockId }) {
@@ -89,6 +91,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
   const { audio: _a, file: _f, video: defaultVideoSpec, ...keptSpecs } = defaultBlockSpecs;
 
   const editor = useCreateBlockNote({
+    dictionary: fr,
     initialContent,
     uploadFile: uploadFn,
     disableExtensions: ['gapCursor'],
@@ -117,7 +120,7 @@ function BlockNoteEditor({ initialContent, onReady }) {
         '[data-content-type="video"] .bn-add-file-button-text',
       ).forEach((el) => {
         if (el.textContent === 'Add video') {
-          el.textContent = 'Add YouTube video URL';
+          el.textContent = _('Add YouTube video URL');
         }
       });
     }
@@ -372,7 +375,7 @@ export default function ArticleForm() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      setError('Title is required.');
+      setError(_('Title is required.'));
       return;
     }
     setSaving(true);
@@ -394,17 +397,17 @@ export default function ArticleForm() {
         window.location.href = `/articles/${data.id || articleId}`;
       } else {
         const err = await res.json();
-        setError(err.error || 'Failed to save.');
+        setError(err.error || _('Failed to save.'));
         setSaving(false);
       }
     } catch {
-      setError('Network error.');
+      setError(_('Network error.'));
       setSaving(false);
     }
   };
 
   if (!loaded) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{_('Loading...')}</div>;
   }
 
   const displayError = error || loadError;
@@ -413,7 +416,7 @@ export default function ArticleForm() {
   try {
     initialContent = contentStr ? JSON.parse(contentStr) : undefined;
   } catch {
-    return <div className="alert alert-error">Unable to parse article content.</div>;
+    return <div className="alert alert-error">{_('Unable to parse article content.')}</div>;
   }
 
   return (
@@ -422,22 +425,22 @@ export default function ArticleForm() {
       <input
         type="text"
         className="article-editor-title"
-        placeholder="Article title"
+        placeholder={_('Article title')}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onClick={handleDoubleTapSelect}
       />
       <div className="article-editor-description-wrap">
         <div className="article-editor-section-header">
-          <span className="article-editor-label">Description</span>
+          <span className="article-editor-label">{_('Description')}</span>
         </div>
         <div className="article-editor-section-header">
-          <span className="desc-limit-hint">Maximum 300 characters</span>
+          <span className="desc-limit-hint">{_('Maximum 300 characters')}</span>
           <span className="char-counter">{description.length}/300</span>
         </div>
         <textarea
           className="article-editor-description"
-          placeholder="Short description (optional)"
+          placeholder={_('Short description (optional)')}
           maxLength={300}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -446,13 +449,13 @@ export default function ArticleForm() {
       </div>
       <div className="article-editor-body-wrap">
         <div className="article-editor-section-header">
-          <span className="article-editor-section-title">Content</span>
+          <span className="article-editor-section-title">{_('Content')}</span>
         </div>
         <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
       </div>
       <div className="article-editor-actions">
         <button className="btn" onClick={handleSubmit} disabled={saving}>
-          {saving ? 'Saving...' : page === 'create' ? 'Publish' : 'Save'}
+          {saving ? _('Saving...') : page === 'create' ? _('Publish') : _('Save')}
         </button>
       </div>
     </div>

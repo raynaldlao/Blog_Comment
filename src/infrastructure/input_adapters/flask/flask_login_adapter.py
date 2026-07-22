@@ -1,3 +1,4 @@
+from flask_babel import gettext as _
 from pydantic import ValidationError
 
 from flask import flash, redirect, render_template, request, url_for
@@ -51,7 +52,7 @@ class LoginAdapter(MethodView):
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(f"Validation Error ({location}): {error['msg']}", "error")
+                flash(_("Validation Error (%(location)s): %(message)s", location=location, message=error["msg"]), "error")
             return render_template("login.html", current_user=user, username=submitted_username)
 
         result = self.login_service.authenticate_user(
@@ -63,7 +64,7 @@ class LoginAdapter(MethodView):
             return redirect(url_for("article.list_articles"))
 
         if result == "This account has been banned.":
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Invalid username or password.", "error")
+            flash(_("Invalid username or password."), "error")
         return render_template("login.html", current_user=user, username=login_data.username)

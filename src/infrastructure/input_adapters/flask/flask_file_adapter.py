@@ -1,5 +1,7 @@
 from io import BytesIO
 
+from flask_babel import gettext as _
+
 from flask import jsonify, request, send_file
 from src.application.application_exceptions import FileTooLargeError, FileTypeError
 from src.application.input_ports.file_management import FileManagementPort
@@ -28,7 +30,7 @@ class FlaskFileAdapter:
         """
         uploaded_file = request.files.get("file")
         if uploaded_file is None or not uploaded_file.filename:
-            return jsonify({"error": "No file provided"}), 400
+            return jsonify({"error": _("No file provided")}), 400
 
         file_data = uploaded_file.read()
 
@@ -68,7 +70,7 @@ class FlaskFileAdapter:
         """
         file_record = self.file_service.get_file(file_id)
         if file_record is None:
-            return jsonify({"error": "File not found"}), 404
+            return jsonify({"error": _("File not found")}), 404
 
         return send_file(
             BytesIO(file_record.data),

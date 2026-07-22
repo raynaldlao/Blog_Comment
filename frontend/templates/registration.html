@@ -1,7 +1,7 @@
 {% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
-{% block title %}Sign Up - DevJournal{% endblock %}
+{% block title %}{{ _('Sign Up - DevJournal') }}{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/account.css') }}">
@@ -10,47 +10,47 @@
 {% block content %}
 <div class="user-card account-card">
     <div class="account-header">
-        <h1 class="account-title">Join DevJournal</h1>
-        <p class="account-subtitle">Start your technical blog in seconds.</p>
+        <h1 class="account-title">{{ _('Join DevJournal') }}</h1>
+        <p class="account-subtitle">{{ _('Start your technical blog in seconds.') }}</p>
     </div>
 
     <form action="{{ url_for('registration.register') }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
-            <label for="registration-username">Choose Username</label>
-            <input type="text" id="registration-username" name="username" placeholder="e.g., dev_journey" autocomplete="username" value="{{ username or '' }}" required>
+            <label for="registration-username">{{ _('Choose Username') }}</label>
+            <input type="text" id="registration-username" name="username" placeholder="{{ _('e.g., dev_journey') }}" autocomplete="username" value="{{ username or '' }}" required>
         </div>
         <div class="form-group">
-            <label for="registration-email">Email Address</label>
-            <input type="email" id="registration-email" name="email" placeholder="e.g., user@example.com" autocomplete="email" value="{{ email or '' }}" required>
+            <label for="registration-email">{{ _('Email Address') }}</label>
+            <input type="email" id="registration-email" name="email" placeholder="{{ _('e.g., user@example.com') }}" autocomplete="email" value="{{ email or '' }}" required>
         </div>
         <div class="form-group">
-            <label for="registration-password">Password</label>
+            <label for="registration-password">{{ _('Password') }}</label>
             <div class="password-wrapper">
-                <input type="password" id="registration-password" name="password" placeholder="e.g., MyP@ssw0rd!" autocomplete="new-password" required>
-                <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                <input type="password" id="registration-password" name="password" placeholder="{{ _('e.g., MyP@ssw0rd!') }}" autocomplete="new-password" required>
+                <button type="button" class="password-toggle" aria-label="{{ _('Toggle password visibility') }}" aria-pressed="false">{{ icon('visibility') }}</button>
             </div>
         </div>
         <div class="form-group account-form-group">
-            <label for="registration-confirm-password">Confirm Password</label>
+            <label for="registration-confirm-password">{{ _('Confirm Password') }}</label>
             <div class="password-wrapper">
-                <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="e.g., MyP@ssw0rd!" autocomplete="new-password" required>
-                <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                <input type="password" id="registration-confirm-password" name="confirm_password" placeholder="{{ _('e.g., MyP@ssw0rd!') }}" autocomplete="new-password" required>
+                <button type="button" class="password-toggle" aria-label="{{ _('Toggle password visibility') }}" aria-pressed="false">{{ icon('visibility') }}</button>
             </div>
         </div>
-        <button type="submit" class="full-width">Create Account</button>
+        <button type="submit" class="full-width">{{ _('Create Account') }}</button>
     </form>
 
     <hr>
 
     <div class="account-footer">
-        <p class="account-subtitle">Already have an account ?</p>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary full-width">Sign In instead</a>
+        <p class="account-subtitle">{{ _('Already have an account ?') }}</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary full-width">{{ _('Sign In instead') }}</a>
         
         <div class="account-footer-link">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link account-link-center">
                 {{ icon('home') }}
-                <span>Return to home</span>
+                <span>{{ _('Return to home') }}</span>
             </a>
         </div>
     </div>
