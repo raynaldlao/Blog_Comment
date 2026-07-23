@@ -3,7 +3,7 @@ import math
 
 from flask_babel import gettext as _
 
-from flask import abort, flash, jsonify, redirect, render_template, request, url_for
+from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
 from src.application.application_exceptions import FileTooLargeError, FileTypeError
@@ -77,6 +77,24 @@ class AccountSessionAdapter(MethodView):
         self.session_service.terminate_session()
         flash(_("You have been logged out."), "info")
         return redirect(url_for("article.list_articles"))
+
+    def set_lang(self, locale: str):
+        """
+        Flask view that sets the user's language preference in the session.
+
+        Accepts 'fr' or 'en'. Invalid values are silently ignored.
+        Redirects to the previous page (via Referer header) or the article
+        list as fallback.
+
+        Args:
+            locale (str): The target locale, extracted from the URL path.
+
+        Returns:
+            Response: A redirect response.
+        """
+        if locale in ("fr", "en"):
+            session["lang"] = locale
+        return redirect(request.referrer or url_for("article.list_articles"))
 
     def display_profile(self):
         """

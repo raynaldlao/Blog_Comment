@@ -1,8 +1,9 @@
 import os
 from datetime import timedelta
 
-from flask import Flask, render_template
-from flask_babel import Babel, gettext as _
+from flask import Flask, render_template, session
+from flask_babel import Babel
+from flask_babel import gettext as _
 from flask_compress import Compress
 from sqlalchemy.orm import Session
 
@@ -197,7 +198,12 @@ def create_app(db_session=None) -> Flask:
     services = _create_services(repositories)
     app = _init_web_facade_flask()
     Compress(app)
-    Babel(app, locale_selector=lambda: "fr")
+    Babel(app, locale_selector=lambda: session.get("lang", "fr"))
+
+    @app.context_processor
+    def inject_get_locale():
+        return {"get_locale": lambda: session.get("lang", "fr")}
+
     init_web_security(app)
     _init_template_utils(app)
     web_adapters = _init_web_adapters(services)

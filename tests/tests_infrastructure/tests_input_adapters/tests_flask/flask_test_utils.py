@@ -72,9 +72,11 @@ class FlaskInputAdapterTestBase:
         self.app.config["WTF_CSRF_ENABLED"] = False
         Babel(self.app)
         self.app.extensions["babel"].locale_selector = lambda: "en"
+        self.app.context_processor(lambda: {"get_locale": lambda: self.app.extensions["babel"].locale_selector()})
         CSRFProtect(self.app)
         self._test_user = None
         self._dummy_labels = {}
+        self._register_dummy_route("/lang/<locale>", "auth.set_lang", "set_lang")
         self.app.before_request(self._inject_test_user_hook)
         self.client = self.app.test_client()
         self.app_context = self.app.test_request_context()

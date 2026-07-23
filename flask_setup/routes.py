@@ -161,6 +161,13 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.unban_account",
     )
 
+    app.add_url_rule(
+        "/lang/<locale>",
+        view_func=acc.set_lang,
+        methods=["POST"],
+        endpoint="auth.set_lang",
+    )
+
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]
