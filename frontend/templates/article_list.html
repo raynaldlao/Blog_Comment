@@ -4,7 +4,7 @@
 
 {% block title %}{{ _('Latest Articles - DevJournal') }}{% endblock %}
 {% block extra_head %}
-<meta name="description" content="DevJournal - Personal thoughts on software development, programming and technology.">
+<meta name="description" content="{{ _('DevJournal - Personal thoughts on software development, programming and technology.') }}">
 {% if vite_vendor_js_url %}
 <link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
 {% endif %}

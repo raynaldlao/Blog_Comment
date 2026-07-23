@@ -46,7 +46,7 @@
 
                 <form action="{{ url_for('auth.set_lang', locale='en' if get_locale() == 'fr' else 'fr') }}" method="POST" class="lang-toggle-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ get_locale() == 'fr' and 'Switch to English' or 'Passer en français' }}">
+                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ _('Switch language') }}">
                         {{ get_locale() == 'fr' and 'EN' or 'FR' }}
                     </button>
                 </form>

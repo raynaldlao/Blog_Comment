@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-23 00:37+0200\n"
+"POT-Creation-Date: 2026-07-23 20:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,18 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.10.3\n"
+
+#: blog_comment_application.py:212
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: blog_comment_application.py:213
+msgid "The page you are looking for does not exist."
+msgstr ""
+
+#: blog_comment_application.py:214
+msgid "An unexpected error occurred. Please try again later."
+msgstr ""
 
 #: frontend/templates/article_create.html:3
 msgid "Write an Article - DevJournal"
@@ -43,7 +55,7 @@ msgid "Network error."
 msgstr ""
 
 #: frontend/templates/article_create.html:31
-#: frontend/templates/article_detail.html:238
+#: frontend/templates/article_detail.html:218
 #: frontend/templates/article_edit.html:60
 msgid "Loading..."
 msgstr ""
@@ -89,7 +101,7 @@ msgid "Publish"
 msgstr ""
 
 #: frontend/templates/article_create.html:40
-#: frontend/templates/article_detail.html:159
+#: frontend/templates/article_detail.html:228
 #: frontend/templates/article_edit.html:69 frontend/templates/profile.html:94
 #: frontend/templates/profile.html:116
 msgid "Save"
@@ -131,13 +143,13 @@ msgid "Only YouTube links are supported"
 msgstr ""
 
 #: frontend/templates/article_create.html:48
-#: frontend/templates/article_detail.html:242
+#: frontend/templates/article_detail.html:222
 #: frontend/templates/article_edit.html:77
 msgid "Failed to load article."
 msgstr ""
 
 #: frontend/templates/article_create.html:49
-#: frontend/templates/article_detail.html:244
+#: frontend/templates/article_detail.html:224
 #: frontend/templates/article_edit.html:78
 msgid "Copy"
 msgstr ""
@@ -148,12 +160,9 @@ msgid "Copy Block"
 msgstr ""
 
 #: frontend/templates/article_create.html:51
-#: frontend/templates/article_detail.html:240
+#: frontend/templates/article_detail.html:220
 #: frontend/templates/article_edit.html:80
 msgid "Copied to clipboard"
-msgstr ""
-
-msgid "Failed to copy"
 msgstr ""
 
 #: frontend/templates/article_create.html:52
@@ -168,7 +177,7 @@ msgstr ""
 
 #: frontend/templates/article_create.html:54
 #: frontend/templates/article_detail.html:79
-#: frontend/templates/article_edit.html:83 frontend/templates/base.html:109
+#: frontend/templates/article_edit.html:83 frontend/templates/base.html:116
 #: frontend/templates/user_list.html:95
 msgid "Delete"
 msgstr ""
@@ -179,7 +188,7 @@ msgid "Align text justify"
 msgstr ""
 
 #: frontend/templates/article_create.html:56
-#: frontend/templates/article_detail.html:243
+#: frontend/templates/article_detail.html:223
 #: frontend/templates/article_edit.html:85
 msgid "Plain Text"
 msgstr ""
@@ -195,7 +204,7 @@ msgid "No languages found"
 msgstr ""
 
 #: frontend/templates/article_create.html:59
-#: frontend/templates/article_detail.html:246
+#: frontend/templates/article_detail.html:226
 #: frontend/templates/article_edit.html:88
 msgid "Something went wrong. Please reload the page."
 msgstr ""
@@ -226,16 +235,6 @@ msgstr ""
 msgid "[Edit]"
 msgstr ""
 
-#: frontend/templates/article_detail.html:126
-#: frontend/templates/article_detail.html:160
-#: frontend/templates/article_detail.html:168
-#: frontend/templates/article_detail.html:184
-#: frontend/templates/article_list.html:143 frontend/templates/base.html:108
-#: frontend/templates/base.html:132 frontend/templates/profile.html:93
-#: frontend/templates/profile.html:115 frontend/templates/user_list.html:143
-msgid "Cancel"
-msgstr ""
-
 #: frontend/templates/article_detail.html:131
 #: frontend/templates/article_detail.html:137
 msgid "[Delete]"
@@ -249,64 +248,77 @@ msgstr ""
 msgid "Comment removed"
 msgstr ""
 
-#: frontend/templates/article_detail.html:156
-#: frontend/templates/article_detail.html:180
-#: frontend/templates/article_detail.html:217
-msgid "Comment must be between 1 and 5000 characters"
-msgstr ""
-
-#: frontend/templates/article_detail.html:168
+#: frontend/templates/article_detail.html:155
+#: frontend/templates/article_detail.html:227
 msgid "Reply"
 msgstr ""
 
-#: frontend/templates/article_detail.html:171
-#: frontend/templates/article_detail.html:191
+#: frontend/templates/article_detail.html:158
+#: frontend/templates/article_detail.html:164
 msgid "View replies"
 msgstr ""
 
-#: frontend/templates/article_detail.html:171
-#: frontend/templates/article_detail.html:191
+#: frontend/templates/article_detail.html:158
+#: frontend/templates/article_detail.html:164
 msgid "Hide replies"
 msgstr ""
 
-#: frontend/templates/article_detail.html:183
-msgid "Post Reply"
-msgstr ""
-
-#: frontend/templates/article_detail.html:207
+#: frontend/templates/article_detail.html:180
 #, python-format
 msgid "Comments (%(count)s)"
 msgstr ""
 
-#: frontend/templates/article_detail.html:211
+#: frontend/templates/article_detail.html:184
 msgid "No comments yet."
 msgstr ""
 
-#: frontend/templates/article_detail.html:216
+#: frontend/templates/article_detail.html:189
+#: frontend/templates/article_detail.html:233
 msgid "Join the discussion"
 msgstr ""
 
-#: frontend/templates/article_detail.html:223
+#: frontend/templates/article_detail.html:190
+msgid "Comment must be between 1 and 5000 characters"
+msgstr ""
+
+#: frontend/templates/article_detail.html:201
+#: frontend/templates/article_detail.html:232
 msgid "Post Comment"
 msgstr ""
 
-#: frontend/templates/article_detail.html:229
+#: frontend/templates/article_detail.html:202
+#: frontend/templates/article_detail.html:231
+#: frontend/templates/article_list.html:143 frontend/templates/base.html:115
+#: frontend/templates/base.html:139 frontend/templates/profile.html:93
+#: frontend/templates/profile.html:115 frontend/templates/user_list.html:143
+msgid "Cancel"
+msgstr ""
+
+#: frontend/templates/article_detail.html:209
 #, python-format
 msgid ""
 "Please <a href=\"%(url)s\" class=\"comment-auth-link\">sign in</a> to "
 "join the conversation."
 msgstr ""
 
-#: frontend/templates/article_detail.html:239
+#: frontend/templates/article_detail.html:219
 msgid "Unable to render article content."
 msgstr ""
 
-#: frontend/templates/article_detail.html:241
+#: frontend/templates/article_detail.html:221
 msgid "Comment cannot be empty"
 msgstr ""
 
-#: frontend/templates/article_detail.html:245
+#: frontend/templates/article_detail.html:225
 msgid "Insert Emoji"
+msgstr ""
+
+#: frontend/templates/article_detail.html:229
+msgid "Reply to"
+msgstr ""
+
+#: frontend/templates/article_detail.html:230
+msgid "Editing comment"
 msgstr ""
 
 #: frontend/templates/article_edit.html:3
@@ -315,6 +327,12 @@ msgstr ""
 
 #: frontend/templates/article_list.html:5
 msgid "Latest Articles - DevJournal"
+msgstr ""
+
+#: frontend/templates/article_list.html:7
+msgid ""
+"DevJournal - Personal thoughts on software development, programming and "
+"technology."
 msgstr ""
 
 #: frontend/templates/article_list.html:26
@@ -377,58 +395,62 @@ msgstr ""
 msgid "Toggle Theme"
 msgstr ""
 
-#: frontend/templates/base.html:48 frontend/templates/base.html:50
+#: frontend/templates/base.html:49
+msgid "Switch language"
+msgstr ""
+
+#: frontend/templates/base.html:55 frontend/templates/base.html:57
 msgid "Home"
 msgstr ""
 
-#: frontend/templates/base.html:55
+#: frontend/templates/base.html:62
 msgid "New Article"
 msgstr ""
 
-#: frontend/templates/base.html:57
+#: frontend/templates/base.html:64
 msgid "New article"
 msgstr ""
 
-#: frontend/templates/base.html:61 frontend/templates/base.html:63
+#: frontend/templates/base.html:68 frontend/templates/base.html:70
 #: frontend/templates/profile.html:4
 msgid "Profile"
 msgstr ""
 
-#: frontend/templates/base.html:67 frontend/templates/base.html:69
+#: frontend/templates/base.html:74 frontend/templates/base.html:76
 msgid "Logout"
 msgstr ""
 
-#: frontend/templates/base.html:73 frontend/templates/base.html:75
+#: frontend/templates/base.html:80 frontend/templates/base.html:82
 #: frontend/templates/login.html:30
 msgid "Sign In"
 msgstr ""
 
-#: frontend/templates/base.html:77 frontend/templates/base.html:79
+#: frontend/templates/base.html:84 frontend/templates/base.html:86
 msgid "Sign Up"
 msgstr ""
 
-#: frontend/templates/base.html:104
+#: frontend/templates/base.html:111
 msgid "Confirm"
 msgstr ""
 
-#: frontend/templates/base.html:115 frontend/templates/base.html:133
+#: frontend/templates/base.html:122 frontend/templates/base.html:140
 #: frontend/templates/profile.html:152 frontend/templates/user_list.html:88
 msgid "Ban"
 msgstr ""
 
-#: frontend/templates/base.html:121
+#: frontend/templates/base.html:128
 msgid "Reason (optional)"
 msgstr ""
 
-#: frontend/templates/base.html:123
+#: frontend/templates/base.html:130
 msgid "Maximum 150 characters"
 msgstr ""
 
-#: frontend/templates/base.html:127
+#: frontend/templates/base.html:134
 msgid "e.g., Spam, harassment..."
 msgstr ""
 
-#: frontend/templates/base.html:144
+#: frontend/templates/base.html:151
 #, python-format
 msgid "© %(year)s DevJournal. All rights reserved."
 msgstr ""
@@ -649,71 +671,71 @@ msgstr ""
 msgid "You have been logged out."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:92
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:110
 msgid "Please sign in to view your profile."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:149
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:167
 msgid "Authentication required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:153
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:171
 msgid "No file provided."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:196
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:227
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:255
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:344
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:214
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:245
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:273
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:362
 msgid "Please sign in."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:201
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:219
 msgid "No avatar to remove."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:208
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:226
 msgid "Failed to remove profile photo."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:211
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:229
 msgid "Profile photo removed."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:232
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:250
 msgid "Email is required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:239
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:257
 msgid "Email updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:260
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:278
 msgid "Password is required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:267
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:285
 msgid "Password updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:358
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:376
 msgid "Account not found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:375
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:378
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:393
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:396
 msgid "Account deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:417
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:435
 msgid "Role updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:452
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:470
 msgid "Account banned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:483
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:501
 msgid "Account unbanned."
 msgstr ""
 
@@ -853,29 +875,5 @@ msgstr ""
 
 #: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:71
 msgid "Registration successful. Please sign in."
-msgstr ""
-
-#: blog_comment_application.py
-msgid "You do not have permission to access this page."
-msgstr ""
-
-#: blog_comment_application.py
-msgid "The page you are looking for does not exist."
-msgstr ""
-
-#: blog_comment_application.py
-msgid "An unexpected error occurred. Please try again later."
-msgstr ""
-
-#: frontend/templates/user_list.html:63
-msgid "admin"
-msgstr ""
-
-#: frontend/templates/user_list.html:63
-msgid "author"
-msgstr ""
-
-#: frontend/templates/user_list.html:63
-msgid "user"
 msgstr ""
 
