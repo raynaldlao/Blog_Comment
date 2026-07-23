@@ -442,6 +442,15 @@ input.search-input {
     border-bottom-color: var(--error);
 }
 
+#jump-page-input.input-error {
+    border-color: var(--error);
+}
+
+#jump-page-input.input-error:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--error) 20%, transparent);
+}
+
 .dialog .stepper-btn {
     flex: 1;
     display: flex;
