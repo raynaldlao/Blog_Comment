@@ -298,6 +298,8 @@ msgid ""
 "Please <a href=\"%(url)s\" class=\"comment-auth-link\">sign in</a> to "
 "join the conversation."
 msgstr ""
+"Veuillez vous <a href=\"%(url)s\" class=\"comment-auth-link\">connecter</a> "
+"pour participer à la conversation."
 
 #: frontend/templates/article_detail.html:239
 msgid "Unable to render article content."
@@ -864,15 +866,6 @@ msgid "Registration successful. Please sign in."
 msgstr "Inscription réussie. Veuillez vous connecter."
 
 #~ msgid ""
-#~ "Please <a href=\"%(url)s\" class=\"comment-"
-#~ "auth-link\">sign in</a> to join the "
-#~ "conversation."
-#~ msgstr ""
-#~ "Veuillez vous <a href=\"%(url)s\" class"
-#~ "=\"comment-auth-link\">connecter</a> pour "
-#~ "participer à la conversation."
-
-#~ msgid ""
 #~ "Are you sure you want to delete"
 #~ " your account ? This action is "
 #~ "irreversible."
@@ -900,12 +893,28 @@ msgstr "Inscription réussie. Veuillez vous connecter."
 #~ msgid "Upload failed."
 #~ msgstr "Échec du téléchargement."
 
-#~ msgid "admin"
-#~ msgstr "Administrateur"
 
-#~ msgid "author"
-#~ msgstr "Auteur"
+#: blog_comment_application.py
+msgid "You do not have permission to access this page."
+msgstr "Vous n'avez pas la permission d'accéder à cette page."
 
-#~ msgid "user"
-#~ msgstr "Utilisateur"
+#: blog_comment_application.py
+msgid "The page you are looking for does not exist."
+msgstr "La page que vous cherchez n'existe pas."
+
+#: blog_comment_application.py
+msgid "An unexpected error occurred. Please try again later."
+msgstr "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
+
+#: frontend/templates/user_list.html:63
+msgid "admin"
+msgstr "Administrateur"
+
+#: frontend/templates/user_list.html:63
+msgid "author"
+msgstr "Auteur"
+
+#: frontend/templates/user_list.html:63
+msgid "user"
+msgstr "Utilisateur"
 

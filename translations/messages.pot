@@ -855,3 +855,27 @@ msgstr ""
 msgid "Registration successful. Please sign in."
 msgstr ""
 
+#: blog_comment_application.py
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: blog_comment_application.py
+msgid "The page you are looking for does not exist."
+msgstr ""
+
+#: blog_comment_application.py
+msgid "An unexpected error occurred. Please try again later."
+msgstr ""
+
+#: frontend/templates/user_list.html:63
+msgid "admin"
+msgstr ""
+
+#: frontend/templates/user_list.html:63
+msgid "author"
+msgstr ""
+
+#: frontend/templates/user_list.html:63
+msgid "user"
+msgstr ""
+
