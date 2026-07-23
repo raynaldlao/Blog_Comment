@@ -204,7 +204,6 @@
             wysiwyg.addEventListener('click', () => {
                 const now = Date.now();
                 if (lastTap && now - lastTap < 400) {
-                    console.log('[debug] double-tap select-all fired');
                     lastTap = null;
                 } else {
                     lastTap = now;
@@ -223,9 +222,6 @@
                 } else {
                     touchTap = now;
                 }
-            });
-            wysiwyg.addEventListener('keydown', () => {
-                console.log('[debug] wysiwyg keydown');
             });
         }
 
@@ -249,12 +245,14 @@
         textarea.dataset.suneditor = 'true';
     }
 
-    window.initReplyEditor = function (commentId) {
-        initCommentEditor('reply-editor-' + commentId, 'reply-content-' + commentId);
+    window.setCommentEditorContent = function (html) {
+        const editor = suneditors['comment-editor'];
+        if (editor) editor.setContents(html);
     };
 
-    window.initEditEditor = function (commentId) {
-        initCommentEditor('edit-editor-' + commentId, 'edit-content-' + commentId);
+    window.clearCommentEditor = function () {
+        const editor = suneditors['comment-editor'];
+        if (editor) editor.setContents('');
     };
 
     document.addEventListener('DOMContentLoaded', () => {

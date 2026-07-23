@@ -1,41 +1,111 @@
 'use strict';
 
 (() => {
+    const _t = key => {
+        const el = document.getElementById('app-translations');
+        if (!el) return key;
+        try { return JSON.parse(el.textContent)[key] || key; } catch { return key; }
+    };
+
+    const activeMode = { type: null, commentId: null, button: null };
+
+    function restoreButtonText() {
+        if (!activeMode.button) return;
+        if (activeMode.type === 'reply') activeMode.button.textContent = _t('Reply');
+        else if (activeMode.type === 'edit') activeMode.button.textContent = _t('[Edit]');
+    }
+
+    function resetForm() {
+        const form = document.getElementById('comment-form');
+        form.action = form.dataset.createUrl;
+
+        document.getElementById('comment-submit-btn').textContent = _t('Post Comment');
+        document.getElementById('cancel-edit-btn').style.display = 'none';
+        document.getElementById('comment-form-title').textContent = _t('Join the discussion');
+
+        restoreButtonText();
+        activeMode.type = null;
+        activeMode.commentId = null;
+        activeMode.button = null;
+
+        if (window.clearCommentEditor) {
+            window.clearCommentEditor();
+        }
+    }
+
+    function enterReplyMode(replyToggle) {
+        const commentId = replyToggle.dataset.commentId;
+        const form = document.getElementById('comment-form');
+        const replyUrl = form.dataset.replyUrl.replace(/\/comments\/0\/reply$/, '/comments/' + commentId + '/reply');
+        form.action = replyUrl;
+
+        document.getElementById('comment-submit-btn').textContent = _t('Reply');
+        document.getElementById('cancel-edit-btn').style.display = '';
+        document.getElementById('comment-form-title').textContent = _t('Reply to') + ' ' + (replyToggle.dataset.authorUsername || _t('Anonymous'));
+
+        restoreButtonText();
+        replyToggle.textContent = _t('Cancel');
+        activeMode.type = 'reply';
+        activeMode.commentId = commentId;
+        activeMode.button = replyToggle;
+
+        if (window.clearCommentEditor) {
+            window.clearCommentEditor();
+        }
+
+        document.getElementById('comment-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function enterEditMode(editToggle) {
+        const commentId = editToggle.dataset.commentId;
+        const bodyEl = document.getElementById('comment-body-' + commentId);
+        if (!bodyEl) return;
+
+        const contentHtml = bodyEl.innerHTML;
+
+        const form = document.getElementById('comment-form');
+        const editUrl = form.dataset.editUrl.replace(/\/comments\/0\/edit$/, '/comments/' + commentId + '/edit');
+        form.action = editUrl;
+
+        document.getElementById('comment-submit-btn').textContent = _t('Save');
+        document.getElementById('cancel-edit-btn').style.display = '';
+        document.getElementById('comment-form-title').textContent = _t('Editing comment');
+
+        restoreButtonText();
+        editToggle.textContent = _t('Cancel');
+        activeMode.type = 'edit';
+        activeMode.commentId = commentId;
+        activeMode.button = editToggle;
+
+        if (window.setCommentEditorContent) {
+            window.setCommentEditorContent(contentHtml);
+        }
+
+        document.getElementById('comment-form-title').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', (e) => {
             const replyToggle = e.target.closest('.reply-toggle');
             if (replyToggle) {
                 e.preventDefault();
                 const commentId = replyToggle.dataset.commentId;
-                const container = document.getElementById('reply-form-' + commentId);
-                if (!container) return;
+                if (activeMode.type === 'reply' && activeMode.commentId === commentId) {
+                    resetForm();
+                } else {
+                    enterReplyMode(replyToggle);
+                }
+                return;
+            }
 
-                document.querySelectorAll('.reply-form-container').forEach(other => {
-                    if (other.style.display === 'block' && other.id !== container.id) {
-                        other.style.display = 'none';
-                        const otherId = other.id.replace('reply-form-', '');
-                        const otherToggle = document.querySelector('.reply-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.replyText;
-                    }
-                });
-
-                document.querySelectorAll('.edit-form-container').forEach(other => {
-                    if (other.style.display === 'block') {
-                        other.style.display = 'none';
-                        const otherId = other.id.replace('edit-form-', '');
-                        const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.editText;
-                        const otherBody = document.getElementById('comment-body-' + otherId);
-                        if (otherBody) otherBody.style.display = '';
-                    }
-                });
-
-                const isHidden = container.style.display === 'none';
-                container.style.display = isHidden ? 'block' : 'none';
-                replyToggle.textContent = isHidden ? replyToggle.dataset.cancelText : replyToggle.dataset.replyText;
-
-                if (isHidden && window.initReplyEditor) {
-                    window.initReplyEditor(commentId);
+            const editToggle = e.target.closest('.comment-edit-toggle');
+            if (editToggle) {
+                e.preventDefault();
+                const commentId = editToggle.dataset.commentId;
+                if (activeMode.type === 'edit' && activeMode.commentId === commentId) {
+                    resetForm();
+                } else {
+                    enterEditMode(editToggle);
                 }
                 return;
             }
@@ -62,89 +132,9 @@
                 return;
             }
 
-            const editToggle = e.target.closest('.comment-edit-toggle');
-            if (editToggle) {
-                e.preventDefault();
-                const commentId = editToggle.dataset.commentId;
-                const container = document.getElementById('edit-form-' + commentId);
-                if (!container) return;
-
-                document.querySelectorAll('.edit-form-container').forEach(other => {
-                    if (other.style.display === 'block' && other.id !== container.id) {
-                        other.style.display = 'none';
-                        const otherId = other.id.replace('edit-form-', '');
-                        const otherToggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.editText;
-                        const otherBody = document.getElementById('comment-body-' + otherId);
-                        if (otherBody) {
-                            otherBody.style.display = '';
-                            const otherEdited = otherBody.nextElementSibling;
-                            if (otherEdited && otherEdited.classList.contains('comment-edited-line')) {
-                                otherEdited.style.display = '';
-                            }
-                        }
-                    }
-                });
-
-                document.querySelectorAll('.reply-form-container').forEach(other => {
-                    if (other.style.display === 'block') {
-                        other.style.display = 'none';
-                        const otherId = other.id.replace('reply-form-', '');
-                        const otherToggle = document.querySelector('.reply-toggle[data-comment-id="' + otherId + '"]');
-                        if (otherToggle) otherToggle.textContent = otherToggle.dataset.replyText;
-                    }
-                });
-
-                const isHidden = container.style.display === 'none';
-                container.style.display = isHidden ? 'block' : 'none';
-                editToggle.textContent = isHidden ? editToggle.dataset.cancelText : editToggle.dataset.editText;
-
-                const bodyText = document.getElementById('comment-body-' + commentId);
-                if (bodyText) {
-                    bodyText.style.display = isHidden ? 'none' : '';
-                    const editedLine = bodyText.nextElementSibling;
-                    if (editedLine && editedLine.classList.contains('comment-edited-line')) {
-                        editedLine.style.display = isHidden ? 'none' : '';
-                    }
-                }
-
-                if (isHidden && window.initEditEditor) {
-                    window.initEditEditor(commentId);
-                }
-                return;
-            }
-
-            const cancelBtn = e.target.closest('.cancel-reply');
-            if (cancelBtn) {
-                const container = cancelBtn.closest('.reply-form-container');
-                if (!container) return;
-                container.style.display = 'none';
-                const commentId = container.id.replace('reply-form-', '');
-                const toggle = document.querySelector('.reply-toggle[data-comment-id="' + commentId + '"]');
-                if (toggle) {
-                    toggle.textContent = toggle.dataset.replyText;
-                }
-                return;
-            }
-
-            const cancelEdit = e.target.closest('.cancel-edit');
-            if (cancelEdit) {
-                const container = cancelEdit.closest('.edit-form-container');
-                if (!container) return;
-                container.style.display = 'none';
-                const commentId = container.id.replace('edit-form-', '');
-                const toggle = document.querySelector('.comment-edit-toggle[data-comment-id="' + commentId + '"]');
-                if (toggle) {
-                    toggle.textContent = toggle.dataset.editText;
-                }
-                const bodyText = document.getElementById('comment-body-' + commentId);
-                if (bodyText) {
-                    bodyText.style.display = '';
-                    const editedLine = bodyText.nextElementSibling;
-                    if (editedLine && editedLine.classList.contains('comment-edited-line')) {
-                        editedLine.style.display = '';
-                    }
-                }
+            const cancelEditBtn = e.target.closest('#cancel-edit-btn');
+            if (cancelEditBtn) {
+                resetForm();
                 return;
             }
         });

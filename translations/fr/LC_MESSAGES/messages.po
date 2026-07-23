@@ -292,6 +292,14 @@ msgstr "Participer à la discussion"
 msgid "Post Comment"
 msgstr "Publier le commentaire"
 
+#: frontend/static/scripts/comment-reply.js
+msgid "Reply to"
+msgstr "Répondre à"
+
+#: frontend/static/scripts/comment-reply.js
+msgid "Editing comment"
+msgstr "Modifier le commentaire"
+
 #: frontend/templates/article_detail.html:229
 #, python-format
 msgid ""

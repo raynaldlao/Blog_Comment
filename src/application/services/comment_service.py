@@ -22,7 +22,7 @@ class CommentService(CommentManagementPort):
     """
 
     ALLOWED_TAGS = frozenset({
-        "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
+        "b", "i", "u", "s", "strike", "del", "a", "ul", "ol", "li", "br", "p", "em", "strong",
         "blockquote", "pre", "code", "span", "sub", "sup",
     })
 
