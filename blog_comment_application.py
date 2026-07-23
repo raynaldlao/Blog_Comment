@@ -1,3 +1,4 @@
+import glob
 import os
 from datetime import timedelta
 
@@ -217,4 +218,7 @@ def create_app(db_session=None) -> Flask:
 
 if __name__ == "__main__":
     application = create_app()
-    application.run(debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")
+    application.run(
+        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
+        extra_files=glob.glob("translations/**/*.mo", recursive=True),
+    )
