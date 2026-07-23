@@ -614,6 +614,110 @@ class TestCommentHardDeleteIntegration:
         assert db_session.get(CommentModel, cid) is None
         assert b"Comment permanently deleted" in resp.data
 
+    def test_comment_hard_delete_cascades_to_children_integ(
+        self, client, db_session,
+    ):
+        """
+        Verifies that hard-deleting a parent comment cascades to ALL
+        descendants via FK ON DELETE CASCADE.
+
+        Creates a tree: P(parent) -> A(child of P) -> C(child of A),
+        B(child of P). Hard-deletes P, then asserts P, A, B, C are all
+        removed from the database. An unrelated comment must remain intact.
+        """
+        admin = AccountModel(
+            account_username="cascade_admin", account_email="ca@t.com",
+            account_password="p", account_role="admin",
+        )
+        db_session.add(admin)
+        db_session.commit()
+
+        article = ArticleModel(
+            article_title="Cascade Test", article_content="C",
+            article_author_id=admin.account_id,
+        )
+        db_session.add(article)
+        db_session.commit()
+
+        parent = CommentModel(
+            comment_content="Parent",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(parent)
+        db_session.commit()
+
+        child_a = CommentModel(
+            comment_content="Child A",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            comment_reply_to=parent.comment_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(child_a)
+        db_session.commit()
+
+        child_b = CommentModel(
+            comment_content="Child B",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            comment_reply_to=parent.comment_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(child_b)
+        db_session.commit()
+
+        grandchild = CommentModel(
+            comment_content="Grandchild",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            comment_reply_to=child_a.comment_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(grandchild)
+        db_session.commit()
+
+        unrelated = CommentModel(
+            comment_content="Unrelated",
+            comment_article_id=article.article_id,
+            comment_written_account_id=admin.account_id,
+            is_deleted=True,
+            deleted_at=datetime.now(UTC),
+        )
+        db_session.add(unrelated)
+        db_session.commit()
+
+        pid = parent.comment_id
+        aid = article.article_id
+        ca_id = child_a.comment_id
+        cb_id = child_b.comment_id
+        gc_id = grandchild.comment_id
+        un_id = unrelated.comment_id
+
+        client.post("/login", data={
+            "username": "cascade_admin", "password": "p",
+        })
+
+        resp = client.post(
+            f"/articles/{aid}/comments/{pid}/delete-permanent",
+            follow_redirects=True,
+        )
+        assert resp.status_code == 200
+        assert b"Comment permanently deleted" in resp.data
+
+        db_session.expire_all()
+
+        assert db_session.get(CommentModel, pid) is None
+        assert db_session.get(CommentModel, ca_id) is None
+        assert db_session.get(CommentModel, cb_id) is None
+        assert db_session.get(CommentModel, gc_id) is None
+        assert db_session.get(CommentModel, un_id) is not None
+
 
 class TestArticleEditEditedAtIntegration:
     def test_article_edit_sets_edited_at_integration(self, client, db_session):

@@ -280,7 +280,7 @@ class CommentService(CommentManagementPort):
         """
         Permanently deletes a comment from the database. Admin only.
         Only allowed on already soft-deleted comments.
-        Children get comment_reply_to set to NULL via FK ON DELETE SET NULL.
+        Children are automatically deleted via FK ON DELETE CASCADE.
 
         Args:
             comment_id (int): ID of the comment to permanently delete.
