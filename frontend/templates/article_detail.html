@@ -102,7 +102,7 @@
                 {% if is_deleted %}
                     <span class="comment-avatar-initial comment-avatar-deleted">?</span>
                 {% elif node.comment.comment_written_account_id is none %}
-                    <span class="comment-avatar-initial">A</span>
+                    <span class="comment-avatar-initial">?</span>
                 {% else %}
                     <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
                         {% if node.comment.author_avatar_file_id %}
