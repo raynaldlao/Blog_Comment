@@ -113,11 +113,12 @@ class TestWorkflows:
         soft = db_session.get(CommentModel, rid)
         assert soft.is_deleted is True
         assert soft.deleted_at is not None
+        assert soft.deleted_by == "user"
         assert soft.comment_content == "Root comment"
 
         detail = client.get(f"/articles/{aid}")
         assert b"Anonymous" in detail.data
-        assert b"Comment removed" in detail.data
+        assert b"Deleted by user" in detail.data
         assert b"Root comment" not in detail.data
 
     def test_comment_edit_and_soft_delete_integration(self, client, db_session):
@@ -156,12 +157,13 @@ class TestWorkflows:
         db_session.expire_all()
         deleted = db_session.get(CommentModel, cid)
         assert deleted.is_deleted is True
+        assert deleted.deleted_by == "user"
         assert deleted.comment_content == "Updated"
 
         detail_after_delete = client.get(f"/articles/{aid}")
         assert b"Anonymous" in detail_after_delete.data
+        assert b"Deleted by user" in detail_after_delete.data
         assert b"Updated" not in detail_after_delete.data
-        assert b"Comment removed" in detail_after_delete.data
 
     def test_deep_comment_threading_integ(self, client, db_session):
         """

@@ -60,3 +60,6 @@ class CommentModel(SqlAlchemyModel):
     edited_at: Mapped[datetime | None] = mapped_column(
         name="edited_at", type_=TIMESTAMP, nullable=True,
     )
+    deleted_by: Mapped[str | None] = mapped_column(
+        name="deleted_by", type_=String(20), nullable=True,
+    )

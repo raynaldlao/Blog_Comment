@@ -23,12 +23,13 @@ class CommentRecord(BaseModel):
     is_deleted: bool = False
     deleted_at: datetime | None = None
     edited_at: datetime | None = None
+    deleted_by: str | None = None
 
     def to_domain(self) -> Comment:
         """
         Converts the database record into a domain Comment entity.
 
-        Maps all fields including is_deleted, deleted_at, and edited_at
+        Maps all fields including is_deleted, deleted_at, edited_at, and deleted_by
         to the domain Comment object.
 
         Returns:
@@ -44,4 +45,5 @@ class CommentRecord(BaseModel):
             is_deleted=self.is_deleted,
             deleted_at=self.deleted_at,
             edited_at=self.edited_at,
+            deleted_by=self.deleted_by,
         )

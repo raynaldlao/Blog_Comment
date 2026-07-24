@@ -67,3 +67,4 @@ class TestCommentRecordToDomain:
         assert domain.comment_reply_to == 1
         assert domain.comment_content == "Mapped"
         assert domain.comment_posted_at == dt
+        assert domain.deleted_by is None

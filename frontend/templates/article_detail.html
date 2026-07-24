@@ -140,7 +140,15 @@
                     </div>
                     <div class="comment-body-text" id="comment-body-{{ node.comment.comment_id }}">
                         {% if is_deleted or node.comment.comment_written_account_id is none %}
-                            <em>{{ _('Comment removed') }}</em>
+                            {% if node.comment.deleted_by == 'admin' %}
+                                <em>{{ _('Deleted by admin') }}</em>
+                            {% elif node.comment.deleted_by == 'user' %}
+                                <em>{{ _('Deleted by user') }}</em>
+                            {% elif node.comment.deleted_by == 'account_deleted' %}
+                                <em>{{ _('Deleted due to account deletion') }}</em>
+                            {% else %}
+                                <em>{{ _('Comment removed') }}</em>
+                            {% endif %}
                         {% else %}
                             {{ node.comment.comment_content | safe }}
                         {% endif %}

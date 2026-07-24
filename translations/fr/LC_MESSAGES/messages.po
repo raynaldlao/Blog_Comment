@@ -249,6 +249,18 @@ msgstr "Supprimer définitivement ce commentaire ? Action irréversible."
 msgid "Comment removed"
 msgstr "Commentaire supprimé."
 
+#: frontend/templates/article_detail.html:143
+msgid "Deleted by admin"
+msgstr "Supprimé par l'administrateur."
+
+#: frontend/templates/article_detail.html:143
+msgid "Deleted by user"
+msgstr "Supprimé par l'utilisateur."
+
+#: frontend/templates/article_detail.html:143
+msgid "Deleted due to account deletion"
+msgstr "Supprimé suite à la suppression du compte."
+
 #: frontend/templates/article_detail.html:155
 #: frontend/templates/article_detail.html:227
 msgid "Reply"

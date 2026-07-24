@@ -220,6 +220,7 @@ class CommentService(CommentManagementPort):
             comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
             comment.is_deleted = True
             comment.deleted_at = datetime.now(UTC)
+            comment.deleted_by = "account_deleted"
             self.comment_repository.save(comment)
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool:
@@ -254,6 +255,7 @@ class CommentService(CommentManagementPort):
 
         comment.is_deleted = True
         comment.deleted_at = datetime.now(UTC)
+        comment.deleted_by = "admin" if is_admin and not is_author else "user"
         self.comment_repository.save(comment)
         return True
 
