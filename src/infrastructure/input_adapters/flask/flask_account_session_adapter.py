@@ -3,10 +3,10 @@ import math
 
 from flask_babel import gettext as _
 
+from exceptions import FileTooLargeError, FileTypeError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
-from src.application.application_exceptions import FileTooLargeError, FileTypeError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.comment_management import CommentManagementPort

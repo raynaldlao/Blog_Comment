@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from src.application.application_exceptions import AccountAlreadyExistsError
+from exceptions import AccountAlreadyExistsError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord

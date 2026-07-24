@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 
-from src.application.application_exceptions import FileTooLargeError, FileTypeError
+from exceptions import FileTooLargeError, FileTypeError
 from src.application.domain.file_record import FileRecord
 from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.file_storage_repository import FileStorageRepository

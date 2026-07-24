@@ -1,11 +1,11 @@
 from unittest.mock import MagicMock
 
+from exceptions import ExceptionTest
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 from src.application.services.login_service import LoginService
-from tests.exceptions_tests import ExceptionTest
 from tests.test_domain_factories import create_test_account
 
 

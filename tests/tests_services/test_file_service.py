@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from src.application.application_exceptions import FileTooLargeError, FileTypeError
+from exceptions import FileTooLargeError, FileTypeError
 from src.application.domain.file_record import FileRecord
 from src.application.output_ports.file_storage_repository import FileStorageRepository
 from src.application.services.file_service import FileService
