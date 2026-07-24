@@ -4,6 +4,7 @@ from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
+from exceptions import BlogCommentError
 from flask import flash, redirect, request, url_for
 from flask import g as global_request_context
 from src.application.input_ports.comment_management import CommentManagementPort
@@ -80,14 +81,14 @@ class CommentAdapter:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        result = self.comment_service.create_comment(
-            article_id=article_id,
-            user_id=user.account_id,
-            content=req_data.content
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
+        try:
+            self.comment_service.create_comment(
+                article_id=article_id,
+                user_id=user.account_id,
+                content=req_data.content
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Comment added."), "success")
 
@@ -125,14 +126,14 @@ class CommentAdapter:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        result = self.comment_service.create_reply(
-            parent_comment_id=parent_comment_id,
-            user_id=user.account_id,
-            content=req_data.content
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
+        try:
+            self.comment_service.create_reply(
+                parent_comment_id=parent_comment_id,
+                user_id=user.account_id,
+                content=req_data.content
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Reply added."), "success")
 
@@ -154,17 +155,15 @@ class CommentAdapter:
             flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
 
-        result = self.comment_service.delete_comment(
-            comment_id=comment_id,
-            user_id=user.account_id,
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
-        elif result is True:
-            flash(_("Comment deleted."), "success")
+        try:
+            self.comment_service.delete_comment(
+                comment_id=comment_id,
+                user_id=user.account_id,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
-            flash(_("Unauthorized or error."), "error")
+            flash(_("Comment deleted."), "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -186,14 +185,14 @@ class CommentAdapter:
             return redirect(url_for("auth.login"))
 
         content = request.form.get("content", "")
-        result = self.comment_service.edit_comment(
-            comment_id=comment_id,
-            user_id=user.account_id,
-            content=content,
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
+        try:
+            self.comment_service.edit_comment(
+                comment_id=comment_id,
+                user_id=user.account_id,
+                content=content,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Comment updated."), "success")
 
@@ -216,16 +215,14 @@ class CommentAdapter:
             flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
 
-        result = self.comment_service.hard_delete_comment(
-            comment_id=comment_id,
-            user_id=user.account_id,
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
-        elif result is True:
-            flash(_("Comment permanently deleted."), "success")
+        try:
+            self.comment_service.hard_delete_comment(
+                comment_id=comment_id,
+                user_id=user.account_id,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
-            flash(_("Unauthorized or error."), "error")
+            flash(_("Comment permanently deleted."), "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))

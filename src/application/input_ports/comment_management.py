@@ -10,7 +10,7 @@ class CommentManagementPort(ABC):
     """
 
     @abstractmethod
-    def create_comment(self, article_id: int, user_id: int, content: str) -> Comment | str:
+    def create_comment(self, article_id: int, user_id: int, content: str) -> Comment:
         """
         Creates a top-level comment on an article.
 
@@ -20,12 +20,18 @@ class CommentManagementPort(ABC):
             content (str): Text content of the comment.
 
         Returns:
-            Comment | str: The created Comment entity, or an error message string.
+            Comment: The created Comment entity.
+
+        Raises:
+            AccountNotFoundError: If the account is not found.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            CommentValidationError: If the content is empty after sanitization.
         """
         pass
 
     @abstractmethod
-    def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment | str:
+    def create_reply(self, parent_comment_id: int, user_id: int, content: str) -> Comment:
         """
         Creates a reply directly to a parent comment.
 
@@ -35,13 +41,19 @@ class CommentManagementPort(ABC):
             content (str): The text content of the reply.
 
         Returns:
-            Comment | str: The new Comment domain entity if successful,
-            or an error message string if unauthorized or parent not found.
+            Comment: The new Comment domain entity if successful.
+
+        Raises:
+            AccountNotFoundError: If the account is not found.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the parent comment does not exist.
+            CommentDeletedError: If the parent comment is deleted.
+            CommentValidationError: If the content is empty or max depth exceeded.
         """
         pass
 
     @abstractmethod
-    def get_comments_for_article(self, article_id: int) -> list[CommentNode] | str:
+    def get_comments_for_article(self, article_id: int) -> list[CommentNode]:
         """
         Retrieves all comments for a specific article and structures them
         into a nested tree for display, along with associated author names.
@@ -50,8 +62,10 @@ class CommentManagementPort(ABC):
             article_id (int): ID of the article.
 
         Returns:
-            list[CommentNode] | str: The nested tree root nodes,
-            or an error message string if the article is not found.
+            list[CommentNode]: The nested tree root nodes.
+
+        Raises:
+            ArticleNotFoundError: If the article does not exist.
         """
         pass
 
@@ -70,30 +84,33 @@ class CommentManagementPort(ABC):
         pass
 
     @abstractmethod
-    def delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+    def delete_comment(self, comment_id: int, user_id: int) -> bool:
         """
         Soft-deletes a comment.
         Sets is_deleted=True and deleted_at=now.
         Author and admin can soft-delete.
         Content preserved in DB but display shows "Comment removed".
-        Author displayed as "Anonymous" after deletion.
 
         Args:
             comment_id (int): ID of the comment to delete.
             user_id (int): ID of the user requesting the deletion.
 
         Returns:
-            bool | str: True if deletion was successful, or an error message string.
+            bool: True if deletion was successful.
+
+        Raises:
+            AccountNotFoundError: If the account is not found.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the comment does not exist.
+            CommentAuthorizationError: If the user is not the author nor admin.
         """
         pass
 
     @abstractmethod
-    def edit_comment(self, comment_id: int, user_id: int, content: str) -> Comment | str:
+    def edit_comment(self, comment_id: int, user_id: int, content: str) -> Comment:
         """
-        Edits a comment's content.
-        Author only (not admin).
-        Updates content and sets edited_at=now.
-        Cannot edit a deleted comment.
+        Edits a comment's content. Author only (not admin).
+        Updates content and sets edited_at=now. Cannot edit a deleted comment.
 
         Args:
             comment_id (int): ID of the comment to edit.
@@ -101,22 +118,36 @@ class CommentManagementPort(ABC):
             content (str): New text content of the comment.
 
         Returns:
-            Comment | str: The updated Comment entity, or an error message string.
+            Comment: The updated Comment entity.
+
+        Raises:
+            AccountNotFoundError: If the account is not found.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the comment does not exist.
+            CommentAuthorizationError: If the user is not the comment author.
+            CommentDeletedError: If the comment has been deleted.
+            CommentValidationError: If the content is empty after sanitization.
         """
         pass
 
     @abstractmethod
-    def hard_delete_comment(self, comment_id: int, user_id: int) -> bool | str:
+    def hard_delete_comment(self, comment_id: int, user_id: int) -> bool:
         """
         Permanently deletes a comment from the database. Admin only.
-        Intended for removing already soft-deleted comments.
-        Children comments get comment_reply_to set to NULL via FK.
+        Only allowed on already soft-deleted comments.
 
         Args:
             comment_id (int): ID of the comment to permanently delete.
             user_id (int): ID of the requesting user (must be admin).
 
         Returns:
-            bool | str: True if deletion was successful, or an error message string.
+            bool: True if deletion was successful.
+
+        Raises:
+            AccountNotFoundError: If the account is not found.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the comment does not exist.
+            CommentAuthorizationError: If the user is not an admin.
+            CommentValidationError: If the comment is not soft-deleted first.
         """
         pass

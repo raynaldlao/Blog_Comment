@@ -3,7 +3,7 @@ import math
 
 from flask_babel import gettext as _
 
-from exceptions import FileTooLargeError, FileTypeError
+from exceptions import BlogCommentError, FileTooLargeError, FileTypeError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -250,9 +250,10 @@ class AccountSessionAdapter(MethodView):
             flash(_("Email is required."), "error")
             return redirect(url_for("auth.profile"))
 
-        result = self.session_service.update_email(new_email)
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.update_email(new_email)
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Email updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -278,9 +279,10 @@ class AccountSessionAdapter(MethodView):
             flash(_("Password is required."), "error")
             return redirect(url_for("auth.profile"))
 
-        result = self.session_service.update_password(new_password)
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.update_password(new_password)
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Password updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -418,21 +420,18 @@ class AccountSessionAdapter(MethodView):
             abort(403)
 
         new_role = request.form.get("role", "")
-        result = self.session_service.update_account_role(
-            admin_id=current_account.account_id,
-            target_id=account_id,
-            new_role=new_role,
-        )
+        try:
+            self.session_service.update_account_role(
+                admin_id=current_account.account_id,
+                target_id=account_id,
+                new_role=new_role,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
+        else:
+            flash(_("Role updated."), "success")
 
         target = self.session_service.get_account_by_id(account_id)
-
-        if result is not None:
-            flash(_(result), "error")
-            if target:
-                return redirect(url_for("auth.user_profile", username=target.account_username))
-            return redirect(url_for("auth.list_all_users"))
-
-        flash(_("Role updated."), "success")
         if target:
             return redirect(url_for("auth.user_profile", username=target.account_username))
         return redirect(url_for("auth.list_all_users"))
@@ -458,14 +457,14 @@ class AccountSessionAdapter(MethodView):
             abort(403)
 
         ban_reason = request.form.get("ban_reason", "").strip() or None
-        result = self.session_service.ban_account(
-            admin_id=current_account.account_id,
-            target_account_id=account_id,
-            ban_reason=ban_reason,
-        )
-
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.ban_account(
+                admin_id=current_account.account_id,
+                target_account_id=account_id,
+                ban_reason=ban_reason,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Account banned."), "success")
 
@@ -490,13 +489,13 @@ class AccountSessionAdapter(MethodView):
         if not current_account or current_account.account_role != AccountRole.ADMIN:
             abort(403)
 
-        result = self.session_service.unban_account(
-            admin_id=current_account.account_id,
-            target_account_id=account_id,
-        )
-
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.unban_account(
+                admin_id=current_account.account_id,
+                target_account_id=account_id,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Account unbanned."), "success")
 

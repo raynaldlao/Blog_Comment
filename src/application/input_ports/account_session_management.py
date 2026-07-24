@@ -66,35 +66,30 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
-    def update_email(self, new_email: str) -> str | None:
+    def update_email(self, new_email: str) -> None:
         """
         Updates the email address for the currently authenticated account.
-
-        Validates that the new email is not already in use by another account
-        before persisting the change.
 
         Args:
             new_email: The new email address to set.
 
-        Returns:
-            str | None: None on success, or an error message string if
-                the email is already taken or the user is not authenticated.
+        Raises:
+            AuthenticationError: If the user is not signed in.
+            EmailAlreadyTakenError: If the email is already in use by another account.
         """
         pass
 
     @abstractmethod
-    def update_password(self, new_password: str) -> str | None:
+    def update_password(self, new_password: str) -> None:
         """
         Updates the password for the currently authenticated account.
-
         Hashes the new password and persists it via the account repository.
 
         Args:
             new_password: The new plaintext password to set.
 
-        Returns:
-            str | None: None on success, or an error message string if
-                the user is not authenticated.
+        Raises:
+            AuthenticationError: If the user is not signed in.
         """
         pass
 
@@ -164,7 +159,7 @@ class AccountSessionManagementPort(ABC):
         pass
 
     @abstractmethod
-    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> str | None:
+    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> None:
         """
         Bans a user account. Only admins can ban non-admin accounts.
 
@@ -173,13 +168,15 @@ class AccountSessionManagementPort(ABC):
             target_account_id: The unique identifier of the account to ban.
             ban_reason: Optional reason for the ban.
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
+            AuthorizationError: If the target is another admin.
         """
         pass
 
     @abstractmethod
-    def unban_account(self, admin_id: int, target_account_id: int) -> str | None:
+    def unban_account(self, admin_id: int, target_account_id: int) -> None:
         """
         Unbans a user account. Only admins can unban accounts.
 
@@ -187,8 +184,9 @@ class AccountSessionManagementPort(ABC):
             admin_id: The unique identifier of the admin performing the action.
             target_account_id: The unique identifier of the account to unban.
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
         """
         pass
 
@@ -203,11 +201,14 @@ class AccountSessionManagementPort(ABC):
 
         Args:
             account_id: The unique identifier of the account to delete.
+
+        Raises:
+            AccountNotFoundError: If no account exists with the given id.
         """
         pass
 
     @abstractmethod
-    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> None:
         """
         Allows an admin user to update the role of another user account.
 
@@ -216,7 +217,9 @@ class AccountSessionManagementPort(ABC):
             target_id: The unique identifier of the account whose role is to be updated.
             new_role: The new role string ("user" or "author").
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
+            AuthorizationError: If the target is another admin.
         """
         pass

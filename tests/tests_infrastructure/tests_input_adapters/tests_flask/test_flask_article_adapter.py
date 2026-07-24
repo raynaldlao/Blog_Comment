@@ -305,9 +305,10 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
     def test_author_create_article_service_error(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
         self._prepare_user_context(author)
+        from exceptions import BlogCommentError
         mock_service = Mock(spec=ArticleService)
         self.adapter.article_service = mock_service
-        mock_service.create_article.return_value = "Service Error Message"
+        mock_service.create_article.side_effect = BlogCommentError("Service Error Message")
 
         response = self.client.post(
             "/api/articles",
@@ -407,7 +408,8 @@ class TestArticleValidation(ArticleAdapterTestBase):
     def test_delete_article_service_error(self):
         author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
         self._prepare_user_context(author)
-        self.adapter.article_service.delete_article = Mock(return_value="Delete Error")
+        from exceptions import BlogCommentError
+        self.adapter.article_service.delete_article = Mock(side_effect=BlogCommentError("Delete Error"))
         response = self.client.delete("/api/articles/1")
         assert response.status_code == 403
         assert response.get_json() == {"error": "Delete Error"}

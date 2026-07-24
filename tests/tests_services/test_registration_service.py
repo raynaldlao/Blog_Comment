@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+import pytest
+
+from exceptions import EmailAlreadyTakenError, UsernameAlreadyTakenError
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
@@ -46,16 +49,16 @@ class TestRegistrationService:
 
         self.mock_repo.find_by_username.return_value = existing_account
 
-        result = self.service.create_account(
-            username="leia",
-            password="password123",
-            email="new@galaxy.com"
-        )
+        with pytest.raises(UsernameAlreadyTakenError, match="already taken"):
+            self.service.create_account(
+                username="leia",
+                password="password123",
+                email="new@galaxy.com"
+            )
 
         self.mock_repo.find_by_username.assert_called_once_with("leia")
         self.mock_repo.find_by_email.assert_not_called()
         self.mock_repo.save.assert_not_called()
-        assert result == "This username is already taken."
 
     def test_create_account_email_taken(self):
         existing_account = create_test_account(
@@ -67,13 +70,13 @@ class TestRegistrationService:
         self.mock_repo.find_by_username.return_value = None
         self.mock_repo.find_by_email.return_value = existing_account
 
-        result = self.service.create_account(
-            username="new_user",
-            password="password123",
-            email="leia@galaxy.com"
-        )
+        with pytest.raises(EmailAlreadyTakenError, match="already taken"):
+            self.service.create_account(
+                username="new_user",
+                password="password123",
+                email="leia@galaxy.com"
+            )
 
         self.mock_repo.find_by_username.assert_called_once_with("new_user")
         self.mock_repo.find_by_email.assert_called_once_with("leia@galaxy.com")
         self.mock_repo.save.assert_not_called()
-        assert result == "This email is already taken."

@@ -1,4 +1,4 @@
-from exceptions import AccountAlreadyExistsError
+from exceptions import AccountAlreadyExistsError, EmailAlreadyTakenError, UsernameAlreadyTakenError
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.application.output_ports.account_repository import AccountRepository
@@ -24,7 +24,7 @@ class RegistrationService(RegistrationManagementPort):
         self.account_repository = account_repository
         self.password_hasher_repository = password_hasher_repository
 
-    def create_account(self, username: str, password: str, email: str) -> Account | str:
+    def create_account(self, username: str, password: str, email: str) -> Account:
         """
         Creates a new user account with the default 'user' role if the
         username and email are not already taken.
@@ -35,18 +35,20 @@ class RegistrationService(RegistrationManagementPort):
             email (str): The email address for the new account.
 
         Returns:
-            Account | str: The newly created Account domain entity, or an
-            error message string if the username or email is already taken
-            (including race conditions detected at the database level).
+            Account: The newly created Account domain entity.
+
+        Raises:
+            UsernameAlreadyTakenError: If the username already exists.
+            EmailAlreadyTakenError: If the email already exists.
+            AccountAlreadyExistsError: If a race condition causes a unique
+                constraint violation at the database level.
         """
 
         if self.account_repository.find_by_username(username):
-            # TODO: Raise UsernameAlreadyTakenException
-            return "This username is already taken."
+            raise UsernameAlreadyTakenError("This username is already taken.")
 
         if self.account_repository.find_by_email(email):
-            # TODO: Raise EmailAlreadyTakenException
-            return "This email is already taken."
+            raise EmailAlreadyTakenError("This email is already taken.")
 
         hashed_password = self.password_hasher_repository.hash(password)
 
@@ -62,5 +64,7 @@ class RegistrationService(RegistrationManagementPort):
         try:
             self.account_repository.save(new_account)
         except AccountAlreadyExistsError:
-            return "This username or email is already taken."
+            raise AccountAlreadyExistsError(
+                "This username or email is already taken."
+            ) from None
         return new_account

@@ -1,6 +1,15 @@
 from unittest.mock import MagicMock
 
-from exceptions import ExceptionTest
+import pytest
+
+from exceptions import (
+    AccountBannedError,
+    AccountNotFoundError,
+    AuthenticationError,
+    AuthorizationError,
+    EmailAlreadyTakenError,
+    ExceptionTest,
+)
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
@@ -61,21 +70,23 @@ class TestLoginService:
         self.mock_repo.find_by_username.return_value = fake_account
         self.mock_hasher.verify.return_value = False
 
-        result = self.service.authenticate_user(
-            username=fake_account.account_username,
-            password="bad_password"
-        )
+        with pytest.raises(AuthenticationError, match="Invalid username or password"):
+            self.service.authenticate_user(
+                username=fake_account.account_username,
+                password="bad_password"
+            )
 
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
         self.mock_session_repo.save_account.assert_not_called()
-        assert result == "Invalid username or password."
 
     def test_authenticate_user_non_existent(self):
         self.mock_repo.find_by_username.return_value = None
-        result = self.service.authenticate_user(username="phantom", password="nothing")
+
+        with pytest.raises(AuthenticationError, match="Invalid username or password"):
+            self.service.authenticate_user(username="phantom", password="nothing")
+
         self.mock_repo.find_by_username.assert_called_once_with("phantom")
         self.mock_session_repo.save_account.assert_not_called()
-        assert result == "Invalid username or password."
 
     def test_get_current_account(self):
         fake_account = create_test_account()
@@ -89,7 +100,6 @@ class TestLoginService:
         self.mock_session_repo.clear.assert_called_once()
 
     def test_authenticate_user_session_repo_failure(self):
-        import pytest
         fake_account = create_test_account()
         self.mock_repo.find_by_username.return_value = fake_account
         self.mock_session_repo.save_account.side_effect = ExceptionTest("Storage failure")
@@ -109,14 +119,18 @@ class TestLoginService:
         other = create_test_account(account_id=2, account_email="taken@test.com")
         self.mock_session_repo.get_account.return_value = fake_account
         self.mock_repo.find_by_email.return_value = other
-        result = self.service.update_email("taken@test.com")
-        assert result == "This email is already taken."
+
+        with pytest.raises(EmailAlreadyTakenError, match="already taken"):
+            self.service.update_email("taken@test.com")
+
         self.mock_repo.update_email.assert_not_called()
 
     def test_update_email_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
-        result = self.service.update_email("new@test.com")
-        assert result == "You must be signed in to update your email."
+
+        with pytest.raises(AuthenticationError, match="must be signed in"):
+            self.service.update_email("new@test.com")
+
         self.mock_repo.update_email.assert_not_called()
 
     def test_update_password_success(self):
@@ -130,16 +144,18 @@ class TestLoginService:
 
     def test_update_password_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
-        result = self.service.update_password("new_secret")
-        assert result == "You must be signed in to update your password."
+
+        with pytest.raises(AuthenticationError, match="must be signed in"):
+            self.service.update_password("new_secret")
+
         self.mock_hasher.hash.assert_not_called()
         self.mock_repo.update_password.assert_not_called()
 
-    def test_update_password_empty_returns_error(self):
+    def test_update_password_empty_returns_none(self):
         fake_account = create_test_account(account_id=1)
         self.mock_session_repo.get_account.return_value = fake_account
         result = self.service.update_password("")
-        assert result == "Password is required."
+        assert result is None
         self.mock_hasher.hash.assert_not_called()
         self.mock_repo.update_password.assert_not_called()
 
@@ -149,10 +165,9 @@ class TestLoginService:
         self.service.delete_account(fake_account.account_id)
         self.mock_repo.delete.assert_called_once_with(fake_account.account_id)
 
-    def test_delete_account_not_found_raises_value_error(self):
+    def test_delete_account_not_found_raises_account_not_found_error(self):
         self.mock_repo.get_by_id.return_value = None
-        import pytest
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="not found"):
             self.service.delete_account(999)
         self.mock_repo.delete.assert_not_called()
 
@@ -172,22 +187,22 @@ class TestLoginService:
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
 
-        result = self.service.update_account_role(
-            admin_id=1, target_id=999, new_role="author"
-        )
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            self.service.update_account_role(
+                admin_id=1, target_id=999, new_role="author"
+            )
 
-        assert result == "Account not found."
         self.mock_repo.update_role.assert_not_called()
 
     def test_update_role_not_admin(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_repo.get_by_id.return_value = user
 
-        result = self.service.update_account_role(
-            admin_id=1, target_id=2, new_role="author"
-        )
+        with pytest.raises(AuthorizationError, match="Unauthorized"):
+            self.service.update_account_role(
+                admin_id=1, target_id=2, new_role="author"
+            )
 
-        assert result == "Unauthorized."
         self.mock_repo.update_role.assert_not_called()
 
     def test_update_role_target_is_admin(self):
@@ -195,11 +210,11 @@ class TestLoginService:
         target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
 
-        result = self.service.update_account_role(
-            admin_id=1, target_id=2, new_role="user"
-        )
+        with pytest.raises(AuthorizationError, match="Cannot change role of another admin"):
+            self.service.update_account_role(
+                admin_id=1, target_id=2, new_role="user"
+            )
 
-        assert result == "Cannot change role of another admin."
         self.mock_repo.update_role.assert_not_called()
 
     def test_update_role_invalid_role(self):
@@ -211,7 +226,7 @@ class TestLoginService:
             admin_id=1, target_id=2, new_role="superadmin"
         )
 
-        assert result == "Invalid role."
+        assert result is None
         self.mock_repo.update_role.assert_not_called()
 
     def test_ban_account_success(self):
@@ -228,9 +243,9 @@ class TestLoginService:
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
 
-        result = self.service.ban_account(admin_id=1, target_account_id=999, ban_reason="Spam")
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            self.service.ban_account(admin_id=1, target_account_id=999, ban_reason="Spam")
 
-        assert result == "Account not found."
         self.mock_repo.update_ban_status.assert_not_called()
 
     def test_ban_account_target_is_admin(self):
@@ -238,9 +253,9 @@ class TestLoginService:
         target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
 
-        result = self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+        with pytest.raises(AuthorizationError, match="Cannot ban another admin"):
+            self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
 
-        assert result == "Cannot ban another admin."
         self.mock_repo.update_ban_status.assert_not_called()
 
     def test_unban_account_success(self):
@@ -257,11 +272,11 @@ class TestLoginService:
         fake_account = create_test_account(is_banned=True)
         self.mock_repo.find_by_username.return_value = fake_account
 
-        result = self.service.authenticate_user(
-            username=fake_account.account_username,
-            password=fake_account.account_password
-        )
+        with pytest.raises(AccountBannedError, match="banned"):
+            self.service.authenticate_user(
+                username=fake_account.account_username,
+                password=fake_account.account_password
+            )
 
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
         self.mock_session_repo.save_account.assert_not_called()
-        assert result == "This account has been banned."

@@ -83,7 +83,8 @@ class TestCommentCreate(CommentAdapterTestBase):
     def test_create_comment_service_error_string(self):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
-        self.mock_comment_service.create_comment.return_value = "Article not found"
+        from exceptions import ArticleNotFoundError
+        self.mock_comment_service.create_comment.side_effect = ArticleNotFoundError("Article not found")
         response = self.client.post("/articles/1/comments", data={"content": "Valid"}, follow_redirects=True)
         assert b"Article not found" in response.data
         assert b"alert-error" in response.data
@@ -133,7 +134,8 @@ class TestCommentReply(CommentAdapterTestBase):
     def test_reply_service_error_string(self):
         user = create_test_account(account_id=123)
         self.set_current_user(user)
-        self.mock_comment_service.create_reply.return_value = "Parent not found"
+        from exceptions import CommentNotFoundError
+        self.mock_comment_service.create_reply.side_effect = CommentNotFoundError("Parent not found")
         response = self.client.post("/articles/1/comments/10/reply", data={"content": "Valid"}, follow_redirects=True)
         assert b"Parent not found" in response.data
         assert b"alert-error" in response.data
@@ -176,17 +178,20 @@ class TestCommentDelete(CommentAdapterTestBase):
     def test_delete_comment_service_error_string(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
-        self.mock_comment_service.delete_comment.return_value = "Comment not found"
+        from exceptions import CommentNotFoundError
+        self.mock_comment_service.delete_comment.side_effect = CommentNotFoundError("Comment not found")
         response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
         assert b"Comment not found" in response.data
         assert b"alert-error" in response.data
 
-    def test_delete_comment_unauthorized_none_return(self):
+    def test_delete_comment_unauthorized_raises(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
-        self.mock_comment_service.delete_comment.return_value = None
+        from exceptions import OwnershipError
+        self.mock_comment_service.delete_comment.side_effect = OwnershipError(
+            "Unauthorized: You can only delete your own comments."
+        )
         response = self.client.post("/articles/1/comments/99/delete", follow_redirects=True)
-        assert b"Unauthorized or error" in response.data
         assert b"alert-error" in response.data
 
 
@@ -242,7 +247,8 @@ class TestCommentHardDelete(CommentAdapterTestBase):
     def test_hard_delete_comment_service_error_string(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.set_current_user(user)
-        self.mock_comment_service.hard_delete_comment.return_value = "Comment not found"
+        from exceptions import CommentNotFoundError
+        self.mock_comment_service.hard_delete_comment.side_effect = CommentNotFoundError("Comment not found")
         response = self.client.post("/articles/1/comments/99/delete-permanent", follow_redirects=True)
         assert b"Comment not found" in response.data
         assert b"alert-error" in response.data
