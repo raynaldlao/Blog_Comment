@@ -2,7 +2,7 @@ import re
 
 from pydantic import BaseModel, Field, field_validator
 
-from exceptions import CommentEmptyError, CommentTooLongError
+from blog_exceptions import CommentEmptyError, CommentTooLongError
 
 
 class CommentRequest(BaseModel):

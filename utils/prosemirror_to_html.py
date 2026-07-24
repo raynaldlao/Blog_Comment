@@ -9,7 +9,7 @@ def prosemirror_to_html(content_json: str | None, base_url: str = "") -> Markup:
     try:
         blocks = json.loads(content_json)
     # Python builtin — safety net for json.loads on non-string input.
-    # Not in exceptions.py. Do not move it there.
+    # Not in blog_exceptions.py. Do not move it there.
     except (json.JSONDecodeError, TypeError):
         return Markup(f"<p>{escape(content_json)}</p>")
     if not isinstance(blocks, list):

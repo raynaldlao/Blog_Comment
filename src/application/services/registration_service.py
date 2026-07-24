@@ -1,4 +1,4 @@
-from exceptions import AccountAlreadyExistsError, EmailAlreadyTakenError, UsernameAlreadyTakenError
+from blog_exceptions import AccountAlreadyExistsError, EmailAlreadyTakenError, UsernameAlreadyTakenError
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.registration_management import RegistrationManagementPort
 from src.application.output_ports.account_repository import AccountRepository

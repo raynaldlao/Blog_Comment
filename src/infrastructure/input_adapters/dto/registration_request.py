@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-from exceptions import PasswordsDoNotMatchError
+from blog_exceptions import PasswordsDoNotMatchError
 
 
 class RegistrationRequest(BaseModel):

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from exceptions import EmailAlreadyTakenError, UsernameAlreadyTakenError
+from blog_exceptions import EmailAlreadyTakenError, UsernameAlreadyTakenError
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository

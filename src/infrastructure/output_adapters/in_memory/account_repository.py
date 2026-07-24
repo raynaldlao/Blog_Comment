@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from exceptions import AccountNotFoundError
+from blog_exceptions import AccountNotFoundError
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 

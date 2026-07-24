@@ -6,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from exceptions import AccountAlreadyExistsError, AccountNotFoundError, DatabaseError
+from blog_exceptions import AccountAlreadyExistsError, AccountNotFoundError, DatabaseError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
@@ -143,7 +143,7 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         try:
             self._db_commit()
         # SQLAlchemy library exception — caught to translate to domain exception.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except IntegrityError as e:
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
 
@@ -202,7 +202,7 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         try:
             self._db_commit()
         # SQLAlchemy library exception — caught to translate to domain exception.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except IntegrityError as e:
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
             if constraint_name == "accounts_account_email_key":

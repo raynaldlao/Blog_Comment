@@ -444,7 +444,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_update_email_error(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")
         self.mock_session_service.get_current_account.return_value = fake_user
-        from exceptions import EmailAlreadyTakenError
+        from blog_exceptions import EmailAlreadyTakenError
         self.mock_session_service.update_email.side_effect = EmailAlreadyTakenError("This email is already taken.")
         response = self.client.post(
             "/profile/email",
@@ -535,7 +535,7 @@ class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        from exceptions import AccountNotFoundError
+        from blog_exceptions import AccountNotFoundError
         self.mock_session_service.update_account_role.side_effect = AccountNotFoundError("Account not found.")
         self.mock_session_service.get_account_by_id.return_value = None
         response = self.client.post(
@@ -614,7 +614,7 @@ class TestAccountSessionBan(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        from exceptions import AuthorizationError
+        from blog_exceptions import AuthorizationError
         self.mock_session_service.ban_account.side_effect = AuthorizationError("Cannot ban another admin.")
         response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
         assert response.status_code == 200
@@ -625,7 +625,7 @@ class TestAccountSessionBan(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        from exceptions import AccountNotFoundError
+        from blog_exceptions import AccountNotFoundError
         self.mock_session_service.ban_account.side_effect = AccountNotFoundError("Account not found.")
         response = self.client.post("/admin/users/999/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
         assert response.status_code == 200

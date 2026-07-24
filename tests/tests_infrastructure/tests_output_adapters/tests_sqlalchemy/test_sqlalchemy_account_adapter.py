@@ -1,6 +1,6 @@
 import pytest
 
-from exceptions import AccountAlreadyExistsError
+from blog_exceptions import AccountAlreadyExistsError
 from src.application.domain.account import AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter

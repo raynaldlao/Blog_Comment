@@ -1,4 +1,4 @@
-from exceptions import (
+from blog_exceptions import (
     AccountBannedError,
     AccountNotFoundError,
     AuthenticationError,

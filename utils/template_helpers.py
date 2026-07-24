@@ -25,9 +25,9 @@ class ViteManifest:
         Raises:
             RuntimeError: If Flask's static_folder is None.
         """
-        # Intentionally NOT in exceptions.py: startup-only crash path.
+        # Intentionally NOT in blog_exceptions.py: startup-only crash path.
         # Never caught by application code. Builtin RuntimeError sufficient.
-        # Do not move to exceptions.py.
+        # Do not move to blog_exceptions.py.
         if static_dir is None:
             raise RuntimeError("Flask static_folder is None; cannot locate Vite manifest.")
         cls._manifest_path = os.path.join(static_dir, ".vite", "manifest.json")

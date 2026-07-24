@@ -3,7 +3,7 @@ import math
 
 from flask_babel import gettext as _
 
-from exceptions import BlogCommentError, FileTooLargeError, FileTypeError
+from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -185,7 +185,7 @@ class AccountSessionAdapter(MethodView):
             # Intentionally broad: non-critical cleanup (delete old avatar
             # file from DB). Broad catch ensures request never fails due to
             # cleanup failure, even from unexpected bugs.
-            # Not in exceptions.py. Do not move it there.
+            # Not in blog_exceptions.py. Do not move it there.
             except Exception:
                 logging.getLogger(__name__).warning(
                     "Failed to delete old avatar %s for account %s",
@@ -226,7 +226,7 @@ class AccountSessionAdapter(MethodView):
             self.session_service.update_avatar(None)
         # Intentionally broad: non-critical cleanup. Broad catch ensures
         # request never fails; if cleanup fails, user gets a flash error.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except Exception:
             flash(_("Failed to remove profile photo."), "error")
             return redirect(url_for("auth.profile"))
@@ -392,7 +392,7 @@ class AccountSessionAdapter(MethodView):
             # Intentionally broad: non-critical cleanup (delete avatar
             # file from DB before account deletion). Broad catch ensures
             # account deletion proceeds even if avatar cleanup fails.
-            # Not in exceptions.py. Do not move it there.
+            # Not in blog_exceptions.py. Do not move it there.
             except Exception:
                 logging.getLogger(__name__).warning(
                     "Failed to delete avatar %s for account %s",

@@ -2,7 +2,7 @@ import json
 import re
 from datetime import UTC, datetime
 
-from exceptions import (
+from blog_exceptions import (
     AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
@@ -40,7 +40,7 @@ def _extract_image_uuids(content: str) -> set[str]:
     try:
         data = json.loads(content)
     # Python builtin — safety net for json.loads on non-string input.
-    # Not in exceptions.py. Do not move it there.
+    # Not in blog_exceptions.py. Do not move it there.
     except (json.JSONDecodeError, TypeError):
         return set()
     uuids: set[str] = set()
