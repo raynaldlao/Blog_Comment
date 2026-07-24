@@ -124,6 +124,8 @@ class ArticleAdapter:
         content = article.article_content
         try:
             json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -183,6 +185,8 @@ class ArticleAdapter:
         content = article.article_content
         try:
             json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -228,6 +232,8 @@ class ArticleAdapter:
                 content=data.get("content", ""),
                 description=data.get("description", ""),
             )
+        # Pydantic library exception — caught at web boundary for 400 response.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
@@ -274,6 +280,8 @@ class ArticleAdapter:
                 content=data.get("content", ""),
                 description=data.get("description", ""),
             )
+        # Pydantic library exception — caught at web boundary for 400 response.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400

@@ -8,7 +8,6 @@ from exceptions import (
     AuthenticationError,
     AuthorizationError,
     EmailAlreadyTakenError,
-    ExceptionTest,
 )
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
@@ -102,8 +101,10 @@ class TestLoginService:
     def test_authenticate_user_session_repo_failure(self):
         fake_account = create_test_account()
         self.mock_repo.find_by_username.return_value = fake_account
-        self.mock_session_repo.save_account.side_effect = ExceptionTest("Storage failure")
-        with pytest.raises(ExceptionTest, match="Storage failure"):
+        # Intentionally NOT in exceptions.py: test-only. Exception sufficient.
+        # Do not move to exceptions.py.
+        self.mock_session_repo.save_account.side_effect = Exception("Storage failure")
+        with pytest.raises(Exception, match="Storage failure"):
             self.service.authenticate_user("leia", "password123")
 
     def test_update_email_success(self):

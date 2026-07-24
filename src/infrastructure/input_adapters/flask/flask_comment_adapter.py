@@ -70,6 +70,8 @@ class CommentAdapter:
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
@@ -115,6 +117,8 @@ class CommentAdapter:
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")

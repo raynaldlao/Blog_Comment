@@ -40,6 +40,8 @@ class FlaskFileAdapter:
                 data=file_data,
                 mime_type=uploaded_file.content_type or "application/octet-stream",
             )
+        # Intentionally broad: catches Pydantic ValidationError or unexpected errors
+        # from file upload request parsing. Not in exceptions.py. Do not move it there.
         except Exception as e:
             return jsonify({"error": str(e)}), 400
 

@@ -52,8 +52,12 @@ class Argon2PasswordHasherAdapter(PasswordHasherRepository):
         """
         try:
             return self._hasher.verify(hashed_password, password)
+        # Argon2 library exception — caught, returns False.
+        # Not in exceptions.py. Do not move it there.
         except VerifyMismatchError:
             return False
+        # Argon2 library exception — caught for legacy hash fallback.
+        # Not in exceptions.py. Do not move it there.
         except InvalidHashError:
             is_correct = secrets.compare_digest(password, hashed_password)
             self._hasher.hash("dummy_password_for_timing_consistency")
@@ -71,5 +75,7 @@ class Argon2PasswordHasherAdapter(PasswordHasherRepository):
         """
         try:
             return self._hasher.check_needs_rehash(hashed_password)
+        # Argon2 library exception — caught for legacy hash fallback.
+        # Not in exceptions.py. Do not move it there.
         except InvalidHashError:
             return True

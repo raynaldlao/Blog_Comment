@@ -101,18 +101,3 @@ class CommentEmptyError(ValueError):
 class CommentTooLongError(ValueError):
     """Raised when comment content exceeds max length."""
     pass
-
-
-class MissingEnvironmentVariableError(RuntimeError):
-    """Raised when a mandatory environment variable is missing at startup."""
-    pass
-
-
-class ViteManifestError(RuntimeError):
-    """Raised when the Vite build manifest cannot be located at startup."""
-    pass
-
-
-class ExceptionTest(Exception):
-    """Used in tests to simulate error propagation."""
-    pass

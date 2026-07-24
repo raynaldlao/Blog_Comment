@@ -142,6 +142,8 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         self._db_add(model)
         try:
             self._db_commit()
+        # SQLAlchemy library exception — caught to translate to domain exception.
+        # Not in exceptions.py. Do not move it there.
         except IntegrityError as e:
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
 
@@ -199,6 +201,8 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         model.account_email = new_email
         try:
             self._db_commit()
+        # SQLAlchemy library exception — caught to translate to domain exception.
+        # Not in exceptions.py. Do not move it there.
         except IntegrityError as e:
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
             if constraint_name == "accounts_account_email_key":

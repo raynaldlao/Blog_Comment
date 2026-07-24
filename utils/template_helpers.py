@@ -7,8 +7,6 @@ from babel.dates import format_datetime
 from flask_babel import get_locale
 from markupsafe import Markup, escape
 
-from exceptions import ViteManifestError
-
 
 class ViteManifest:
     """
@@ -25,10 +23,13 @@ class ViteManifest:
         Initializes the manifest path from Flask's static directory.
 
         Raises:
-            ViteManifestError: If Flask's static_folder is None.
+            RuntimeError: If Flask's static_folder is None.
         """
+        # Intentionally NOT in exceptions.py: startup-only crash path.
+        # Never caught by application code. Builtin RuntimeError sufficient.
+        # Do not move to exceptions.py.
         if static_dir is None:
-            raise ViteManifestError("Flask static_folder is None; cannot locate Vite manifest.")
+            raise RuntimeError("Flask static_folder is None; cannot locate Vite manifest.")
         cls._manifest_path = os.path.join(static_dir, ".vite", "manifest.json")
 
     @classmethod

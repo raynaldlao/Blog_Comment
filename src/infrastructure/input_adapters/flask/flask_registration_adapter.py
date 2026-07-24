@@ -53,6 +53,8 @@ class RegistrationAdapter(MethodView):
                 password=request.form.get("password", ""),
                 confirm_password=request.form.get("confirm_password", "")
             )
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
