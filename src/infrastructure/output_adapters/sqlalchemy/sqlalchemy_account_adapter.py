@@ -1,3 +1,4 @@
+import logging
 from typing import cast
 
 from psycopg2.errors import UniqueViolation
@@ -5,7 +6,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from exceptions import AccountAlreadyExistsError
+from exceptions import AccountAlreadyExistsError, AccountNotFoundError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
@@ -121,7 +122,6 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Raises:
             AccountAlreadyExistsError: If a unique constraint violation occurs
                 on the username or email column.
-            RuntimeError: If an unexpected unique constraint violation occurs.
         """
         if account.account_id and account.account_id > 0:
             model = self._session.get(AccountModel, account.account_id)
@@ -150,9 +150,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
                     "This email is already taken."
                 ) from None
             else:
-                raise RuntimeError(
-                    f"Unexpected unique constraint violation: {constraint_name}"
-                ) from None
+                logging.getLogger(__name__).warning("Unexpected unique constraint violation: %s", constraint_name)
+                raise AccountAlreadyExistsError("Could not create account.") from None
         account.account_id = model.account_id
 
     def update_avatar(self, account_id: int, avatar_file_id: str | None) -> None:
@@ -353,10 +352,10 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             account_id (int): The unique identifier of the account to delete.
 
         Raises:
-            ValueError: If no account with the given ID exists.
+            AccountNotFoundError: If no account with the given ID exists.
         """
         model = self._session.get(AccountModel, account_id)
         if model is None:
-            raise ValueError(f"Account with id {account_id} not found.")
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
         self._session.delete(model)
         self._session.commit()

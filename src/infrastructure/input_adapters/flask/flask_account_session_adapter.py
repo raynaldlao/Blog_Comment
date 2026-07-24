@@ -13,8 +13,6 @@ from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
-logger = logging.getLogger(__name__)
-
 
 class AccountSessionAdapter(MethodView):
     """
@@ -185,7 +183,7 @@ class AccountSessionAdapter(MethodView):
             try:
                 self.file_service.delete_file(old_avatar_id)
             except Exception:
-                logger.warning(
+                logging.getLogger(__name__).warning(
                     "Failed to delete old avatar %s for account %s",
                     old_avatar_id,
                     current_account.account_id,
@@ -385,7 +383,10 @@ class AccountSessionAdapter(MethodView):
             try:
                 self.file_service.delete_file(account.avatar_file_id)
             except Exception:
-                logger.warning("Failed to delete avatar %s for account %s", account.avatar_file_id, target_id)
+                logging.getLogger(__name__).warning(
+                    "Failed to delete avatar %s for account %s",
+                    account.avatar_file_id, target_id,
+                )
 
         self.comment_service.mask_comments_by_account_id(target_id)
         self.session_service.delete_account(target_id)
