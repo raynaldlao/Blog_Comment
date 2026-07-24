@@ -5,6 +5,7 @@ from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
+from exceptions import BlogCommentError
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from src.application.domain.comment import CommentNode
@@ -109,12 +110,11 @@ class ArticleAdapter:
         Returns:
             Union[str, Response]: The 'article_detail.html' template or a redirect to the list view.
         """
-        result = self.article_service.get_article_with_comments(article_id)
-        if isinstance(result, str):
-            flash(_("Error: %(error)s", error=result), "error")
+        try:
+            detail = self.article_service.get_article_with_comments(article_id)
+        except BlogCommentError as e:
+            flash(_("Error: %(error)s", error=str(e)), "error")
             return redirect(url_for("article.list_articles"))
-
-        detail = result
         article = ArticleResponse.from_domain(
             detail.article_with_author.article,
             author_username=detail.article_with_author.author_name,
@@ -124,6 +124,8 @@ class ArticleAdapter:
         content = article.article_content
         try:
             json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -183,6 +185,8 @@ class ArticleAdapter:
         content = article.article_content
         try:
             json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -228,18 +232,21 @@ class ArticleAdapter:
                 content=data.get("content", ""),
                 description=data.get("description", ""),
             )
+        # Pydantic library exception — caught at web boundary for 400 response.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
             return jsonify({"error": _("Validation error.")}), 400
 
-        result = self.article_service.create_article(
-            title=req_data.title, content=req_data.content,
-            author_id=user.account_id, author_role=user.account_role,
-            description=req_data.description,
-        )
-        if isinstance(result, str):
-            return jsonify({"error": result}), 403
+        try:
+            result = self.article_service.create_article(
+                title=req_data.title, content=req_data.content,
+                author_id=user.account_id, author_role=user.account_role,
+                description=req_data.description,
+            )
+        except BlogCommentError as e:
+            return jsonify({"error": str(e)}), 403
 
         return jsonify({"id": result.article_id}), 201
 
@@ -273,18 +280,21 @@ class ArticleAdapter:
                 content=data.get("content", ""),
                 description=data.get("description", ""),
             )
+        # Pydantic library exception — caught at web boundary for 400 response.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
             return jsonify({"error": _("Validation error.")}), 400
 
-        result = self.article_service.update_article(
-            article_id=article_id, user_id=user.account_id,
-            title=req_data.title, content=req_data.content,
-            description=req_data.description,
-        )
-        if isinstance(result, str):
-            return jsonify({"error": result}), 403
+        try:
+            self.article_service.update_article(
+                article_id=article_id, user_id=user.account_id,
+                title=req_data.title, content=req_data.content,
+                description=req_data.description,
+            )
+        except BlogCommentError as e:
+            return jsonify({"error": str(e)}), 403
 
         return jsonify({"ok": True})
 
@@ -308,11 +318,12 @@ class ArticleAdapter:
         if user.account_role not in ["admin", "author"]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
-        result = self.article_service.delete_article(
-            article_id=article_id, user_id=user.account_id,
-        )
-        if isinstance(result, str):
-            return jsonify({"error": result}), 403
+        try:
+            self.article_service.delete_article(
+                article_id=article_id, user_id=user.account_id,
+            )
+        except BlogCommentError as e:
+            return jsonify({"error": str(e)}), 403
 
         return jsonify({"ok": True})
 

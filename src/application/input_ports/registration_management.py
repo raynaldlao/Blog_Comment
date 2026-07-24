@@ -9,7 +9,7 @@ class RegistrationManagementPort(ABC):
     """
 
     @abstractmethod
-    def create_account(self, username: str, password: str, email: str) -> Account | str:
+    def create_account(self, username: str, password: str, email: str) -> Account:
         """
         Creates a new user account.
 
@@ -19,7 +19,12 @@ class RegistrationManagementPort(ABC):
             email (str): The email address for the new account.
 
         Returns:
-            Account | str: The newly created Account domain entity, or an
-            error message string if creation fails.
+            Account: The newly created Account domain entity.
+
+        Raises:
+            UsernameAlreadyTakenError: If the username already exists.
+            EmailAlreadyTakenError: If the email already exists.
+            AccountAlreadyExistsError: If a race condition causes a unique
+                constraint violation at the database level.
         """
         pass

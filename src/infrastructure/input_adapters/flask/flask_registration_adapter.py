@@ -1,6 +1,7 @@
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
+from exceptions import BlogCommentError
 from flask import flash, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -52,20 +53,22 @@ class RegistrationAdapter(MethodView):
                 password=request.form.get("password", ""),
                 confirm_password=request.form.get("confirm_password", "")
             )
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
                 flash(_("%(location)s: %(message)s", location=location, message=error["msg"]), "error")
             return render_template("registration.html", current_user=user, username=submitted_username, email=submitted_email)
 
-        result = self.registration_service.create_account(
-            username=reg_data.username,
-            password=reg_data.password,
-            email=reg_data.email
-        )
-
-        if isinstance(result, str):
-            flash(_(result), "error")
+        try:
+            self.registration_service.create_account(
+                username=reg_data.username,
+                password=reg_data.password,
+                email=reg_data.email
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
             return render_template("registration.html", current_user=user, username=reg_data.username, email=reg_data.email)
 
         flash(_("Registration successful. Please sign in."), "success")

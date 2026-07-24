@@ -3,17 +3,15 @@ import math
 
 from flask_babel import gettext as _
 
+from exceptions import BlogCommentError, FileTooLargeError, FileTypeError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
-from src.application.application_exceptions import FileTooLargeError, FileTypeError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
-
-logger = logging.getLogger(__name__)
 
 
 class AccountSessionAdapter(MethodView):
@@ -184,8 +182,12 @@ class AccountSessionAdapter(MethodView):
         if old_avatar_id:
             try:
                 self.file_service.delete_file(old_avatar_id)
+            # Intentionally broad: non-critical cleanup (delete old avatar
+            # file from DB). Broad catch ensures request never fails due to
+            # cleanup failure, even from unexpected bugs.
+            # Not in exceptions.py. Do not move it there.
             except Exception:
-                logger.warning(
+                logging.getLogger(__name__).warning(
                     "Failed to delete old avatar %s for account %s",
                     old_avatar_id,
                     current_account.account_id,
@@ -222,6 +224,9 @@ class AccountSessionAdapter(MethodView):
         try:
             self.file_service.delete_file(avatar_file_id)
             self.session_service.update_avatar(None)
+        # Intentionally broad: non-critical cleanup. Broad catch ensures
+        # request never fails; if cleanup fails, user gets a flash error.
+        # Not in exceptions.py. Do not move it there.
         except Exception:
             flash(_("Failed to remove profile photo."), "error")
             return redirect(url_for("auth.profile"))
@@ -250,9 +255,10 @@ class AccountSessionAdapter(MethodView):
             flash(_("Email is required."), "error")
             return redirect(url_for("auth.profile"))
 
-        result = self.session_service.update_email(new_email)
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.update_email(new_email)
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Email updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -278,9 +284,10 @@ class AccountSessionAdapter(MethodView):
             flash(_("Password is required."), "error")
             return redirect(url_for("auth.profile"))
 
-        result = self.session_service.update_password(new_password)
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.update_password(new_password)
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Password updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -382,8 +389,15 @@ class AccountSessionAdapter(MethodView):
         if account and account.avatar_file_id:
             try:
                 self.file_service.delete_file(account.avatar_file_id)
+            # Intentionally broad: non-critical cleanup (delete avatar
+            # file from DB before account deletion). Broad catch ensures
+            # account deletion proceeds even if avatar cleanup fails.
+            # Not in exceptions.py. Do not move it there.
             except Exception:
-                logger.warning("Failed to delete avatar %s for account %s", account.avatar_file_id, target_id)
+                logging.getLogger(__name__).warning(
+                    "Failed to delete avatar %s for account %s",
+                    account.avatar_file_id, target_id,
+                )
 
         self.comment_service.mask_comments_by_account_id(target_id)
         self.session_service.delete_account(target_id)
@@ -418,21 +432,18 @@ class AccountSessionAdapter(MethodView):
             abort(403)
 
         new_role = request.form.get("role", "")
-        result = self.session_service.update_account_role(
-            admin_id=current_account.account_id,
-            target_id=account_id,
-            new_role=new_role,
-        )
+        try:
+            self.session_service.update_account_role(
+                admin_id=current_account.account_id,
+                target_id=account_id,
+                new_role=new_role,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
+        else:
+            flash(_("Role updated."), "success")
 
         target = self.session_service.get_account_by_id(account_id)
-
-        if result is not None:
-            flash(_(result), "error")
-            if target:
-                return redirect(url_for("auth.user_profile", username=target.account_username))
-            return redirect(url_for("auth.list_all_users"))
-
-        flash(_("Role updated."), "success")
         if target:
             return redirect(url_for("auth.user_profile", username=target.account_username))
         return redirect(url_for("auth.list_all_users"))
@@ -458,14 +469,14 @@ class AccountSessionAdapter(MethodView):
             abort(403)
 
         ban_reason = request.form.get("ban_reason", "").strip() or None
-        result = self.session_service.ban_account(
-            admin_id=current_account.account_id,
-            target_account_id=account_id,
-            ban_reason=ban_reason,
-        )
-
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.ban_account(
+                admin_id=current_account.account_id,
+                target_account_id=account_id,
+                ban_reason=ban_reason,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Account banned."), "success")
 
@@ -490,13 +501,13 @@ class AccountSessionAdapter(MethodView):
         if not current_account or current_account.account_role != AccountRole.ADMIN:
             abort(403)
 
-        result = self.session_service.unban_account(
-            admin_id=current_account.account_id,
-            target_account_id=account_id,
-        )
-
-        if result is not None:
-            flash(_(result), "error")
+        try:
+            self.session_service.unban_account(
+                admin_id=current_account.account_id,
+                target_account_id=account_id,
+            )
+        except BlogCommentError as e:
+            flash(_(str(e)), "error")
         else:
             flash(_("Account unbanned."), "success")
 

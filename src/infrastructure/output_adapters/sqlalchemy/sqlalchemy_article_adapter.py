@@ -6,14 +6,19 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.infrastructure.output_adapters.dto.article_record import ArticleRecord
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_base_adapter import (
+    SqlAlchemyBaseAdapter,
+)
 
 
-class SqlAlchemyArticleAdapter(ArticleRepository):
+class SqlAlchemyArticleAdapter(SqlAlchemyBaseAdapter, ArticleRepository):
     """
     SQLAlchemy-based implementation of the ArticleRepository port.
 
     This adapter manages the persistence and retrieval of Article domain entities
     using SQLAlchemy ORM and the PostgreSQL database.
+
+    All methods may raise DatabaseError on database failure.
     """
 
     def __init__(self, session: Session):
@@ -23,7 +28,7 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Args:
             session (Session): An active SQLAlchemy database session.
         """
-        self._session = session
+        super().__init__(session)
 
     def _to_domain(self, model: ArticleModel) -> Article:
         """
@@ -45,8 +50,8 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Returns:
             list[Article]: A list of all Article domain entities.
         """
-        models = (
-            self._session.query(ArticleModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(ArticleModel)
             .order_by(desc(ArticleModel.article_published_at))
             .all()
         )
@@ -62,7 +67,7 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Returns:
             Article | None: The Article domain entity if found, None otherwise.
         """
-        model = self._session.get(ArticleModel, article_id)
+        model = self._db_get(ArticleModel, article_id)
         if model is None:
             return None
         return self._to_domain(model)
@@ -77,15 +82,17 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
             article (Article): The Article domain entity to persist.
         """
         if article.article_id and article.article_id > 0:
-            self._session.query(ArticleModel).filter_by(
-                article_id=article.article_id,
-            ).update({
+            self._db_query_raw(
+                lambda: self._session.query(ArticleModel).filter_by(
+                    article_id=article.article_id,
+                ).update({
                 ArticleModel.article_title: article.article_title,
                 ArticleModel.article_description: article.article_description,
                 ArticleModel.article_content: article.article_content,
                 ArticleModel.article_edited_at: article.article_edited_at,
-            })
-            self._session.commit()
+                })
+            )
+            self._db_commit()
             return
 
         model = ArticleModel()
@@ -94,8 +101,8 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         model.article_description = article.article_description
         model.article_content = article.article_content
         model.article_edited_at = article.article_edited_at
-        self._session.add(model)
-        self._session.commit()
+        self._db_add(model)
+        self._db_commit()
         article.article_id = model.article_id
 
     def delete(self, article: Article) -> None:
@@ -105,10 +112,12 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Args:
             article (Article): The Article domain entity to delete.
         """
-        self._session.query(ArticleModel).filter_by(
-            article_id=article.article_id,
-        ).delete()
-        self._session.commit()
+        self._db_query_raw(
+            lambda: self._session.query(ArticleModel).filter_by(
+                article_id=article.article_id,
+            ).delete()
+        )
+        self._db_commit()
 
     def get_paginated(self, page: int, per_page: int) -> list[Article]:
         """
@@ -122,8 +131,8 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
             list[Article]: A list of Article domain entities for the specified page.
         """
         offset = (page - 1) * per_page
-        models = (
-            self._session.query(ArticleModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(ArticleModel)
             .order_by(desc(ArticleModel.article_published_at))
             .offset(offset)
             .limit(per_page)
@@ -139,7 +148,7 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         Returns:
             int: The total count of articles in the database.
         """
-        return self._session.query(ArticleModel).count()
+        return self._db_query_raw(lambda: self._session.query(ArticleModel).count())
 
     def search(self, query: str, page: int, per_page: int) -> list[Article]:
         """
@@ -158,8 +167,8 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
         """
         like = f"%{query}%"
         offset = (page - 1) * per_page
-        models = (
-            self._session.query(ArticleModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(ArticleModel)
             .outerjoin(
                 AccountModel,
                 ArticleModel.article_author_id == AccountModel.account_id,
@@ -191,8 +200,8 @@ class SqlAlchemyArticleAdapter(ArticleRepository):
             The total number of articles matching the query.
         """
         like = f"%{query}%"
-        return (
-            self._session.query(ArticleModel)
+        return self._db_query_raw(
+            lambda: self._session.query(ArticleModel)
             .outerjoin(
                 AccountModel,
                 ArticleModel.article_author_id == AccountModel.account_id,

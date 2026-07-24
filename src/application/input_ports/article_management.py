@@ -10,7 +10,7 @@ class ArticleManagementPort(ABC):
     """
 
     @abstractmethod
-    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article | str:
+    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article:
         """
         Creates a new article if the user has sufficient permissions.
 
@@ -22,8 +22,12 @@ class ArticleManagementPort(ABC):
             description (str): Short description displayed in article list. Optional.
 
         Returns:
-            Article | str: The newly created Article domain entity,
-            or an error message string if unauthorized or account not found.
+            Article: The newly created Article domain entity.
+
+        Raises:
+            AccountNotFoundError: If the author account is not found.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
         """
         pass
 
@@ -51,7 +55,7 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article | str:
+    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article:
         """
         Updates an existing article ensuring the requester is the original author.
 
@@ -63,13 +67,19 @@ class ArticleManagementPort(ABC):
             description (str): Short description displayed in article list. Optional.
 
         Returns:
-            Article | str: The updated Article domain entity,
-            or an error message string if not found or unauthorized.
+            Article: The updated Article domain entity.
+
+        Raises:
+            AccountNotFoundError: If the user account is not found.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            OwnershipError: If the user is not the author (and not admin).
         """
         pass
 
     @abstractmethod
-    def delete_article(self, article_id: int, user_id: int) -> bool | str:
+    def delete_article(self, article_id: int, user_id: int) -> bool:
         """
         Deletes an article. Only the original author or an admin can delete it.
 
@@ -78,7 +88,14 @@ class ArticleManagementPort(ABC):
             user_id (int): ID of the user requesting the deletion.
 
         Returns:
-            bool | str: True if deletion was successful, or an error message string.
+            bool: True if deletion was successful.
+
+        Raises:
+            AccountNotFoundError: If the user account is not found.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            OwnershipError: If the user is not the author (and not admin).
         """
         pass
 
@@ -122,17 +139,18 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_article_with_comments(self, article_id: int) -> ArticleDetailView | str:
+    def get_article_with_comments(self, article_id: int) -> ArticleDetailView:
         """
         Orchestrates the retrieval of an article, its associated comments, and author information.
-        Respects the separation of concerns by using the comment management port.
 
         Args:
             article_id (int): ID of the article to retrieve.
 
         Returns:
-            ArticleDetailView | str: A Read Model for the complete article detail page,
-            or an error message string if the article is missing.
+            ArticleDetailView: A Read Model for the complete article detail page.
+
+        Raises:
+            ArticleNotFoundError: If the article does not exist.
         """
         pass
 
@@ -166,4 +184,3 @@ class ArticleManagementPort(ABC):
             The total number of matching articles.
         """
         pass
-

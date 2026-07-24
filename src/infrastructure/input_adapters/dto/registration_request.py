@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
+from exceptions import PasswordsDoNotMatchError
+
 
 class RegistrationRequest(BaseModel):
     """
@@ -24,8 +26,8 @@ class RegistrationRequest(BaseModel):
             RegistrationRequest: The validated model instance.
 
         Raises:
-            ValueError: If 'password' and 'confirm_password' do not match.
+            PasswordsDoNotMatchError: If 'password' and 'confirm_password' do not match.
         """
         if self.password != self.confirm_password:
-            raise ValueError("Passwords do not match.")
+            raise PasswordsDoNotMatchError("Passwords do not match.")
         return self

@@ -1,6 +1,7 @@
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
+from exceptions import AccountBannedError, AuthenticationError
 from flask import flash, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -49,22 +50,24 @@ class LoginAdapter(MethodView):
                 username=submitted_username,
                 password=request.form.get("password", "")
             )
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
                 flash(_("Validation Error (%(location)s): %(message)s", location=location, message=error["msg"]), "error")
             return render_template("login.html", current_user=user, username=submitted_username)
 
-        result = self.login_service.authenticate_user(
-            username=login_data.username,
-            password=login_data.password
-        )
-
-        if not isinstance(result, str):
+        try:
+            self.login_service.authenticate_user(
+                username=login_data.username,
+                password=login_data.password
+            )
+        except AccountBannedError:
+            flash(_("This account has been banned."), "error")
+        except AuthenticationError:
+            flash(_("Invalid username or password."), "error")
+        else:
             return redirect(url_for("article.list_articles"))
 
-        if result == "This account has been banned.":
-            flash(_(result), "error")
-        else:
-            flash(_("Invalid username or password."), "error")
         return render_template("login.html", current_user=user, username=login_data.username)

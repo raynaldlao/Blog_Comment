@@ -6,7 +6,6 @@ from flask import Flask
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.session.flask_session_adapter import FlaskSessionAdapter
-from tests.exceptions_tests import ExceptionTest
 from tests.test_domain_factories import create_test_account
 
 
@@ -110,7 +109,9 @@ class TestFlaskSessionAdapterResilience(BaseTestFlaskSessionAdapter):
 
     def test_get_account_repository_timeout_resilience(self):
         from flask import session as flask_session
-        self.mock_repo.get_by_id.side_effect = ExceptionTest("DB Timeout")
+        # Intentionally NOT in exceptions.py: test-only. Exception sufficient.
+        # Do not move to exceptions.py.
+        self.mock_repo.get_by_id.side_effect = Exception("DB Timeout")
         with self.app.test_request_context():
             flask_session[self.adapter._KEY_USER_ID] = 123
             # TODO: Add try/except in FlaskSessionAdapter.get_account to return None if the repository fails.
@@ -118,7 +119,7 @@ class TestFlaskSessionAdapterResilience(BaseTestFlaskSessionAdapter):
             try:
                 retrieved = self.adapter.get_account()
                 assert retrieved is None
-            except ExceptionTest:
+            except Exception:
                 # Fallback until the TODO is implemented
                 pass
 

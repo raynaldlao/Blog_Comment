@@ -2,6 +2,13 @@ import json
 import re
 from datetime import UTC, datetime
 
+from exceptions import (
+    AccountBannedError,
+    AccountNotFoundError,
+    ArticleNotFoundError,
+    InsufficientPermissionsError,
+    OwnershipError,
+)
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article, ArticleDetailView, ArticleWithAuthor
 from src.application.input_ports.article_management import ArticleManagementPort
@@ -32,6 +39,8 @@ def _extract_image_uuids(content: str) -> set[str]:
         return set()
     try:
         data = json.loads(content)
+    # Python builtin — safety net for json.loads on non-string input.
+    # Not in exceptions.py. Do not move it there.
     except (json.JSONDecodeError, TypeError):
         return set()
     uuids: set[str] = set()
@@ -96,7 +105,7 @@ class ArticleService(ArticleManagementPort):
         self.comment_repository = comment_repository
         self.file_service = file_service
 
-    def _get_account_if_author_or_admin(self, user_id: int) -> Account | str:
+    def _get_account_if_author_or_admin(self, user_id: int) -> Account:
         """
         Checks if a user exists and has the required permissions (admin or author).
 
@@ -104,23 +113,26 @@ class ArticleService(ArticleManagementPort):
             user_id (int): The unique identifier of the user.
 
         Returns:
-            Account | str: The Account domain entity if authorized, or an error message string.
+            Account: The Account domain entity if authorized.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
         """
         account = self.account_repository.get_by_id(user_id)
         if not account:
-            # TODO: Raise AccountNotFoundException
-            return "Account not found."
+            raise AccountNotFoundError("Account not found.")
 
         if account.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
-            # TODO: Raise InsufficientPermissionsException
-            return "Insufficient permissions."
+            raise InsufficientPermissionsError("Insufficient permissions.")
 
         if account.is_banned:
-            return "Account is banned."
+            raise AccountBannedError("Account is banned.")
 
         return account
 
-    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article | str:
+    def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article:
         """
         Creates a new article and saves it via the repository if the account exists and the user has
         the correct permissions.
@@ -133,12 +145,14 @@ class ArticleService(ArticleManagementPort):
             description (str): Short description displayed in article list. Optional.
 
         Returns:
-            Article | str: The newly created Article domain entity,
-            or an error message string if unauthorized or account not found.
+            Article: The newly created Article domain entity.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
         """
-        account_or_error = self._get_account_if_author_or_admin(author_id)
-        if isinstance(account_or_error, str):
-            return account_or_error
+        self._get_account_if_author_or_admin(author_id)
 
         new_article = Article(
             article_id=0,
@@ -173,7 +187,7 @@ class ArticleService(ArticleManagementPort):
         """
         return self.article_repository.get_by_id(article_id)
 
-    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article | str:
+    def update_article(self, article_id: int, user_id: int, title: str, content: str, description: str = "") -> Article:
         """
         Updates an existing article. Only the original author or an admin can edit
         (admins can also edit anonymous articles whose author account was deleted).
@@ -186,21 +200,23 @@ class ArticleService(ArticleManagementPort):
             description (str): Short description displayed in article list. Optional.
 
         Returns:
-            Article | str: The updated Article domain entity,
-            or an error message string if not found or unauthorized.
+            Article: The updated Article domain entity.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            OwnershipError: If the user is not the author (and not admin).
         """
-        account_or_error = self._get_account_if_author_or_admin(user_id)
-        if isinstance(account_or_error, str):
-            return account_or_error
+        account = self._get_account_if_author_or_admin(user_id)
 
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            # TODO: Raise ArticleNotFoundException
-            return "Article not found."
+            raise ArticleNotFoundError("Article not found.")
 
-        if account_or_error.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            # TODO: Raise OwnershipException
-            return "Unauthorized : You are not the author of this article."
+        if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
+            raise OwnershipError("Unauthorized: You are not the author of this article.")
 
         old_content = article.article_content
         article.article_title = title
@@ -218,7 +234,7 @@ class ArticleService(ArticleManagementPort):
 
         return article
 
-    def delete_article(self, article_id: int, user_id: int) -> bool | str:
+    def delete_article(self, article_id: int, user_id: int) -> bool:
         """
         Deletes an article. Only the original author or an admin can delete it.
 
@@ -227,21 +243,23 @@ class ArticleService(ArticleManagementPort):
             user_id (int): ID of the user requesting the deletion.
 
         Returns:
-            bool | str: True if deletion was successful, or an error message string.
-        """
-        account_or_error = self._get_account_if_author_or_admin(user_id)
-        if isinstance(account_or_error, str):
-            return account_or_error
+            bool: True if deletion was successful.
 
-        account: Account = account_or_error
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            OwnershipError: If the user is not the author (and not admin).
+        """
+        account = self._get_account_if_author_or_admin(user_id)
+
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            # TODO: Raise ArticleNotFoundException
-            return "Article not found."
+            raise ArticleNotFoundError("Article not found.")
 
         if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            # TODO: Raise OwnershipException
-            return "Unauthorized : Only authors or admins can delete articles."
+            raise OwnershipError("Unauthorized: Only authors or admins can delete articles.")
 
         if self.file_service:
             for uuid in _extract_image_uuids(article.article_content):
@@ -302,7 +320,7 @@ class ArticleService(ArticleManagementPort):
         account = self.account_repository.get_by_id(author_id)
         return account.account_username if account else "Unknown"
 
-    def get_article_with_comments(self, article_id: int) -> ArticleDetailView | str:
+    def get_article_with_comments(self, article_id: int) -> ArticleDetailView:
         """
         Orchestrates the retrieval of an article, its associated threaded comments,
         and all involved author names in optimized batches.
@@ -311,12 +329,14 @@ class ArticleService(ArticleManagementPort):
             article_id (int): ID of the article to retrieve.
 
         Returns:
-            ArticleDetailView | str: A Read Model for the complete article detail page,
-            or an error message string if the article is not found.
+            ArticleDetailView: A Read Model for the complete article detail page.
+
+        Raises:
+            ArticleNotFoundError: If the article is not found.
         """
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            return "Article not found."
+            raise ArticleNotFoundError("Article not found.")
 
         all_comments = self.comment_repository.get_all_by_article_id(article_id)
         known_ids = {article.article_author_id} if article.article_author_id is not None else set()

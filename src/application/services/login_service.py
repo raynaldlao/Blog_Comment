@@ -1,3 +1,10 @@
+from exceptions import (
+    AccountBannedError,
+    AccountNotFoundError,
+    AuthenticationError,
+    AuthorizationError,
+    EmailAlreadyTakenError,
+)
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.login_management import LoginManagementPort
@@ -32,7 +39,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         self.session_repository = session_repository
         self.password_hasher_repository = password_hasher_repository
 
-    def authenticate_user(self, username: str, password: str) -> Account | str:
+    def authenticate_user(self, username: str, password: str) -> Account:
         """
         Authenticates a user by verifying credentials.
 
@@ -45,17 +52,20 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             password (str): The plaintext password provided by the user.
 
         Returns:
-            Account | str: The authenticated Account instance if
-            credentials match, or an error message string if it fails.
+            Account: The authenticated Account instance.
+
+        Raises:
+            AuthenticationError: If the username or password is invalid.
+            AccountBannedError: If the account is banned.
         """
 
         account = self.account_repository.find_by_username(username)
         if not account:
-            return "Invalid username or password."
+            raise AuthenticationError("Invalid username or password.")
 
         if self.password_hasher_repository.verify(password, account.account_password):
             if account.is_banned:
-                return "This account has been banned."
+                raise AccountBannedError("This account has been banned.")
 
             if self.password_hasher_repository.check_needs_rehash(account.account_password):
                 new_hash = self.password_hasher_repository.hash(password)
@@ -65,7 +75,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             self.session_repository.save_account(account)
             return account
 
-        return "Invalid username or password."
+        raise AuthenticationError("Invalid username or password.")
 
     def get_current_account(self) -> Account | None:
         """
@@ -124,7 +134,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             return
         self.account_repository.update_avatar(account.account_id, avatar_file_id)
 
-    def update_email(self, new_email: str) -> str | None:
+    def update_email(self, new_email: str) -> None:
         """
         Updates the email address for the currently logged-in account.
 
@@ -135,25 +145,24 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         Args:
             new_email: The new email address to set.
 
-        Returns:
-            str | None: None on success, or an error message string if
-                the email is already taken or the user is unauthenticated.
+        Raises:
+            AuthenticationError: If the user is not signed in.
+            EmailAlreadyTakenError: If the email is already in use by another account.
         """
         account = self.get_current_account()
         if not account:
-            return "You must be signed in to update your email."
+            raise AuthenticationError("You must be signed in to update your email.")
 
         if new_email == account.account_email:
-            return None
+            return
 
         existing = self.account_repository.find_by_email(new_email)
         if existing and existing.account_id != account.account_id:
-            return "This email is already taken."
+            raise EmailAlreadyTakenError("This email is already taken.")
 
         self.account_repository.update_email(account.account_id, new_email)
-        return None
 
-    def update_password(self, new_password: str) -> str | None:
+    def update_password(self, new_password: str) -> None:
         """
         Updates the password for the currently logged-in account.
 
@@ -164,20 +173,18 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         Args:
             new_password: The new plaintext password to set.
 
-        Returns:
-            str | None: None on success, or an error message string if
-                the user is not authenticated or the password is empty.
+        Raises:
+            AuthenticationError: If the user is not signed in.
         """
         account = self.get_current_account()
         if not account:
-            return "You must be signed in to update your password."
+            raise AuthenticationError("You must be signed in to update your password.")
 
         if not new_password:
-            return "Password is required."
+            return
 
         new_hash = self.password_hasher_repository.hash(new_password)
         self.account_repository.update_password(account.account_id, new_hash)
-        return None
 
     def get_all_accounts(self, page: int = 1, per_page: int = 20) -> list[Account]:
         """
@@ -241,14 +248,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             account_id: The unique identifier of the account to delete.
 
         Raises:
-            ValueError: If no account with the given ID exists.
+            AccountNotFoundError: If no account with the given ID exists.
         """
         existing = self.account_repository.get_by_id(account_id)
         if not existing:
-            raise ValueError(f"Account with id {account_id} not found.")
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
         self.account_repository.delete(account_id)
 
-    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> str | None:
+    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> None:
         """
         Allows an admin user to update the role of another user account.
 
@@ -260,27 +267,28 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             target_id: The unique identifier of the account whose role is to be updated.
             new_role: The new role string ("user" or "author").
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
+            AuthorizationError: If the target is another admin.
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            return "Unauthorized."
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_id)
         if not target:
-            return "Account not found."
+            raise AccountNotFoundError("Account not found.")
 
         if target.account_role == AccountRole.ADMIN:
-            return "Cannot change role of another admin."
+            raise AuthorizationError("Cannot change role of another admin.")
 
         if new_role not in ("user", "author"):
-            return "Invalid role."
+            return
 
         self.account_repository.update_role(target_id, new_role)
-        return None
 
-    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> str | None:
+    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> None:
         """
         Bans a user account. Only admins can ban non-admin accounts.
 
@@ -289,24 +297,25 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             target_account_id: The unique identifier of the account to ban.
             ban_reason: Optional reason for the ban.
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
+            AuthorizationError: If the target is another admin.
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            return "Unauthorized."
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            return "Account not found."
+            raise AccountNotFoundError("Account not found.")
 
         if target.account_role == AccountRole.ADMIN:
-            return "Cannot ban another admin."
+            raise AuthorizationError("Cannot ban another admin.")
 
         self.account_repository.update_ban_status(target_account_id, True, ban_reason)
-        return None
 
-    def unban_account(self, admin_id: int, target_account_id: int) -> str | None:
+    def unban_account(self, admin_id: int, target_account_id: int) -> None:
         """
         Unbans a user account. Only admins can unban accounts.
 
@@ -314,16 +323,16 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             admin_id: The unique identifier of the admin performing the action.
             target_account_id: The unique identifier of the account to unban.
 
-        Returns:
-            str | None: None on success, or an error message string if the operation fails.
+        Raises:
+            AuthorizationError: If the requester is not an admin.
+            AccountNotFoundError: If the target account is not found.
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            return "Unauthorized."
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            return "Account not found."
+            raise AccountNotFoundError("Account not found.")
 
         self.account_repository.update_ban_status(target_account_id, False, None)
-        return None

@@ -444,7 +444,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_update_email_error(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")
         self.mock_session_service.get_current_account.return_value = fake_user
-        self.mock_session_service.update_email.return_value = "This email is already taken."
+        from exceptions import EmailAlreadyTakenError
+        self.mock_session_service.update_email.side_effect = EmailAlreadyTakenError("This email is already taken.")
         response = self.client.post(
             "/profile/email",
             data={"email": "taken@test.com"},
@@ -534,7 +535,8 @@ class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.update_account_role.return_value = "Account not found."
+        from exceptions import AccountNotFoundError
+        self.mock_session_service.update_account_role.side_effect = AccountNotFoundError("Account not found.")
         self.mock_session_service.get_account_by_id.return_value = None
         response = self.client.post(
             "/admin/users/999/role",
@@ -612,7 +614,8 @@ class TestAccountSessionBan(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.ban_account.return_value = "Cannot ban another admin."
+        from exceptions import AuthorizationError
+        self.mock_session_service.ban_account.side_effect = AuthorizationError("Cannot ban another admin.")
         response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Cannot ban another admin" in response.data
@@ -622,7 +625,8 @@ class TestAccountSessionBan(FlaskInputAdapterTestBase):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(admin)
         self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.ban_account.return_value = "Account not found."
+        from exceptions import AccountNotFoundError
+        self.mock_session_service.ban_account.side_effect = AccountNotFoundError("Account not found.")
         response = self.client.post("/admin/users/999/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Account not found" in response.data

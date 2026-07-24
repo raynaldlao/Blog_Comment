@@ -2,6 +2,8 @@ import re
 
 from pydantic import BaseModel, Field, field_validator
 
+from exceptions import CommentEmptyError, CommentTooLongError
+
 
 class CommentRequest(BaseModel):
     """
@@ -19,9 +21,17 @@ class CommentRequest(BaseModel):
     @field_validator("content")
     @classmethod
     def check_content_length(cls, v: str) -> str:
+        """
+        Validates comment content is not empty after stripping HTML tags
+        and does not exceed the DB VARCHAR(5000) limit.
+
+        Raises:
+            CommentEmptyError: If content has no non-whitespace characters.
+            CommentTooLongError: If content exceeds 5000 characters.
+        """
         text = re.sub(r"<[^>]+>", "", v).strip()
         if len(text) < 1:
-            raise ValueError("Comment cannot be empty.")
+            raise CommentEmptyError("Comment cannot be empty.")
         if len(v) > 5000:
-            raise ValueError("Comment is too long. Maximum 5000 characters.")
+            raise CommentTooLongError("Comment is too long. Maximum 5000 characters.")
         return v

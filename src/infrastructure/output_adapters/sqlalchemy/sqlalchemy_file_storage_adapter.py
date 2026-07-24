@@ -6,14 +6,19 @@ from sqlalchemy.orm import Session
 from src.application.domain.file_record import FileRecord
 from src.application.output_ports.file_storage_repository import FileStorageRepository
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_uploaded_file_model import UploadedFileModel
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_base_adapter import (
+    SqlAlchemyBaseAdapter,
+)
 
 
-class SqlAlchemyFileStorageAdapter(FileStorageRepository):
+class SqlAlchemyFileStorageAdapter(SqlAlchemyBaseAdapter, FileStorageRepository):
     """SQLAlchemy-based implementation of FileStorageRepository.
 
     Persists uploaded files as BYTEA in the uploaded_files table.
     Maps directly between UploadedFileModel (ORM) and FileRecord (domain).
     No DTO needed — FileRecord has no enums or complex conversions.
+
+    All methods may raise DatabaseError on database failure.
     """
 
     def __init__(self, session: Session):
@@ -22,7 +27,7 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
         Args:
             session: Active DB session.
         """
-        self._session = session
+        super().__init__(session)
 
     def save(self, file_record: FileRecord) -> FileRecord:
         """Persist a file record to the database.
@@ -41,8 +46,8 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
             file_data=file_record.data,
             created_at=file_record.created_at,
         )
-        self._session.add(model)
-        self._session.commit()
+        self._db_add(model)
+        self._db_commit()
         return file_record
 
     def get(self, file_id: str) -> FileRecord | None:
@@ -54,7 +59,7 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
         Returns:
             FileRecord if found, None otherwise.
         """
-        model = self._session.get(UploadedFileModel, file_id)
+        model = self._db_get(UploadedFileModel, file_id)
         if model is None:
             return None
         return FileRecord(
@@ -74,8 +79,8 @@ class SqlAlchemyFileStorageAdapter(FileStorageRepository):
         Args:
             file_id: UUID string.
         """
-        model = self._session.get(UploadedFileModel, file_id)
+        model = self._db_get(UploadedFileModel, file_id)
         if model is None:
             return
-        self._session.delete(model)
-        self._session.commit()
+        self._db_delete(model)
+        self._db_commit()

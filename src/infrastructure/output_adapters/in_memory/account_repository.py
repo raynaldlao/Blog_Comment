@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from exceptions import AccountNotFoundError
 from src.application.domain.account import Account, AccountRole
 from src.application.output_ports.account_repository import AccountRepository
 
@@ -225,11 +226,11 @@ class InMemoryAccountRepository(AccountRepository):
             ban_reason: Optional reason for the ban, or None to clear.
 
         Raises:
-            ValueError: If no account with the given ID exists.
+            AccountNotFoundError: If no account with the given ID exists.
         """
         account = self._accounts.get(account_id)
         if account is None:
-            raise ValueError(f"Account with id {account_id} not found.")
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
         account.is_banned = is_banned
         account.ban_reason = ban_reason
 
