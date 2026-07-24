@@ -5,7 +5,7 @@ from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
-from exceptions import BlogCommentError
+from blog_exceptions import BlogCommentError
 from flask import flash, jsonify, redirect, render_template, request, url_for
 from flask import g as global_request_context
 from src.application.domain.comment import CommentNode
@@ -125,7 +125,7 @@ class ArticleAdapter:
         try:
             json.loads(content)
         # Python builtin — safety net for json.loads on non-string input.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -186,7 +186,7 @@ class ArticleAdapter:
         try:
             json.loads(content)
         # Python builtin — safety net for json.loads on non-string input.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except (json.JSONDecodeError, TypeError):
             content = json.dumps([{
                 "type": "paragraph",
@@ -233,7 +233,7 @@ class ArticleAdapter:
                 description=data.get("description", ""),
             )
         # Pydantic library exception — caught at web boundary for 400 response.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
@@ -281,7 +281,7 @@ class ArticleAdapter:
                 description=data.get("description", ""),
             )
         # Pydantic library exception — caught at web boundary for 400 response.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400

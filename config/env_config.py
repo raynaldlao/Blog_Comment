@@ -28,9 +28,9 @@ class EnvConfig:
         Raises:
             RuntimeError: If the mandatory environment variable is missing.
         """
-        # Intentionally NOT in exceptions.py: startup-only crash path.
+        # Intentionally NOT in blog_exceptions.py: startup-only crash path.
         # Never caught by application code. Builtin RuntimeError sufficient.
-        # Do not move to exceptions.py.
+        # Do not move to blog_exceptions.py.
         value = os.getenv(name)
         if not value:
             raise RuntimeError(

@@ -109,8 +109,8 @@ class TestFlaskSessionAdapterResilience(BaseTestFlaskSessionAdapter):
 
     def test_get_account_repository_timeout_resilience(self):
         from flask import session as flask_session
-        # Intentionally NOT in exceptions.py: test-only. Exception sufficient.
-        # Do not move to exceptions.py.
+        # Intentionally NOT in blog_exceptions.py: test-only. Exception sufficient.
+        # Do not move to blog_exceptions.py.
         self.mock_repo.get_by_id.side_effect = Exception("DB Timeout")
         with self.app.test_request_context():
             flask_session[self.adapter._KEY_USER_ID] = 123

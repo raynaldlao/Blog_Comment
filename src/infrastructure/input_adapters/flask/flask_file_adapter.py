@@ -2,7 +2,7 @@ from io import BytesIO
 
 from flask_babel import gettext as _
 
-from exceptions import FileTooLargeError, FileTypeError
+from blog_exceptions import FileTooLargeError, FileTypeError
 from flask import jsonify, request, send_file
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.file_upload_request import FileUploadRequest
@@ -41,7 +41,7 @@ class FlaskFileAdapter:
                 mime_type=uploaded_file.content_type or "application/octet-stream",
             )
         # Intentionally broad: catches Pydantic ValidationError or unexpected errors
-        # from file upload request parsing. Not in exceptions.py. Do not move it there.
+        # from file upload request parsing. Not in blog_exceptions.py. Do not move it there.
         except Exception as e:
             return jsonify({"error": str(e)}), 400
 

@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from exceptions import (
+from blog_exceptions import (
     AccountNotFoundError,
     ArticleNotFoundError,
     CommentAuthorizationError,

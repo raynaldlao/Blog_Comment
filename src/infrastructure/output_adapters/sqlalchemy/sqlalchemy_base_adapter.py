@@ -1,7 +1,7 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from exceptions import DatabaseError
+from blog_exceptions import DatabaseError
 
 
 class SqlAlchemyBaseAdapter:
@@ -32,7 +32,7 @@ class SqlAlchemyBaseAdapter:
         try:
             return self._session.get(model_class, pk)
         # SQLAlchemy library exception — caught and translated to DatabaseError.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except SQLAlchemyError as e:
             raise DatabaseError("Database read failed.") from e
 
@@ -48,7 +48,7 @@ class SqlAlchemyBaseAdapter:
         try:
             self._session.add(model)
         # SQLAlchemy library exception — caught and translated to DatabaseError.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except SQLAlchemyError as e:
             raise DatabaseError("Database insert failed.") from e
 
@@ -64,7 +64,7 @@ class SqlAlchemyBaseAdapter:
         try:
             self._session.delete(model)
         # SQLAlchemy library exception — caught and translated to DatabaseError.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except SQLAlchemyError as e:
             raise DatabaseError("Database delete failed.") from e
 
@@ -81,12 +81,12 @@ class SqlAlchemyBaseAdapter:
         try:
             self._session.commit()
         # SQLAlchemy library exception — re-raised for constraint handling by callers.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except IntegrityError:
             self._session.rollback()
             raise
         # SQLAlchemy library exception — caught and translated to DatabaseError.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except SQLAlchemyError as e:
             self._session.rollback()
             raise DatabaseError("Database commit failed.") from e
@@ -131,6 +131,6 @@ class SqlAlchemyBaseAdapter:
         try:
             return query_fn()
         # SQLAlchemy library exception — caught and translated to DatabaseError.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except SQLAlchemyError as e:
             raise DatabaseError("Database query failed.") from e

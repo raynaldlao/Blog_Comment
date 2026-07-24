@@ -4,7 +4,7 @@ from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
-from exceptions import BlogCommentError
+from blog_exceptions import BlogCommentError
 from flask import flash, redirect, request, url_for
 from flask import g as global_request_context
 from src.application.input_ports.comment_management import CommentManagementPort
@@ -71,7 +71,7 @@ class CommentAdapter:
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         # Pydantic library exception — caught at web boundary for flash + redirect.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
@@ -118,7 +118,7 @@ class CommentAdapter:
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
         # Pydantic library exception — caught at web boundary for flash + redirect.
-        # Not in exceptions.py. Do not move it there.
+        # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")

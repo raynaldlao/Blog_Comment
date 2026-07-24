@@ -2,7 +2,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from exceptions import (
+from blog_exceptions import (
     AccountBannedError,
     AccountNotFoundError,
     AuthenticationError,
@@ -101,8 +101,8 @@ class TestLoginService:
     def test_authenticate_user_session_repo_failure(self):
         fake_account = create_test_account()
         self.mock_repo.find_by_username.return_value = fake_account
-        # Intentionally NOT in exceptions.py: test-only. Exception sufficient.
-        # Do not move to exceptions.py.
+        # Intentionally NOT in blog_exceptions.py: test-only. Exception sufficient.
+        # Do not move to blog_exceptions.py.
         self.mock_session_repo.save_account.side_effect = Exception("Storage failure")
         with pytest.raises(Exception, match="Storage failure"):
             self.service.authenticate_user("leia", "password123")

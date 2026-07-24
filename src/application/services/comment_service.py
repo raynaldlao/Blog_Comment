@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 import nh3
 
-from exceptions import (
+from blog_exceptions import (
     AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
