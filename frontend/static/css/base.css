@@ -175,7 +175,8 @@
 }
 
 #theme-toggle-btn,
-.nav-links .btn {
+.nav-links .btn,
+.lang-toggle-btn {
     border-radius: 0;
     margin-left: -1px;
     position: relative;
@@ -199,6 +200,10 @@
     margin-left: 0;
     border-top-left-radius: var(--radius-default);
     border-bottom-left-radius: var(--radius-default);
+}
+
+.lang-toggle-form {
+    display: flex;
 }
 
 .nav-links .btn:last-child {
@@ -289,7 +294,8 @@
     }
 
     .nav-actions>#theme-toggle-btn,
-    .nav-links .btn {
+    .nav-links .btn,
+    .lang-toggle-btn {
         width: 2.375rem;
         height: 2.375rem;
         min-width: 2.375rem;
@@ -481,6 +487,18 @@ button,
     transition: all 0.2s ease;
     box-shadow: inset 0 1px 0 color-mix(in srgb, var(--on-surface) 10%, transparent);
     text-align: center;
+}
+
+.lang-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    line-height: 1;
+    font-weight: 600;
+    font-size: 0.75rem;
+    border-radius: 0;
 }
 
 button:hover,

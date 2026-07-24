@@ -7,6 +7,8 @@ import createHighlighter from '../utils/shiki-highlighter-viewer';
 import SUPPORTED_LANGUAGES from '../utils/supported-languages';
 import { createCustomCodeBlockSpec } from '../utils/custom-code-block-spec';
 import { createYouTubeVideoSpec } from '../utils/video-override-spec';
+import { fr } from '@blocknote/core/locales';
+import { _ } from '../utils/i18n';
 
 
 function BlockNoteViewer({ initialContent }) {
@@ -36,6 +38,7 @@ function BlockNoteViewer({ initialContent }) {
   const { audio: _a, file: _f, video: defaultVideoSpec, ...keptSpecs } = defaultBlockSpecs;
 
   const editor = useCreateBlockNote({
+    dictionary: fr,
     initialContent,
     schema: BlockNoteSchema.create({
       blockSpecs: {
@@ -127,7 +130,7 @@ export default function ArticleViewer() {
   const { loaded, contentStr, error } = useArticle(articleId);
 
   if (!loaded) {
-    return <div className="loading">Loading...</div>;
+    return <div className="loading">{_('Loading...')}</div>;
   }
 
   if (error) {
@@ -138,7 +141,7 @@ export default function ArticleViewer() {
   try {
     initialContent = JSON.parse(contentStr);
   } catch {
-    return <div className="alert alert-error">Unable to render article content.</div>;
+    return <div className="alert alert-error">{_('Unable to render article content.')}</div>;
   }
 
   return <BlockNoteViewer initialContent={initialContent} />;

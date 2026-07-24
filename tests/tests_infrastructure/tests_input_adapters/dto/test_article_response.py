@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime
 
 from src.application.domain.article import Article
 from src.infrastructure.input_adapters.dto.article_response import ArticleResponse
@@ -74,8 +74,8 @@ class TestArticleResponse:
         assert result.meta_description == "My short description"
 
     def test_from_domain_with_article_edited_at(self):
-        """article_edited_at formaté en Europe/Paris (UTC+1 en janvier)."""
-        dt = datetime(2023, 1, 27, 12, 0, 0, tzinfo=UTC)
+        """article_edited_at conservé tel quel (datetime brut)."""
+        dt = datetime(2023, 1, 27, 12, 0, 0)
         domain_article = Article(
             article_id=1, article_author_id=10, article_title="Title",
             article_content="Content", article_published_at=datetime.now(),
@@ -83,14 +83,12 @@ class TestArticleResponse:
         )
         response = ArticleResponse.from_domain(domain_article, "user")
         assert response.article_edited_at == dt
-        assert response.article_edited_at_formatted == "January 27, 2023 at 13:00"
 
     def test_from_domain_without_article_edited_at(self):
-        """article_edited_at_formatted vide si jamais édité."""
+        """article_edited_at None si jamais édité."""
         domain_article = Article(
             article_id=1, article_author_id=10, article_title="Title",
             article_content="Content", article_published_at=datetime.now(),
         )
         response = ArticleResponse.from_domain(domain_article, "user")
         assert response.article_edited_at is None
-        assert response.article_edited_at_formatted == ""

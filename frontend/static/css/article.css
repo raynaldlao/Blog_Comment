@@ -742,34 +742,11 @@ a.comment-author:hover {
     text-decoration: underline;
 }
 
-.reply-form-container {
-    margin-top: var(--spacing-sm);
-}
-
-.reply-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.reply-editor {
-    width: 100%;
-    box-sizing: border-box;
-    resize: vertical;
-    min-height: 4rem;
-    font-size: var(--font-body-base);
-}
-
 .comment-limit-hint,
 .desc-limit-hint {
     display: block;
     font-size: var(--font-body-sm);
     color: var(--text-secondary);
-}
-
-.reply-actions {
-    display: flex;
-    gap: var(--spacing-xs);
 }
 
 .comments-section {
@@ -793,31 +770,10 @@ a.comment-author:hover {
     font-style: italic;
 }
 
-.edit-form-container {
-    margin-top: var(--spacing-sm);
-}
-
-.edit-form {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
-}
-
-.edit-editor {
-    width: 100%;
-    box-sizing: border-box;
-    resize: vertical;
-    min-height: 4rem;
-    font-size: var(--font-body-base);
-}
-
-.edit-actions {
+.comment-form-actions {
     display: flex;
     gap: var(--spacing-xs);
-}
-
-.cancel-edit {
-    cursor: pointer;
+    align-items: center;
 }
 
 .comment-edit-toggle {
@@ -877,6 +833,7 @@ a.comment-author:hover {
 
 .comment-join-section .sun-editor {
     margin-bottom: var(--spacing-md);
+    overflow-x: hidden;
 }
 
 .comment-join-title {

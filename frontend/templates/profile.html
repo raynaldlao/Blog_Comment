@@ -1,7 +1,7 @@
 {% from "macros/icons.html" import icon %}
 {% extends "base.html" %}
 
-{% block title %}{% if is_own_profile %}Profile{% else %}{{ user.account_username }}{% endif %} - DevJournal{% endblock %}
+{% block title %}{% if is_own_profile %}{{ _('Profile') }}{% else %}{{ user.account_username }}{% endif %} - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
@@ -18,26 +18,26 @@
             {% endif %}
         </div>
         {% if is_own_profile %}
-        <button type="button" id="upload-avatar-btn" class="btn btn-sm">Upload Photo</button>
+        <button type="button" id="upload-avatar-btn" class="btn btn-sm">{{ _('Upload Photo') }}</button>
         <input type="file" id="avatar-file-input" accept="image/*" hidden>
         {% if user.avatar_file_id %}
         <form action="{{ url_for('auth.remove_profile_photo') }}" method="POST" class="remove-avatar-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-sm btn-secondary">Remove Photo</button>
+            <button type="submit" class="btn btn-sm btn-secondary">{{ _('Remove Photo') }}</button>
         </form>
         {% endif %}
         {% endif %}
         <h1>{{ user.account_username }}</h1>
         <div class="role-row">
-            <span class="role-badge">{{ user.account_role }}</span>
+            <span class="role-badge">{{ _(user.account_role) }}</span>
             {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
             <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <select name="role">
-                    <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>User</option>
-                    <option value="author" {% if user.account_role == 'author' %}selected{% endif %}>Author</option>
+                    <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
+                    <option value="author" {% if user.account_role == 'author' %}selected{% endif %}>{{ _('Author') }}</option>
                 </select>
-                <button type="submit" class="btn btn-sm">Update</button>
+                <button type="submit" class="btn btn-sm">{{ _('Update') }}</button>
             </form>
             {% endif %}
         </div>
@@ -46,11 +46,11 @@
     <div class="info-section">
         {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
-            <span class="info-label">Email</span>
+            <span class="info-label">{{ _('Email') }}</span>
             {% if is_own_profile %}
             <div class="info-right-group">
                 <span class="info-value">{{ user.account_email }}</span>
-                <button type="button" id="open-email-modal" class="email-edit-btn">[Edit]</button>
+                <button type="button" id="open-email-modal" class="email-edit-btn">{{ _('[Edit]') }}</button>
             </div>
             {% else %}
             <span class="info-value">{{ user.account_email }}</span>
@@ -59,61 +59,61 @@
         {% endif %}
         {% if is_own_profile or (current_user and current_user.account_role == 'admin') %}
         <div class="info-row">
-            <span class="info-label">Member Since</span>
+            <span class="info-label">{{ _('Member Since') }}</span>
             <span class="info-value">
                 {% if user.account_created_at %}
-                    {{ user.account_created_at|date_format }}
+                    {{ user.account_created_at|format_datetime_locale("d MMMM yyyy") }}
                 {% else %}
-                    N/A
+                    {{ _('N/A') }}
                 {% endif %}
             </span>
         </div>
         {% endif %}
         <div class="info-row">
-            <span class="info-label">Status</span>
-            <span class="info-value">{% if user.is_banned %}Banned{% if user.ban_reason %}: {{ user.ban_reason }}{% endif %}{% else %}Active{% endif %}</span>
+            <span class="info-label">{{ _('Status') }}</span>
+            <span class="info-value">{% if user.is_banned %}{{ _('Banned') }}{% if user.ban_reason %}: {{ user.ban_reason }}{% endif %}{% else %}{{ _('Active') }}{% endif %}</span>
         </div>
     </div>
 
     {% if is_own_profile %}
     <dialog id="email-modal" class="dialog dialog-sm">
         <div class="modal-header">
-            <h2 class="modal-title">Update Email</h2>
+            <h2 class="modal-title">{{ _('Update Email') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_email') }}" method="POST">
             <div class="modal-body">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-input-group">
-                    <label for="email-input">Email</label>
+                    <label for="email-input">{{ _('Email') }}</label>
 <input type="email" id="email-input" name="email"
-       value="{{ user.account_email }}" placeholder="e.g., user@example.com" required>
+       value="{{ user.account_email }}" placeholder="{{ _('e.g., user@example.com') }}" required>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dialog btn-secondary" id="email-modal-cancel" autofocus>Cancel</button>
-                <button type="submit" class="btn btn-dialog btn-primary">Save</button>
+                <button type="button" class="btn btn-dialog btn-secondary" id="email-modal-cancel" autofocus>{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-dialog btn-primary">{{ _('Save') }}</button>
             </div>
         </form>
     </dialog>
 
     <dialog id="password-modal" class="dialog dialog-sm">
         <div class="modal-header">
-            <h2 class="modal-title">Update Password</h2>
+            <h2 class="modal-title">{{ _('Update Password') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_password') }}" method="POST">
             <div class="modal-body">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-input-group">
-                    <label for="new-password-input">New Password</label>
+                    <label for="new-password-input">{{ _('New Password') }}</label>
                     <div class="password-wrapper">
-                        <input type="password" id="new-password-input" name="new_password" placeholder="e.g., MyP@ssw0rd!" required>
-                        <button type="button" class="password-toggle" aria-label="Toggle password visibility" aria-pressed="false">{{ icon('visibility') }}</button>
+                        <input type="password" id="new-password-input" name="new_password" placeholder="{{ _('e.g., MyP@ssw0rd!') }}" required>
+                        <button type="button" class="password-toggle" aria-label="{{ _('Toggle password visibility') }}" aria-pressed="false">{{ icon('visibility') }}</button>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dialog btn-secondary" id="password-modal-cancel" autofocus>Cancel</button>
-                <button type="submit" class="btn btn-dialog btn-primary">Save</button>
+                <button type="button" class="btn btn-dialog btn-secondary" id="password-modal-cancel" autofocus>{{ _('Cancel') }}</button>
+                <button type="submit" class="btn btn-dialog btn-primary">{{ _('Save') }}</button>
             </div>
         </form>
     </dialog>
@@ -121,19 +121,19 @@
     {% if is_own_profile %}
     <div class="profile-actions">
         {% if current_user.account_role == 'admin' %}
-        <a href="{{ url_for('auth.list_all_users') }}" class="btn btn-secondary">Manage Users</a>
+        <a href="{{ url_for('auth.list_all_users') }}" class="btn btn-secondary">{{ _('Manage Users') }}</a>
         {% endif %}
-        <button type="button" id="open-password-modal" class="btn btn-secondary">Change Password</button>
+        <button type="button" id="open-password-modal" class="btn btn-secondary">{{ _('Change Password') }}</button>
         <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-secondary">Sign Out</button>
+            <button type="submit" class="btn btn-secondary">{{ _('Sign Out') }}</button>
         </form>
         {% if current_user.account_role != 'admin' %}
         <form id="delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="button" class="btn btn-danger confirm-trigger"
                 data-form-id="delete-account-form"
-                data-confirm-message="Are you sure you want to delete your account ? This action is irreversible.">Delete Account</button>
+                data-confirm-message="{{ _('Are you sure you want to delete your account ? This action is irreversible.') }}">{{ _('Delete Account') }}</button>
         </form>
         {% endif %}
     </div>
@@ -144,26 +144,26 @@
         {% if user.is_banned %}
         <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-secondary">Unban</button>
+            <button type="submit" class="btn btn-secondary">{{ _('Unban') }}</button>
         </form>
         {% else %}
         <button type="button" class="btn btn-danger ban-trigger"
             data-user-id="{{ user.account_id }}"
-            data-username="{{ user.account_username }}">Ban</button>
+            data-username="{{ user.account_username }}">{{ _('Ban') }}</button>
         {% endif %}
         <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="account_id" value="{{ user.account_id }}">
             <button type="button" class="btn btn-danger confirm-trigger"
                 data-form-id="admin-delete-account-form"
-                data-confirm-message="Delete user &quot;{{ user.account_username }}&quot; ? This action is irreversible.">Delete Account</button>
+                data-confirm-message="{{ _('Delete user \\\"%(username)s\\\" ? This action is irreversible.', username=user.account_username) }}">{{ _('Delete Account') }}</button>
         </form>
     </div>
     {% endif %}
 
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}
-        <span>Return to home</span>
+        <span>{{ _('Return to home') }}</span>
     </a>
 </div>
 {% endblock %}

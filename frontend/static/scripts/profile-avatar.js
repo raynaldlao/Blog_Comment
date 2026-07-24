@@ -22,10 +22,10 @@
                 location.reload();
             } else {
                 const data = await response.json();
-                alert(data.error || "Upload failed.");
+                alert(data.error || "Échec du téléchargement.");
             }
         } catch {
-            alert("Network error during upload.");
+            alert("Erreur réseau lors du téléchargement.");
         }
     });
 })();

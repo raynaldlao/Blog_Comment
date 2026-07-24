@@ -44,15 +44,15 @@
     <header class="detail-header">
         <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
             {{ icon('arrow_back') }}
-            <span>Back to articles</span>
+            <span>{{ _('Back to articles') }}</span>
         </a>
         <h1 class="item-title detail-title">{{ article.article_title }}</h1>
         {% if article.article_description %}
         <strong class="article-description detail-description">{{ article.article_description }}</strong>
         {% endif %}
         <div class="item-meta">
-            {% if article.author_username == 'Anonymous' %}
-            <span class="meta-author">{{ article.author_username }}</span>
+            {% if article.article_author_id is none %}
+            <span class="meta-author">{{ _('Anonymous') }}</span>
             {% else %}
             <a href="{{ url_for('auth.user_profile', username=article.author_username) }}" class="meta-author-avatar-link">
                 {% if article.author_avatar_file_id %}
@@ -66,17 +66,17 @@
             </a>
             {% endif %}
             <span class="meta-divider">•</span>
-            <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|date_format }}</time>
+            <time datetime="{{ article.article_published_at|date_iso }}">{{ article.article_published_at|format_datetime_locale("d MMMM yyyy") }}</time>
             {% if article.article_edited_at %}
             <span class="meta-divider">•</span>
-            <span class="article-edited-line">edited at {{ article.article_edited_at_formatted }}</span>
+            <span class="article-edited-line">{{ _('edited at %(date)s', date=article.article_edited_at|format_datetime_locale) }}</span>
             {% endif %}
         </div>
         
         <div class="detail-actions">
             {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">Edit</a>
-                <a href="#" class="btn btn-sm btn-secondary btn-danger confirm-trigger" data-confirm-message="Delete this article permanently ?" data-form-id="delete-article-{{ article.article_id }}">Delete</a>
+                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">{{ _('Edit') }}</a>
+                <a href="#" class="btn btn-sm btn-secondary btn-danger confirm-trigger" data-confirm-message="{{ _('Delete this article permanently ?') }}" data-form-id="delete-article-{{ article.article_id }}">{{ _('Delete') }}</a>
                 <form id="delete-article-{{ article.article_id }}" action="{{ url_for('article.delete_article_html', article_id=article.article_id) }}" method="POST" hidden>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" hidden></button>
@@ -101,8 +101,8 @@
             <div class="comment-avatar">
                 {% if is_deleted %}
                     <span class="comment-avatar-initial comment-avatar-deleted">?</span>
-                {% elif node.comment.author_username == 'Anonymous' %}
-                    <span class="comment-avatar-initial">A</span>
+                {% elif node.comment.comment_written_account_id is none %}
+                    <span class="comment-avatar-initial">?</span>
                 {% else %}
                     <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}">
                         {% if node.comment.author_avatar_file_id %}
@@ -116,75 +116,52 @@
             <div class="comment-content">
                 <div class="comment-header-section">
                     <div class="comment-header">
-                        {% if is_deleted or node.comment.author_username == 'Anonymous' %}
-                            <span class="comment-author">{{ node.comment.author_username }}</span>
+                        {% if is_deleted or node.comment.comment_written_account_id is none %}
+                            <span class="comment-author">{{ _('Anonymous') }}</span>
                         {% else %}
                             <a href="{{ url_for('auth.user_profile', username=node.comment.author_username) }}" class="comment-author">{{ node.comment.author_username }}</a>
                         {% endif %}
-                        <span class="comment-timestamp">{{ node.comment.comment_posted_at_formatted }}</span>
+                        <span class="comment-timestamp">{{ node.comment.comment_posted_at|format_datetime_locale }}</span>
                         {% if current_user and is_author and not is_deleted %}
-                            <button type="button" class="comment-edit-toggle" data-comment-id="{{ node.comment.comment_id }}">[Edit]</button>
+                            <button type="button" class="comment-edit-toggle" data-comment-id="{{ node.comment.comment_id }}">{{ _('[Edit]') }}</button>
                         {% endif %}
                         {% if current_user and (is_author or is_admin) and not is_deleted %}
                             <form id="delete-comment-{{ node.comment.comment_id }}" action="{{ url_for('comment.delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="comment-delete-btn">[Delete]</button>
+                                <button type="submit" class="comment-delete-btn">{{ _('[Delete]') }}</button>
                             </form>
                         {% endif %}
                         {% if current_user and is_admin and is_deleted %}
-                            <form action="{{ url_for('comment.hard_delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form" onsubmit="return confirm('Permanently delete this comment? This cannot be undone.');">
+                            <form action="{{ url_for('comment.hard_delete_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" method="POST" class="comment-delete-form" onsubmit="return confirm('{{ _('Permanently delete this comment? This cannot be undone.') }}');">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="comment-delete-btn">[Delete]</button>
+                                <button type="submit" class="comment-delete-btn">{{ _('[Delete]') }}</button>
                             </form>
                         {% endif %}
                     </div>
                     <div class="comment-body-text" id="comment-body-{{ node.comment.comment_id }}">
-                        {{ node.comment.comment_content | safe }}
+                        {% if is_deleted or node.comment.comment_written_account_id is none %}
+                            <em>{{ _('Comment removed') }}</em>
+                        {% else %}
+                            {{ node.comment.comment_content | safe }}
+                        {% endif %}
                     </div>
                     {% if node.comment.edited_at and not node.comment.is_deleted %}
-                        <div class="comment-edited-line">edited at {{ node.comment.edited_at_formatted }}</div>
+                        <div class="comment-edited-line">{{ _('edited at %(date)s', date=node.comment.edited_at|format_datetime_locale) }}</div>
                     {% endif %}
-                    {% if current_user and is_author and not is_deleted %}
-                    <div class="edit-form-container" id="edit-form-{{ node.comment.comment_id }}" style="display: none;">
-                        <form method="POST" action="{{ url_for('comment.edit_comment', article_id=article.article_id, comment_id=node.comment.comment_id) }}" class="edit-form">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="content" id="edit-content-{{ node.comment.comment_id }}">
-                            <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
-                            <textarea id="edit-editor-{{ node.comment.comment_id }}" class="edit-editor" maxlength="5000">{{ node.comment.comment_content }}</textarea>
-                            <div class="edit-actions">
-                                <button type="submit" class="btn btn-sm btn-primary">Save</button>
-                                <button type="button" class="btn btn-sm btn-secondary cancel-edit">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                    {% endif %}
+
                     {% if current_user and not is_deleted %}
                     <div class="comment-actions">
                         {% if depth < 3 %}
-                        <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}">Reply</button>
+                        <button type="button" class="reply-toggle" data-comment-id="{{ node.comment.comment_id }}" data-author-username="{{ node.comment.author_username }}">{{ _('Reply') }}</button>
                         {% endif %}
                         {% if node.replies %}
-                        <button type="button" class="view-replies-btn">View replies</button>
+                        <button type="button" class="view-replies-btn" data-show-text="{{ _('View replies') }}" data-hide-text="{{ _('Hide replies') }}">{{ _('View replies') }}</button>
                         {% endif %}
                     </div>
-                        {% if depth < 3 %}
-                        <div class="reply-form-container" id="reply-form-{{ node.comment.comment_id }}" style="display: none;">
-                            <form method="POST" action="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=node.comment.comment_id) }}" class="reply-form">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">
-                                <input type="hidden" name="content" id="reply-content-{{ node.comment.comment_id }}">
-                                <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
-                                <textarea id="reply-editor-{{ node.comment.comment_id }}" class="reply-editor" maxlength="5000"></textarea>
-                                <div class="reply-actions">
-                                    <button type="submit" class="btn btn-sm btn-primary">Post Reply</button>
-                                    <button type="button" class="btn btn-sm btn-secondary cancel-reply">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                        {% endif %}
+
                     {% elif node.replies %}
                     <div class="comment-actions">
-                        <button type="button" class="view-replies-btn">View replies</button>
+                        <button type="button" class="view-replies-btn" data-show-text="{{ _('View replies') }}" data-hide-text="{{ _('Hide replies') }}">{{ _('View replies') }}</button>
                     </div>
                     {% endif %}
                 </div>
@@ -200,32 +177,63 @@
     {% endmacro %}
 
     <section class="comments-section comments-hidden" id="comments-section">
-        <h3 class="comments-title">Comments ({{ comment_count }})</h3>
+        <h3 class="comments-title">{{ _('Comments (%(count)s)', count=comment_count) }}</h3>
         {% for node in nested_comments %}
             {{ render_comment(node, 0) }}
         {% else %}
-            <p class="comment-empty">No comments yet.</p>
+            <p class="comment-empty">{{ _('No comments yet.') }}</p>
         {% endfor %}
 
         {% if current_user %}
         <div class="comment-join-section">
-            <h4 class="comment-join-title">Join the discussion</h4>
-            <span class="comment-limit-hint">Comment must be between 1 and 5000 characters</span>
-            <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST">
+            <h4 class="comment-join-title" id="comment-form-title">{{ _('Join the discussion') }}</h4>
+            <span class="comment-limit-hint">{{ _('Comment must be between 1 and 5000 characters') }}</span>
+            <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST"
+                  id="comment-form"
+                  data-create-url="{{ url_for('comment.create_comment', article_id=article.article_id) }}"
+                  data-edit-url="{{ url_for('comment.edit_comment', article_id=article.article_id, comment_id=0) }}"
+                  data-reply-url="{{ url_for('comment.reply_to_comment', article_id=article.article_id, parent_comment_id=0) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="text" name="hp_comment" class="hp-field" tabindex="-1" autocomplete="off">
                 <input type="hidden" name="content" id="comment-content">
-                                <textarea id="comment-editor" class="comment-post-textarea" maxlength="5000"></textarea>
-                <button type="submit" class="btn">Post Comment</button>
+                <textarea id="comment-editor" class="comment-post-textarea" maxlength="5000"></textarea>
+                <div class="comment-form-actions">
+                    <button type="submit" class="btn btn-sm" id="comment-submit-btn">{{ _('Post Comment') }}</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="cancel-edit-btn" style="display:none">{{ _('Cancel') }}</button>
+                </div>
             </form>
         </div>
         {% else %}
         <p class="comment-auth-prompt">
-            Please <a href="{{ url_for('auth.login') }}" class="comment-auth-link">sign in</a> to join the conversation.
+            {% set sign_in_url = url_for('auth.login') %}
+            {{ _('Please <a href="%(url)s" class="comment-auth-link">sign in</a> to join the conversation.', url=sign_in_url) | safe }}
         </p>
         {% endif %}
     </section>
 </article>
+
+{% block translations %}
+<script type="application/json" id="app-translations">
+{{ {
+  'Loading...': _('Loading...'),
+  'Unable to render article content.': _('Unable to render article content.'),
+  'Copied to clipboard': _('Copied to clipboard'),
+  'Comment cannot be empty': _('Comment cannot be empty'),
+  'Failed to load article.': _('Failed to load article.'),
+  'Plain Text': _('Plain Text'),
+  'Copy': _('Copy'),
+  'Insert Emoji': _('Insert Emoji'),
+  'Something went wrong. Please reload the page.': _('Something went wrong. Please reload the page.'),
+  'Reply': _('Reply'),
+  'Save': _('Save'),
+  'Reply to': _('Reply to'),
+  'Editing comment': _('Editing comment'),
+  'Cancel': _('Cancel'),
+  'Post Comment': _('Post Comment'),
+  'Join the discussion': _('Join the discussion')
+} | tojson | safe }}
+</script>
+{% endblock %}
 
 {% block extra_js %}
 <script defer src="{{ url_for('static', filename='scripts/code-copy.js') }}"></script>

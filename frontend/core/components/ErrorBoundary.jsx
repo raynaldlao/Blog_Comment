@@ -1,4 +1,5 @@
 import React from 'react';
+import { _ } from '../utils/i18n';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -18,7 +19,7 @@ export default class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="alert alert-error">
-          Something went wrong. Please reload the page.
+          {_('Something went wrong. Please reload the page.')}
         </div>
       );
     }

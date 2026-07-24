@@ -1,7 +1,10 @@
 import json
 import os
 from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
+from babel.dates import format_datetime
+from flask_babel import get_locale
 from markupsafe import Markup, escape
 
 
@@ -116,21 +119,30 @@ def inject_current_year() -> dict[str, int]:
     return {"current_year": datetime.now(UTC).year}
 
 
-def date_format_filter(date: datetime | None, format: str = "%b %d, %Y") -> str:
+
+def format_datetime_locale(date: datetime | None, format: str = "d MMMM yyyy 'à' HH:mm") -> str:
     """
-    Jinja2 filter that formats a datetime into a human-readable date string.
+    Jinja2 filter that formats a UTC datetime to Europe/Paris local time
+    using Flask-Babel's locale-aware formatting.
+
+    Respects the current application locale (fr, en, etc.) via
+    ``flask_babel.get_locale()``. Falls back to UTC if the datetime is naive.
 
     Args:
-        date: A datetime object to format, or None.
-        format: A strftime format string (default: ``"%b %d, %Y"``).
+        date: A UTC datetime object to format, or None.
+        format: A Babel format string (default: ``"d MMMM yyyy 'à' HH:mm"``).
 
     Returns:
-        The formatted date string (e.g. ``"Apr 29, 2026"``).
-        Returns ``"RECENT"`` if the input is None.
+        The formatted date string (e.g. ``"22 juillet 2026 à 10:54"`` in French,
+        ``"22 July 2026 à 10:54"`` in English). Returns empty string if date is None.
     """
     if date is None:
-        return "RECENT"
-    return date.strftime(format)
+        return ""
+    if date.tzinfo is None:
+        date = date.replace(tzinfo=ZoneInfo("UTC"))
+    local = date.astimezone(ZoneInfo("Europe/Paris"))
+    locale = get_locale()
+    return format_datetime(local, format=format, locale=locale)
 
 
 def date_iso_filter(date: datetime | None) -> str:

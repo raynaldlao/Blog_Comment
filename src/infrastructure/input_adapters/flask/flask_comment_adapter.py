@@ -1,5 +1,6 @@
 import time
 
+from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
@@ -60,7 +61,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to post a comment.", "error")
+            flash(_("You must be signed in to post a comment."), "error")
             return redirect(url_for("auth.login"))
 
         if request.form.get("hp_comment"):
@@ -71,12 +72,12 @@ class CommentAdapter:
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
-                flash(msg, "error")
+                flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         remaining = self._check_comment_rate_limit(user.account_id)
         if remaining is not None:
-            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
+            flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_comment(
@@ -86,9 +87,9 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Comment added.", "success")
+            flash(_("Comment added."), "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -105,7 +106,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to reply.", "error")
+            flash(_("You must be signed in to reply."), "error")
             return redirect(url_for("auth.login"))
 
         if request.form.get("hp_comment"):
@@ -116,12 +117,12 @@ class CommentAdapter:
         except ValidationError as e:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
-                flash(msg, "error")
+                flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         remaining = self._check_comment_rate_limit(user.account_id)
         if remaining is not None:
-            flash(f"You're posting too fast. Please wait {remaining}s before posting again.", "warning")
+            flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
 
         result = self.comment_service.create_reply(
@@ -131,9 +132,9 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Reply added.", "success")
+            flash(_("Reply added."), "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -150,7 +151,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to delete comments.", "error")
+            flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
 
         result = self.comment_service.delete_comment(
@@ -159,11 +160,11 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
         elif result is True:
-            flash("Comment deleted.", "success")
+            flash(_("Comment deleted."), "success")
         else:
-            flash("Unauthorized or error.", "error")
+            flash(_("Unauthorized or error."), "error")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -181,7 +182,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to edit comments.", "error")
+            flash(_("You must be signed in to edit comments."), "error")
             return redirect(url_for("auth.login"))
 
         content = request.form.get("content", "")
@@ -192,9 +193,9 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
         else:
-            flash("Comment updated.", "success")
+            flash(_("Comment updated."), "success")
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
@@ -212,7 +213,7 @@ class CommentAdapter:
         """
         user = global_request_context.get("current_user")
         if not user:
-            flash("You must be signed in to delete comments.", "error")
+            flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
 
         result = self.comment_service.hard_delete_comment(
@@ -221,10 +222,10 @@ class CommentAdapter:
         )
 
         if isinstance(result, str):
-            flash(result, "error")
+            flash(_(result), "error")
         elif result is True:
-            flash("Comment permanently deleted.", "success")
+            flash(_("Comment permanently deleted."), "success")
         else:
-            flash("Unauthorized or error.", "error")
+            flash(_("Unauthorized or error."), "error")
 
         return redirect(url_for("article.read_article", article_id=article_id))

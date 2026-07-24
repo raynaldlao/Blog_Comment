@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Write an Article - DevJournal{% endblock %}
+{% block title %}{{ _('Write an Article - DevJournal') }}{% endblock %}
 
 {% from "macros/icons.html" import icon %}
 {% block extra_css %}
@@ -12,7 +12,7 @@
         <header class="detail-header">
             <a href="{{ url_for('article.list_articles') }}" class="pagination-link detail-back-link">
                 {{ icon('arrow_back') }}
-                <span>Back to articles</span>
+                <span>{{ _('Back to articles') }}</span>
             </a>
         </header>
 
@@ -20,6 +20,45 @@
             <div id="root" data-page="create"></div>
         </div>
     </div>
+{% endblock %}
+
+{% block translations %}
+<script type="application/json" id="app-translations">
+{{ {
+  'Title is required.': _('Title is required.'),
+  'Failed to save.': _('Failed to save.'),
+  'Network error.': _('Network error.'),
+  'Loading...': _('Loading...'),
+  'Unable to parse article content.': _('Unable to parse article content.'),
+  'Article title': _('Article title'),
+  'Description': _('Description'),
+  'Maximum 300 characters': _('Maximum 300 characters'),
+  'Short description (optional)': _('Short description (optional)'),
+  'Content': _('Content'),
+  'Saving...': _('Saving...'),
+  'Publish': _('Publish'),
+  'Save': _('Save'),
+  'YouTube': _('YouTube'),
+  'Paste a YouTube video URL': _('Paste a YouTube video URL'),
+  'YouTube URL': _('YouTube URL'),
+  'Paste YouTube video link': _('Paste YouTube video link'),
+  'Embed YouTube video': _('Embed YouTube video'),
+  'Add YouTube video URL': _('Add YouTube video URL'),
+  'Only YouTube links are supported': _('Only YouTube links are supported'),
+  'Failed to load article.': _('Failed to load article.'),
+  'Copy': _('Copy'),
+  'Copy Block': _('Copy Block'),
+  'Copied to clipboard': _('Copied to clipboard'),
+  'Move Up': _('Move Up'),
+  'Move Down': _('Move Down'),
+  'Delete': _('Delete'),
+  'Align text justify': _('Align text justify'),
+  'Plain Text': _('Plain Text'),
+  'Search languages...': _('Search languages...'),
+  'No languages found': _('No languages found'),
+  'Something went wrong. Please reload the page.': _('Something went wrong. Please reload the page.')
+} | tojson | safe }}
+</script>
 {% endblock %}
 
 {% block extra_js %}

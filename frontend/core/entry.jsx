@@ -2,6 +2,7 @@ import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
 import '@blocknote/mantine/style.css';
 import ErrorBoundary from './components/ErrorBoundary';
+import { _ } from './utils/i18n';
 
 const ArticleForm = React.lazy(() => import('./components/ArticleForm'));
 const ArticleViewer = React.lazy(() => import('./components/ArticleViewer'));
@@ -17,7 +18,7 @@ if (root && Component) {
   ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <ErrorBoundary>
-        <Suspense fallback={<div className="loading">Loading...</div>}>
+        <Suspense fallback={<div className="loading">{_('Loading...')}</div>}>
           <Component />
         </Suspense>
       </ErrorBoundary>

@@ -3,6 +3,7 @@ import {
   useComponentsContext,
   useSelectedBlocks,
 } from '@blocknote/react';
+import { _ } from '../utils/i18n';
 
 export default function JustifyButton() {
   const editor = useBlockNoteEditor();
@@ -19,7 +20,7 @@ export default function JustifyButton() {
 
   return (
     <Components.FormattingToolbar.Button
-      mainTooltip="Align text justify"
+      mainTooltip={_('Align text justify')}
       onClick={() => {
         for (const block of blocks) {
           if (block.props?.textAlignment !== undefined) {

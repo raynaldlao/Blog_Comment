@@ -1,7 +1,7 @@
 {% from "macros/pagination.html" import render_pagination_info %}
 {% extends "base.html" %}
 
-{% block title %}Users - DevJournal{% endblock %}
+{% block title %}{{ _('Users') }} - DevJournal{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user-list.css') }}">
@@ -13,16 +13,16 @@
 
 {% block content %}
 <div class="user-card profile-card">
-    <h1>Manage Users ({{ total_count }} users)</h1>
+    <h1>{{ _('Manage Users (%(count)d users)', count=total_count) }}</h1>
     <form action="{{ url_for('auth.list_all_users') }}" method="GET" class="search-bar-form">
         <div class="search-wrapper">
             <input type="text" name="q" class="search-input"
-                   placeholder="Filter by username or email..." autocomplete="off"
+                   placeholder="{{ _('Filter by username or email...') }}" autocomplete="off"
                    value="{{ query or '' }}">
             {% if query %}
             <a href="{{ url_for('auth.list_all_users') }}" class="search-clear-btn">&times;</a>
             {% endif %}
-            <button type="submit" class="search-submit-btn" aria-label="Search">{% include 'icons/search.svg' %}</button>
+            <button type="submit" class="search-submit-btn" aria-label="{{ _('Search') }}">{% include 'icons/search.svg' %}</button>
         </div>
     </form>
     <nav class="editorial-pagination top">
@@ -30,14 +30,14 @@
             <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
                class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
                 {{ icon('arrow_back') }}
-                <span>Previous</span>
+                <span>{{ _('Previous') }}</span>
             </a>
         </div>
         {{ render_pagination_info(page, total_pages, 'auth.list_all_users', query) }}
         <div class="pagination-next">
             <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
                class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
-                <span>Next</span>
+                <span>{{ _('Next') }}</span>
                 {{ icon('arrow_forward') }}
             </a>
         </div>
@@ -46,13 +46,13 @@
         <table class="user-table">
             <thead>
                 <tr>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Reason</th>
-                    <th>Member Since</th>
-                    <th>Actions</th>
+                    <th>{{ _('Username') }}</th>
+                    <th>{{ _('Email') }}</th>
+                    <th>{{ _('Role') }}</th>
+                    <th>{{ _('Status') }}</th>
+                    <th>{{ _('Reason') }}</th>
+                    <th>{{ _('Member Since') }}</th>
+                    <th>{{ _('Actions') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -60,10 +60,10 @@
                 <tr>
                     <td><a href="{{ url_for('auth.user_profile', username=user.account_username) }}">{{ user.account_username }}</a></td>
                     <td>{{ user.account_email }}</td>
-                    <td>{{ user.account_role }}</td>
-                    <td>{{ "Banned" if user.is_banned else "Active" }}</td>
-                    <td>{{ user.ban_reason or '—' }}</td>
-                    <td>{{ user.account_created_at|date_format if user.account_created_at else 'N/A' }}</td>
+                    <td>{{ _(user.account_role) }}</td>
+                    <td>{{ _('Banned') if user.is_banned else _('Active') }}</td>
+                    <td>{{ user.ban_reason or _('—') }}</td>
+                    <td>{{ user.account_created_at|format_datetime_locale("d MMMM yyyy") if user.account_created_at else _('N/A') }}</td>
                     <td>
                         {% if user.account_role == 'admin' %}
                         <span class="user-table-na">—</span>
@@ -72,27 +72,27 @@
                         <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <select name="role">
-                                <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>User</option>
-                                <option value="author" {% if user.account_role == 'author' %}selected{% endif %}>Author</option>
+                                <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
+                                <option value="author" {% if user.account_role == 'author' %}selected{% endif %}>{{ _('Author') }}</option>
                             </select>
-                            <button type="submit" class="btn btn-sm">Update</button>
+                            <button type="submit" class="btn btn-sm">{{ _('Update') }}</button>
                         </form>
                         {% if user.is_banned %}
                         <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-sm btn-secondary">Unban</button>
+                            <button type="submit" class="btn btn-sm btn-secondary">{{ _('Unban') }}</button>
                         </form>
                         {% else %}
                         <button type="button" class="btn btn-sm btn-danger ban-trigger"
                             data-user-id="{{ user.account_id }}"
-                            data-username="{{ user.account_username }}">Ban</button>
+                            data-username="{{ user.account_username }}">{{ _('Ban') }}</button>
                         {% endif %}
                         <form id="delete-user-{{ user.account_id }}" action="{{ url_for('auth.delete_account') }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="account_id" value="{{ user.account_id }}">
                             <button type="button" class="btn btn-sm btn-danger confirm-trigger"
                                 data-form-id="delete-user-{{ user.account_id }}"
-                                data-confirm-message="Delete user &quot;{{ user.account_username }}&quot; ? This action is irreversible.">Delete</button>
+                                data-confirm-message="{{ _('Delete user \\\"%(username)s\\\" ? This action is irreversible.', username=user.account_username) }}">{{ _('Delete') }}</button>
                         </form>
                         </div>
                         {% endif %}
@@ -107,32 +107,32 @@
             <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
                class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
                 {{ icon('arrow_back') }}
-                <span>Previous</span>
+                <span>{{ _('Previous') }}</span>
             </a>
         </div>
         {{ render_pagination_info(page, total_pages, 'auth.list_all_users', query) }}
         <div class="pagination-next">
             <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
                class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
-                <span>Next</span>
+                <span>{{ _('Next') }}</span>
                 {{ icon('arrow_forward') }}
             </a>
         </div>
     </nav>
 <dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('auth.list_all_users') }}">
     <div class="modal-header">
-        <h2 class="modal-title">Jump to page</h2>
+        <h2 class="modal-title">{{ _('Jump to page') }}</h2>
     </div>
     <div class="modal-body">
         <div class="modal-input-group">
-            <label for="jump-page-input">Enter page number (1 - {{ total_pages }})</label>
+            <label for="jump-page-input">{{ _('Enter page number (1 - %(max)d)', max=total_pages) }}</label>
             <div class="stepper-container">
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
-                    <button class="stepper-btn up" data-step="1" title="Increase page">
+                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}">
                         {{ icon('expand_less') }}
                     </button>
-                    <button class="stepper-btn down" data-step="-1" title="Decrease page">
+                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}">
                         {{ icon('expand_more') }}
                     </button>
                 </div>
@@ -140,13 +140,13 @@
         </div>
     </div>
     <div class="modal-footer">
-        <button class="btn btn-dialog btn-secondary" id="jump-cancel-btn">Cancel</button>
-        <button class="btn btn-dialog btn-primary" id="jump-execute-btn">Go</button>
+        <button class="btn btn-dialog btn-secondary" id="jump-cancel-btn">{{ _('Cancel') }}</button>
+        <button class="btn btn-dialog btn-primary" id="jump-execute-btn">{{ _('Go') }}</button>
     </div>
 </dialog>
     <a href="{{ url_for('article.list_articles') }}" class="back-link">
         {{ icon('home') }}
-        <span>Return to home</span>
+        <span>{{ _('Return to home') }}</span>
     </a>
 </div>
 {% endblock %}

@@ -17,13 +17,13 @@
                 {% set end_p = current_page + 5 %}
             {% endif %}
             {% if start_p > 2 %}
-                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
+                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="{{ _('Jump to page') }}">...</span>
             {% endif %}
             {% for p in range(start_p, end_p + 1) %}
                 <a href="{{ url_for(endpoint, page=p, q=query if query else None) }}" class="page-link-num {% if p == current_page %}active{% endif %}">{{ p }}</a>
             {% endfor %}
             {% if end_p < total_pages - 1 %}
-                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="Jump to page">...</span>
+                <span class="page-link-num jump-modal-trigger" tabindex="-1" title="{{ _('Jump to page') }}">...</span>
             {% endif %}
             <a href="{{ url_for(endpoint, page=total_pages, q=query if query else None) }}" class="page-link-num {% if total_pages == current_page %}active{% endif %}">{{ total_pages }}</a>
         {% endif %}

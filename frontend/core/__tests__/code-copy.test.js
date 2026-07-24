@@ -32,7 +32,6 @@ function createDOM(lang) {
 }
 
 describe('code-copy.js', () => {
-  let mockWrite;
   let mockWriteText;
 
   beforeAll(() => {
@@ -42,13 +41,17 @@ describe('code-copy.js', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '';
+    document.execCommand = vi.fn().mockImplementation(() => {
+      const dt = new DataTransfer();
+      const ev = new ClipboardEvent('copy', { clipboardData: dt });
+      document.dispatchEvent(ev);
+      return true;
+    });
     vi.useFakeTimers();
-    mockWrite = vi.fn().mockResolvedValue(undefined);
     mockWriteText = vi.fn().mockResolvedValue(undefined);
     vi.stubGlobal('navigator', {
-      clipboard: { write: mockWrite, writeText: mockWriteText },
+      clipboard: { writeText: mockWriteText },
     });
-    vi.stubGlobal('ClipboardItem', undefined);
   });
 
   afterEach(() => {
@@ -84,24 +87,20 @@ describe('code-copy.js', () => {
     expect(document.querySelector('.toast')).toBeNull();
   });
 
-  it('writes text/plain via writeText as fallback when ClipboardItem absent', () => {
+  it('writes text/plain via custom copy event handler', () => {
     const { btn } = createDOM();
     btn.click();
 
-    expect(mockWriteText).toHaveBeenCalledWith('print("hello")');
-    expect(mockWrite).not.toHaveBeenCalled();
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+    expect(document.querySelector('.toast')).not.toBeNull();
   });
 
-  it('writes text/html + text/plain via ClipboardItem when available', () => {
-    const mockClipboardItem = vi.fn();
-    vi.stubGlobal('ClipboardItem', mockClipboardItem);
-
+  it('writes text/html + text/plain via custom copy event', () => {
     const { btn } = createDOM('python');
     btn.click();
 
-    expect(mockClipboardItem).toHaveBeenCalledOnce();
-    expect(mockWrite).toHaveBeenCalledOnce();
-    expect(mockWriteText).not.toHaveBeenCalled();
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
+    expect(document.querySelector('.toast')).not.toBeNull();
   });
 
   it('replaces old toast on rapid clicks', () => {
@@ -113,12 +112,12 @@ describe('code-copy.js', () => {
     expect(toasts.length).toBe(1);
   });
 
-  it('does nothing when code block is empty', () => {
+  it('shows toast even for empty code block (copied zero-width space)', () => {
     const { btn, code } = createDOM('python');
     code.textContent = '';
     btn.click();
 
-    expect(document.querySelector('.toast')).toBeNull();
-    expect(mockWriteText).not.toHaveBeenCalled();
+    expect(document.querySelector('.toast')).not.toBeNull();
+    expect(document.execCommand).toHaveBeenCalledWith('copy');
   });
 });

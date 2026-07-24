@@ -22,7 +22,7 @@ class CommentService(CommentManagementPort):
     """
 
     ALLOWED_TAGS = frozenset({
-        "b", "i", "u", "s", "a", "ul", "ol", "li", "br", "p", "em", "strong",
+        "b", "i", "u", "s", "strike", "del", "a", "ul", "ol", "li", "br", "p", "em", "strong",
         "blockquote", "pre", "code", "span", "sub", "sup",
     })
 
@@ -280,7 +280,7 @@ class CommentService(CommentManagementPort):
         """
         Permanently deletes a comment from the database. Admin only.
         Only allowed on already soft-deleted comments.
-        Children get comment_reply_to set to NULL via FK ON DELETE SET NULL.
+        Children are automatically deleted via FK ON DELETE CASCADE.
 
         Args:
             comment_id (int): ID of the comment to permanently delete.
