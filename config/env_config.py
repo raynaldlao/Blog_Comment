@@ -3,6 +3,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from exceptions import MissingEnvironmentVariableError
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(BASE_DIR / ".env")
@@ -26,11 +28,14 @@ class EnvConfig:
             str: The value of the environment variable.
 
         Raises:
-            RuntimeError: If the mandatory environment variable is missing.
+            MissingEnvironmentVariableError: If the mandatory environment
+                variable is missing.
         """
         value = os.getenv(name)
         if not value:
-            raise RuntimeError(f"Infrastructure Error : Missing environment variable '{name}'")
+            raise MissingEnvironmentVariableError(
+                f"Infrastructure Error : Missing environment variable '{name}'"
+            )
         return value
 
     @property

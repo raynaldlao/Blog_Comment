@@ -182,6 +182,9 @@ class AccountSessionAdapter(MethodView):
         if old_avatar_id:
             try:
                 self.file_service.delete_file(old_avatar_id)
+            # Intentionally broad: non-critical cleanup (delete old avatar
+            # file from DB). Broad catch ensures request never fails due to
+            # cleanup failure, even from unexpected bugs.
             except Exception:
                 logging.getLogger(__name__).warning(
                     "Failed to delete old avatar %s for account %s",
@@ -220,6 +223,8 @@ class AccountSessionAdapter(MethodView):
         try:
             self.file_service.delete_file(avatar_file_id)
             self.session_service.update_avatar(None)
+        # Intentionally broad: non-critical cleanup. Broad catch ensures
+        # request never fails; if cleanup fails, user gets a flash error.
         except Exception:
             flash(_("Failed to remove profile photo."), "error")
             return redirect(url_for("auth.profile"))
@@ -382,6 +387,9 @@ class AccountSessionAdapter(MethodView):
         if account and account.avatar_file_id:
             try:
                 self.file_service.delete_file(account.avatar_file_id)
+            # Intentionally broad: non-critical cleanup (delete avatar
+            # file from DB before account deletion). Broad catch ensures
+            # account deletion proceeds even if avatar cleanup fails.
             except Exception:
                 logging.getLogger(__name__).warning(
                     "Failed to delete avatar %s for account %s",

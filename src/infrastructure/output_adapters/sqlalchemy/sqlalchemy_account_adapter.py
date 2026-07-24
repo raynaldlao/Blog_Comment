@@ -6,19 +6,24 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from exceptions import AccountAlreadyExistsError, AccountNotFoundError
+from exceptions import AccountAlreadyExistsError, AccountNotFoundError, DatabaseError
 from src.application.domain.account import Account
 from src.application.output_ports.account_repository import AccountRepository
 from src.infrastructure.output_adapters.dto.account_record import AccountRecord
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
+from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_base_adapter import (
+    SqlAlchemyBaseAdapter,
+)
 
 
-class SqlAlchemyAccountAdapter(AccountRepository):
+class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
     """
     SQLAlchemy-based implementation of the AccountRepository port.
 
     This adapter manages the persistence and retrieval of Account domain entities
     using SQLAlchemy ORM and the PostgreSQL database.
+
+    All methods may raise DatabaseError on database failure.
     """
 
     def __init__(self, session: Session):
@@ -28,7 +33,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Args:
             session (Session): An active SQLAlchemy database session.
         """
-        self._session = session
+        super().__init__(session)
 
     def _to_domain(self, model: AccountModel) -> Account:
         """
@@ -53,7 +58,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             Account | None: The domain account if found, otherwise None.
         """
-        model = self._session.query(AccountModel).filter_by(account_username=username).first()
+        model = self._db_query_first(AccountModel, account_username=username)
         if model is None:
             return None
         return self._to_domain(model)
@@ -68,7 +73,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             Account | None: The domain account if found, otherwise None.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return None
         return self._to_domain(model)
@@ -86,8 +91,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         if not account_ids:
             return []
 
-        models = (
-            self._session.query(AccountModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(AccountModel)
             .filter(AccountModel.account_id.in_(account_ids))
             .all()
         )
@@ -103,7 +108,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             Account | None: The domain account if found, otherwise None.
         """
-        model = self._session.query(AccountModel).filter_by(account_email=email).first()
+        model = self._db_query_first(AccountModel, account_email=email)
         if model is None:
             return None
         return self._to_domain(model)
@@ -124,7 +129,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
                 on the username or email column.
         """
         if account.account_id and account.account_id > 0:
-            model = self._session.get(AccountModel, account.account_id)
+            model = self._db_get(AccountModel, account.account_id)
             if not model:
                 model = AccountModel()
         else:
@@ -134,11 +139,10 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         model.account_password = account.account_password
         model.account_email = account.account_email
         model.account_role = account.account_role.value
-        self._session.add(model)
+        self._db_add(model)
         try:
-            self._session.commit()
+            self._db_commit()
         except IntegrityError as e:
-            self._session.rollback()
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
 
             if constraint_name == "accounts_account_username_key":
@@ -166,11 +170,11 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             account_id: The ID of the account to update.
             avatar_file_id: The new avatar file UUID, or None to remove.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return
         model.avatar_file_id = avatar_file_id
-        self._session.commit()
+        self._db_commit()
 
     def update_email(self, account_id: int, new_email: str) -> None:
         """
@@ -186,19 +190,20 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Raises:
             AccountAlreadyExistsError: If the new email is already taken
                 by another account.
+            DatabaseError: If an unexpected constraint violation or DB
+                error occurs.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return
         model.account_email = new_email
         try:
-            self._session.commit()
+            self._db_commit()
         except IntegrityError as e:
-            self._session.rollback()
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
             if constraint_name == "accounts_account_email_key":
                 raise AccountAlreadyExistsError("This email is already taken.") from None
-            raise
+            raise DatabaseError("Unexpected database constraint violation.") from e
 
     def update_password(self, account_id: int, new_hashed_password: str) -> None:
         """
@@ -210,11 +215,11 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             account_id: The ID of the account to update.
             new_hashed_password: The new Argon2 hash to store.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return
         model.account_password = new_hashed_password
-        self._session.commit()
+        self._db_commit()
 
     def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
         """
@@ -229,12 +234,12 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             is_banned: True to ban, False to unban.
             ban_reason: Optional reason for the ban, or None to clear.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return
         model.is_banned = is_banned
         model.ban_reason = ban_reason
-        self._session.commit()
+        self._db_commit()
 
     def update_role(self, account_id: int, new_role: str) -> None:
         """
@@ -244,11 +249,11 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             account_id: The ID of the account to update.
             new_role: The new role string ("user" or "author").
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             return
         model.account_role = new_role
-        self._session.commit()
+        self._db_commit()
 
     def get_all(self) -> list[Account]:
         """
@@ -257,7 +262,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             list[Account]: A list of all Account domain entities.
         """
-        models = self._session.query(AccountModel).all()
+        models = self._db_query_all(AccountModel)
         return [self._to_domain(model) for model in models]
 
     def get_all_paginated(self, page: int = 1, per_page: int = 20) -> list[Account]:
@@ -271,8 +276,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             list[Account]: A list of Account domain entities for the given page.
         """
-        models = (
-            self._session.query(AccountModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(AccountModel)
             .order_by(AccountModel.account_created_at.desc())
             .limit(per_page)
             .offset((page - 1) * per_page)
@@ -287,7 +292,7 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Returns:
             int: The total count of accounts.
         """
-        return self._session.query(AccountModel).count()
+        return self._db_query_raw(lambda: self._session.query(AccountModel).count())
 
     def search(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
         """
@@ -304,8 +309,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
                 for the given page.
         """
         like = f"%{query}%"
-        models = (
-            self._session.query(AccountModel)
+        models = self._db_query_raw(
+            lambda: self._session.query(AccountModel)
             .filter(
                 or_(
                     AccountModel.account_username.ilike(like),
@@ -330,8 +335,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
             int: The total count of matching accounts.
         """
         like = f"%{query}%"
-        return (
-            self._session.query(AccountModel)
+        return self._db_query_raw(
+            lambda: self._session.query(AccountModel)
             .filter(
                 or_(
                     AccountModel.account_username.ilike(like),
@@ -354,8 +359,8 @@ class SqlAlchemyAccountAdapter(AccountRepository):
         Raises:
             AccountNotFoundError: If no account with the given ID exists.
         """
-        model = self._session.get(AccountModel, account_id)
+        model = self._db_get(AccountModel, account_id)
         if model is None:
             raise AccountNotFoundError(f"Account with id {account_id} not found.")
-        self._session.delete(model)
-        self._session.commit()
+        self._db_delete(model)
+        self._db_commit()

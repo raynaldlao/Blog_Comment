@@ -83,6 +83,36 @@ class CommentValidationError(BlogCommentError):
     pass
 
 
+class DatabaseError(BlogCommentError):
+    """Raised when a database operation fails (connection, query, commit)."""
+    pass
+
+
+class PasswordsDoNotMatchError(ValueError):
+    """Raised when password and confirmation do not match."""
+    pass
+
+
+class CommentEmptyError(ValueError):
+    """Raised when comment content is empty."""
+    pass
+
+
+class CommentTooLongError(ValueError):
+    """Raised when comment content exceeds max length."""
+    pass
+
+
+class MissingEnvironmentVariableError(RuntimeError):
+    """Raised when a mandatory environment variable is missing at startup."""
+    pass
+
+
+class ViteManifestError(RuntimeError):
+    """Raised when the Vite build manifest cannot be located at startup."""
+    pass
+
+
 class ExceptionTest(Exception):
     """Used in tests to simulate error propagation."""
     pass
