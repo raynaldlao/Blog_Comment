@@ -15,8 +15,8 @@ class TestWorkflows:
         reg_response = client.post("/register", data={
             "username": "tester",
             "email": "tester@example.com",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert reg_response.status_code == 200
@@ -27,7 +27,7 @@ class TestWorkflows:
 
         login_response = client.post("/login", data={
             "username": "tester",
-            "password": "password123"
+            "password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"Profile" in login_response.data or b"Welcome" in login_response.data
@@ -65,13 +65,13 @@ class TestWorkflows:
     def test_honeypot_blocks_spam_bots(self, client, db_session):
         client.post("/register", data={
             "username": "spam_tester", "email": "spam@t.com",
-            "password": "p12345678", "confirm_password": "p12345678"
+            "password": "Str0ng!Pass", "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
         user = db_session.query(AccountModel).filter_by(account_username="spam_tester").first()
         user.account_role = "author"
         db_session.commit()
 
-        client.post("/login", data={"username": "spam_tester", "password": "p12345678"}, follow_redirects=True)
+        client.post("/login", data={"username": "spam_tester", "password": "Str0ng!Pass"}, follow_redirects=True)
         r = client.post("/api/articles", json={"title": "Spam Test", "content": "Spam content"})
         assert r.status_code == 201
         aid = r.get_json()["id"]
@@ -93,12 +93,12 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="soft_author", account_email="soft@t.com",
-            account_password="p", account_role="author",
+            account_password="Str0ng!Pass", account_role="author",
         )
 
         db_session.add(author)
         db_session.commit()
-        client.post("/login", data={"username": "soft_author", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "soft_author", "password": "Str0ng!Pass"}, follow_redirects=True)
         r = client.post("/api/articles", json={"title": "Soft Del Test", "content": "Content"})
         aid = r.get_json()["id"]
 
@@ -128,11 +128,11 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="edit_user", account_email="edit@t.com",
-            account_password="p", account_role="author",
+            account_password="Str0ng!Pass", account_role="author",
         )
         db_session.add(author)
         db_session.commit()
-        client.post("/login", data={"username": "edit_user", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "edit_user", "password": "Str0ng!Pass"}, follow_redirects=True)
         r = client.post("/api/articles", json={"title": "Edit Test", "content": "Content"})
         aid = r.get_json()["id"]
 
@@ -169,7 +169,12 @@ class TestWorkflows:
         """
         Verifies that threading works for multiple levels of nesting.
         """
-        author = AccountModel(account_username="author", account_email="a@t.com", account_password="p", account_role="admin")
+        author = AccountModel(
+            account_username="author",
+            account_email="a@t.com",
+            account_password="Str0ng!Pass",
+            account_role="admin",
+        )
         db_session.add(author)
         db_session.commit()
         article = ArticleModel(article_title="Deep Thread", article_content="...", article_author_id=author.account_id)
@@ -269,7 +274,7 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="newline_author", account_email="nl@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(author)
@@ -278,7 +283,7 @@ class TestWorkflows:
         db_session.add(article)
         db_session.commit()
 
-        client.post("/login", data={"username": "newline_author", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "newline_author", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         multi_line_comment = "Line 1\nLine 2\nLine 3"
         client.post(f"/articles/{article.article_id}/comments", data={
@@ -298,7 +303,7 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="reply_nl", account_email="rnl@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(author)
@@ -306,7 +311,7 @@ class TestWorkflows:
         article = ArticleModel(article_title="Reply Newline", article_content="...", article_author_id=author.account_id)
         db_session.add(article)
         db_session.commit()
-        client.post("/login", data={"username": "reply_nl", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "reply_nl", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         client.post(f"/articles/{article.article_id}/comments", data={
             "content": "Root comment"
@@ -330,7 +335,7 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="iso_author", account_email="iso@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(author)
         db_session.commit()
@@ -352,7 +357,7 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="year_test", account_email="y@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(author)
@@ -365,11 +370,11 @@ class TestWorkflows:
     def test_success_after_article_creation(self, client, db_session):
         author = AccountModel(
             account_username="api_author", account_email="api@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(author)
         db_session.commit()
-        client.post("/login", data={"username": "api_author", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "api_author", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         response = client.post("/api/articles", json={
             "title": "API Test Article",
@@ -384,11 +389,11 @@ class TestWorkflows:
     def test_error_on_validation_failure(self, client, db_session):
         author = AccountModel(
             account_username="val_api", account_email="val_api@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(author)
         db_session.commit()
-        client.post("/login", data={"username": "val_api", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "val_api", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         response = client.post("/api/articles", json={"title": "Valid Title"})
 
@@ -402,13 +407,13 @@ class TestWorkflows:
         """
         author = AccountModel(
             account_username="nav_author", account_email="nav@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(author)
         db_session.commit()
 
         client.post("/login", data={
-            "username": "nav_author", "password": "p"
+            "username": "nav_author", "password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         for page in ("/login", "/register", "/profile"):
@@ -432,7 +437,7 @@ class TestWorkflows:
     def test_comment_count_displays_total_with_nested(self, client, db_session):
         author = AccountModel(
             account_username="count_author", account_email="count@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(author)
@@ -491,7 +496,7 @@ class TestUserProfileLinks:
         author = AccountModel(
             account_username="link_test_author",
             account_email="link@test.com",
-            account_password="p",
+            account_password="Str0ng!Pass",
             account_role="author",
         )
 
@@ -523,19 +528,19 @@ class TestAdminChangeRole:
         """
         admin = AccountModel(
             account_username="role_admin", account_email="role@t.com",
-            account_password="p", account_role="admin",
+            account_password="Str0ng!Pass", account_role="admin",
         )
         db_session.add(admin)
         db_session.commit()
 
         target = AccountModel(
             account_username="target_user", account_email="target@t.com",
-            account_password="p", account_role="user",
+            account_password="Str0ng!Pass", account_role="user",
         )
         db_session.add(target)
         db_session.commit()
 
-        client.post("/login", data={"username": "role_admin", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "role_admin", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         response = client.post(
             f"/admin/users/{target.account_id}/role",
@@ -556,19 +561,19 @@ class TestAdminChangeRole:
         """
         user = AccountModel(
             account_username="plain_user", account_email="plain@t.com",
-            account_password="p", account_role="user",
+            account_password="Str0ng!Pass", account_role="user",
         )
         db_session.add(user)
         db_session.commit()
 
         target = AccountModel(
             account_username="victim", account_email="victim@t.com",
-            account_password="p", account_role="user",
+            account_password="Str0ng!Pass", account_role="user",
         )
         db_session.add(target)
         db_session.commit()
 
-        client.post("/login", data={"username": "plain_user", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "plain_user", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         response = client.post(
             f"/admin/users/{target.account_id}/role",
@@ -583,7 +588,7 @@ class TestCommentHardDeleteIntegration:
     def test_comment_hard_delete_integration(self, client, db_session):
         admin = AccountModel(
             account_username="hard_del_admin", account_email="hda@t.com",
-            account_password="p", account_role="admin",
+            account_password="Str0ng!Pass", account_role="admin",
         )
         db_session.add(admin)
         db_session.commit()
@@ -605,7 +610,7 @@ class TestCommentHardDeleteIntegration:
         db_session.add(comment)
         db_session.commit()
 
-        client.post("/login", data={"username": "hard_del_admin", "password": "p"})
+        client.post("/login", data={"username": "hard_del_admin", "password": "Str0ng!Pass"})
 
         cid = comment.comment_id
         aid = article.article_id
@@ -629,7 +634,7 @@ class TestCommentHardDeleteIntegration:
         """
         admin = AccountModel(
             account_username="cascade_admin", account_email="ca@t.com",
-            account_password="p", account_role="admin",
+            account_password="Str0ng!Pass", account_role="admin",
         )
         db_session.add(admin)
         db_session.commit()
@@ -702,7 +707,7 @@ class TestCommentHardDeleteIntegration:
         un_id = unrelated.comment_id
 
         client.post("/login", data={
-            "username": "cascade_admin", "password": "p",
+            "username": "cascade_admin", "password": "Str0ng!Pass",
         })
 
         resp = client.post(
@@ -730,7 +735,7 @@ class TestArticleEditEditedAtIntegration:
         """
         author = AccountModel(
             account_username="edit_test_author", account_email="eta@t.com",
-            account_password="p", account_role="author",
+            account_password="Str0ng!Pass", account_role="author",
         )
         db_session.add(author)
         db_session.commit()
@@ -745,7 +750,7 @@ class TestArticleEditEditedAtIntegration:
         art_id = article.article_id
         assert article.article_edited_at is None
 
-        client.post("/login", data={"username": "edit_test_author", "password": "p"})
+        client.post("/login", data={"username": "edit_test_author", "password": "Str0ng!Pass"})
 
         resp = client.put(f"/api/articles/{art_id}", json={
             "title": "Updated Title",

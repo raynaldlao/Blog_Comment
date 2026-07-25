@@ -11,10 +11,15 @@ class TestXSS:
         """
         Verifies that the app escapes HTML/Script tags to prevent XSS.
         """
-        auth = AccountModel(account_username="xss_author", account_email="xss@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="xss_author",
+            account_email="xss@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "xss_author", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "xss_author", "password": "Str0ng!Pass"}, follow_redirects=True)
         xss_payload = "<script>alert('XSS')</script>"
 
         response = client.post("/api/articles", json={
@@ -29,11 +34,11 @@ class TestXSS:
     def test_article_detail_loads_content_via_api(self, client, db_session):
         auth = AccountModel(
             account_username="xss_detail", account_email="xss_d@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "xss_detail", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "xss_detail", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         xss_payload = '<script>alert("xss")</script>'
         resp = client.post("/api/articles", json={
@@ -51,12 +56,12 @@ class TestXSS:
     def test_blocknote_article_xss_sanitized(self, client, db_session):
         auth = AccountModel(
             account_username="xss_bn", account_email="xss_bn@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "xss_bn", "password": "p"},
+        client.post("/login", data={"username": "xss_bn", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         xss_content = json.dumps([
@@ -89,7 +94,7 @@ class TestXSS:
         """
         auth = AccountModel(
             account_username="xss_comment", account_email="xc@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
@@ -97,7 +102,7 @@ class TestXSS:
         db_session.add(article)
         db_session.commit()
 
-        client.post("/login", data={"username": "xss_comment", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "xss_comment", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         malicious_comment = "<script>alert(1)</script>\nclean line"
         client.post(f"/articles/{article.article_id}/comments", data={
@@ -114,10 +119,15 @@ class TestXSS:
         Verifies that Flask session cookies are marked HttpOnly.
         This tests that our infrastructure securely implements the Output Port.
         """
-        auth = AccountModel(account_username="secure_user", account_email="s@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="secure_user",
+            account_email="s@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
-        response = client.post("/login", data={"username": "secure_user", "password": "p"})
+        response = client.post("/login", data={"username": "secure_user", "password": "Str0ng!Pass"})
         set_cookie_header = response.headers.get("Set-Cookie")
         assert set_cookie_header is not None
         assert "HttpOnly" in set_cookie_header
@@ -125,12 +135,17 @@ class TestXSS:
 
     def test_login_prevents_session_fixation(self, client, db_session):
         """Verifies that the session ID changes upon login to prevent fixation attacks."""
-        auth = AccountModel(account_username="fixation_user", account_email="f@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="fixation_user",
+            account_email="f@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
         client.get("/")
         initial_session_cookie = client.get_cookie("session")
-        client.post("/login", data={"username": "fixation_user", "password": "p"})
+        client.post("/login", data={"username": "fixation_user", "password": "Str0ng!Pass"})
         logged_in_session_cookie = client.get_cookie("session")
         assert initial_session_cookie != logged_in_session_cookie
         assert logged_in_session_cookie is not None
@@ -140,10 +155,15 @@ class TestXSS:
         Proves that modifying the session cookie without the secret key results in rejection.
         Flask cookies are encoded with a '.' separator: [payload].[timestamp].[signature]
         """
-        auth = AccountModel(account_username="tmpr", account_email="tmpr@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="tmpr",
+            account_email="tmpr@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "tmpr", "password": "p"})
+        client.post("/login", data={"username": "tmpr", "password": "Str0ng!Pass"})
         valid_cookie = client.get_cookie("session")
         cookie_with_truncated_signature = valid_cookie.value[:-5]
         tampered_cookie_value = cookie_with_truncated_signature + "XXXXX"
@@ -153,10 +173,15 @@ class TestXSS:
 
     def test_session_persistence_inter_client(self, client, db_session):
         """Verifies session survives between different client instances (simulating browser restart)."""
-        auth = AccountModel(account_username="persist", account_email="pe@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="persist",
+            account_email="pe@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "persist", "password": "p"})
+        client.post("/login", data={"username": "persist", "password": "Str0ng!Pass"})
         session_cookie = client.get_cookie("session")
         from blog_comment_application import create_app
         new_app = create_app(db_session)
@@ -176,7 +201,7 @@ class TestXSS:
         prod_app.config["DEBUG"] = False
         prod_app.config["SESSION_COOKIE_SECURE"] = True
         client = prod_app.test_client()
-        response = client.post("/login", data={"username": "any", "password": "any"})
+        response = client.post("/login", data={"username": "Str0ng!Pass", "password": "Str0ng!Pass"})
         set_cookie = response.headers.get("Set-Cookie")
         if set_cookie:
             assert prod_app.config["SESSION_COOKIE_SECURE"] is True
@@ -186,10 +211,15 @@ class TestXSS:
         Verifies that rotating the SECRET_KEY invalidates all existing session cookies.
         This is a critical security recovery procedure.
         """
-        auth = AccountModel(account_username="rotate_user", account_email="r@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="rotate_user",
+            account_email="r@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "rotate_user", "password": "p"})
+        client.post("/login", data={"username": "rotate_user", "password": "Str0ng!Pass"})
         response_before = client.get("/profile")
         assert "rotate_user" in response_before.data.decode()
         with client.application.app_context():
@@ -206,10 +236,15 @@ class TestSQLi:
         """
         Verifies that malicious SQL input is correctly escaped by SQLAlchemy/Postgres.
         """
-        auth = AccountModel(account_username="db_admin", account_email="db@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="db_admin",
+            account_email="db@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "db_admin", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "db_admin", "password": "Str0ng!Pass"}, follow_redirects=True)
         malicious_title = "Safe Title'); DROP TABLE accounts; --"
 
         resp = client.post("/api/articles", json={
@@ -229,7 +264,7 @@ class TestSQLi:
         """
         response = client.post("/login", data={
             "username": "' OR '1'='1",
-            "password": "any"
+            "password": "Str0ng!Pass"
         }, follow_redirects=True)
         assert b"Invalid username or password" in response.data
 
@@ -243,24 +278,34 @@ class TestAccessControl:
         """
         from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 
-        admin = AccountModel(account_username="admin_ban", account_email="ab@t.com", account_password="p", account_role="admin")
-        target = AccountModel(account_username="target_user", account_email="tu@t.com", account_password="p", account_role="user")
+        admin = AccountModel(
+            account_username="admin_ban",
+            account_email="ab@t.com",
+            account_password="Str0ng!Pass",
+            account_role="admin",
+        )
+        target = AccountModel(
+            account_username="target_user",
+            account_email="tu@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(admin)
         db_session.add(target)
         db_session.commit()
 
-        client.post("/login", data={"username": "admin_ban", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "admin_ban", "password": "Str0ng!Pass"}, follow_redirects=True)
         client.post(f"/admin/users/{target.account_id}/ban", data={"ban_reason": "Test ban"}, follow_redirects=True)
         client.get("/logout", follow_redirects=True)
 
-        response = client.post("/login", data={"username": "target_user", "password": "p"}, follow_redirects=True)
+        response = client.post("/login", data={"username": "target_user", "password": "Str0ng!Pass"}, follow_redirects=True)
         assert b"This account has been banned." in response.data
 
-        client.post("/login", data={"username": "admin_ban", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "admin_ban", "password": "Str0ng!Pass"}, follow_redirects=True)
         client.post(f"/admin/users/{target.account_id}/unban", follow_redirects=True)
         client.get("/logout", follow_redirects=True)
 
-        response = client.post("/login", data={"username": "target_user", "password": "p"}, follow_redirects=True)
+        response = client.post("/login", data={"username": "target_user", "password": "Str0ng!Pass"}, follow_redirects=True)
         assert b"articles" in response.data or b"DevJournal" in response.data
 
 
@@ -268,15 +313,25 @@ class TestAccessControl:
         """
         Ensures that a user cannot delete another author's article.
         """
-        author = AccountModel(account_username="author1", account_email="a1@t.com", account_password="p", account_role="author")
-        malicious = AccountModel(account_username="hacker", account_email="h@t.com", account_password="p", account_role="user")
+        author = AccountModel(
+            account_username="author1",
+            account_email="a1@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
+        malicious = AccountModel(
+            account_username="hacker",
+            account_email="h@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(author)
         db_session.add(malicious)
         db_session.commit()
         article = ArticleModel(article_title="Secret", article_content="...", article_author_id=author.account_id)
         db_session.add(article)
         db_session.commit()
-        client.post("/login", data={"username": "hacker", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "hacker", "password": "Str0ng!Pass"}, follow_redirects=True)
         response = client.delete(f"/api/articles/{article.article_id}")
         assert response.status_code == 403
         assert response.get_json() == {"error": "Insufficient permissions."}
@@ -319,11 +374,11 @@ class TestCSRF:
 
         auth = AccountModel(
             account_username="page_author", account_email="page@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "page_author", "password": "p"})
+        client.post("/login", data={"username": "page_author", "password": "Str0ng!Pass"})
         response = client.get("/articles/new")
         assert response.status_code == 200
         assert b'data-page="create"' in response.data
@@ -400,10 +455,15 @@ class TestSecurityHeaders:
 
     def test_session_cookie_has_no_expiry(self, client, db_session):
         """Verifies the Set-Cookie header has no Expires or Max-Age (browser-session only)."""
-        auth = AccountModel(account_username="sess_user", account_email="su@t.com", account_password="p", account_role="user")
+        auth = AccountModel(
+            account_username="sess_user",
+            account_email="su@t.com",
+            account_password="Str0ng!Pass",
+            account_role="user",
+        )
         db_session.add(auth)
         db_session.commit()
-        response = client.post("/login", data={"username": "sess_user", "password": "p"})
+        response = client.post("/login", data={"username": "sess_user", "password": "Str0ng!Pass"})
         set_cookie = response.headers.get("Set-Cookie", "")
         assert "Expires=" not in set_cookie
         assert "Max-Age=" not in set_cookie
