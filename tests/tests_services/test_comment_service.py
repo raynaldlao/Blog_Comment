@@ -334,6 +334,7 @@ class TestDeleteComment(CommentServiceTestBase):
         assert comment_to_delete.is_deleted is True
         assert comment_to_delete.deleted_at is not None
         assert comment_to_delete.comment_content == "Original content"
+        assert comment_to_delete.deleted_by == "user"
 
     def test_delete_comment_soft_delete_by_admin(self):
         admin_account = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
@@ -353,6 +354,7 @@ class TestDeleteComment(CommentServiceTestBase):
         self.mock_comment_repo.save.assert_called_once()
         assert result is True
         assert comment_to_delete.is_deleted is True
+        assert comment_to_delete.deleted_by == "admin"
 
     def test_delete_comment_unauthorized_not_author(self):
         fake_account = create_test_account(account_id=2, account_role=AccountRole.USER)
@@ -484,6 +486,8 @@ class TestMaskCommentsByAccountId(CommentServiceTestBase):
         assert c2.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
         assert c1.is_deleted is True
         assert c1.deleted_at is not None
+        assert c1.deleted_by == "account_deleted"
+        assert c2.deleted_by == "account_deleted"
 
     def test_mask_comments_no_comments(self):
         self.mock_comment_repo.get_by_account_id.return_value = []

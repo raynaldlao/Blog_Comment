@@ -38,12 +38,13 @@ class CommentResponse(BaseModel):
     comment_posted_at: datetime | None = None
     is_deleted: bool = False
     edited_at: datetime | None = None
+    deleted_by: str | None = None
 
     @classmethod
     def from_domain(cls, comment, author_username: str = "Unknown", author_avatar_file_id: str | None = None):
         """
         Helper factory to create a response DTO from a domain Comment entity.
-        Maps is_deleted, deleted_at, and edited_at from the domain entity.
+        Maps is_deleted, deleted_at, edited_at, and deleted_by from the domain entity.
 
         If the comment's author account has been deleted (comment_written_account_id is None)
         or the comment has been soft-deleted (is_deleted is True),
@@ -74,6 +75,7 @@ class CommentResponse(BaseModel):
             comment_posted_at=comment.comment_posted_at,
             is_deleted=is_deleted,
             edited_at=comment.edited_at,
+            deleted_by=comment.deleted_by,
         )
 
     @classmethod

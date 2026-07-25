@@ -31,6 +31,7 @@ class Comment:
         is_deleted: bool = False,
         deleted_at: datetime | None = None,
         edited_at: datetime | None = None,
+        deleted_by: str | None = None,
     ):
         self.comment_id = comment_id
         self.comment_article_id = comment_article_id
@@ -41,6 +42,7 @@ class Comment:
         self.is_deleted = is_deleted
         self.deleted_at = deleted_at
         self.edited_at = edited_at
+        self.deleted_by = deleted_by
 
 @dataclass
 class CommentWithAuthor:

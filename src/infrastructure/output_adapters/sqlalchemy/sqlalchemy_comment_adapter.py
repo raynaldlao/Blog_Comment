@@ -62,6 +62,7 @@ class SqlAlchemyCommentAdapter(SqlAlchemyBaseAdapter, CommentRepository):
                 CommentModel.is_deleted: comment.is_deleted,
                 CommentModel.deleted_at: comment.deleted_at,
                 CommentModel.edited_at: comment.edited_at,
+                CommentModel.deleted_by: comment.deleted_by,
                 })
             )
             self._db_commit()
@@ -76,6 +77,7 @@ class SqlAlchemyCommentAdapter(SqlAlchemyBaseAdapter, CommentRepository):
         model.is_deleted = comment.is_deleted
         model.deleted_at = comment.deleted_at
         model.edited_at = comment.edited_at
+        model.deleted_by = comment.deleted_by
         self._db_commit()
 
     def get_by_id(self, comment_id: int) -> Comment | None:
