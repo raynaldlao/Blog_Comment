@@ -138,9 +138,9 @@ class TestLoginService:
         fake_account = create_test_account(account_id=1)
         self.mock_session_repo.get_account.return_value = fake_account
         self.mock_hasher.hash.return_value = "$argon2id$new_hash"
-        result = self.service.update_password("new_secret")
+        result = self.service.update_password("New_Secure1!")
         assert result is None
-        self.mock_hasher.hash.assert_called_once_with("new_secret")
+        self.mock_hasher.hash.assert_called_once_with("New_Secure1!")
         self.mock_repo.update_password.assert_called_once_with(1, "$argon2id$new_hash")
 
     def test_update_password_unauthenticated_returns_error(self):

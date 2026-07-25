@@ -1,9 +1,12 @@
+import re
+
 from blog_exceptions import (
     AccountBannedError,
     AccountNotFoundError,
     AuthenticationError,
     AuthorizationError,
     EmailAlreadyTakenError,
+    WeakPasswordError,
 )
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
@@ -182,6 +185,13 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
 
         if not new_password:
             return
+
+        if not re.search(r"[a-z]", new_password):
+            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+        if not re.search(r"[A-Z]", new_password):
+            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[^a-zA-Z0-9]", new_password):
+            raise WeakPasswordError("Password must contain at least one special character.")
 
         new_hash = self.password_hasher_repository.hash(new_password)
         self.account_repository.update_password(account.account_id, new_hash)

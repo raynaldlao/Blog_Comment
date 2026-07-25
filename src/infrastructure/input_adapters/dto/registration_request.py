@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field, model_validator
+import re
 
-from blog_exceptions import PasswordsDoNotMatchError
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+
+from blog_exceptions import PasswordsDoNotMatchError, WeakPasswordError
 
 
 class RegistrationRequest(BaseModel):
@@ -12,10 +14,31 @@ class RegistrationRequest(BaseModel):
     on email format, password length, and password confirmation.
     """
 
-    username: str = Field(..., description="The desired username.")
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=30,
+        pattern=r"^[a-zA-Z0-9_-]+$",
+        description="The desired username. 3-30 characters: letters, numbers, underscores, hyphens.",
+    )
     email: EmailStr = Field(..., description="A valid email address.")
-    password: str = Field(..., description="The account password.")
+    password: str = Field(
+        ...,
+        min_length=8,
+        description="The account password. Must contain at least one uppercase, one lowercase, and one special character.",
+    )
     confirm_password: str = Field(..., description="Must match the password field.")
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        if not re.search(r"[a-z]", v):
+            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+        if not re.search(r"[A-Z]", v):
+            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[^a-zA-Z0-9]", v):
+            raise WeakPasswordError("Password must contain at least one special character.")
+        return v
 
     @model_validator(mode="after")
     def passwords_must_match(self) -> "RegistrationRequest":

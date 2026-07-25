@@ -93,6 +93,11 @@ class PasswordsDoNotMatchError(ValueError):
     pass
 
 
+class WeakPasswordError(ValueError):
+    """Raised when password does not meet strength requirements (length, uppercase, lowercase, special char)."""
+    pass
+
+
 class CommentEmptyError(ValueError):
     """Raised when comment content is empty."""
     pass

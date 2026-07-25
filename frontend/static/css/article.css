@@ -742,13 +742,6 @@ a.comment-author:hover {
     text-decoration: underline;
 }
 
-.comment-limit-hint,
-.desc-limit-hint {
-    display: block;
-    font-size: var(--font-body-sm);
-    color: var(--text-secondary);
-}
-
 .comments-section {
     margin-top: var(--spacing-xl);
 }

@@ -196,16 +196,16 @@
         <div class="comment-join-section">
             <h4 class="comment-join-title" id="comment-form-title">{{ _('Join the discussion') }}</h4>
             <div class="comment-rules">
-                <p><strong>Règles des commentaires :</strong></p>
+                <p><strong>{{ _('Comment rules:') }}</strong></p>
                 <ul>
-                    <li>Ne publiez pas de liens, de publicité ou de spam.</li>
-                    <li>N'utilisez pas de grossièretés, d'insultes ou de propos haineux.</li>
-                    <li>Ne postez pas le même message plusieurs fois.</li>
-                    <li>Restez respectueux et dans le sujet.</li>
-                    <li><strong>Le non-respect de ces règles entraîne le bannissement du compte, sans préavis.</strong></li>
+                    <li>{{ _('No links, advertising, or spam.') }}</li>
+                    <li>{{ _('No profanity, insults, or hate speech.') }}</li>
+                    <li>{{ _('Do not post the same message multiple times.') }}</li>
+                    <li>{{ _('Stay respectful and on topic.') }}</li>
+                    <li><strong>{{ _('Violation results in account ban without notice.') }}</strong></li>
                 </ul>
             </div>
-            <span class="comment-limit-hint">{{ _('Comment must be between 1 and 5000 characters') }}</span>
+            <span class="field-hint">{{ _('Comment must be between 1 and 5000 characters') }}</span>
             <form action="{{ url_for('comment.create_comment', article_id=article.article_id) }}" method="POST"
                   id="comment-form"
                   data-create-url="{{ url_for('comment.create_comment', article_id=article.article_id) }}"

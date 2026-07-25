@@ -10,4 +10,4 @@ class LoginRequest(BaseModel):
     """
 
     username: str = Field(..., min_length=1, description="The account username.")
-    password: str = Field(..., min_length=1, description="The account password.")
+    password: str = Field(..., min_length=8, description="The account password.")

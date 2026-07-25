@@ -3,7 +3,7 @@ import math
 
 from flask_babel import gettext as _
 
-from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError
+from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError, WeakPasswordError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
@@ -286,7 +286,7 @@ class AccountSessionAdapter(MethodView):
 
         try:
             self.session_service.update_password(new_password)
-        except BlogCommentError as e:
+        except (BlogCommentError, WeakPasswordError) as e:
             flash(_(str(e)), "error")
         else:
             flash(_("Password updated."), "success")
