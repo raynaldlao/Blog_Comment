@@ -16,7 +16,7 @@ class TestRegistration:
         existing = AccountModel(
             account_username="existing_user",
             account_email="existing@test.com",
-            account_password="password",
+            account_password="Str0ng!Pass",
             account_role="user"
         )
 
@@ -26,8 +26,8 @@ class TestRegistration:
         response_uname = client.post("/register", data={
             "username": "existing_user",
             "email": "new@test.com",
-            "password": "password",
-            "confirm_password": "password"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"already taken" in response_uname.data.lower()
@@ -35,8 +35,8 @@ class TestRegistration:
         response_email = client.post("/register", data={
             "username": "new_user",
             "email": "existing@test.com",
-            "password": "password",
-            "confirm_password": "password"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"already taken" in response_email.data.lower()
@@ -51,7 +51,7 @@ class TestProfile:
         auth = AccountModel(
             account_username="old_name",
             account_email="old@test.com",
-            account_password="p",
+            account_password="Str0ng!Pass",
             account_role="author"
         )
         db_session.add(auth)
@@ -59,7 +59,7 @@ class TestProfile:
         art = ArticleModel(article_title="My Bio", article_content="...", article_author_id=auth.account_id)
         db_session.add(art)
         db_session.commit()
-        client.post("/login", data={"username": "old_name", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "old_name", "password": "Str0ng!Pass"}, follow_redirects=True)
         response_1 = client.get("/")
         assert b"old_name" in response_1.data
         response_2 = client.get(f"/articles/{art.article_id}")
@@ -88,7 +88,7 @@ class TestProfilePhoto:
         auth = AccountModel(
             account_username="photo_user",
             account_email="photo@test.com",
-            account_password="p",
+            account_password="Str0ng!Pass",
             account_role="user",
             avatar_file_id=self.OLD_FILE_ID,
         )
@@ -98,7 +98,7 @@ class TestProfilePhoto:
 
     def test_upload_replaces_old_avatar_and_remove_clears_integ(self, client, db_session):
         auth = self._create_user_and_old_file(db_session)
-        client.post("/login", data={"username": "photo_user", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "photo_user", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         upload_resp = client.post(
             "/api/profile/photo",
@@ -134,13 +134,13 @@ class TestEmailUpdate:
         auth = AccountModel(
             account_username="email_user",
             account_email="before@test.com",
-            account_password="p",
+            account_password="Str0ng!Pass",
             account_role="user",
         )
         db_session.add(auth)
         db_session.commit()
 
-        client.post("/login", data={"username": "email_user", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "email_user", "password": "Str0ng!Pass"}, follow_redirects=True)
 
         response = client.post("/profile/email", data={"email": "after@test.com"}, follow_redirects=True)
         assert response.status_code == 200
@@ -158,20 +158,20 @@ class TestPasswordUpdate:
         auth = AccountModel(
             account_username="pass_user",
             account_email="pass@test.com",
-            account_password="old_pass",
+            account_password="Str0ng!Pass",
             account_role="user",
         )
         db_session.add(auth)
         db_session.commit()
 
-        client.post("/login", data={"username": "pass_user", "password": "old_pass"}, follow_redirects=True)
+        client.post("/login", data={"username": "pass_user", "password": "Str0ng!Pass"}, follow_redirects=True)
 
-        response = client.post("/profile/password", data={"new_password": "new_pass"}, follow_redirects=True)
+        response = client.post("/profile/password", data={"new_password": "Str0ng!Pass2"}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Password updated." in response.data
 
         client.post("/logout", follow_redirects=True)
-        login = client.post("/login", data={"username": "pass_user", "password": "new_pass"}, follow_redirects=True)
+        login = client.post("/login", data={"username": "pass_user", "password": "Str0ng!Pass2"}, follow_redirects=True)
         assert b"Profile" in login.data
 
 
@@ -194,8 +194,8 @@ class TestConcurrency:
         registration_data = {
             "username": "race_winner",
             "email": "race@test.com",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }
 
         with ThreadPoolExecutor(max_workers=5) as executor:
@@ -224,20 +224,20 @@ class TestAdminUserList:
             db_session.add(AccountModel(
                 account_username=f"user_{i}",
                 account_email=f"user_{i}@test.com",
-                account_password="p",
+                account_password="Str0ng!Pass",
                 account_role="user"
             ))
 
         admin = AccountModel(
             account_username="admin_user",
             account_email="admin@test.com",
-            account_password="admin_pass",
+            account_password="Str0ng!Pass",
             account_role="admin"
         )
 
         db_session.add(admin)
         db_session.commit()
-        client.post("/login", data={"username": "admin_user", "password": "admin_pass"}, follow_redirects=True)
+        client.post("/login", data={"username": "admin_user", "password": "Str0ng!Pass"}, follow_redirects=True)
         total_accounts = db_session.query(AccountModel).count()
         r1 = client.get("/admin/users")
         assert r1.status_code == 200

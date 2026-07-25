@@ -1,5 +1,7 @@
 from datetime import datetime
 
+import pytest
+
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.domain.comment import Comment
@@ -269,6 +271,32 @@ class TestInMemoryAccountRepository:
         assert updated is not None
         assert updated.is_banned is False
         assert updated.ban_reason is None
+
+    def test_update_session_token_sets_token(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_session_token(account.account_id, "abc123")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.session_token == "abc123"
+
+    def test_update_session_token_clears_token(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_session_token(account.account_id, "abc123")
+        repo.update_session_token(account.account_id, None)
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.session_token is None
+
+    def test_update_session_token_nonexistent_account_raises(self):
+        from blog_exceptions import AccountNotFoundError
+
+        repo = InMemoryAccountRepository()
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            repo.update_session_token(999, "abc123")
 
 
 class TestInMemoryCommentRepository:

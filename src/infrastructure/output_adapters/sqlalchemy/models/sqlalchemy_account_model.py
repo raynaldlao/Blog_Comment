@@ -27,3 +27,4 @@ class AccountModel(SqlAlchemyModel):
     avatar_file_id: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
     is_banned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     ban_reason: Mapped[str | None] = mapped_column(String(150), nullable=True, default=None)
+    session_token: Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)

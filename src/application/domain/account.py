@@ -26,6 +26,7 @@ class Account:
         avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
         is_banned (bool): Whether the account is currently banned.
         ban_reason (str | None): Optional reason provided by admin when banning.
+        session_token (str | None): Random token for unique session enforcement.
     """
 
     def __init__(
@@ -39,6 +40,7 @@ class Account:
         avatar_file_id: str | None = None,
         is_banned: bool = False,
         ban_reason: str | None = None,
+        session_token: str | None = None,
     ):
         """
         Initialize a user account.
@@ -53,6 +55,7 @@ class Account:
             avatar_file_id (str | None): UUID of the avatar file in uploaded_files, or None.
             is_banned (bool): Whether the account is currently banned. Defaults to False.
             ban_reason (str | None): Optional reason provided by admin when banning.
+            session_token (str | None): Random token for unique session enforcement.
         """
         self.account_id = account_id
         self.account_username = account_username
@@ -63,3 +66,4 @@ class Account:
         self.avatar_file_id = avatar_file_id
         self.is_banned = is_banned
         self.ban_reason = ban_reason
+        self.session_token = session_token

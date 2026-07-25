@@ -778,3 +778,11 @@ hr {
 .nav-item-home {
     font-size: var(--font-headline-md);
 }
+
+.field-hint {
+    display: block;
+    font-size: var(--font-body-xs);
+    color: var(--text-secondary);
+    text-align: justify;
+    margin-bottom: 0.125rem;
+}

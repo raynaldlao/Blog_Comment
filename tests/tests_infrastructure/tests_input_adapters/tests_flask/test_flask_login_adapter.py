@@ -76,7 +76,7 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
 
         response = self.client.post("/login", data={
             "username": "wrong",
-            "password": "wrong"
+            "password": "Wr0ng!Pass"
         }, follow_redirects=True)
 
         assert b"Invalid username or password." in response.data

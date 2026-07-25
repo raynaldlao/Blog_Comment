@@ -1,13 +1,13 @@
 import json
 import math
 
+from flask import flash, jsonify, redirect, render_template, request, url_for
+from flask import g as global_request_context
 from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
-from flask import flash, jsonify, redirect, render_template, request, url_for
-from flask import g as global_request_context
 from src.application.domain.comment import CommentNode
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest

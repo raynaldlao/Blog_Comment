@@ -395,6 +395,8 @@ export default function ArticleForm() {
       if (res.ok) {
         const data = await res.json();
         window.location.href = `/articles/${data.id || articleId}`;
+      } else if (res.status === 401) {
+        window.location.href = '/';
       } else {
         const err = await res.json();
         setError(err.error || _('Failed to save.'));
@@ -435,7 +437,7 @@ export default function ArticleForm() {
           <span className="article-editor-label">{_('Description')}</span>
         </div>
         <div className="article-editor-section-header">
-          <span className="desc-limit-hint">{_('Maximum 300 characters')}</span>
+          <span className="field-hint">{_('Maximum 300 characters')}</span>
           <span className="char-counter">{description.length}/300</span>
         </div>
         <textarea

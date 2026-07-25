@@ -1,10 +1,10 @@
+from flask import flash, redirect, render_template, request, url_for
+from flask import g as global_request_context
+from flask.views import MethodView
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
 from blog_exceptions import AccountBannedError, AuthenticationError
-from flask import flash, redirect, render_template, request, url_for
-from flask import g as global_request_context
-from flask.views import MethodView
 from src.application.input_ports.login_management import LoginManagementPort
 from src.infrastructure.input_adapters.dto.login_request import LoginRequest
 

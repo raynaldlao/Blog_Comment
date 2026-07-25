@@ -46,7 +46,12 @@ class TestArticleReading:
         """
         Verifies that the application correctly paginates large volumes of data.
         """
-        auth = AccountModel(account_username="paginator", account_email="p@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="paginator",
+            account_email="p@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
 
@@ -70,7 +75,12 @@ class TestArticleReading:
         """
         Stress test: Large content and special characters (Emojis, Unicode).
         """
-        auth = AccountModel(account_username="unicode_boss", account_email="u@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="unicode_boss",
+            account_email="u@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
         large_content = "Word " * 20000
@@ -99,7 +109,12 @@ class TestPersistence:
         The comment content is NOT masked here because the test bypasses
         the service layer (masking happens in AccountSessionAdapter).
         """
-        auth = AccountModel(account_username="victim", account_email="v@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="victim",
+            account_email="v@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
         art = ArticleModel(article_title="Ghost Article", article_content="...", article_author_id=auth.account_id)
@@ -133,7 +148,7 @@ class TestPersistence:
         """
         author = AccountModel(
             account_username="orphan_author", account_email="orphan@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
 
         db_session.add(author)
@@ -160,12 +175,12 @@ class TestPersistence:
 
         admin = AccountModel(
             account_username="admin_orphan", account_email="admin_o@t.com",
-            account_password="p", account_role="admin"
+            account_password="Str0ng!Pass", account_role="admin"
         )
 
         db_session.add(admin)
         db_session.commit()
-        client.post("/login", data={"username": "admin_orphan", "password": "p"}, follow_redirects=True)
+        client.post("/login", data={"username": "admin_orphan", "password": "Str0ng!Pass"}, follow_redirects=True)
         resp = client.post("/account/delete", data={"account_id": author.account_id}, follow_redirects=True)
         assert resp.status_code == 200
         db_session.expire_all()
@@ -192,7 +207,7 @@ class TestPersistence:
         """
         author = AccountModel(
             account_username="del_author", account_email="del@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(author)
         db_session.commit()
@@ -206,7 +221,7 @@ class TestPersistence:
         article_id = article.article_id
 
         client.post("/login", data={
-            "username": "del_author", "password": "p"
+            "username": "del_author", "password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         response = client.post(
@@ -223,7 +238,12 @@ class TestPersistence:
         """
         Verifies that if an article exists without an author, the UI displays fallback info.
         """
-        auth = AccountModel(account_username="ghost_writer", account_email="g@t.com", account_password="p", account_role="author")
+        auth = AccountModel(
+            account_username="ghost_writer",
+            account_email="g@t.com",
+            account_password="Str0ng!Pass",
+            account_role="author",
+        )
         db_session.add(auth)
         db_session.commit()
         art = ArticleModel(article_title="Ghost Story", article_content="Once upon a time...", article_author_id=auth.account_id)
@@ -253,11 +273,11 @@ class TestArticleDescription:
     def test_create_article_with_description_integ(self, client, db_session):
         auth = AccountModel(
             account_username="desc_author", account_email="desc@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "desc_author", "password": "p"},
+        client.post("/login", data={"username": "desc_author", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         resp = client.post("/api/articles", json={
@@ -276,11 +296,11 @@ class TestArticleDescription:
     def test_create_article_without_description_integ(self, client, db_session):
         auth = AccountModel(
             account_username="no_desc", account_email="nd@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "no_desc", "password": "p"},
+        client.post("/login", data={"username": "no_desc", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         resp = client.post("/api/articles", json={
@@ -298,11 +318,11 @@ class TestArticleDescription:
     def test_description_shown_in_detail_template(self, client, db_session):
         auth = AccountModel(
             account_username="desc_detail", account_email="dd@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "desc_detail", "password": "p"},
+        client.post("/login", data={"username": "desc_detail", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         resp = client.post("/api/articles", json={
@@ -319,11 +339,11 @@ class TestArticleDescription:
     def test_update_article_description(self, client, db_session):
         auth = AccountModel(
             account_username="update_desc", account_email="ud@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "update_desc", "password": "p"},
+        client.post("/login", data={"username": "update_desc", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         create_resp = client.post("/api/articles", json={
@@ -342,11 +362,11 @@ class TestArticleDescription:
     def test_description_shown_in_list_template(self, client, db_session):
         auth = AccountModel(
             account_username="desc_list", account_email="dl@t.com",
-            account_password="p", account_role="author"
+            account_password="Str0ng!Pass", account_role="author"
         )
         db_session.add(auth)
         db_session.commit()
-        client.post("/login", data={"username": "desc_list", "password": "p"},
+        client.post("/login", data={"username": "desc_list", "password": "Str0ng!Pass"},
                     follow_redirects=True)
 
         client.post("/api/articles", json={
@@ -363,7 +383,7 @@ class TestArticleSearch:
         auth = AccountModel(
             account_username="searchable_author",
             account_email="sa@test.com",
-            account_password="p",
+            account_password="Str0ng!Pass",
             account_role="author",
         )
         db_session.add(auth)

@@ -108,10 +108,18 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         )
 
     def test_logout_clears_session(self):
+        fake_user = create_test_account()
+        self.set_current_user(fake_user)
+        self.mock_session_service.get_current_account.return_value = fake_user
         response = self.client.post("/logout", follow_redirects=True)
         assert b"You have been logged out." in response.data
         assert b"alert-info" in response.data
         self.mock_session_service.terminate_session.assert_called_once()
+
+    def test_logout_not_authenticated_returns_403(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post("/logout")
+        assert response.status_code == 403
 
     def test_logout_get_returns_method_not_allowed(self):
         response = self.client.get("/logout")
@@ -702,3 +710,29 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
         self.client.get("/req2")
         user2 = self._captured_user
         assert user2 is None
+
+    def test_before_request_token_mismatch_redirects_non_api(self):
+        self.mock_session_service.get_current_account.return_value = None
+        self.adapter.register_before_request_handler(self.app)
+        self._register_dummy_route("/test-page", "test.page", "page")
+        self._register_dummy_route("/", "article.list_articles", "articles")
+
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = "1"
+            sess["session_token"] = "old_token"
+
+        response = self.client.get("/test-page")
+        assert response.status_code == 302
+
+    def test_before_request_token_mismatch_api_skips_redirect(self):
+        self.mock_session_service.get_current_account.return_value = None
+        self.adapter.register_before_request_handler(self.app)
+        self._register_dummy_route("/api/test", "test.api", "api-test")
+
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = "1"
+            sess["session_token"] = "old_token"
+
+        response = self.client.get("/api/test")
+        assert response.status_code == 200
+        assert b"api-test" in response.data

@@ -22,3 +22,7 @@ class TestLoginRequest:
     def test_login_request_missing_password(self):
         with pytest.raises(ValidationError):
             LoginRequest.model_validate({"username": "leia"})
+
+    def test_login_request_password_too_short(self):
+        with pytest.raises(ValidationError):
+            LoginRequest(username="leia", password="short")

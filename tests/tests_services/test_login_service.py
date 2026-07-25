@@ -138,9 +138,9 @@ class TestLoginService:
         fake_account = create_test_account(account_id=1)
         self.mock_session_repo.get_account.return_value = fake_account
         self.mock_hasher.hash.return_value = "$argon2id$new_hash"
-        result = self.service.update_password("new_secret")
+        result = self.service.update_password("New_Secure1!")
         assert result is None
-        self.mock_hasher.hash.assert_called_once_with("new_secret")
+        self.mock_hasher.hash.assert_called_once_with("New_Secure1!")
         self.mock_repo.update_password.assert_called_once_with(1, "$argon2id$new_hash")
 
     def test_update_password_unauthenticated_returns_error(self):
@@ -281,3 +281,39 @@ class TestLoginService:
 
         self.mock_repo.find_by_username.assert_called_once_with(fake_account.account_username)
         self.mock_session_repo.save_account.assert_not_called()
+
+    def test_authenticate_user_generates_session_token(self):
+        fake_account = create_test_account()
+        self.mock_repo.find_by_username.return_value = fake_account
+
+        result = self.service.authenticate_user(
+            username=fake_account.account_username,
+            password="password123"
+        )
+
+        assert result.session_token is not None
+        assert len(result.session_token) > 30
+        self.mock_repo.update_session_token.assert_called_once_with(
+            result.account_id, result.session_token
+        )
+        self.mock_session_repo.save_account.assert_called_once_with(result)
+
+    def test_terminate_session_clears_session_token(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_repo.get_by_id.return_value = fake_account
+
+        self.service.terminate_session()
+
+        self.mock_repo.update_session_token.assert_called_once_with(1, None)
+        self.mock_session_repo.clear.assert_called_once()
+
+    def test_ban_account_clears_session_token(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
+
+        self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+
+        self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
+        self.mock_repo.update_session_token.assert_called_once_with(2, None)

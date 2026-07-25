@@ -201,3 +201,37 @@ class TestFlaskSessionAdapterEdgeCases(BaseTestFlaskSessionAdapter):
             retrieved = self.adapter.get_account()
             if retrieved:
                 assert retrieved.account_username == long_username
+
+
+class TestFlaskSessionAdapterSessionToken(BaseTestFlaskSessionAdapter):
+    def test_save_account_stores_session_token(self):
+        from flask import session as flask_session
+
+        account = create_test_account(session_token="tok123")
+        self.mock_repo.get_by_id.return_value = account
+        with self.app.test_request_context():
+            self.adapter.save_account(account)
+            assert flask_session.get(self.adapter._KEY_SESSION_TOKEN) == "tok123"
+
+    def test_get_account_token_match(self):
+        from flask import session as flask_session
+
+        account = create_test_account(session_token="tok456")
+        self.mock_repo.get_by_id.return_value = account
+        with self.app.test_request_context():
+            flask_session[self.adapter._KEY_USER_ID] = account.account_id
+            flask_session[self.adapter._KEY_SESSION_TOKEN] = "tok456"
+            retrieved = self.adapter.get_account()
+            assert retrieved == account
+
+    def test_get_account_token_mismatch_returns_none(self):
+        from flask import session as flask_session
+
+        account = create_test_account(session_token="tok789")
+        self.mock_repo.get_by_id.return_value = account
+        with self.app.test_request_context():
+            flask_session[self.adapter._KEY_USER_ID] = account.account_id
+            flask_session[self.adapter._KEY_SESSION_TOKEN] = "wrong_token"
+            retrieved = self.adapter.get_account()
+            assert retrieved is None
+            assert not flask_session

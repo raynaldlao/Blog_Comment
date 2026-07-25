@@ -176,13 +176,12 @@
 .modal-input-group {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 0;
 }
 
 .modal-input-group label {
     font-size: var(--font-body-base);
     color: var(--on-surface-variant);
-    font-family: var(--font-mono);
 }
 
 .back-link {

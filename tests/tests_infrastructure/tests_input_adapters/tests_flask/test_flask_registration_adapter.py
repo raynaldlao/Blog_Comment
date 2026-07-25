@@ -72,8 +72,8 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/register", data={
             "username": "leia",
             "email": "leia@rebels.com",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"Registration successful. Please sign in." in response.data
@@ -85,7 +85,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/register", data={
             "username": "leia",
             "email": "leia@rebels.com",
-            "password": "password123",
+            "password": "Str0ng!Pass",
             "confirm_password": "wrong_confirm"
         }, follow_redirects=True)
 
@@ -101,8 +101,8 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/register", data={
             "username": "leia",
             "email": "leia@rebels.com",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"This email is already taken." in response.data
@@ -116,8 +116,8 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/register", data={
             "username": "leia",
             "email": "leia@rebels.com",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"This username is already taken." in response.data
@@ -128,8 +128,8 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/register", data={
             "username": "leia",
             "email": "invalid-email",
-            "password": "password123",
-            "confirm_password": "password123"
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
         assert b"email: value is not a valid email address" in response.data

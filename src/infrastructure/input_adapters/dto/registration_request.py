@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr, Field, model_validator
+import re
 
-from blog_exceptions import PasswordsDoNotMatchError
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
+
+from blog_exceptions import PasswordsDoNotMatchError, WeakPasswordError
 
 
 class RegistrationRequest(BaseModel):
@@ -9,13 +11,51 @@ class RegistrationRequest(BaseModel):
 
     Validates the data received at the registration endpoint before
     it is passed to the RegistrationManagementPort. Enforces strict rules
-    on email format, password length, and password confirmation.
+    on username format (3-30 chars, alphanumeric + underscores/hyphens),
+    email format, password strength (8+ chars, lowercase, uppercase,
+    special character), and password confirmation.
     """
 
-    username: str = Field(..., description="The desired username.")
+    username: str = Field(
+        ...,
+        min_length=3,
+        max_length=30,
+        pattern=r"^[a-zA-Z0-9_-]+$",
+        description="The desired username. 3-30 characters: letters, numbers, underscores, hyphens.",
+    )
     email: EmailStr = Field(..., description="A valid email address.")
-    password: str = Field(..., description="The account password.")
+    password: str = Field(
+        ...,
+        min_length=8,
+        description="The account password. Must contain at least one uppercase, one lowercase, and one special character.",
+    )
     confirm_password: str = Field(..., description="Must match the password field.")
+
+    @field_validator("password")
+    @classmethod
+    def password_strength(cls, v: str) -> str:
+        """
+        Validates password strength using three regex checks.
+
+        Ensures the password contains at least one lowercase letter,
+        one uppercase letter, and one special character.
+
+        Args:
+            v: The password string to validate.
+
+        Returns:
+            str: The validated password if all checks pass.
+
+        Raises:
+            WeakPasswordError: If any strength requirement is not met.
+        """
+        if not re.search(r"[a-z]", v):
+            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+        if not re.search(r"[A-Z]", v):
+            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+        if not re.search(r"[^a-zA-Z0-9]", v):
+            raise WeakPasswordError("Password must contain at least one special character.")
+        return v
 
     @model_validator(mode="after")
     def passwords_must_match(self) -> "RegistrationRequest":

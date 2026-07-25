@@ -15,6 +15,7 @@ def create_test_account(
     account_avatar_file_id: str | None = None,
     is_banned: bool = False,
     ban_reason: str | None = None,
+    session_token: str | None = None,
 ) -> Account:
     """Factory to create a test Account entity with sensible defaults."""
     if account_created_at is None:
@@ -30,6 +31,7 @@ def create_test_account(
         avatar_file_id=account_avatar_file_id,
         is_banned=is_banned,
         ban_reason=ban_reason,
+        session_token=session_token,
     )
 
 
