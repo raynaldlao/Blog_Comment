@@ -395,6 +395,8 @@ export default function ArticleForm() {
       if (res.ok) {
         const data = await res.json();
         window.location.href = `/articles/${data.id || articleId}`;
+      } else if (res.status === 401) {
+        window.location.href = '/';
       } else {
         const err = await res.json();
         setError(err.error || _('Failed to save.'));

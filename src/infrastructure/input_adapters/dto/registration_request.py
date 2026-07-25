@@ -11,7 +11,9 @@ class RegistrationRequest(BaseModel):
 
     Validates the data received at the registration endpoint before
     it is passed to the RegistrationManagementPort. Enforces strict rules
-    on email format, password length, and password confirmation.
+    on username format (3-30 chars, alphanumeric + underscores/hyphens),
+    email format, password strength (8+ chars, lowercase, uppercase,
+    special character), and password confirmation.
     """
 
     username: str = Field(
@@ -32,6 +34,21 @@ class RegistrationRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def password_strength(cls, v: str) -> str:
+        """
+        Validates password strength using three regex checks.
+
+        Ensures the password contains at least one lowercase letter,
+        one uppercase letter, and one special character.
+
+        Args:
+            v: The password string to validate.
+
+        Returns:
+            str: The validated password if all checks pass.
+
+        Raises:
+            WeakPasswordError: If any strength requirement is not met.
+        """
         if not re.search(r"[a-z]", v):
             raise WeakPasswordError("Password must contain at least one lowercase letter.")
         if not re.search(r"[A-Z]", v):

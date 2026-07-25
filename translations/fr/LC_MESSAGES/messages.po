@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-25 18:01+0200\n"
+"POT-Creation-Date: 2026-07-25 19:11+0200\n"
 "PO-Revision-Date: 2026-07-22 14:15+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -104,7 +104,7 @@ msgstr "Publier"
 #: frontend/templates/article_create.html:40
 #: frontend/templates/article_detail.html:246
 #: frontend/templates/article_edit.html:69 frontend/templates/profile.html:96
-#: frontend/templates/profile.html:118
+#: frontend/templates/profile.html:119
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -313,7 +313,9 @@ msgstr "Restez respectueux et dans le sujet."
 
 #: frontend/templates/article_detail.html:205
 msgid "Violation results in account ban without notice."
-msgstr "Le non-respect de ces règles entraîne le bannissement du compte, sans préavis."
+msgstr ""
+"Le non-respect de ces règles entraîne le bannissement du compte, sans "
+"préavis."
 
 #: frontend/templates/article_detail.html:208
 msgid "Comment must be between 1 and 5000 characters"
@@ -328,7 +330,7 @@ msgstr "Publier le commentaire"
 #: frontend/templates/article_detail.html:249
 #: frontend/templates/article_list.html:143 frontend/templates/base.html:115
 #: frontend/templates/base.html:139 frontend/templates/profile.html:95
-#: frontend/templates/profile.html:117 frontend/templates/user_list.html:143
+#: frontend/templates/profile.html:118 frontend/templates/user_list.html:143
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -480,7 +482,7 @@ msgid "Confirm"
 msgstr "Confirmer"
 
 #: frontend/templates/base.html:122 frontend/templates/base.html:140
-#: frontend/templates/profile.html:154 frontend/templates/user_list.html:88
+#: frontend/templates/profile.html:155 frontend/templates/user_list.html:88
 msgid "Ban"
 msgstr "Bannir"
 
@@ -502,7 +504,7 @@ msgid "© %(year)s DevJournal. All rights reserved."
 msgstr "© %(year)s DevJournal. Tous droits réservés."
 
 #: frontend/templates/error.html:11 frontend/templates/login.html:42
-#: frontend/templates/profile.html:168 frontend/templates/registration.html:68
+#: frontend/templates/profile.html:169 frontend/templates/registration.html:68
 #: frontend/templates/user_list.html:149
 msgid "Return to home"
 msgstr "Retour à l'accueil"
@@ -531,13 +533,13 @@ msgstr "Ex. : dev_journey"
 msgid "Password"
 msgstr "Mot de passe"
 
-#: frontend/templates/login.html:26 frontend/templates/profile.html:111
+#: frontend/templates/login.html:26 frontend/templates/profile.html:112
 #: frontend/templates/registration.html:39
 #: frontend/templates/registration.html:50
 msgid "e.g., MyP@ssw0rd!"
 msgstr "Ex. : MyP@ssw0rd!"
 
-#: frontend/templates/login.html:27 frontend/templates/profile.html:112
+#: frontend/templates/login.html:27 frontend/templates/profile.html:113
 #: frontend/templates/registration.html:42
 #: frontend/templates/registration.html:53
 msgid "Toggle password visibility"
@@ -612,19 +614,19 @@ msgstr "Modifier le mot de passe"
 msgid "New Password"
 msgstr "Nouveau mot de passe"
 
-#: frontend/templates/profile.html:126
+#: frontend/templates/profile.html:127
 msgid "Manage Users"
 msgstr "Gérer les utilisateurs"
 
-#: frontend/templates/profile.html:128
+#: frontend/templates/profile.html:129
 msgid "Change Password"
 msgstr "Changer le mot de passe"
 
-#: frontend/templates/profile.html:131
+#: frontend/templates/profile.html:132
 msgid "Sign Out"
 msgstr "Déconnexion"
 
-#: frontend/templates/profile.html:138
+#: frontend/templates/profile.html:139
 msgid ""
 "Are you sure you want to delete your account ? This action is "
 "irreversible."
@@ -632,15 +634,15 @@ msgstr ""
 "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est "
 "irréversible."
 
-#: frontend/templates/profile.html:138 frontend/templates/profile.html:161
+#: frontend/templates/profile.html:139 frontend/templates/profile.html:162
 msgid "Delete Account"
 msgstr "Supprimer le compte"
 
-#: frontend/templates/profile.html:149 frontend/templates/user_list.html:83
+#: frontend/templates/profile.html:150 frontend/templates/user_list.html:83
 msgid "Unban"
 msgstr "Débannir"
 
-#: frontend/templates/profile.html:161 frontend/templates/user_list.html:95
+#: frontend/templates/profile.html:162 frontend/templates/user_list.html:95
 #, python-format
 msgid "Delete user \\\"%(username)s\\\" ? This action is irreversible."
 msgstr "Supprimer l'utilisateur \\\"%(username)s\\\" ? Action irréversible."
@@ -679,8 +681,8 @@ msgid ""
 "Minimum 8 characters: at least one uppercase, one lowercase, and one "
 "special character"
 msgstr ""
-"Minimum 8 caractères : au moins une majuscule, une minuscule et un caractère "
-"spécial"
+"Minimum 8 caractères : au moins une majuscule, une minuscule et un "
+"caractère spécial"
 
 #: frontend/templates/registration.html:46
 msgid "Confirm Password"
@@ -732,75 +734,83 @@ msgstr "—"
 msgid "Enter page number (1 - %(max)d)"
 msgstr "Entrez le numéro de page (1 - %(max)d)"
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:76
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:56
+msgid ""
+"You have been disconnected because your account was logged in from "
+"another location."
+msgstr ""
+"Vous avez été déconnecté car votre compte a été utilisé depuis un autre "
+"endroit."
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:85
 msgid "You have been logged out."
 msgstr "Vous avez été déconnecté."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:108
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:117
 msgid "Please sign in to view your profile."
 msgstr "Veuillez vous connecter pour voir votre profil."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:165
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:174
 msgid "Authentication required."
 msgstr "Authentification requise."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:169
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:178
 msgid "No file provided."
 msgstr "Aucun fichier fourni."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:216
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:250
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:279
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:369
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:225
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:259
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:289
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:379
 msgid "Please sign in."
 msgstr "Veuillez vous connecter."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:221
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:230
 msgid "No avatar to remove."
 msgstr "Aucun avatar à supprimer."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:231
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:240
 msgid "Failed to remove profile photo."
 msgstr "Échec de la suppression de la photo de profil."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:234
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:243
 msgid "Profile photo removed."
 msgstr "Photo de profil supprimée."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:255
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:264
 msgid "Email is required."
 msgstr "L'email est requis."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:263
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:272
 msgid "Email updated."
 msgstr "Email mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:284
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:294
 msgid "Password is required."
 msgstr "Le mot de passe est requis."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:292
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:302
 msgid "Password updated."
 msgstr "Mot de passe mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:383
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:393
 msgid "Account not found."
 msgstr "Compte introuvable."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:407
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:410
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:417
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:420
 msgid "Account deleted."
 msgstr "Compte supprimé."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:444
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:454
 msgid "Role updated."
 msgstr "Rôle mis à jour."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:481
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:491
 msgid "Account banned."
 msgstr "Compte banni."
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:512
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:522
 msgid "Account unbanned."
 msgstr "Compte débanni."
 

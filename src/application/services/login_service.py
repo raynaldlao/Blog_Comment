@@ -1,4 +1,5 @@
 import re
+import secrets
 
 from blog_exceptions import (
     AccountBannedError,
@@ -46,7 +47,9 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         Authenticates a user by verifying credentials.
 
-        If successful, the account is saved in the session.
+        If successful, a new session token is generated and persisted
+        in the database (invalidating any previous session), and the
+        account is saved in the session cookie.
         If the existing password hash uses outdated parameters,
         it is seamlessly upgraded to the current Argon2 settings.
 
@@ -75,6 +78,9 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
                 account.account_password = new_hash
                 self.account_repository.save(account)
 
+            token = secrets.token_urlsafe(32)
+            account.session_token = token
+            self.account_repository.update_session_token(account.account_id, token)
             self.session_repository.save_account(account)
             return account
 
@@ -93,7 +99,13 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
     def terminate_session(self) -> None:
         """
         Terminates the current active session, effectively logging the user out.
+
+        Clears the session token in the database before wiping the session
+        cookie, ensuring the token cannot be reused.
         """
+        current = self.get_current_account()
+        if current:
+            self.account_repository.update_session_token(current.account_id, None)
         self.session_repository.clear()
 
     def get_account_by_username(self, username: str) -> Account | None:
@@ -169,15 +181,16 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         Updates the password for the currently logged-in account.
 
-        Retrieves the current account from the session, hashes the new
-        password using the password hasher, and persists the change
-        via the account repository.
+        Validates password strength (lowercase, uppercase, special char),
+        then hashes and persists via the account repository.
 
         Args:
             new_password: The new plaintext password to set.
 
         Raises:
             AuthenticationError: If the user is not signed in.
+            WeakPasswordError: If password lacks lowercase, uppercase,
+                or special character.
         """
         account = self.get_current_account()
         if not account:
@@ -302,6 +315,9 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         Bans a user account. Only admins can ban non-admin accounts.
 
+        Clears the session token to force immediate disconnection
+        on the next request from any active session.
+
         Args:
             admin_id: The unique identifier of the admin performing the action.
             target_account_id: The unique identifier of the account to ban.
@@ -324,6 +340,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             raise AuthorizationError("Cannot ban another admin.")
 
         self.account_repository.update_ban_status(target_account_id, True, ban_reason)
+        self.account_repository.update_session_token(target_account_id, None)
 
     def unban_account(self, admin_id: int, target_account_id: int) -> None:
         """

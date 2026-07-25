@@ -461,6 +461,34 @@ class TestSecurityHeaders:
         assert b"Return to home" in response.data
 
 
+class TestSessionUnique:
+    """Tests focused on session uniqueness (anti-double-connexion)."""
+
+    def test_double_session_redirects_to_home(self, client, db_session):
+        """Login user on client1, login same user on client2.
+        client1's next request → 302 redirect to / + flash."""
+        client.post("/register", data={
+            "username": "double_session",
+            "email": "ds@t.com",
+            "password": "Str0ng!Pass",
+            "confirm_password": "Str0ng!Pass",
+        }, follow_redirects=False)
+
+        client2 = client.application.test_client()
+
+        client.post("/login", data={"username": "double_session", "password": "Str0ng!Pass"},
+                     follow_redirects=False)
+        client2.post("/login", data={"username": "double_session", "password": "Str0ng!Pass"},
+                      follow_redirects=False)
+
+        resp = client.get("/profile", follow_redirects=False)
+        assert resp.status_code == 302
+        assert resp.location.endswith("/")
+
+        html = client.get("/", follow_redirects=False).data.decode()
+        assert "You have been disconnected" in html
+
+
 class TestCompression:
     """Tests focused on HTTP response compression (flask-compress)."""
 

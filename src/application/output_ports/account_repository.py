@@ -199,6 +199,20 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    def update_session_token(self, account_id: int, token: str | None) -> None:
+        """
+        Updates the session token for a given account.
+
+        Setting token to None effectively invalidates all existing sessions,
+        forcing the user to re-authenticate on next login attempt.
+
+        Args:
+            account_id: The ID of the account to update.
+            token: The new session token, or None to clear.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier.

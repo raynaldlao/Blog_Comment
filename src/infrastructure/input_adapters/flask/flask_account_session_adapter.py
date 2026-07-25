@@ -45,8 +45,29 @@ class AccountSessionAdapter(MethodView):
         self.comment_service = comment_service
 
     def _identify_user(self):
-        """Injects the current user into the global request context."""
+        """Injects the current user into the global request context.
+
+        Checks for a pre-existing session (user_id + session_token in cookie).
+        After fetching the account, compares the cookie token against the
+        database token. On mismatch (session stolen / another login elsewhere):
+        - Flashes a disconnection message in the "error" category.
+        - Returns a redirect to the article list (non-API paths only).
+        - API paths (/api/) skip the redirect; the 401 is handled by the
+          React front-end via FlaskSessionAdapter returning None.
+        If no mismatch or no pre-existing session, proceeds normally.
+        """
+        had_session = (
+            session.get("user_id") is not None
+            and session.get("session_token") is not None
+        )
         global_request_context.current_user = self.session_service.get_current_account()
+        if had_session and global_request_context.current_user is None:
+            flash(
+                _("You have been disconnected because your account was logged in from another location."),
+                "error",
+            )
+            if not request.path.startswith("/api/"):
+                return redirect(url_for("article.list_articles"))
 
     def register_before_request_handler(self, app):
         """
@@ -268,8 +289,9 @@ class AccountSessionAdapter(MethodView):
         Handles password change form submission.
 
         Validates authentication, extracts the new password from the form data,
-        and delegates the update to the session service. Redirects back to
-        the profile page with a flash message on success or error.
+        and delegates the update to the session service. Catches both
+        BlogCommentError and WeakPasswordError for user-friendly flash messages.
+        Redirects back to the profile page on success or error.
 
         Returns:
             Response: A Flask redirect response to the profile page.

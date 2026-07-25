@@ -225,6 +225,23 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         model.account_password = new_hashed_password
         self._db_commit()
 
+    def update_session_token(self, account_id: int, token: str | None) -> None:
+        """
+        Updates the session token for the given account directly in the database.
+
+        Performs a targeted column update without loading or saving the full
+        Account entity.
+
+        Args:
+            account_id: The ID of the account to update.
+            token: The new session token, or None to clear.
+        """
+        model = self._db_get(AccountModel, account_id)
+        if model is None:
+            return
+        model.session_token = token
+        self._db_commit()
+
     def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
         """
         Sets or clears the ban status for the given account directly in the database.

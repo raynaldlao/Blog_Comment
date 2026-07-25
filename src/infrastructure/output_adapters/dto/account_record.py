@@ -25,6 +25,7 @@ class AccountRecord(BaseModel):
     avatar_file_id: str | None = None
     is_banned: bool = False
     ban_reason: str | None = None
+    session_token: str | None = None
 
     def to_domain(self) -> Account:
         """
@@ -33,7 +34,8 @@ class AccountRecord(BaseModel):
         Returns:
             Account: The corresponding domain entity, including the
             conversion of the 'account_role' string to an AccountRole enum,
-            the optional avatar_file_id reference, and the ban status fields.
+            the optional avatar_file_id reference, the ban status fields,
+            and the session_token for unique session enforcement.
         """
         return Account(
             account_id=self.account_id,
@@ -45,4 +47,5 @@ class AccountRecord(BaseModel):
             avatar_file_id=self.avatar_file_id,
             is_banned=self.is_banned,
             ban_reason=self.ban_reason,
+            session_token=self.session_token,
         )

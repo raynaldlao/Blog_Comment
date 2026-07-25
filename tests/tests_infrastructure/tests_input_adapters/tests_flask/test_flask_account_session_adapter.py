@@ -702,3 +702,29 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
         self.client.get("/req2")
         user2 = self._captured_user
         assert user2 is None
+
+    def test_before_request_token_mismatch_redirects_non_api(self):
+        self.mock_session_service.get_current_account.return_value = None
+        self.adapter.register_before_request_handler(self.app)
+        self._register_dummy_route("/test-page", "test.page", "page")
+        self._register_dummy_route("/", "article.list_articles", "articles")
+
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = "1"
+            sess["session_token"] = "old_token"
+
+        response = self.client.get("/test-page")
+        assert response.status_code == 302
+
+    def test_before_request_token_mismatch_api_skips_redirect(self):
+        self.mock_session_service.get_current_account.return_value = None
+        self.adapter.register_before_request_handler(self.app)
+        self._register_dummy_route("/api/test", "test.api", "api-test")
+
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = "1"
+            sess["session_token"] = "old_token"
+
+        response = self.client.get("/api/test")
+        assert response.status_code == 200
+        assert b"api-test" in response.data

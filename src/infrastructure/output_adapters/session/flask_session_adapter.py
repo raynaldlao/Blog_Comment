@@ -14,6 +14,7 @@ class FlaskSessionAdapter(AccountSessionRepository):
     _KEY_USER_ID = "user_id"
     _KEY_USERNAME = "username"
     _KEY_ROLE = "role"
+    _KEY_SESSION_TOKEN = "session_token"
 
     def __init__(self, account_repository: AccountRepository):
         """
@@ -34,10 +35,15 @@ class FlaskSessionAdapter(AccountSessionRepository):
         flask_session[self._KEY_USER_ID] = account.account_id
         flask_session[self._KEY_USERNAME] = account.account_username
         flask_session[self._KEY_ROLE] = account.account_role.value
+        flask_session[self._KEY_SESSION_TOKEN] = account.session_token
 
     def get_account(self) -> Account | None:
         """
         Retrieves the currently connected domain Account.
+
+        Compares the session token stored in the cookie against the token
+        in the database. If they differ (another login occurred elsewhere),
+        the session is silently cleared.
 
         Returns:
             Account | None: The domain account if a session is active, otherwise None.
@@ -47,7 +53,14 @@ class FlaskSessionAdapter(AccountSessionRepository):
         if not account_id or not str(account_id).isdigit():
             return None
 
-        return self.account_repository.get_by_id(int(str(account_id)))
+        account = self.account_repository.get_by_id(int(str(account_id)))
+
+        session_token = flask_session.get(self._KEY_SESSION_TOKEN)
+        if account and session_token is not None and account.session_token != session_token:
+            self.clear()
+            return None
+
+        return account
 
     def clear(self) -> None:
         """

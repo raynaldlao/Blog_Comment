@@ -234,6 +234,22 @@ class InMemoryAccountRepository(AccountRepository):
         account.is_banned = is_banned
         account.ban_reason = ban_reason
 
+    def update_session_token(self, account_id: int, token: str | None) -> None:
+        """
+        Updates the session token for the given account in memory.
+
+        Args:
+            account_id: The ID of the account to update.
+            token: The new session token, or None to clear.
+
+        Raises:
+            AccountNotFoundError: If no account with the given ID exists.
+        """
+        account = self._accounts.get(account_id)
+        if account is None:
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
+        account.session_token = token
+
     def delete(self, account_id: int) -> None:
         """
         Deletes an account by its unique identifier from the in-memory store.
