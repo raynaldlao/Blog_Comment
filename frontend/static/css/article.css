@@ -442,7 +442,6 @@ input[type=number] {
 .modal-input-group label {
     font-size: var(--font-body-base);
     color: var(--on-surface-variant);
-    font-family: var(--font-mono);
 }
 
 .stepper-container {
