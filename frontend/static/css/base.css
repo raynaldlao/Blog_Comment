@@ -784,4 +784,5 @@ hr {
     font-size: var(--font-body-xs);
     color: var(--text-secondary);
     text-align: justify;
+    margin-bottom: 0.125rem;
 }

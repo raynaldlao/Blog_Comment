@@ -436,7 +436,7 @@ input[type=number] {
 .modal-input-group {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 0;
 }
 
 .modal-input-group label {

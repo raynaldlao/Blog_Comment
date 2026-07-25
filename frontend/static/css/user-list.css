@@ -378,7 +378,7 @@ input.search-input {
 .dialog .modal-input-group {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 0;
 }
 
 .dialog .modal-input-group label {
