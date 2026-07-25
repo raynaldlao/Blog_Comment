@@ -509,7 +509,7 @@ button:hover,
     z-index: var(--z-base);
 }
 
-.btn:hover {
+.btn:hover:not(.btn-secondary):not(.btn-danger) {
     color: var(--on-primary);
 }
 

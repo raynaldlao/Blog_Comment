@@ -72,7 +72,7 @@
         document.getElementById('comment-form-title').textContent = _t('Editing comment');
 
         restoreButtonText();
-        editToggle.textContent = _t('Cancel');
+        editToggle.textContent = _t('[Cancel]');
         activeMode.type = 'edit';
         activeMode.commentId = commentId;
         activeMode.button = editToggle;
