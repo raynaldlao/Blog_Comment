@@ -1838,4 +1838,22 @@ a.comment-author:hover {
     }
 }
 
+/* Comment Rules */
+.comment-rules {
+    font-size: 0.8125rem;
+    color: var(--on-surface-variant);
+    background: var(--surface-container);
+    border: 1px solid var(--outline-variant);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+.comment-rules p {
+    margin: 0 0 var(--spacing-xs);
+}
+.comment-rules ul {
+    margin: 0;
+    padding-left: var(--spacing-lg);
+}
+
 
