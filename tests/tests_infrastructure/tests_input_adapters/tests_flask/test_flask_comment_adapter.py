@@ -227,7 +227,7 @@ class TestCommentEdit(CommentAdapterTestBase):
 
 class TestCommentHardDelete(CommentAdapterTestBase):
     def test_hard_delete_comment_success(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(user)
         self.mock_comment_service.hard_delete_comment.return_value = True
         response = self.client.post("/articles/1/comments/99/delete-permanent")
@@ -245,7 +245,7 @@ class TestCommentHardDelete(CommentAdapterTestBase):
         self.mock_comment_service.hard_delete_comment.assert_not_called()
 
     def test_hard_delete_comment_service_error_string(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        user = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.set_current_user(user)
         from blog_exceptions import CommentNotFoundError
         self.mock_comment_service.hard_delete_comment.side_effect = CommentNotFoundError("Comment not found")

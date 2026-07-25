@@ -1,12 +1,12 @@
 import time
 
+from flask import abort, flash, redirect, request, url_for
+from flask import g as global_request_context
 from flask_babel import gettext as _
 from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
-from flask import flash, redirect, request, url_for
-from flask import g as global_request_context
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 
@@ -213,11 +213,16 @@ class CommentAdapter:
 
         Returns:
             Response: A redirect to the article detail page.
+
+        Raises:
+            403: If the current user is not authenticated as an admin.
         """
         user = global_request_context.get("current_user")
         if not user:
             flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
+        if user.account_role != "admin":
+            abort(403)
 
         try:
             self.comment_service.hard_delete_comment(

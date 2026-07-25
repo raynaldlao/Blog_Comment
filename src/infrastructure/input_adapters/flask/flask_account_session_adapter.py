@@ -1,12 +1,12 @@
 import logging
 import math
 
-from flask_babel import gettext as _
-
-from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError, WeakPasswordError
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask.views import MethodView
+from flask_babel import gettext as _
+
+from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError, WeakPasswordError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.comment_management import CommentManagementPort
@@ -92,7 +92,12 @@ class AccountSessionAdapter(MethodView):
 
         Returns:
             Response: A Flask redirect response.
+
+        Raises:
+            403: If no user is currently authenticated.
         """
+        if not self.session_service.get_current_account():
+            abort(403)
         self.session_service.terminate_session()
         flash(_("You have been logged out."), "info")
         return redirect(url_for("article.list_articles"))
