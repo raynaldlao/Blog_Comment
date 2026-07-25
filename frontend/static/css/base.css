@@ -509,6 +509,10 @@ button:hover,
     z-index: var(--z-base);
 }
 
+.btn:hover {
+    color: var(--on-primary);
+}
+
 .btn-secondary {
     background: transparent;
     border: 1px solid var(--outline);

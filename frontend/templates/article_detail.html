@@ -75,8 +75,8 @@
         
         <div class="detail-actions">
             {% if current_user and (current_user.account_id == article.article_author_id or current_user.account_role == 'admin') %}
-                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm btn-secondary">{{ _('Edit') }}</a>
-                <a href="#" class="btn btn-sm btn-secondary btn-danger confirm-trigger" data-confirm-message="{{ _('Delete this article permanently ?') }}" data-form-id="delete-article-{{ article.article_id }}">{{ _('Delete') }}</a>
+                <a href="{{ url_for('article.render_edit_page', article_id=article.article_id) }}" class="btn btn-sm">{{ _('Edit') }}</a>
+                <a href="#" class="btn btn-sm btn-danger confirm-trigger" data-confirm-message="{{ _('Delete this article permanently ?') }}" data-form-id="delete-article-{{ article.article_id }}">{{ _('Delete') }}</a>
                 <form id="delete-article-{{ article.article_id }}" action="{{ url_for('article.delete_article_html', article_id=article.article_id) }}" method="POST" hidden>
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" hidden></button>
