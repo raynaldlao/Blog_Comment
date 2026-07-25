@@ -307,6 +307,10 @@ msgstr "Publier le commentaire"
 msgid "Cancel"
 msgstr "Annuler"
 
+#: frontend/templates/article_detail.html:239
+msgid "[Cancel]"
+msgstr "[Annuler]"
+
 #: frontend/templates/article_detail.html:209
 #, python-format
 msgid ""

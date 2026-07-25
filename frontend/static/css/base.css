@@ -509,6 +509,10 @@ button:hover,
     z-index: var(--z-base);
 }
 
+.btn:hover:not(.btn-secondary):not(.btn-danger) {
+    color: var(--on-primary);
+}
+
 .btn-secondary {
     background: transparent;
     border: 1px solid var(--outline);
@@ -516,6 +520,7 @@ button:hover,
 }
 
 .btn-secondary:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
     border-color: var(--primary);
     filter: brightness(1.15);
 }
@@ -653,13 +658,6 @@ a:focus-visible {
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: var(--font-body-base);
     box-shadow: none;
-}
-.btn-dialog.btn-secondary {
-    color: var(--primary);
-}
-.btn-dialog.btn-secondary:hover {
-    background: color-mix(in srgb, var(--primary) 8%, transparent);
-    border-color: var(--primary);
 }
 .btn-dialog.btn-primary {
     border-color: var(--primary);

@@ -30,18 +30,15 @@
     border-radius: var(--radius-full);
 }
 
-#upload-avatar-btn {
+.avatar-actions {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
     margin-bottom: var(--spacing-sm);
 }
-
-.remove-avatar-form {
-    display: inline-block;
-    margin-bottom: var(--spacing-sm);
-}
-
 #upload-avatar-btn,
 .remove-avatar-form .btn-sm {
-    min-width: 8rem;
+    min-width: 12rem;
 }
 
 .role-badge {
@@ -95,6 +92,7 @@
     margin-top: var(--spacing-lg);
 }
 
+.profile-actions .btn,
 .profile-actions .btn-secondary,
 .profile-actions .btn-danger {
     padding: var(--spacing-xs) var(--spacing-md);
@@ -119,6 +117,9 @@
     font-family: var(--font-mono);
     text-transform: uppercase;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    transform: translateY(1px);
 }
 
 .email-edit-btn:hover {
@@ -127,7 +128,7 @@
     filter: brightness(1.1);
 }
 
-@media (max-width: 22.5em) {
+@media (max-width: 37em) {
     .profile-card {
         padding: var(--spacing-md);
     }
@@ -153,15 +154,18 @@
         flex-shrink: 0;
     }
 
+    .avatar-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: fit-content;
+        margin: 0 auto var(--spacing-sm);
+    }
+
     .profile-actions {
         flex-direction: column;
         align-items: stretch;
         width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .profile-actions .btn {
-        width: 100%;
+        margin: 0 auto;
     }
 }
 
