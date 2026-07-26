@@ -10,8 +10,25 @@ from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 from babel.dates import format_datetime
+from flask import g as global_request_context
 from flask_babel import get_locale
 from markupsafe import Markup, escape
+
+
+def inject_current_user() -> dict:
+    """
+    Context processor that injects the current authenticated user into
+    the template rendering context.
+
+    Reads the user from ``flask.g.current_user`` (set by the
+    ``before_request`` hook in ``AccountSessionAdapter._identify_user``)
+    and makes it available as ``current_user`` in every template.
+
+    Returns:
+        dict: A single-entry dictionary with key ``"current_user"``
+        set to the domain Account object, or ``None`` for anonymous visitors.
+    """
+    return {"current_user": global_request_context.get("current_user")}
 
 
 class ViteManifest:

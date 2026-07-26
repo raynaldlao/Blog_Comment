@@ -15,6 +15,7 @@ from flask_setup.template_helpers import (
     ViteManifest,
     date_iso_filter,
     format_datetime_locale,
+    inject_current_user,
     inject_current_year,
     inject_vite_assets,
     nl2br_filter,
@@ -176,6 +177,7 @@ def _init_template_utils(app: Flask) -> None:
     app.jinja_env.filters["format_datetime_locale"] = format_datetime_locale
     app.context_processor(inject_current_year)
     app.context_processor(inject_vite_assets)
+    app.context_processor(inject_current_user)
 
 
 def _error_page(code: int, message: str) -> tuple[str, int]:

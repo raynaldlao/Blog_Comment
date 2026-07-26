@@ -73,6 +73,7 @@ class FlaskInputAdapterTestBase:
         Babel(self.app)
         self.app.extensions["babel"].locale_selector = lambda: "en"
         self.app.context_processor(lambda: {"get_locale": lambda: self.app.extensions["babel"].locale_selector()})
+        self.app.context_processor(lambda: {"current_user": global_request_context.get("current_user")})
         CSRFProtect(self.app)
         self._test_user = None
         self._dummy_labels = {}

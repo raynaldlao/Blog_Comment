@@ -135,7 +135,7 @@ class AccountSessionAdapter(MethodView):
             return redirect(url_for("auth.login"))
 
         user_dto = AccountResponse.from_domain(account)
-        return render_template("profile.html", user=user_dto, current_user=user_dto, is_own_profile=True)
+        return render_template("profile.html", user=user_dto, is_own_profile=True)
 
     def display_user_profile(self, username: str):
         """
@@ -161,15 +161,11 @@ class AccountSessionAdapter(MethodView):
 
         user_dto = AccountResponse.from_domain(account)
 
-        current_user_dto = None
         current_account = getattr(global_request_context, "current_user", None)
-        if current_account:
-            current_user_dto = AccountResponse.from_domain(current_account)
 
         return render_template(
             "profile.html",
             user=user_dto,
-            current_user=current_user_dto,
             is_own_profile=bool(
                 current_account and current_account.account_id == account.account_id
             ),
@@ -364,7 +360,6 @@ class AccountSessionAdapter(MethodView):
             has_prev=(page > 1),
             has_next=(page < total_pages),
             query=query,
-            current_user=current_account,
             total_count=total,
         )
 

@@ -86,12 +86,10 @@ class ArticleAdapter:
         has_next = (page * 10) < total_count
         has_prev = page > 1
         total_pages = math.ceil(total_count / 10)
-        user = global_request_context.get("current_user")
 
         return render_template(
             "article_list.html",
             articles=articles,
-            current_user=user,
             page=page,
             has_next=has_next,
             has_prev=has_prev,
@@ -133,14 +131,12 @@ class ArticleAdapter:
             }])
 
         dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
-        user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",
             article=article,
             article_content_json=content,
             nested_comments=dto_comments,
             comment_count=self._count_comment_nodes(detail.nested_comments),
-            current_user=user,
             page_with_editor=True,
             page_with_comments=True,
         )
@@ -162,7 +158,7 @@ class ArticleAdapter:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
-        return render_template("article_create.html", current_user=user, page_with_editor=True)
+        return render_template("article_create.html", page_with_editor=True)
 
     def api_get_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
@@ -384,4 +380,4 @@ class ArticleAdapter:
 
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
-        return render_template("article_edit.html", article=article, current_user=user, page_with_editor=True)
+        return render_template("article_edit.html", article=article, page_with_editor=True)

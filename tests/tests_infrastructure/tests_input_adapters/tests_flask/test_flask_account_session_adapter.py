@@ -127,6 +127,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
 
     def test_get_profile_success(self):
         fake_user = create_test_account()
+        self.set_current_user(fake_user)
         self.mock_session_service.get_current_account.return_value = fake_user
         response = self.client.get("/profile")
         assert response.status_code == 200
@@ -140,6 +141,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
 
     def test_get_profile_author_nav(self):
         fake_author = create_test_account(account_role=AccountRole.AUTHOR)
+        self.set_current_user(fake_author)
         self.mock_session_service.get_current_account.return_value = fake_author
         response = self.client.get("/profile")
         assert response.status_code == 200

@@ -1,5 +1,4 @@
 from flask import flash, redirect, render_template, request, url_for
-from flask import g as global_request_context
 from flask.views import MethodView
 from flask_babel import gettext as _
 from pydantic import ValidationError
@@ -31,8 +30,7 @@ class LoginAdapter(MethodView):
         Returns:
             str: The rendered HTML for the login page.
         """
-        user = global_request_context.get("current_user")
-        return render_template("login.html", current_user=user)
+        return render_template("login.html")
 
     def authenticate(self):
         """
@@ -42,7 +40,6 @@ class LoginAdapter(MethodView):
         Returns:
             Response: Redirects to the articles list on success, or back to login on failure.
         """
-        user = global_request_context.get("current_user")
         submitted_username = request.form.get("username", "")
 
         try:
@@ -56,7 +53,7 @@ class LoginAdapter(MethodView):
             for error in e.errors():
                 location = str(error["loc"][0]) if error["loc"] else "Request"
                 flash(_("Validation Error (%(location)s): %(message)s", location=location, message=error["msg"]), "error")
-            return render_template("login.html", current_user=user, username=submitted_username)
+            return render_template("login.html", username=submitted_username)
 
         try:
             self.login_service.authenticate_user(
@@ -70,4 +67,4 @@ class LoginAdapter(MethodView):
         else:
             return redirect(url_for("article.list_articles"))
 
-        return render_template("login.html", current_user=user, username=login_data.username)
+        return render_template("login.html", username=login_data.username)
