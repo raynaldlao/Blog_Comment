@@ -1,3 +1,9 @@
+"""Jinja2 filters, context processors, and Vite asset resolution.
+
+Consumed by Flask templates via ``blog_comment_application.py``.
+Registered as Jinja filters and context processors at startup.
+"""
+
 import json
 import os
 from datetime import UTC, datetime
@@ -66,6 +72,7 @@ class ViteManifest:
             if path.startswith("assets/vendor-") and path.endswith(".js"):
                 return path
         return None
+
 
 def nl2br_filter(text: str | None) -> str:
     """

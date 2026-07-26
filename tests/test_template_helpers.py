@@ -5,7 +5,7 @@ from flask import render_template_string
 from jinja2.exceptions import TemplateNotFound
 from markupsafe import Markup
 
-from utils.template_helpers import date_iso_filter, nl2br_filter
+from flask_setup.template_helpers import date_iso_filter, nl2br_filter
 
 
 class TestIconMacro:

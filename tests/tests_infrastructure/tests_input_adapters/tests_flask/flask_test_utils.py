@@ -5,8 +5,8 @@ from flask import g as global_request_context
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
 
+from flask_setup.template_helpers import date_iso_filter, format_datetime_locale, nl2br_filter
 from utils.prosemirror_to_html import prosemirror_to_html
-from utils.template_helpers import date_iso_filter, format_datetime_locale, nl2br_filter
 
 
 class FlaskInputAdapterTestBase:

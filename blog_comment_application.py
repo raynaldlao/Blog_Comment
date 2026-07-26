@@ -11,6 +11,14 @@ from sqlalchemy.orm import Session
 from config.env_config import env_config
 from flask_setup.middleware import init_web_security
 from flask_setup.routes import register_web_routes
+from flask_setup.template_helpers import (
+    ViteManifest,
+    date_iso_filter,
+    format_datetime_locale,
+    inject_current_year,
+    inject_vite_assets,
+    nl2br_filter,
+)
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
 from src.application.services.file_service import FileService
@@ -30,14 +38,6 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_comment_adapter im
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database import setup_database
 from utils.prosemirror_to_html import prosemirror_to_html
-from utils.template_helpers import (
-    ViteManifest,
-    date_iso_filter,
-    format_datetime_locale,
-    inject_current_year,
-    inject_vite_assets,
-    nl2br_filter,
-)
 
 
 def _create_output_adapters(db_session: Session) -> dict:
