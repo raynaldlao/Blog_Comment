@@ -1,10 +1,8 @@
-from datetime import datetime
-from typing import cast
-
 from sqlalchemy.orm import Session
 
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.application.output_ports.file_storage_repository import FileStorageRepository
+from src.infrastructure.output_adapters.dto.uploaded_file_record import UploadedFileRecord
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_uploaded_file_model import UploadedFileModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_base_adapter import (
     SqlAlchemyBaseAdapter,
@@ -15,8 +13,8 @@ class SqlAlchemyFileStorageAdapter(SqlAlchemyBaseAdapter, FileStorageRepository)
     """SQLAlchemy-based implementation of FileStorageRepository.
 
     Persists uploaded files as BYTEA in the uploaded_files table.
-    Maps directly between UploadedFileModel (ORM) and FileRecord (domain).
-    No DTO needed — FileRecord has no enums or complex conversions.
+    Uses UploadedFileRecord DTO between ORM and domain to handle
+    column name mapping (file_size -> size, file_data -> data).
 
     All methods may raise DatabaseError on database failure.
     """
@@ -29,14 +27,14 @@ class SqlAlchemyFileStorageAdapter(SqlAlchemyBaseAdapter, FileStorageRepository)
         """
         super().__init__(session)
 
-    def save(self, file_record: FileRecord) -> FileRecord:
+    def save(self, file_record: UploadedFile) -> UploadedFile:
         """Persist a file record to the database.
 
         Args:
             file_record: Domain entity to persist.
 
         Returns:
-            FileRecord with assigned ID and timestamp.
+            UploadedFile with assigned ID and timestamp.
         """
         model = UploadedFileModel(
             file_id=file_record.file_id,
@@ -50,26 +48,19 @@ class SqlAlchemyFileStorageAdapter(SqlAlchemyBaseAdapter, FileStorageRepository)
         self._db_commit()
         return file_record
 
-    def get(self, file_id: str) -> FileRecord | None:
+    def get(self, file_id: str) -> UploadedFile | None:
         """Retrieve a file record by UUID.
 
         Args:
             file_id: UUID string.
 
         Returns:
-            FileRecord if found, None otherwise.
+            UploadedFile if found, None otherwise.
         """
         model = self._db_get(UploadedFileModel, file_id)
         if model is None:
             return None
-        return FileRecord(
-            file_id=str(cast(str, model.file_id)),
-            original_filename=cast(str, model.original_filename),
-            mime_type=cast(str, model.mime_type),
-            size=cast(int, model.file_size),
-            data=cast(bytes, model.file_data),
-            created_at=cast(datetime, model.created_at),
-        )
+        return UploadedFileRecord.model_validate(model).to_domain()
 
     def delete(self, file_id: str) -> None:
         """Delete a file record by UUID.

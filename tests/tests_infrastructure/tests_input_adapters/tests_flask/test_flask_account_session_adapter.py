@@ -201,11 +201,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         from datetime import datetime
         from io import BytesIO
 
-        from src.application.domain.file_record import FileRecord
+        from src.application.domain.uploaded_file import UploadedFile
 
         fake_user = create_test_account()
         self.set_current_user(fake_user)
-        fake_file = FileRecord(
+        fake_file = UploadedFile(
             file_id="abc-123",
             original_filename="avatar.jpg",
             mime_type="image/jpeg",
@@ -230,11 +230,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         from datetime import datetime
         from io import BytesIO
 
-        from src.application.domain.file_record import FileRecord
+        from src.application.domain.uploaded_file import UploadedFile
 
         fake_user = create_test_account(account_avatar_file_id="old-avatar-id")
         self.set_current_user(fake_user)
-        fake_file = FileRecord(
+        fake_file = UploadedFile(
             file_id="new-avatar-id",
             original_filename="new_avatar.jpg",
             mime_type="image/jpeg",

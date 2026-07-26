@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 
 
 class FileStorageRepository(ABC):
@@ -10,20 +10,20 @@ class FileStorageRepository(ABC):
     """
 
     @abstractmethod
-    def save(self, file_record: FileRecord) -> FileRecord:
+    def save(self, file_record: UploadedFile) -> UploadedFile:
         """
         Persists a file record to the database.
 
         Args:
-            file_record (FileRecord): The file record to save.
+            file_record (UploadedFile): The file record to save.
 
         Returns:
-            FileRecord: The saved file record with ID assigned.
+            UploadedFile: The saved file record with ID assigned.
         """
         pass
 
     @abstractmethod
-    def get(self, file_id: str) -> FileRecord | None:
+    def get(self, file_id: str) -> UploadedFile | None:
         """
         Retrieves a file record by its UUID.
 
@@ -31,7 +31,7 @@ class FileStorageRepository(ABC):
             file_id (str): The UUID of the file.
 
         Returns:
-            FileRecord | None: The file record if found, None otherwise.
+            UploadedFile | None: The file record if found, None otherwise.
         """
         pass
 

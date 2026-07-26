@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_file_storage_adapter import SqlAlchemyFileStorageAdapter
 from tests.tests_infrastructure.tests_output_adapters.tests_sqlalchemy.sqlalchemy_test_utils import SqlAlchemyTestBase
 
@@ -14,7 +14,7 @@ class TestSqlAlchemyFileStorageAdapter(SqlAlchemyTestBase):
         self.repository = adapter
 
     def test_save_and_get(self):
-        file_record = FileRecord(
+        file_record = UploadedFile(
             file_id=str(uuid4()),
             original_filename="test.png",
             mime_type="image/png",
@@ -40,7 +40,7 @@ class TestSqlAlchemyFileStorageAdapter(SqlAlchemyTestBase):
 
     def test_save_preserves_binary_data(self):
         binary_data = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
-        file_record = FileRecord(
+        file_record = UploadedFile(
             file_id=str(uuid4()),
             original_filename="tiny.png",
             mime_type="image/png",

@@ -1,7 +1,7 @@
 from io import BytesIO
 from unittest.mock import Mock
 
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_file_adapter import FlaskFileAdapter
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
@@ -32,7 +32,7 @@ class FlaskFileAdapterTest(FlaskInputAdapterTestBase):
 
 class TestFileUpload(FlaskFileAdapterTest):
     def test_upload_image_success(self):
-        record = FileRecord(
+        record = UploadedFile(
             file_id="uuid-123",
             original_filename="photo.jpg",
             mime_type="image/jpeg",
@@ -83,7 +83,7 @@ class TestFileUpload(FlaskFileAdapterTest):
 
 class TestFileServe(FlaskFileAdapterTest):
     def test_serve_file_success(self):
-        record = FileRecord(
+        record = UploadedFile(
             file_id="uuid-456",
             original_filename="photo.jpg",
             mime_type="image/jpeg",

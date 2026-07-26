@@ -1,9 +1,9 @@
 from datetime import datetime
 
 
-class FileRecord:
+class UploadedFile:
     """
-    Represents an uploaded file stored in the database.
+    Represents an uploaded file stored in the uploaded_files table.
 
     Attributes:
         file_id (str): UUID of the file.

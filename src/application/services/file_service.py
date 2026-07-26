@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from blog_exceptions import FileTooLargeError, FileTypeError
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.file_storage_repository import FileStorageRepository
 
@@ -81,7 +81,7 @@ class FileService(FileManagementPort):
                 f"of {self._MAX_FILE_SIZE} bytes (5 MB)."
             )
 
-    def upload_file(self, filename: str, data: bytes, mime_type: str) -> FileRecord:
+    def upload_file(self, filename: str, data: bytes, mime_type: str) -> UploadedFile:
         """Validate and persist an uploaded file.
 
         Args:
@@ -90,7 +90,7 @@ class FileService(FileManagementPort):
             mime_type: MIME type string.
 
         Returns:
-            FileRecord with assigned UUID and timestamp.
+            UploadedFile with assigned UUID and timestamp.
 
         Raises:
             FileTypeError: If extension or MIME type is not allowed.
@@ -100,7 +100,7 @@ class FileService(FileManagementPort):
         self._validate_mime_type(mime_type)
         self._validate_size(len(data))
 
-        file_record = FileRecord(
+        file_record = UploadedFile(
             file_id=str(uuid4()),
             original_filename=filename,
             mime_type=mime_type,
@@ -111,14 +111,14 @@ class FileService(FileManagementPort):
 
         return self.file_storage_repository.save(file_record)
 
-    def get_file(self, file_id: str) -> FileRecord | None:
+    def get_file(self, file_id: str) -> UploadedFile | None:
         """Retrieve a file record by UUID.
 
         Args:
             file_id: UUID string of the file.
 
         Returns:
-            FileRecord if found, None otherwise.
+            UploadedFile if found, None otherwise.
         """
         return self.file_storage_repository.get(file_id)
 
