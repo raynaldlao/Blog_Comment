@@ -186,10 +186,49 @@ def _error_page(code: int, message: str) -> tuple[str, int]:
     return render_template("error.html", code=code, message=message), code
 
 
+def _shutdown_db_session(exception: BaseException | None = None) -> None:
+    """Remove the scoped DB session at the end of each request.
+
+    Reads the session from the Flask app config and removes it
+    from the current thread registry. Idempotent — safe to call
+    multiple times.
+
+    Args:
+        exception: The exception that occurred during the request,
+            or None if the request completed successfully.
+    """
+    from flask import current_app
+    session = current_app.config.pop("_DB_SESSION", None)
+    if session is not None:
+        session.remove()
+
+
+def _inject_get_locale() -> dict:
+    """Inject the current locale into all templates.
+
+    Returns a single-entry dictionary so templates can call
+    ``get_locale()`` to retrieve the active locale string
+    from the session.
+
+    Returns:
+        dict: A dictionary with key ``"get_locale"`` whose value
+        is a callable returning the locale string.
+    """
+    return {"get_locale": lambda: session.get("lang", "fr")}
+
+
 def create_app(db_session=None) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
     Orchestrates the assembly of the Core and the Web Facade.
+
+    Creates a scoped SQLAlchemy session (thread-safe, one per thread)
+    and registers a teardown handler that removes the session from the
+    current thread at the end of each request.
+
+    When a test session is injected via ``db_session``, the caller
+    owns the session lifecycle and no teardown handler is registered
+    (the test fixture handles cleanup via its own ``session.remove()``).
 
     Args:
         db_session: Optional pre-existing database session.
@@ -197,17 +236,19 @@ def create_app(db_session=None) -> Flask:
     Returns:
         Flask: The configured Flask application (Web Facade).
     """
+    _injected_session = db_session is not None
     db_session = setup_database(db_session)
     repositories = _create_output_adapters(db_session)
     services = _create_services(repositories)
     app = _init_web_facade_flask()
+
+    if not _injected_session and hasattr(db_session, "remove"):
+        app.config["_DB_SESSION"] = db_session
+        app.teardown_appcontext(_shutdown_db_session)
+
     Compress(app)
     Babel(app, locale_selector=lambda: session.get("lang", "fr"))
-
-    @app.context_processor
-    def inject_get_locale():
-        return {"get_locale": lambda: session.get("lang", "fr")}
-
+    app.context_processor(_inject_get_locale)
     init_web_security(app)
     _init_template_utils(app)
     web_adapters = _init_web_adapters(services)
