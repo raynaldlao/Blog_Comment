@@ -5,10 +5,13 @@ import pytest
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.domain.comment import Comment
+from src.application.domain.uploaded_file import UploadedFile
 from src.infrastructure.output_adapters.in_memory.account_repository import InMemoryAccountRepository
 from src.infrastructure.output_adapters.in_memory.account_session_repository import InMemoryAccountSessionRepository
 from src.infrastructure.output_adapters.in_memory.article_repository import InMemoryArticleRepository
 from src.infrastructure.output_adapters.in_memory.comment_repository import InMemoryCommentRepository
+from src.infrastructure.output_adapters.in_memory.file_storage_repository import InMemoryFileStorageRepository
+from src.infrastructure.output_adapters.in_memory.password_hasher_repository import InMemoryPasswordHasherRepository
 
 
 class TestInMemoryArticleRepository:
@@ -474,3 +477,52 @@ class TestInMemoryAccountSessionRepository:
     def test_get_account_empty_returns_none(self):
         repo = InMemoryAccountSessionRepository()
         assert repo.get_account() is None
+
+
+class TestInMemoryFileStorageRepository:
+    def test_save_and_get(self):
+        repo = InMemoryFileStorageRepository()
+        uploaded_file = UploadedFile(
+            file_id="abc-123", original_filename="test.png",
+            mime_type="image/png", size=1024, data=b"png-data",
+            created_at=datetime(2024, 1, 1, 12, 0, 0),
+        )
+        saved = repo.save(uploaded_file)
+        assert saved == uploaded_file
+        retrieved = repo.get("abc-123")
+        assert retrieved == uploaded_file
+
+    def test_get_nonexistent(self):
+        repo = InMemoryFileStorageRepository()
+        assert repo.get("nonexistent-id") is None
+
+    def test_delete(self):
+        repo = InMemoryFileStorageRepository()
+        uploaded_file = UploadedFile(
+            file_id="to-delete", original_filename="del.png",
+            mime_type="image/png", size=512, data=b"del",
+        )
+        repo.save(uploaded_file)
+        repo.delete("to-delete")
+        assert repo.get("to-delete") is None
+
+    def test_delete_nonexistent_idempotent(self):
+        repo = InMemoryFileStorageRepository()
+        repo.delete("does-not-exist")
+
+
+class TestInMemoryPasswordHasherRepository:
+    def test_hash_and_verify(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("secure_password")
+        assert repo.verify("secure_password", hashed) is True
+
+    def test_verify_wrong_password(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("correct_password")
+        assert repo.verify("wrong_password", hashed) is False
+
+    def test_check_needs_rehash_returns_false(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("any_password")
+        assert repo.check_needs_rehash(hashed) is False
