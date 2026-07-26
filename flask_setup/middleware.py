@@ -182,6 +182,37 @@ class NonPersistentSessionInterface(SecureCookieSessionInterface):
         return None
 
 
+def _init_csrf_exemptions(app: Flask) -> None:
+    """Applies CSRF exemptions to API and internal endpoints.
+
+    Must be called AFTER all routes are registered so that
+    ``app.view_functions`` can resolve endpoint names to view
+    functions. Exemptions are defined here (not in routes.py)
+    to keep a single source of truth for endpoints that skip
+    CSRF protection.
+
+    Args:
+        app: The Flask application instance with all routes
+            already registered.
+    """
+    endpoints = [
+        "article.api_get",
+        "article.api_create",
+        "article.api_update",
+        "article.api_delete",
+        "auth.upload_profile_photo",
+        "file.upload_image",
+        "csp.handle_report",
+    ]
+    csrf = app.extensions.get("csrf")
+    if not csrf:
+        return
+    for endpoint in endpoints:
+        view_func = app.view_functions.get(endpoint)
+        if view_func:
+            csrf.exempt(view_func)
+
+
 def init_web_security(app: Flask) -> None:
     """Configures web security middleware for the Flask application.
 
@@ -193,7 +224,7 @@ def init_web_security(app: Flask) -> None:
     """
     app.session_interface = NonPersistentSessionInterface()
     app.config["WTF_CSRF_TIME_LIMIT"] = None
-    csrf_protect = CSRFProtect(app)
+    CSRFProtect(app)
     template_dir = Path(app.root_path) / "frontend" / "templates"
     csp = CSPConfig(template_dir)
     app.after_request(csp.add_headers)
@@ -201,5 +232,7 @@ def init_web_security(app: Flask) -> None:
     app.after_request(_add_x_frame_options)
     app.after_request(_add_referrer_policy)
     app.after_request(_add_cache_headers)
-    csrf_protect.exempt(csp.handle_report)
-    app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
+    app.add_url_rule(
+        "/csp-report", view_func=csp.handle_report,
+        methods=["POST"], endpoint="csp.handle_report",
+    )

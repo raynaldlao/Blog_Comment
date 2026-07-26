@@ -19,35 +19,30 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
 
 def _register_article_api_routes(app: Flask, adapters: dict) -> None:
     art = adapters["article_adapter"]
-    csrf = app.extensions["csrf"]
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_get_article, methods=["GET"],
         endpoint="article.api_get",
     )
-    csrf.exempt(art.api_get_article)
 
     app.add_url_rule(
         "/api/articles",
         view_func=art.api_create_article, methods=["POST"],
         endpoint="article.api_create",
     )
-    csrf.exempt(art.api_create_article)
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_update_article, methods=["PUT"],
         endpoint="article.api_update",
     )
-    csrf.exempt(art.api_update_article)
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art._api_delete_article, methods=["DELETE"],
         endpoint="article.api_delete",
     )
-    csrf.exempt(art._api_delete_article)
 
 
 def _register_comment_routes(app: Flask, adapters: dict) -> None:
@@ -85,7 +80,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     log = adapters["login_adapter"]
     reg = adapters["registration_adapter"]
     acc = adapters["account_session_adapter"]
-    csrf = app.extensions["csrf"]
     app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
@@ -103,7 +97,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         methods=["POST"],
         endpoint="auth.upload_profile_photo",
     )
-    csrf.exempt(acc.upload_profile_photo)
 
     app.add_url_rule(
         "/profile/photo/delete",
@@ -171,7 +164,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
 
 def _register_file_routes(app: Flask, adapters: dict) -> None:
     fad = adapters["file_adapter"]
-    csrf = app.extensions["csrf"]
 
     app.add_url_rule(
         "/api/upload/image",
@@ -179,7 +171,6 @@ def _register_file_routes(app: Flask, adapters: dict) -> None:
         methods=["POST"],
         endpoint="file.upload_image",
     )
-    csrf.exempt(fad.upload_image)
 
     app.add_url_rule(
         "/uploads/<string:file_id>/<string:filename>",

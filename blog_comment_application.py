@@ -9,7 +9,7 @@ from flask_compress import Compress
 from sqlalchemy.orm import Session
 
 from config.env_config import env_config
-from flask_setup.middleware import init_web_security
+from flask_setup.middleware import _init_csrf_exemptions, init_web_security
 from flask_setup.routes import register_web_routes
 from flask_setup.template_helpers import (
     ViteManifest,
@@ -211,6 +211,7 @@ def create_app(db_session=None) -> Flask:
     _init_template_utils(app)
     web_adapters = _init_web_adapters(services)
     register_web_routes(app, web_adapters)
+    _init_csrf_exemptions(app)
     web_adapters["account_session_adapter"].register_before_request_handler(app)
     app.errorhandler(403)(lambda e: _error_page(403, _("You do not have permission to access this page.")))
     app.errorhandler(404)(lambda e: _error_page(404, _("The page you are looking for does not exist.")))
