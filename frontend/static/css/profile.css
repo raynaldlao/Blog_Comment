@@ -197,9 +197,6 @@
     transition: color 0.15s ease;
 }
 
-.back-link:hover {
-    color: var(--primary);
-}
 
 .back-link .icon {
     display: flex;

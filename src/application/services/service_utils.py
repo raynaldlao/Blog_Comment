@@ -32,7 +32,7 @@ def build_comment_nested_tree(
 
     def _build_node(comment: Comment, depth: int) -> CommentNode:
         author_id = comment.comment_written_account_id
-        author_name = author_map.get(author_id, "Anonymous") if author_id is not None else "Anonymous"  # type: ignore  # safe: None handled
+        author_name = author_map.get(author_id, "Anonymous") if author_id is not None else "Anonymous"
         author_avatar_file_id = (
             avatar_map.get(author_id)
             if avatar_map and author_id is not None
