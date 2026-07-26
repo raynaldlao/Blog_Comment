@@ -18,7 +18,6 @@ from flask_setup.template_helpers import (
     inject_current_user,
     inject_current_year,
     inject_vite_assets,
-    nl2br_filter,
 )
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
@@ -157,7 +156,6 @@ def _init_template_utils(app: Flask) -> None:
     Registers custom Jinja2 filters and context processors on the Flask app.
 
     Provides the following filters to all templates:
-        - ``nl2br``: Escapes HTML and converts newlines to ``<br>`` tags.
         - ``date_format``: Formats a ``datetime`` as a human-readable string.
         - ``date_iso``: Formats a ``datetime`` as an ISO 8601 date string.
 
@@ -172,7 +170,6 @@ def _init_template_utils(app: Flask) -> None:
     """
     ViteManifest.init(os.path.join(app.static_folder or "", "dist"))
 
-    app.jinja_env.filters["nl2br"] = nl2br_filter
     app.jinja_env.filters["date_iso"] = date_iso_filter
     app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
     app.jinja_env.filters["format_datetime_locale"] = format_datetime_locale
@@ -189,6 +186,10 @@ def _error_page(code: int, message: str) -> tuple[str, int]:
 def _shutdown_db_session(exception: BaseException | None = None) -> None:
     """Remove the scoped DB session at the end of each request.
 
+    Uses ``current_app.config.get()`` (not ``pop``) to avoid removing
+    the shared key from ``app.config`` after the first request. Must
+    remain callable for all subsequent requests.
+
     Reads the session from the Flask app config and removes it
     from the current thread registry. Idempotent — safe to call
     multiple times.
@@ -198,7 +199,7 @@ def _shutdown_db_session(exception: BaseException | None = None) -> None:
             or None if the request completed successfully.
     """
     from flask import current_app
-    session = current_app.config.pop("_DB_SESSION", None)
+    session = current_app.config.get("_DB_SESSION")
     if session is not None:
         session.remove()
 

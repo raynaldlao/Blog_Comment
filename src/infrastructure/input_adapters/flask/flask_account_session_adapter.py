@@ -40,7 +40,15 @@ class AccountSessionAdapter:
         - API paths (/api/) skip the redirect; the 401 is handled by the
           React front-end via FlaskSessionAdapter returning None.
         If no mismatch or no pre-existing session, proceeds normally.
+
+        Static file paths (/static/) skip the DB lookup entirely to
+        avoid unnecessary connection pool pressure on every page asset
+        (JS, CSS, images, fonts).
         """
+        if request.path.startswith("/static/"):
+            global_request_context.current_user = None
+            return None
+
         had_session = (
             session.get("user_id") is not None
             and session.get("session_token") is not None

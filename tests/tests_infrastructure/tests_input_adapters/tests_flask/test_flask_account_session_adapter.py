@@ -697,3 +697,18 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
         response = self.client.get("/api/test")
         assert response.status_code == 200
         assert b"api-test" in response.data
+
+    def test_before_request_skips_static_paths(self):
+        self.adapter.register_before_request_handler(self.app)
+        self._register_dummy_route("/static/scripts/code-copy.js", "static-asset", "code-copy")
+
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = "1"
+            sess["session_token"] = "some_token"
+
+        response = self.client.get("/static/scripts/code-copy.js")
+        assert response.status_code == 200
+        assert b"code-copy" in response.data
+        captured_user = global_request_context.get("current_user")
+        assert captured_user is None
+        self.mock_session_service.get_current_account.assert_not_called()
