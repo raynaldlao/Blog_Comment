@@ -24,6 +24,24 @@ class CommentAdapter:
         """
         self.comment_service = comment_service
 
+    @staticmethod
+    def _check_honeypot(article_id: int) -> Response | None:
+        """Return a redirect response if the hidden honeypot field is filled.
+
+        Honeypot traps bots that fill invisible form fields. If triggered,
+        silently redirect back to the article page so the bot sees success.
+
+        Args:
+            article_id: Article ID for the redirect URL.
+
+        Returns:
+            Response | None: A redirect response if honeypot triggered,
+            otherwise None.
+        """
+        if request.form.get("hp_comment"):
+            return redirect(url_for("article.read_article", article_id=article_id))
+        return None
+
     def create_comment(self, article_id: int) -> Response:
         """
         Handles the creation of a new top-level comment on an article.
@@ -39,8 +57,9 @@ class CommentAdapter:
             flash(_("You must be signed in to post a comment."), "error")
             return redirect(url_for("auth.login"))
 
-        if request.form.get("hp_comment"):
-            return redirect(url_for("article.read_article", article_id=article_id))
+        honeypot = self._check_honeypot(article_id)
+        if honeypot:
+            return honeypot
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
@@ -86,8 +105,9 @@ class CommentAdapter:
             flash(_("You must be signed in to reply."), "error")
             return redirect(url_for("auth.login"))
 
-        if request.form.get("hp_comment"):
-            return redirect(url_for("article.read_article", article_id=article_id))
+        honeypot = self._check_honeypot(article_id)
+        if honeypot:
+            return honeypot
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
