@@ -71,7 +71,7 @@ class TestLoginService:
         self.mock_repo.find_by_username.return_value = fake_account
         self.mock_hasher.verify.return_value = False
 
-        with pytest.raises(AuthenticationError, match="Invalid username or password"):
+        with pytest.raises(AuthenticationError, match="Nom d'utilisateur ou mot de passe invalide"):
             self.service.authenticate_user(
                 username=fake_account.account_username,
                 password="bad_password"
@@ -83,7 +83,7 @@ class TestLoginService:
     def test_authenticate_user_non_existent(self):
         self.mock_repo.find_by_username.return_value = None
 
-        with pytest.raises(AuthenticationError, match="Invalid username or password"):
+        with pytest.raises(AuthenticationError, match="Nom d'utilisateur ou mot de passe invalide"):
             self.service.authenticate_user(username="phantom", password="nothing")
 
         self.mock_repo.find_by_username.assert_called_once_with("phantom")
@@ -123,7 +123,7 @@ class TestLoginService:
         self.mock_session_repo.get_account.return_value = fake_account
         self.mock_repo.find_by_email.return_value = other
 
-        with pytest.raises(EmailAlreadyTakenError, match="already taken"):
+        with pytest.raises(EmailAlreadyTakenError, match="déjà pris"):
             self.service.update_email("taken@test.com")
 
         self.mock_repo.update_email.assert_not_called()
@@ -131,7 +131,7 @@ class TestLoginService:
     def test_update_email_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
 
-        with pytest.raises(AuthenticationError, match="must be signed in"):
+        with pytest.raises(AuthenticationError, match="connecté"):
             self.service.update_email("new@test.com")
 
         self.mock_repo.update_email.assert_not_called()
@@ -148,7 +148,7 @@ class TestLoginService:
     def test_update_password_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
 
-        with pytest.raises(AuthenticationError, match="must be signed in"):
+        with pytest.raises(AuthenticationError, match="connecté"):
             self.service.update_password("new_secret")
 
         self.mock_hasher.hash.assert_not_called()
@@ -170,7 +170,7 @@ class TestLoginService:
 
     def test_delete_account_not_found_raises_account_not_found_error(self):
         self.mock_repo.get_by_id.return_value = None
-        with pytest.raises(AccountNotFoundError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="introuvable"):
             self.service.delete_account(999)
         self.mock_repo.delete.assert_not_called()
 
@@ -190,7 +190,7 @@ class TestLoginService:
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
 
-        with pytest.raises(AccountNotFoundError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="introuvable"):
             self.service.update_account_role(
                 admin_id=1, target_id=999, new_role="author"
             )
@@ -201,7 +201,7 @@ class TestLoginService:
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_repo.get_by_id.return_value = user
 
-        with pytest.raises(AuthorizationError, match="Unauthorized"):
+        with pytest.raises(AuthorizationError, match="Non autorisé"):
             self.service.update_account_role(
                 admin_id=1, target_id=2, new_role="author"
             )
@@ -213,7 +213,7 @@ class TestLoginService:
         target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
 
-        with pytest.raises(AuthorizationError, match="Cannot change role of another admin"):
+        with pytest.raises(AuthorizationError, match="Impossible de modifier"):
             self.service.update_account_role(
                 admin_id=1, target_id=2, new_role="user"
             )
@@ -246,7 +246,7 @@ class TestLoginService:
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
 
-        with pytest.raises(AccountNotFoundError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="introuvable"):
             self.service.ban_account(admin_id=1, target_account_id=999, ban_reason="Spam")
 
         self.mock_repo.update_ban_status.assert_not_called()
@@ -256,7 +256,7 @@ class TestLoginService:
         target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
         self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
 
-        with pytest.raises(AuthorizationError, match="Cannot ban another admin"):
+        with pytest.raises(AuthorizationError, match="bannir un autre administrateur"):
             self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
 
         self.mock_repo.update_ban_status.assert_not_called()
@@ -275,7 +275,7 @@ class TestLoginService:
         fake_account = create_test_account(is_banned=True)
         self.mock_repo.find_by_username.return_value = fake_account
 
-        with pytest.raises(AccountBannedError, match="banned"):
+        with pytest.raises(AccountBannedError, match="banni"):
             self.service.authenticate_user(
                 username=fake_account.account_username,
                 password=fake_account.account_password

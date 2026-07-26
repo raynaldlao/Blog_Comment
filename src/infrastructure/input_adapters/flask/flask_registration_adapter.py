@@ -53,8 +53,8 @@ class RegistrationAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(_("%(location)s: %(message)s", location=location, message=error["msg"]), "error")
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(_(msg), "error")
             return render_template("registration.html", username=submitted_username, email=submitted_email)
 
         try:
@@ -64,7 +64,7 @@ class RegistrationAdapter:
                 email=reg_data.email
             )
         except BlogCommentError as e:
-            flash(_(str(e)), "error")
+            flash(str(e), "error")
             return render_template("registration.html", username=reg_data.username, email=reg_data.email)
 
         flash(_("Registration successful. Please sign in."), "success")

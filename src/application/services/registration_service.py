@@ -45,10 +45,10 @@ class RegistrationService(RegistrationManagementPort):
         """
 
         if self.account_repository.find_by_username(username):
-            raise UsernameAlreadyTakenError("This username is already taken.")
+            raise UsernameAlreadyTakenError("Ce nom d'utilisateur ou cet email est déjà pris.")
 
         if self.account_repository.find_by_email(email):
-            raise EmailAlreadyTakenError("This email is already taken.")
+            raise EmailAlreadyTakenError("Ce nom d'utilisateur ou cet email est déjà pris.")
 
         hashed_password = self.password_hasher_repository.hash(password)
 
@@ -65,6 +65,6 @@ class RegistrationService(RegistrationManagementPort):
             self.account_repository.save(new_account)
         except AccountAlreadyExistsError:
             raise AccountAlreadyExistsError(
-                "This username or email is already taken."
+                "Ce nom d'utilisateur ou cet email est déjà pris."
             ) from None
         return new_account

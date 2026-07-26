@@ -153,7 +153,7 @@ class TestAccountUpdateEmail(SqlAlchemyAccountAdapterTestBase):
     def test_update_email_duplicate_raises_error(self):
         self.account_builder.create(username="first", email="first@test.com")
         second = self.account_builder.create(username="second", email="second@test.com")
-        with pytest.raises(AccountAlreadyExistsError, match="This email is already taken."):
+        with pytest.raises(AccountAlreadyExistsError, match="Ce nom d'utilisateur ou cet email est d\u00e9j\u00e0 pris."):
             self.repository.update_email(second.account_id, "first@test.com")
 
 

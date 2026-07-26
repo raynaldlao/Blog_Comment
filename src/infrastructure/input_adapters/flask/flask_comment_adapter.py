@@ -83,7 +83,7 @@ class CommentAdapter:
                 content=req_data.content
             )
         except BlogCommentError as e:
-            flash(_(str(e)), "error")
+            flash(str(e), "error")
         else:
             flash(_("Comment added."), "success")
 
@@ -131,7 +131,7 @@ class CommentAdapter:
                 content=req_data.content
             )
         except BlogCommentError as e:
-            flash(_(str(e)), "error")
+            flash(str(e), "error")
         else:
             flash(_("Reply added."), "success")
 
@@ -159,7 +159,7 @@ class CommentAdapter:
                 user_id=user.account_id,
             )
         except BlogCommentError as e:
-            flash(_(str(e)), "error")
+            flash(str(e), "error")
         else:
             flash(_("Comment deleted."), "success")
 

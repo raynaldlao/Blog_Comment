@@ -39,7 +39,7 @@ class TestRegistrationRequest:
                 password=VALID_PASSWORD,
                 confirm_password="Different1!",
             )
-        assert "Passwords do not match." in str(excinfo.value)
+        assert "Les mots de passe ne correspondent pas." in str(excinfo.value)
 
     def test_registration_request_missing_field(self):
         with pytest.raises(ValidationError):
@@ -75,7 +75,7 @@ class TestRegistrationRequest:
                 password="abcdef8!",
                 confirm_password="abcdef8!",
             )
-        assert "uppercase" in str(excinfo.value)
+        assert "majuscule" in str(excinfo.value)
 
     def test_password_no_special(self):
         with pytest.raises(ValidationError) as excinfo:
@@ -85,4 +85,4 @@ class TestRegistrationRequest:
                 password="Abcdefg8",
                 confirm_password="Abcdefg8",
             )
-        assert "special" in str(excinfo.value)
+        assert "spécial" in str(excinfo.value)

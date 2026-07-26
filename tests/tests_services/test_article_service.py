@@ -84,7 +84,7 @@ class TestCreateArticle(ArticleServiceTestBase):
 
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        with pytest.raises(InsufficientPermissionsError, match="Insufficient permissions"):
+        with pytest.raises(InsufficientPermissionsError, match="Permissions insuffisantes"):
             self.service.create_article(
                 title="Hacked Article",
                 content="Bad Content !",
@@ -98,7 +98,7 @@ class TestCreateArticle(ArticleServiceTestBase):
     def test_create_article_account_not_found(self):
         self.mock_account_repo.get_by_id.return_value = None
 
-        with pytest.raises(AccountNotFoundError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="introuvable"):
             self.service.create_article(
                 title="Ghost Article",
                 content="Content from beyond!",
@@ -222,7 +222,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         fake_account = create_test_account(account_id=99, account_role=AccountRole.AUTHOR)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        with pytest.raises(OwnershipError, match="not the author"):
+        with pytest.raises(OwnershipError, match="n'êtes pas l'auteur"):
             self.service.update_article(
                 article_id=fake_article.article_id,
                 user_id=fake_account.account_id,
@@ -237,7 +237,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        with pytest.raises(InsufficientPermissionsError, match="Insufficient permissions"):
+        with pytest.raises(InsufficientPermissionsError, match="Permissions insuffisantes"):
             self.service.update_article(
                 article_id=1,
                 user_id=fake_account.account_id,
@@ -254,7 +254,7 @@ class TestUpdateArticle(ArticleServiceTestBase):
         fake_account = create_test_account(account_role=AccountRole.AUTHOR)
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        with pytest.raises(ArticleNotFoundError, match="not found"):
+        with pytest.raises(ArticleNotFoundError, match="introuvable"):
             self.service.update_article(
                 article_id=999,
                 user_id=fake_account.account_id,
@@ -295,7 +295,7 @@ class TestDeleteArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_author_other
 
-        with pytest.raises(OwnershipError, match="Only authors or admins"):
+        with pytest.raises(OwnershipError, match="auteurs ou administrateurs"):
             self.service.delete_article(article_id=fake_article.article_id, user_id=fake_author_other.account_id)
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_author_other.account_id)
@@ -307,7 +307,7 @@ class TestDeleteArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = None
         self.mock_account_repo.get_by_id.return_value = fake_account
 
-        with pytest.raises(ArticleNotFoundError, match="not found"):
+        with pytest.raises(ArticleNotFoundError, match="introuvable"):
             self.service.delete_article(article_id=999, user_id=fake_account.account_id)
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_account.account_id)
@@ -360,7 +360,7 @@ class TestGetArticleWithComments(ArticleServiceTestBase):
     def test_get_article_with_comments_article_not_found(self):
         self.mock_article_repo.get_by_id.return_value = None
 
-        with pytest.raises(ArticleNotFoundError, match="not found"):
+        with pytest.raises(ArticleNotFoundError, match="introuvable"):
             self.service.get_article_with_comments(article_id=999)
 
     def test_get_article_with_comments_unknown_author(self):
@@ -449,7 +449,7 @@ class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_other
 
-        with pytest.raises(OwnershipError, match="Only authors or admins"):
+        with pytest.raises(OwnershipError, match="auteurs ou administrateurs"):
             self.service.delete_article(article_id=1, user_id=99)
 
         self.mock_file_service.delete_file.assert_not_called()

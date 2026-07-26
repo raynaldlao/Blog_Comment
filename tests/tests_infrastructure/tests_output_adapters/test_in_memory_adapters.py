@@ -395,7 +395,7 @@ class TestInMemoryAccountRepository:
         from blog_exceptions import AccountNotFoundError
 
         repo = InMemoryAccountRepository()
-        with pytest.raises(AccountNotFoundError, match="not found"):
+        with pytest.raises(AccountNotFoundError, match="introuvable"):
             repo.update_session_token(999, "abc123")
 
 

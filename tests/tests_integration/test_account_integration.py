@@ -30,7 +30,7 @@ class TestRegistration:
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"already taken" in response_uname.data.lower()
+        assert "déjà pris" in response_uname.text
 
         response_email = client.post("/register", data={
             "username": "new_user",
@@ -39,7 +39,7 @@ class TestRegistration:
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"already taken" in response_email.data.lower()
+        assert "déjà pris" in response_email.text
 
 class TestProfile:
     """Grouped tests for profile management and session persistence."""
@@ -209,7 +209,7 @@ class TestConcurrency:
         assert count == 1
         success_count = 0
         for _, r in enumerate(results):
-            is_success = r.status_code in [200, 302] and b"already taken" not in r.data.lower()
+            is_success = r.status_code in [200, 302] and "déjà pris" not in r.text
             if is_success:
                 success_count += 1
 

@@ -83,11 +83,11 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
 
         account = self.account_repository.find_by_username(username)
         if not account:
-            raise AuthenticationError("Invalid username or password.")
+            raise AuthenticationError("Nom d'utilisateur ou mot de passe invalide.")
 
         if self.password_hasher_repository.verify(password, account.account_password):
             if account.is_banned:
-                raise AccountBannedError("This account has been banned.")
+                raise AccountBannedError("Ce compte a été banni.")
 
             if self.password_hasher_repository.check_needs_rehash(account.account_password):
                 new_hash = self.password_hasher_repository.hash(password)
@@ -100,7 +100,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             self.session_repository.save_account(account)
             return account
 
-        raise AuthenticationError("Invalid username or password.")
+        raise AuthenticationError("Nom d'utilisateur ou mot de passe invalide.")
 
     def get_current_account(self) -> Account | None:
         """
@@ -182,14 +182,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         account = self.get_current_account()
         if not account:
-            raise AuthenticationError("You must be signed in to update your email.")
+            raise AuthenticationError("Vous devez être connecté pour modifier votre email.")
 
         if new_email == account.account_email:
             return
 
         existing = self.account_repository.find_by_email(new_email)
         if existing and existing.account_id != account.account_id:
-            raise EmailAlreadyTakenError("This email is already taken.")
+            raise EmailAlreadyTakenError("Ce nom d'utilisateur ou cet email est déjà pris.")
 
         self.account_repository.update_email(account.account_id, new_email)
 
@@ -210,17 +210,17 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         account = self.get_current_account()
         if not account:
-            raise AuthenticationError("You must be signed in to update your password.")
+            raise AuthenticationError("Vous devez être connecté pour modifier votre mot de passe.")
 
         if not new_password:
             return
 
         if not re.search(r"[a-z]", new_password):
-            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins une minuscule.")
         if not re.search(r"[A-Z]", new_password):
-            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins une majuscule.")
         if not re.search(r"[^a-zA-Z0-9]", new_password):
-            raise WeakPasswordError("Password must contain at least one special character.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins un caractère spécial.")
 
         new_hash = self.password_hasher_repository.hash(new_password)
         self.account_repository.update_password(account.account_id, new_hash)
@@ -355,7 +355,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         existing = self.account_repository.get_by_id(account_id)
         if not existing:
-            raise AccountNotFoundError(f"Account with id {account_id} not found.")
+            raise AccountNotFoundError(f"Compte avec l'identifiant {account_id} introuvable.")
 
         if existing.avatar_file_id and self.file_service:
             try:
@@ -390,14 +390,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
+            raise AuthorizationError("Non autorisé.")
 
         target = self.account_repository.get_by_id(target_id)
         if not target:
-            raise AccountNotFoundError("Account not found.")
+            raise AccountNotFoundError("Compte introuvable.")
 
         if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Cannot change role of another admin.")
+            raise AuthorizationError("Impossible de modifier le rôle d'un autre administrateur.")
 
         if new_role not in ("user", "author"):
             return
@@ -423,14 +423,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
+            raise AuthorizationError("Non autorisé.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            raise AccountNotFoundError("Account not found.")
+            raise AccountNotFoundError("Compte introuvable.")
 
         if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Cannot ban another admin.")
+            raise AuthorizationError("Impossible de bannir un autre administrateur.")
 
         self.account_repository.update_ban_status(target_account_id, True, ban_reason)
         self.account_repository.update_session_token(target_account_id, None)
@@ -449,10 +449,10 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
+            raise AuthorizationError("Non autorisé.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            raise AccountNotFoundError("Account not found.")
+            raise AccountNotFoundError("Compte introuvable.")
 
         self.account_repository.update_ban_status(target_account_id, False, None)

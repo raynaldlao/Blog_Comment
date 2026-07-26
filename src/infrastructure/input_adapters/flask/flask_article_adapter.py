@@ -232,7 +232,8 @@ class ArticleAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
+                msg = error["msg"].removeprefix("Value error, ")
+                return jsonify({"error": msg}), 400
             return jsonify({"error": _("Validation error.")}), 400
 
         try:
@@ -280,7 +281,8 @@ class ArticleAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
+                msg = error["msg"].removeprefix("Value error, ")
+                return jsonify({"error": msg}), 400
             return jsonify({"error": _("Validation error.")}), 400
 
         try:

@@ -50,11 +50,11 @@ class RegistrationRequest(BaseModel):
             WeakPasswordError: If any strength requirement is not met.
         """
         if not re.search(r"[a-z]", v):
-            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins une minuscule.")
         if not re.search(r"[A-Z]", v):
-            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins une majuscule.")
         if not re.search(r"[^a-zA-Z0-9]", v):
-            raise WeakPasswordError("Password must contain at least one special character.")
+            raise WeakPasswordError("Le mot de passe doit contenir au moins un caractère spécial.")
         return v
 
     @model_validator(mode="after")
@@ -69,5 +69,5 @@ class RegistrationRequest(BaseModel):
             PasswordsDoNotMatchError: If 'password' and 'confirm_password' do not match.
         """
         if self.password != self.confirm_password:
-            raise PasswordsDoNotMatchError("Passwords do not match.")
+            raise PasswordsDoNotMatchError("Les mots de passe ne correspondent pas.")
         return self

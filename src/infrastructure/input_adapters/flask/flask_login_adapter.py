@@ -50,8 +50,8 @@ class LoginAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(_("Validation Error (%(location)s): %(message)s", location=location, message=error["msg"]), "error")
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(_(msg), "error")
             return render_template("login.html", username=submitted_username)
 
         try:
@@ -60,9 +60,9 @@ class LoginAdapter:
                 password=login_data.password
             )
         except AccountBannedError:
-            flash(_("This account has been banned."), "error")
+            flash(_("Ce compte a été banni."), "error")
         except AuthenticationError:
-            flash(_("Invalid username or password."), "error")
+            flash(_("Nom d'utilisateur ou mot de passe invalide."), "error")
         else:
             return redirect(url_for("article.list_articles"))
 

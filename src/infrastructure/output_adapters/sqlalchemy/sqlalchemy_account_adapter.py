@@ -206,7 +206,7 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         except IntegrityError as e:
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
             if constraint_name == "accounts_account_email_key":
-                raise AccountAlreadyExistsError("This email is already taken.") from None
+                raise AccountAlreadyExistsError("Ce nom d'utilisateur ou cet email est déjà pris.") from None
             raise DatabaseError("Unexpected database constraint violation.") from e
 
     def update_password(self, account_id: int, new_hashed_password: str) -> None:
