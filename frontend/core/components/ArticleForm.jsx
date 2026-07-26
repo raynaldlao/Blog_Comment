@@ -350,16 +350,29 @@ export default function ArticleForm() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const editorRef = useRef(null);
-  const lastTapRef = useRef({ time: 0, target: null });
+  const lastTapRef = useRef({ time: 0, target: null, count: 0 });
+  const IS_CHROME_MOBILE = /Chrome/.test(navigator.userAgent) && /(Mobile|Android)/.test(navigator.userAgent);
 
   const handleDoubleTapSelect = useCallback((e) => {
+    if (e.detail === 2 || !IS_CHROME_MOBILE) return;
     const now = Date.now();
     const last = lastTapRef.current;
     if (last.target === e.currentTarget && now - last.time < 400) {
-      e.currentTarget.select();
-      lastTapRef.current = { time: 0, target: null };
+      if (last.count === 0) {
+        const el = e.currentTarget;
+        const text = el.value;
+        let start = el.selectionStart;
+        while (start > 0 && /\S/.test(text[start - 1])) start--;
+        let end = el.selectionEnd;
+        while (end < text.length && /\S/.test(text[end])) end++;
+        el.setSelectionRange(start, end);
+        lastTapRef.current = { time: now, target: e.currentTarget, count: 1 };
+      } else {
+        e.currentTarget.select();
+        lastTapRef.current = { time: 0, target: null, count: 0 };
+      }
     } else {
-      lastTapRef.current = { time: now, target: e.currentTarget };
+      lastTapRef.current = { time: now, target: e.currentTarget, count: 0 };
     }
   }, []);
 
