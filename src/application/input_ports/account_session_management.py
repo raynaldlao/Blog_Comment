@@ -5,8 +5,9 @@ from src.application.domain.account import Account
 
 class AccountSessionManagementPort(ABC):
     """
-    Input Port for managing the user's active session.
-    Provides methods for the interface layer to retrieve identity and terminate sessions.
+    Input Port for managing the user's active session and account profile.
+    Provides methods for the interface layer to retrieve identity, manage
+    the session lifecycle, and update profile attributes including avatar.
     """
 
     @abstractmethod
@@ -50,6 +51,37 @@ class AccountSessionManagementPort(ABC):
 
         Returns:
             Account | None: The domain Account if found, None otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def update_profile_photo(self, file_data: bytes, filename: str, mime_type: str) -> str | None:
+        """
+        Uploads a new profile photo for the currently authenticated account.
+
+        Delegates file storage to the file service, cleans up any existing
+        avatar, and persists the new file reference on the account.
+
+        Args:
+            file_data: Raw binary content of the image file.
+            filename: Original filename with extension.
+            mime_type: MIME type of the uploaded image.
+
+        Returns:
+            str | None: The UUID of the new avatar file, or None if not authenticated.
+        """
+        pass
+
+    @abstractmethod
+    def remove_profile_photo(self) -> bool:
+        """
+        Removes the profile photo for the currently authenticated account.
+
+        Deletes the stored file and clears the avatar reference.
+        Idempotent — returns False if the user has no avatar.
+
+        Returns:
+            bool: True if the avatar was removed, False if no avatar existed.
         """
         pass
 
@@ -195,9 +227,9 @@ class AccountSessionManagementPort(ABC):
         """
         Deletes a user account by its unique identifier.
 
-        The associated avatar file should be cleaned up by the caller
-        before invoking this method. The database handles orphaned
-        articles via ON DELETE SET NULL and comments via ON DELETE CASCADE.
+        Cleans up the associated avatar file and masks the account's
+        comments before deleting the account record. The database handles
+        orphaned articles via ON DELETE SET NULL.
 
         Args:
             account_id: The unique identifier of the account to delete.

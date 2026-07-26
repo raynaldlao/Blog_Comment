@@ -1,3 +1,4 @@
+import logging
 import re
 import secrets
 
@@ -6,11 +7,14 @@ from blog_exceptions import (
     AccountNotFoundError,
     AuthenticationError,
     AuthorizationError,
+    BlogCommentError,
     EmailAlreadyTakenError,
     WeakPasswordError,
 )
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
+from src.application.input_ports.comment_management import CommentManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.application.input_ports.login_management import LoginManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
@@ -21,7 +25,9 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
     """
     Service responsible for handling user authentication and session lifecycle.
     Implements both LoginManagementPort (for authentication) and
-    AccountSessionManagementPort (for reading/terminating sessions).
+    AccountSessionManagementPort (for session, profile, and account management).
+    Orchestrates cross-cutting operations like account deletion and avatar
+    management that span multiple domains (file, comment, account).
     """
 
     def __init__(
@@ -29,19 +35,29 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         account_repository: AccountRepository,
         session_repository: AccountSessionRepository,
         password_hasher_repository: PasswordHasherRepository,
+        file_service: FileManagementPort | None = None,
+        comment_service: CommentManagementPort | None = None,
     ):
         """
         Initializes the service with account repository, session management,
-        and password hashing.
+        password hashing, and optional cross-domain services.
+
+        file_service and comment_service are optional for backward compatibility
+        (tests that mock LoginService directly). In production they are always
+        provided via blog_comment_application.py.
 
         Args:
             account_repository (AccountRepository): The repository for account data access.
             session_repository (AccountSessionRepository): The output port for session persistence.
             password_hasher_repository (PasswordHasherRepository): The port for password verification operations.
+            file_service (FileManagementPort | None): Input port for file operations (avatar upload/delete).
+            comment_service (CommentManagementPort | None): Input port for comment masking on account deletion.
         """
         self.account_repository = account_repository
         self.session_repository = session_repository
         self.password_hasher_repository = password_hasher_repository
+        self.file_service = file_service
+        self.comment_service = comment_service
 
     def authenticate_user(self, username: str, password: str) -> Account:
         """
@@ -258,14 +274,78 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.count_search(query)
 
+    def update_profile_photo(self, file_data: bytes, filename: str, mime_type: str) -> str | None:
+        """
+        Uploads a new profile photo for the currently authenticated account.
+
+        Delegates file storage to the file service, cleans up any existing
+        avatar, and persists the new file reference on the account.
+
+        Args:
+            file_data: Raw binary content of the image file.
+            filename: Original filename with extension.
+            mime_type: MIME type of the uploaded image.
+
+        Returns:
+            str | None: The UUID of the new avatar file, or None if not authenticated
+                        or if file_service is not configured.
+        """
+        if not self.file_service:
+            return None
+        account = self.get_current_account()
+        if not account:
+            return None
+
+        file_record = self.file_service.upload_file(filename=filename, data=file_data, mime_type=mime_type)
+
+        old_avatar_id = account.avatar_file_id
+        if old_avatar_id:
+            try:
+                self.file_service.delete_file(old_avatar_id)
+            except BlogCommentError:
+                logging.getLogger(__name__).warning(
+                    "Failed to delete old avatar %s for account %s",
+                    old_avatar_id, account.account_id,
+                )
+
+        self.update_avatar(file_record.file_id)
+        return file_record.file_id
+
+    def remove_profile_photo(self) -> bool:
+        """
+        Removes the profile photo for the currently authenticated account.
+
+        Deletes the stored file and clears the avatar reference.
+        Idempotent — returns False if the user has no avatar or is not authenticated.
+
+        Returns:
+            bool: True if the avatar was removed, False if no avatar existed
+                  or not authenticated.
+
+        Raises:
+            BlogCommentError: If file storage operation fails (logged, not re-raised).
+        """
+        if not self.file_service:
+            return False
+        account = self.get_current_account()
+        if not account or not account.avatar_file_id:
+            return False
+
+        try:
+            self.file_service.delete_file(account.avatar_file_id)
+        except BlogCommentError:
+            return False
+
+        self.update_avatar(None)
+        return True
+
     def delete_account(self, account_id: int) -> None:
         """
         Deletes a user account by its unique identifier.
 
-        The caller is responsible for cleaning up the avatar file and
-        ensuring proper authorization before calling this method.
-        The database handles orphaned articles (ON DELETE SET NULL)
-        and comments (ON DELETE CASCADE).
+        Cleans up the associated avatar file and masks the account's
+        comments before deleting the account record. The database handles
+        orphaned articles via ON DELETE SET NULL.
 
         Args:
             account_id: The unique identifier of the account to delete.
@@ -276,6 +356,19 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         existing = self.account_repository.get_by_id(account_id)
         if not existing:
             raise AccountNotFoundError(f"Account with id {account_id} not found.")
+
+        if existing.avatar_file_id and self.file_service:
+            try:
+                self.file_service.delete_file(existing.avatar_file_id)
+            except BlogCommentError:
+                logging.getLogger(__name__).warning(
+                    "Failed to delete avatar %s for account %s",
+                    existing.avatar_file_id, account_id,
+                )
+
+        if self.comment_service:
+            self.comment_service.mask_comments_by_account_id(account_id)
+
         self.account_repository.delete(account_id)
 
     def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> None:

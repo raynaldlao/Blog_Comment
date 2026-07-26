@@ -10,6 +10,8 @@ from blog_exceptions import (
     EmailAlreadyTakenError,
 )
 from src.application.domain.account import Account, AccountRole
+from src.application.input_ports.comment_management import CommentManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
@@ -317,3 +319,108 @@ class TestLoginService:
 
         self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
         self.mock_repo.update_session_token.assert_called_once_with(2, None)
+
+
+class TestLoginServiceWithFileAndCommentDeps:
+    """Tests for delete_account, update_profile_photo, and remove_profile_photo
+    that require FileManagementPort and CommentManagementPort mocked."""
+
+    def setup_method(self):
+        self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
+        self.mock_session_repo = MagicMock(spec=AccountSessionRepository, autospec=True)
+        self.mock_hasher = MagicMock(spec=PasswordHasherRepository, autospec=True)
+        self.mock_file_service = MagicMock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = MagicMock(spec=CommentManagementPort, autospec=True)
+
+        self.service = LoginService(
+            account_repository=self.mock_repo,
+            session_repository=self.mock_session_repo,
+            password_hasher_repository=self.mock_hasher,
+            file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
+        )
+
+    def test_update_profile_photo_success(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_session_repo.get_account.return_value = fake_account
+        fake_file = MagicMock()
+        fake_file.file_id = "new-avatar-id"
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        result = self.service.update_profile_photo(
+            file_data=b"fake-image-data",
+            filename="avatar.jpg",
+            mime_type="image/jpeg",
+        )
+
+        assert result == "new-avatar-id"
+        self.mock_file_service.upload_file.assert_called_once_with(
+            filename="avatar.jpg", data=b"fake-image-data", mime_type="image/jpeg",
+        )
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_repo.update_avatar.assert_called_once_with(1, "new-avatar-id")
+
+    def test_update_profile_photo_replaces_old_avatar(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="old-avatar-id")
+        self.mock_session_repo.get_account.return_value = fake_account
+        fake_file = MagicMock()
+        fake_file.file_id = "new-avatar-id"
+        self.mock_file_service.upload_file.return_value = fake_file
+
+        result = self.service.update_profile_photo(
+            file_data=b"new-image", filename="new_avatar.jpg", mime_type="image/jpeg",
+        )
+
+        assert result == "new-avatar-id"
+        self.mock_file_service.upload_file.assert_called_once()
+        self.mock_file_service.delete_file.assert_called_once_with("old-avatar-id")
+        self.mock_repo.update_avatar.assert_called_once_with(1, "new-avatar-id")
+
+    def test_update_profile_photo_no_auth(self):
+        self.mock_session_repo.get_account.return_value = None
+
+        result = self.service.update_profile_photo(
+            file_data=b"data", filename="img.jpg", mime_type="image/jpeg",
+        )
+
+        assert result is None
+        self.mock_file_service.upload_file.assert_not_called()
+
+    def test_remove_profile_photo_success(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="abc-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        result = self.service.remove_profile_photo()
+
+        assert result is True
+        self.mock_file_service.delete_file.assert_called_once_with("abc-123")
+        self.mock_repo.update_avatar.assert_called_once_with(1, None)
+
+    def test_remove_profile_photo_no_avatar(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id=None)
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        result = self.service.remove_profile_photo()
+
+        assert result is False
+        self.mock_file_service.delete_file.assert_not_called()
+
+    def test_delete_account_cleans_up_avatar_and_masks_comments(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="avatar-id")
+        self.mock_repo.get_by_id.return_value = fake_account
+
+        self.service.delete_account(1)
+
+        self.mock_file_service.delete_file.assert_called_once_with("avatar-id")
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_repo.delete.assert_called_once_with(1)
+
+    def test_delete_account_no_avatar_skips_cleanup(self):
+        fake_account = create_test_account(account_id=1)
+        self.mock_repo.get_by_id.return_value = fake_account
+
+        self.service.delete_account(1)
+
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_repo.delete.assert_called_once_with(1)

@@ -94,9 +94,12 @@ def _create_services(repositories: dict) -> dict:
     article_repo = repositories["article_repo"]
     comment_repo = repositories["comment_repo"]
 
-    login_service = LoginService(account_repo, session_repo, password_hasher_repository)
-    comment_service = CommentService(comment_repo, article_repo, account_repo)
     file_service = FileService(repositories["file_storage_repo"])
+    comment_service = CommentService(comment_repo, article_repo, account_repo)
+    login_service = LoginService(
+        account_repo, session_repo, password_hasher_repository,
+        file_service=file_service, comment_service=comment_service,
+    )
     article_service = ArticleService(article_repo, account_repo, comment_repo, file_service=file_service)
 
     return {
@@ -126,8 +129,6 @@ def _init_web_adapters(services: dict) -> dict:
         "registration_adapter": RegistrationAdapter(services["registration_service"]),
         "account_session_adapter": AccountSessionAdapter(
             services["login_service"],
-            services["file_service"],
-            services["comment_service"],
         ),
         "file_adapter": FlaskFileAdapter(services["file_service"]),
     }

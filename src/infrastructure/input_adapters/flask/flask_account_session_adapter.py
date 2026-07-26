@@ -1,4 +1,3 @@
-import logging
 import math
 
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
@@ -6,43 +5,30 @@ from flask import g as global_request_context
 from flask.views import MethodView
 from flask_babel import gettext as _
 
-from blog_exceptions import BlogCommentError, FileTooLargeError, FileTypeError, WeakPasswordError
+from blog_exceptions import BlogCommentError, WeakPasswordError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
-from src.application.input_ports.comment_management import CommentManagementPort
-from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
 
 class AccountSessionAdapter(MethodView):
     """
-    Flask Input Adapter for Account Session, Profile,
-    and global request identity resolution.
+    Flask Input Adapter for account session, profile, and identity operations.
 
-    Centralizes ALL session-related Web actions into a single infrastructure
-    component, adhering to Rule #6 (Adapter Uniqueness). This includes:
-    - User identity injection via a 'before_request' hook.
-    - User logout (session clearing).
-    - User profile display.
+    Implements a single input port: AccountSessionManagementPort.
+    Orchestrates cross-cutting operations (avatar upload, account deletion)
+    by delegating to the session service, which internally coordinates
+    file and comment services.
     """
 
-    def __init__(
-        self,
-        session_service: AccountSessionManagementPort,
-        file_service: FileManagementPort,
-        comment_service: CommentManagementPort,
-    ):
+    def __init__(self, session_service: AccountSessionManagementPort):
         """
         Initializes the AccountSessionAdapter with the required session service.
 
         Args:
             session_service (AccountSessionManagementPort): The input port for session management.
-            file_service (FileManagementPort): The input port for file management.
-            comment_service (CommentManagementPort): The input port for comment management.
         """
         self.session_service = session_service
-        self.file_service = file_service
-        self.comment_service = comment_service
 
     def _identify_user(self):
         """Injects the current user into the global request context.
@@ -175,8 +161,8 @@ class AccountSessionAdapter(MethodView):
         """
         Handles profile photo upload via multipart POST.
 
-        Validates authentication, delegates file upload to the file service,
-        and persists the avatar reference on the current account.
+        Validates authentication, delegates file storage and avatar update
+        to the session service, which internally coordinates the file service.
 
         Returns:
             Response: JSON with avatar_url on success (200),
@@ -190,44 +176,23 @@ class AccountSessionAdapter(MethodView):
         if not uploaded_file or not uploaded_file.filename:
             return jsonify({"error": _("No file provided.")}), 400
 
-        file_data = uploaded_file.read()
-        try:
-            file_record = self.file_service.upload_file(
-                filename=uploaded_file.filename,
-                data=file_data,
-                mime_type=uploaded_file.content_type or "application/octet-stream",
-            )
-        except (FileTooLargeError, FileTypeError) as e:
-            return jsonify({"error": str(e)}), 400
-
-        old_avatar_id = current_account.avatar_file_id
-        if old_avatar_id:
-            try:
-                self.file_service.delete_file(old_avatar_id)
-            # Intentionally broad: non-critical cleanup (delete old avatar
-            # file from DB). Broad catch ensures request never fails due to
-            # cleanup failure, even from unexpected bugs.
-            # Not in blog_exceptions.py. Do not move it there.
-            except Exception:
-                logging.getLogger(__name__).warning(
-                    "Failed to delete old avatar %s for account %s",
-                    old_avatar_id,
-                    current_account.account_id,
-                )
-
-        self.session_service.update_avatar(file_record.file_id)
+        file_id = self.session_service.update_profile_photo(
+            file_data=uploaded_file.read(),
+            filename=uploaded_file.filename,
+            mime_type=uploaded_file.content_type or "application/octet-stream",
+        )
+        if not file_id:
+            return jsonify({"error": _("Failed to upload profile photo.")}), 400
 
         return jsonify({
-            "avatar_url": url_for("file.serve_file", file_id=file_record.file_id, filename="avatar"),
+            "avatar_url": url_for("file.serve_file", file_id=file_id, filename="avatar"),
         }), 200
 
     def remove_profile_photo(self):
         """
         Removes the current user's profile photo.
 
-        Deletes the uploaded file from storage via the file service,
-        then clears the avatar_file_id reference on the account.
-
+        Delegates file deletion and avatar ref update to the session service.
         Redirects back to profile with a flash message on success or error.
 
         Returns:
@@ -238,19 +203,9 @@ class AccountSessionAdapter(MethodView):
             flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
-        avatar_file_id = account.avatar_file_id
-        if not avatar_file_id:
+        removed = self.session_service.remove_profile_photo()
+        if not removed:
             flash(_("No avatar to remove."), "error")
-            return redirect(url_for("auth.profile"))
-
-        try:
-            self.file_service.delete_file(avatar_file_id)
-            self.session_service.update_avatar(None)
-        # Intentionally broad: non-critical cleanup. Broad catch ensures
-        # request never fails; if cleanup fails, user gets a flash error.
-        # Not in blog_exceptions.py. Do not move it there.
-        except Exception:
-            flash(_("Failed to remove profile photo."), "error")
             return redirect(url_for("auth.profile"))
 
         flash(_("Profile photo removed."), "success")
@@ -374,9 +329,8 @@ class AccountSessionAdapter(MethodView):
         - Admin delete: account_id is provided and current user is admin.
           Session is preserved and admin is redirected to the user list.
 
-        Avatar file is cleaned up before deleting the account record.
-        The database automatically sets article_author_id to NULL
-        (ON DELETE SET NULL) and cascades comment deletion.
+        Avatar cleanup and comment masking are handled internally by the
+        session service.
 
         Returns:
             Response: A Flask redirect response.
@@ -407,21 +361,6 @@ class AccountSessionAdapter(MethodView):
             if target.account_role == AccountRole.ADMIN:
                 abort(403)
 
-        account = self.session_service.get_account_by_id(target_id)
-        if account and account.avatar_file_id:
-            try:
-                self.file_service.delete_file(account.avatar_file_id)
-            # Intentionally broad: non-critical cleanup (delete avatar
-            # file from DB before account deletion). Broad catch ensures
-            # account deletion proceeds even if avatar cleanup fails.
-            # Not in blog_exceptions.py. Do not move it there.
-            except Exception:
-                logging.getLogger(__name__).warning(
-                    "Failed to delete avatar %s for account %s",
-                    account.avatar_file_id, target_id,
-                )
-
-        self.comment_service.mask_comments_by_account_id(target_id)
         self.session_service.delete_account(target_id)
 
         if is_self:

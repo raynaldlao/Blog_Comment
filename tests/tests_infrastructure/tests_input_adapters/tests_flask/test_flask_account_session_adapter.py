@@ -4,8 +4,6 @@ from flask import g as global_request_context
 
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
-from src.application.input_ports.comment_management import CommentManagementPort
-from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
 from tests.test_domain_factories import create_test_account
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
@@ -20,12 +18,8 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.count_all_accounts.return_value = 0
         self.mock_session_service.search_accounts.return_value = []
         self.mock_session_service.count_search_accounts.return_value = 0
-        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
-        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
-            file_service=self.mock_file_service,
-            comment_service=self.mock_comment_service,
         )
 
         self.app.add_url_rule(
@@ -200,22 +194,11 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 401
 
     def test_upload_profile_photo_success(self):
-        from datetime import datetime
         from io import BytesIO
-
-        from src.application.domain.uploaded_file import UploadedFile
 
         fake_user = create_test_account()
         self.set_current_user(fake_user)
-        fake_file = UploadedFile(
-            file_id="abc-123",
-            original_filename="avatar.jpg",
-            mime_type="image/jpeg",
-            size=1024,
-            data=b"fake-image-data",
-            created_at=datetime.now(),
-        )
-        self.mock_file_service.upload_file.return_value = fake_file
+        self.mock_session_service.update_profile_photo.return_value = "abc-123"
 
         response = self.client.post(
             "/api/profile/photo",
@@ -225,26 +208,14 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         data = response.get_json()
         assert data["avatar_url"] == "/uploads/abc-123/avatar"
-        self.mock_file_service.upload_file.assert_called_once()
-        self.mock_session_service.update_avatar.assert_called_once_with("abc-123")
+        self.mock_session_service.update_profile_photo.assert_called_once()
 
     def test_upload_profile_photo_replaces_old_avatar(self):
-        from datetime import datetime
         from io import BytesIO
-
-        from src.application.domain.uploaded_file import UploadedFile
 
         fake_user = create_test_account(account_avatar_file_id="old-avatar-id")
         self.set_current_user(fake_user)
-        fake_file = UploadedFile(
-            file_id="new-avatar-id",
-            original_filename="new_avatar.jpg",
-            mime_type="image/jpeg",
-            size=1024,
-            data=b"new-image-data",
-            created_at=datetime.now(),
-        )
-        self.mock_file_service.upload_file.return_value = fake_file
+        self.mock_session_service.update_profile_photo.return_value = "new-avatar-id"
 
         response = self.client.post(
             "/api/profile/photo",
@@ -252,8 +223,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             content_type="multipart/form-data",
         )
         assert response.status_code == 200
-        self.mock_file_service.delete_file.assert_called_once_with("old-avatar-id")
-        self.mock_session_service.update_avatar.assert_called_once_with("new-avatar-id")
+        self.mock_session_service.update_profile_photo.assert_called_once()
 
     def test_remove_profile_photo_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None
@@ -264,15 +234,16 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_remove_profile_photo_success(self):
         fake_user = create_test_account(account_avatar_file_id="abc-123")
         self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.remove_profile_photo.return_value = True
         response = self.client.post("/profile/photo/delete", follow_redirects=True)
         assert b"Profile photo removed." in response.data
         assert b"alert-success" in response.data
-        self.mock_file_service.delete_file.assert_called_once_with("abc-123")
-        self.mock_session_service.update_avatar.assert_called_once_with(None)
+        self.mock_session_service.remove_profile_photo.assert_called_once()
 
     def test_remove_profile_photo_no_avatar(self):
         fake_user = create_test_account(account_avatar_file_id=None)
         self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.remove_profile_photo.return_value = False
         response = self.client.post("/profile/photo/delete", follow_redirects=True)
         assert b"No avatar to remove." in response.data
         assert b"alert-error" in response.data
@@ -389,7 +360,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_account_by_id.return_value = admin
         response = self.client.post("/account/delete")
         assert response.status_code == 403
-        self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
+        self.mock_session_service.delete_account.assert_not_called()
 
     def test_self_delete_redirects(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
@@ -400,7 +371,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", follow_redirects=True)
         assert response.status_code == 200
         assert b"articles" in response.data or b"Account deleted" in response.data
-        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_session_service.delete_account.assert_called_once_with(1)
 
     def test_admin_delete_another_user_redirects(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
@@ -413,7 +384,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Manage Users (0 users)" in response.data or b"Account deleted" in response.data
-        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(2)
+        self.mock_session_service.delete_account.assert_called_once_with(2)
 
     def test_admin_delete_nonexistent_target_redirects_with_flash(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
@@ -424,7 +395,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         response = self.client.post("/account/delete", data={"account_id": 999}, follow_redirects=True)
         assert response.status_code == 200
         assert b"not found" in response.data or b"Account not found" in response.data
-        self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
+        self.mock_session_service.delete_account.assert_not_called()
 
     def test_update_email_success(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")
@@ -500,12 +471,8 @@ class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
-        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
-            file_service=self.mock_file_service,
-            comment_service=self.mock_comment_service,
         )
         self.app.add_url_rule(
             "/admin/users/<int:account_id>/role",
@@ -569,12 +536,8 @@ class TestAccountSessionBan(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
-        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
-            file_service=self.mock_file_service,
-            comment_service=self.mock_comment_service,
         )
         self.app.add_url_rule(
             "/admin/users/<int:account_id>/ban",
@@ -653,12 +616,8 @@ class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.mock_file_service = Mock(spec=FileManagementPort, autospec=True)
-        self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
-            file_service=self.mock_file_service,
-            comment_service=self.mock_comment_service,
         )
 
     def _capture_handler(self, **kwargs):
