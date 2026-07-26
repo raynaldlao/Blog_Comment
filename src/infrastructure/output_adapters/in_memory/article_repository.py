@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from src.application.domain.article import Article
+from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 
 
@@ -8,14 +9,24 @@ class InMemoryArticleRepository(ArticleRepository):
     """
     In-memory implementation of the ArticleRepository.
     Uses a dictionary to store articles, primarily for unit testing.
+
+    When an AccountRepository is provided, the search and count_search
+    methods also match articles by the author's username. If no account
+    repository is given, they only match by title and description.
     """
 
-    def __init__(self):
+    def __init__(self, account_repository: AccountRepository | None = None):
         """
         Initializes the repository with an empty internal dictionary and ID counter.
+
+        Args:
+            account_repository: Optional AccountRepository for author
+                username search support. When None, search only matches
+                by title and description.
         """
         self._articles: dict[int, Article] = {}
         self._next_id = 1
+        self._account_repository: AccountRepository | None = account_repository
 
     def save(self, article: Article) -> None:
         """
@@ -88,16 +99,16 @@ class InMemoryArticleRepository(ArticleRepository):
 
     def search(self, query: str, page: int, per_page: int) -> list[Article]:
         """
-        Searches articles by title or description using a case-insensitive
-        substring match against the in-memory dictionary.
+        Searches articles by title, description, or author username using a
+        case-insensitive substring match against the in-memory dictionary.
 
-        Note: This in-memory implementation does NOT search by author
-        username. The production SQL adapter supports author search via
-        a JOIN on the accounts table.
+        When an AccountRepository was provided at init, the author's
+        username is also searched via get_all(). Otherwise, only title
+        and description are matched.
 
         Args:
-            query: The search term to match against article titles
-                and descriptions.
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
             page: The page number (1-indexed).
             per_page: The number of items per page.
 
@@ -105,38 +116,59 @@ class InMemoryArticleRepository(ArticleRepository):
             A list of Article domain entities matching the search query
             for the given page, ordered by publication date descending.
         """
-        q = query.lower()
-        filtered = [
-            a for a in self._articles.values()
-            if q in a.article_title.lower()
-            or (a.article_description and q in a.article_description.lower())
+        lower_query = query.lower()
+
+        matching_author_ids: set[int] = set()
+        if self._account_repository is not None:
+            for account in self._account_repository.get_all():
+                if lower_query in account.account_username.lower():
+                    matching_author_ids.add(account.account_id)
+
+        filtered_articles = [
+            article for article in self._articles.values()
+            if lower_query in article.article_title.lower()
+            or (article.article_description
+                and lower_query in article.article_description.lower())
+            or (article.article_author_id is not None
+                and article.article_author_id in matching_author_ids)
         ]
-        sorted_list = sorted(
-            filtered,
-            key=lambda a: a.article_published_at or datetime.min,
+        sorted_articles = sorted(
+            filtered_articles,
+            key=lambda article: article.article_published_at or datetime.min,
             reverse=True,
         )
-        start = (page - 1) * per_page
-        return sorted_list[start:start + per_page]
+        start_index = (page - 1) * per_page
+        return sorted_articles[start_index:start_index + per_page]
 
     def count_search(self, query: str) -> int:
         """
-        Counts articles matching a search query by title or description.
+        Counts articles matching a search query by title, description,
+        or author username.
 
-        Note: This in-memory implementation does NOT search by author
-        username. The production SQL adapter supports author search via
-        a JOIN on the accounts table.
+        When an AccountRepository was provided at init, the author's
+        username is also searched via get_all(). Otherwise, only title
+        and description are matched.
 
         Args:
-            query: The search term to match against article titles
-                and descriptions.
+            query: The search term to match against article titles,
+                descriptions, or author usernames.
 
         Returns:
             The total number of matching articles.
         """
-        q = query.lower()
+        lower_query = query.lower()
+
+        matching_author_ids: set[int] = set()
+        if self._account_repository is not None:
+            for account in self._account_repository.get_all():
+                if lower_query in account.account_username.lower():
+                    matching_author_ids.add(account.account_id)
+
         return sum(
-            1 for a in self._articles.values()
-            if q in a.article_title.lower()
-            or (a.article_description and q in a.article_description.lower())
+            1 for article in self._articles.values()
+            if lower_query in article.article_title.lower()
+            or (article.article_description
+                and lower_query in article.article_description.lower())
+            or (article.article_author_id is not None
+                and article.article_author_id in matching_author_ids)
         )

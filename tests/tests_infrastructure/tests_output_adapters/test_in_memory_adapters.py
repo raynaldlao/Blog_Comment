@@ -113,6 +113,103 @@ class TestInMemoryArticleRepository:
         repo.save(Article(1, 1, "Title", "Content", datetime.now()))
         assert repo.search("xyznonexistent", page=1, per_page=10) == []
 
+    def test_search_by_author_username(self):
+        account_repository = InMemoryAccountRepository()
+
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+
+        article_repository.save(Article(
+            2, 2, "JS Guide", "Content", datetime(2023, 1, 1),
+        ))
+
+        search_results = article_repository.search("john", page=1, per_page=10)
+        assert len(search_results) == 1
+        assert search_results[0].article_id == 1
+
+    def test_search_by_author_username_no_match(self):
+        account_repository = InMemoryAccountRepository()
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+
+        search_results = article_repository.search("nonexistent", page=1, per_page=10)
+        assert search_results == []
+
+    def test_search_by_author_username_returns_all_matching_articles(self):
+        account_repository = InMemoryAccountRepository()
+
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 3),
+        ))
+
+        article_repository.save(Article(
+            2, 1, "Rust Guide", "Content", datetime(2023, 1, 2),
+        ))
+
+        article_repository.save(Article(
+            3, 1, "JS Notes", "Content", datetime(2023, 1, 1),
+        ))
+
+        search_results = article_repository.search("john", page=1, per_page=10)
+        assert len(search_results) == 3
+
+    def test_count_search_by_author_username(self):
+        account_repository = InMemoryAccountRepository()
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+        article_repository.save(Article(
+            2, 2, "JS Guide", "Content", datetime(2023, 1, 1),
+        ))
+
+        assert article_repository.count_search("john") == 1
+        assert article_repository.count_search("python") == 1
+        assert article_repository.count_search("nonexistent") == 0
+
 
 class TestInMemoryAccountRepository:
     def test_save_new_account(self):
