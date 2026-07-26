@@ -423,6 +423,12 @@ a:hover {
     border-color: var(--info);
 }
 
+.alert.alert-warning {
+    color: var(--warning);
+    background: var(--warning-container);
+    border-color: var(--warning);
+}
+
 /* Forms */
 .form-group {
     margin-bottom: var(--spacing-md);

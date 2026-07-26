@@ -3,9 +3,8 @@ from datetime import UTC, datetime
 import pytest
 from flask import render_template_string
 from jinja2.exceptions import TemplateNotFound
-from markupsafe import Markup
 
-from flask_setup.template_helpers import date_iso_filter, nl2br_filter
+from flask_setup.template_helpers import date_iso_filter
 
 
 class TestIconMacro:
@@ -39,53 +38,6 @@ class TestIconMacro:
                     '{{ icon("nonexistent") }}'
                 )
 
-
-class TestNl2brFilter:
-    """Unit tests for the nl2br Jinja2 filter."""
-
-    def test_escapes_html_tags(self):
-        result = nl2br_filter("<script>alert('xss')</script>")
-        assert "&lt;script&gt;" in result
-        assert "<script>" not in result
-
-    def test_converts_newlines_to_br(self):
-        result = nl2br_filter("line1\nline2")
-        assert "line1<br>\nline2" in result
-
-    def test_handles_multiple_newlines(self):
-        result = nl2br_filter("a\n\nb")
-        assert str(result).count("<br>") == 2
-
-    def test_returns_empty_for_none(self):
-        assert nl2br_filter(None) == ""
-
-    def test_returns_empty_for_empty_string(self):
-        assert nl2br_filter("") == ""
-
-    def test_returns_markup_instance(self):
-        assert isinstance(nl2br_filter("test"), Markup)
-
-    def test_does_not_escape_generated_br(self):
-        result = nl2br_filter("hello\nworld")
-        assert "<br>" in str(result)
-
-    def test_handles_text_without_newlines(self):
-        assert nl2br_filter("hello world") == "hello world"
-
-    def test_escapes_ampersands(self):
-        result = nl2br_filter("a & b")
-        assert "&amp;" in result
-
-    def test_escapes_quotes(self):
-        result = nl2br_filter('say "hello"')
-        assert "&#34;" in result
-        assert '"' not in str(result)
-
-    def test_mixed_content_with_newlines_and_html(self):
-        result = nl2br_filter("<b>bold</b>\nnext line")
-        assert "&lt;b&gt;bold&lt;/b&gt;" in result
-        assert "<br>" in str(result)
-        assert "<b>" not in str(result)
 
 
 

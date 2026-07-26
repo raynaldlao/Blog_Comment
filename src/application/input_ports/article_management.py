@@ -32,16 +32,6 @@ class ArticleManagementPort(ABC):
         pass
 
     @abstractmethod
-    def get_all_ordered_by_date_desc(self) -> list[Article]:
-        """
-        Retrieves all articles ordered by their publication date in descending order.
-
-        Returns:
-            list[Article]: A list of Article domain entities.
-        """
-        pass
-
-    @abstractmethod
     def get_by_id(self, article_id: int) -> Article | None:
         """
         Retrieves a single article by its unique identifier.

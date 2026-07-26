@@ -12,7 +12,6 @@ from zoneinfo import ZoneInfo
 from babel.dates import format_datetime
 from flask import g as global_request_context
 from flask_babel import get_locale
-from markupsafe import Markup, escape
 
 
 def inject_current_user() -> dict:
@@ -89,27 +88,6 @@ class ViteManifest:
             if path.startswith("assets/vendor-") and path.endswith(".js"):
                 return path
         return None
-
-
-def nl2br_filter(text: str | None) -> str:
-    """
-    Jinja2 filter that escapes HTML and converts newlines to <br> tags.
-
-    Safely renders user-generated text by first escaping all HTML,
-    then replacing newline characters with HTML line break tags.
-    The result is marked as safe HTML to prevent double-escaping.
-
-    Args:
-        text: Raw user input string, or None.
-
-    Returns:
-        An escaped string with \\n replaced by <br>\\n, marked as safe HTML.
-        Returns empty string if input is None or empty.
-    """
-    if not text:
-        return ""
-    escaped = escape(text)
-    return Markup(str(escaped).replace("\n", "<br>\n"))
 
 
 def inject_vite_assets() -> dict:

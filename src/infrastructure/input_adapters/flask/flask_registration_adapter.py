@@ -1,5 +1,4 @@
 from flask import flash, redirect, render_template, request, url_for
-from flask.views import MethodView
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
@@ -8,7 +7,7 @@ from src.application.input_ports.registration_management import RegistrationMana
 from src.infrastructure.input_adapters.dto.registration_request import RegistrationRequest
 
 
-class RegistrationAdapter(MethodView):
+class RegistrationAdapter:
     """
     Flask Input Adapter for Registration operations.
     Translates web requests into domain operations and renders HTML templates.

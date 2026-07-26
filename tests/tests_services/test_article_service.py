@@ -111,27 +111,6 @@ class TestCreateArticle(ArticleServiceTestBase):
 
 
 class TestGetArticles(ArticleServiceTestBase):
-    def test_get_all_ordered_by_date_desc(self):
-        fake_articles = [
-            create_test_article(
-                article_id=2,
-                article_title="Recent Article",
-                article_published_at=datetime(2026, 3, 25),
-            ),
-            create_test_article(
-                article_id=1,
-                article_title="Old Article",
-                article_published_at=datetime(2026, 1, 1),
-            ),
-        ]
-
-        self.mock_article_repo.get_all_ordered_by_date_desc.return_value = fake_articles
-        result = self.service.get_all_ordered_by_date_desc()
-        self.mock_article_repo.get_all_ordered_by_date_desc.assert_called_once()
-        assert len(result) == 2
-        first_article_list = result[0]
-        assert first_article_list.article_title == "Recent Article"
-
     def test_get_paginated_articles(self):
         fake_articles = [
             create_test_article(article_id=1, article_title="First", article_author_id=10),

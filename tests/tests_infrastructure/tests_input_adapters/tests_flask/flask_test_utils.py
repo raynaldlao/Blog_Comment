@@ -5,7 +5,7 @@ from flask import g as global_request_context
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
 
-from flask_setup.template_helpers import date_iso_filter, format_datetime_locale, nl2br_filter
+from flask_setup.template_helpers import date_iso_filter, format_datetime_locale
 from utils.prosemirror_to_html import prosemirror_to_html
 
 
@@ -62,7 +62,6 @@ class FlaskInputAdapterTestBase:
         static_dir = os.path.join(frontend_dir, "static")
         self.app = Flask(__name__, template_folder=self.TEMPLATE_DIR, static_folder=static_dir)
 
-        self.app.jinja_env.filters["nl2br"] = nl2br_filter
         self.app.jinja_env.filters["date_iso"] = date_iso_filter
         self.app.jinja_env.filters["prosemirror_to_html"] = prosemirror_to_html
         self.app.jinja_env.filters["format_datetime_locale"] = format_datetime_locale

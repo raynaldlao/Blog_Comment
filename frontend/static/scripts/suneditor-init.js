@@ -123,6 +123,7 @@
     }
 
     const suneditors = {};
+    window.suneditors = suneditors;
 
     function initCommentEditor(textareaId, hiddenInputId) {
         const textarea = document.getElementById(textareaId);

@@ -108,19 +108,6 @@ class SqlAlchemyCommentAdapter(SqlAlchemyBaseAdapter, CommentRepository):
         models = self._db_query_all(CommentModel, comment_article_id=article_id)
         return [self._to_domain(model) for model in models]
 
-    def get_by_reply_to(self, comment_id: int) -> list[Comment]:
-        """
-        Retrieves all direct child comments that reply to a given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment.
-
-        Returns:
-            list[Comment]: A list of direct child Comment domain entities.
-        """
-        models = self._db_query_all(CommentModel, comment_reply_to=comment_id)
-        return [self._to_domain(model) for model in models]
-
     def get_by_account_id(self, account_id: int) -> list[Comment]:
         """
         Retrieves all comments authored by a specific account.

@@ -54,12 +54,6 @@ class InMemoryArticleRepository(ArticleRepository):
         return self._articles.get(article_id)
 
     def get_all_ordered_by_date_desc(self) -> list[Article]:
-        """
-        Retrieves all articles ordered by publication date (descending).
-
-        Returns:
-            list[Article]: A sorted list of Article domain entities.
-        """
         return sorted(list(self._articles.values()), key=lambda a: a.article_published_at or datetime.min, reverse=True)
 
     def get_paginated(self, page: int, per_page: int) -> list[Article]:

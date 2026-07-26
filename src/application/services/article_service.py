@@ -166,15 +166,6 @@ class ArticleService(ArticleManagementPort):
         self.article_repository.save(new_article)
         return new_article
 
-    def get_all_ordered_by_date_desc(self) -> list[Article]:
-        """
-        Retrieves all articles ordered by their publication date.
-
-        Returns:
-            list[Article]: A list of Article domain entities.
-        """
-        return self.article_repository.get_all_ordered_by_date_desc()
-
     def get_by_id(self, article_id: int) -> Article | None:
         """
         Retrieves a single article by its ID.
