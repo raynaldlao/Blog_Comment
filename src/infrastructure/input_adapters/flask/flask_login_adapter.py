@@ -1,5 +1,4 @@
 from flask import flash, redirect, render_template, request, url_for
-from flask.views import MethodView
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
@@ -8,7 +7,7 @@ from src.application.input_ports.login_management import LoginManagementPort
 from src.infrastructure.input_adapters.dto.login_request import LoginRequest
 
 
-class LoginAdapter(MethodView):
+class LoginAdapter:
     """
     Flask Input Adapter for Authentication operations.
     Translates web requests into domain operations and renders HTML templates.

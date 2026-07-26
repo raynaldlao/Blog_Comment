@@ -2,7 +2,6 @@ import math
 
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
-from flask.views import MethodView
 from flask_babel import gettext as _
 
 from blog_exceptions import BlogCommentError, WeakPasswordError
@@ -11,7 +10,7 @@ from src.application.input_ports.account_session_management import AccountSessio
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
 
 
-class AccountSessionAdapter(MethodView):
+class AccountSessionAdapter:
     """
     Flask Input Adapter for account session, profile, and identity operations.
 
