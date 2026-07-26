@@ -11,23 +11,34 @@ from flask_wtf.csrf import CSRFProtect
 class CSPConfig:
     """Configures Content Security Policy headers and violation reporting.
 
-    Computes the SHA-256 hash of the inline theme script at startup,
-    injects the Content-Security-Policy header into every response,
-    and provides an endpoint for receiving CSP violation reports from
-    the browser.
+    Computes the SHA-256 hash of the inline theme script from base.html
+    in the given template directory at startup, injects the
+    Content-Security-Policy header into every response, and provides
+    an endpoint for receiving CSP violation reports from the browser.
     """
 
-    def __init__(self):
+    def __init__(self, template_dir: str | Path):
+        """
+        Initializes CSP configuration and computes the inline script hash.
+
+        Args:
+            template_dir: Path to the directory containing base.html
+                with the inline theme script. Typically derived from
+                app.root_path.
+        """
+        self._template_dir = Path(template_dir)
         self._script_hash = self._compute_inline_script_hash()
 
-    @staticmethod
-    def _compute_inline_script_hash() -> str:
+    def _compute_inline_script_hash(self) -> str:
         """Reads and hashes the inline theme script from base.html.
+
+        Resolves base.html relative to the template_dir passed at init,
+        avoiding fragile __file__-based paths.
 
         Returns:
             str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
         """
-        template_path = Path(__file__).parent.parent / "frontend/templates/base.html"
+        template_path = self._template_dir / "base.html"
         content = template_path.read_text()
         start = content.index("<script>") + len("<script>")
         end = content.index("</script>", start)
@@ -183,7 +194,8 @@ def init_web_security(app: Flask) -> None:
     app.session_interface = NonPersistentSessionInterface()
     app.config["WTF_CSRF_TIME_LIMIT"] = None
     csrf_protect = CSRFProtect(app)
-    csp = CSPConfig()
+    template_dir = Path(app.root_path) / "frontend" / "templates"
+    csp = CSPConfig(template_dir)
     app.after_request(csp.add_headers)
     app.after_request(_add_nosniff)
     app.after_request(_add_x_frame_options)
