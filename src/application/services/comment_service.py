@@ -1,3 +1,4 @@
+import time
 from datetime import UTC, datetime
 
 import nh3
@@ -19,8 +20,6 @@ from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
 from src.application.services.service_utils import build_comment_nested_tree
 
-MAX_REPLY_DEPTH = 3
-
 
 class CommentService(CommentManagementPort):
     """
@@ -29,6 +28,9 @@ class CommentService(CommentManagementPort):
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
     for data persistence, injected via the constructor.
     """
+
+    MAX_REPLY_DEPTH = 3
+    COMMENT_INTERVAL = 60
 
     ALLOWED_TAGS = frozenset({
         "b", "i", "u", "s", "strike", "del", "a", "ul", "ol", "li", "br", "p", "em", "strong",
@@ -44,6 +46,7 @@ class CommentService(CommentManagementPort):
         self.comment_repository = comment_repository
         self.article_repository = article_repository
         self.account_repository = account_repository
+        self._user_comment_timestamps: dict[int, float] = {}
 
     def _get_account_if_exists(self, user_id: int) -> Account:
         """
@@ -78,6 +81,28 @@ class CommentService(CommentManagementPort):
             depth += 1
         return depth
 
+
+    def check_rate_limit(self, user_id: int) -> int | None:
+        """
+        Checks if the user is posting comments too fast based on COMMENT_INTERVAL class constant.
+
+        Maintains an in-memory timestamp dict per user. Returns remaining cooldown
+        seconds if the user has posted within the interval, or None to allow the post.
+
+        Args:
+            user_id (int): ID of the user to check.
+
+        Returns:
+            int | None: Remaining cooldown seconds, or None if the user can post.
+        """
+        now = time.time()
+        last = self._user_comment_timestamps.get(user_id)
+        if last:
+            elapsed = now - last
+            if elapsed < self.COMMENT_INTERVAL:
+                return max(1, int(self.COMMENT_INTERVAL - elapsed))
+        self._user_comment_timestamps[user_id] = now
+        return None
 
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment:
         """
@@ -158,7 +183,7 @@ class CommentService(CommentManagementPort):
             raise CommentDeletedError("Cannot reply to a deleted comment.")
 
         parent_depth = self._get_comment_depth(parent_comment.comment_id, self.comment_repository)
-        if parent_depth >= MAX_REPLY_DEPTH:
+        if parent_depth >= self.MAX_REPLY_DEPTH:
             raise CommentValidationError("Cannot reply to a comment at maximum nesting depth.")
 
         sanitized = nh3.clean(

@@ -556,3 +556,26 @@ class TestHardDeleteComment(CommentServiceTestBase):
             self.service.hard_delete_comment(comment_id=10, user_id=999)
 
         self.mock_comment_repo.delete.assert_not_called()
+
+
+class TestCheckRateLimit(CommentServiceTestBase):
+    def test_first_comment_allowed(self):
+        result = self.service.check_rate_limit(user_id=1)
+        assert result is None
+
+    def test_second_comment_within_interval_blocked(self):
+        self.service.check_rate_limit(user_id=1)
+        result = self.service.check_rate_limit(user_id=1)
+        assert result is not None
+        assert isinstance(result, int)
+        assert result > 0
+
+    def test_different_users_independent(self):
+        self.service.check_rate_limit(user_id=1)
+        result = self.service.check_rate_limit(user_id=2)
+        assert result is None
+
+    def test_called_once_increments_timestamp_dict(self):
+        assert len(self.service._user_comment_timestamps) == 0
+        self.service.check_rate_limit(user_id=1)
+        assert len(self.service._user_comment_timestamps) == 1

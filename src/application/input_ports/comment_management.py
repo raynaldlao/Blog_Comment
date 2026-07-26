@@ -131,6 +131,19 @@ class CommentManagementPort(ABC):
         pass
 
     @abstractmethod
+    def check_rate_limit(self, user_id: int) -> int | None:
+        """
+        Checks if the user is posting comments too fast based on a configurable interval.
+
+        Args:
+            user_id (int): ID of the user to check.
+
+        Returns:
+            int | None: Number of remaining cooldown seconds if rate-limited, or None if allowed.
+        """
+        pass
+
+    @abstractmethod
     def hard_delete_comment(self, comment_id: int, user_id: int) -> bool:
         """
         Permanently deletes a comment from the database. Admin only.

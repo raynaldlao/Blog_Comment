@@ -59,7 +59,6 @@ class CommentRepository(ABC):
         pass
 
     @abstractmethod
-    @abstractmethod
     def get_by_account_id(self, account_id: int) -> list[Comment]:
         """
         Retrieves all comments authored by a specific account.

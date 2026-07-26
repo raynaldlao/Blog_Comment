@@ -13,6 +13,7 @@ class CommentAdapterTestBase(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
+        self.mock_comment_service.check_rate_limit.return_value = None
         self.adapter = CommentAdapter(comment_service=self.mock_comment_service)
 
         self.app.add_url_rule(
@@ -100,6 +101,7 @@ class TestCommentCreate(CommentAdapterTestBase):
         user = create_test_account(account_id=999)
         self.set_current_user(user)
         self.mock_comment_service.create_comment.return_value = Mock()
+        self.mock_comment_service.check_rate_limit.side_effect = [None, 30]
         self.client.post("/articles/1/comments", data={"content": "First"})
         response = self.client.post("/articles/1/comments", data={"content": "Second"})
         assert response.status_code == 302
@@ -151,6 +153,7 @@ class TestCommentReply(CommentAdapterTestBase):
         user = create_test_account(account_id=888)
         self.set_current_user(user)
         self.mock_comment_service.create_reply.return_value = Mock()
+        self.mock_comment_service.check_rate_limit.side_effect = [None, 30]
         self.client.post("/articles/1/comments/10/reply", data={"content": "First"})
         response = self.client.post("/articles/1/comments/10/reply", data={"content": "Second"})
         assert response.status_code == 302

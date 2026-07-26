@@ -1,5 +1,3 @@
-import time
-
 from flask import abort, flash, redirect, request, url_for
 from flask import g as global_request_context
 from flask_babel import gettext as _
@@ -17,8 +15,6 @@ class CommentAdapter:
     Handles creation, replying, deletion, and listing of comments.
     """
 
-    COMMENT_INTERVAL = 60
-
     def __init__(self, comment_service: CommentManagementPort):
         """
         Initializes the adapter with the core port.
@@ -27,28 +23,6 @@ class CommentAdapter:
             comment_service (CommentManagementPort): The domain service for comments.
         """
         self.comment_service = comment_service
-        self._user_comment_timestamps: dict[int, float] = {}
-
-    def _check_comment_rate_limit(self, user_id: int) -> int | None:
-        """
-        Checks if the user is posting comments too fast.
-
-        Returns number of remaining seconds to wait, or None if allowed.
-
-        Args:
-            user_id (int): The identifier of the user to check.
-
-        Returns:
-            int | None: Remaining cooldown seconds, or None if the user can post.
-        """
-        now = time.time()
-        last = self._user_comment_timestamps.get(user_id)
-        if last:
-            elapsed = now - last
-            if elapsed < self.COMMENT_INTERVAL:
-                return max(1, int(self.COMMENT_INTERVAL - elapsed))
-        self._user_comment_timestamps[user_id] = now
-        return None
 
     def create_comment(self, article_id: int) -> Response:
         """
@@ -78,7 +52,7 @@ class CommentAdapter:
                 flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
+        remaining = self.comment_service.check_rate_limit(user.account_id)
         if remaining is not None:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
@@ -125,7 +99,7 @@ class CommentAdapter:
                 flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
+        remaining = self.comment_service.check_rate_limit(user.account_id)
         if remaining is not None:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
