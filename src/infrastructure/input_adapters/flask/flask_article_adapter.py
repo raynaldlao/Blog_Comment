@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from src.application.domain.account import AccountRole
 from src.application.domain.comment import CommentNode
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
@@ -170,7 +171,7 @@ class ArticleAdapter:
             flash(_("You must be signed in to author an article."), "error")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
@@ -270,7 +271,7 @@ class ArticleAdapter:
         user = global_request_context.get("current_user")
         if not user:
             return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
@@ -319,7 +320,7 @@ class ArticleAdapter:
         user = global_request_context.get("current_user")
         if not user:
             return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         try:
@@ -373,7 +374,7 @@ class ArticleAdapter:
             flash(_("You must be signed in to edit an article."), "error")
             return redirect(url_for("auth.login"))
 
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
@@ -382,7 +383,7 @@ class ArticleAdapter:
             flash(_("Error: The requested article could not be found."), "error")
             return redirect(url_for("article.list_articles"))
 
-        if user.account_role != "admin" and domain_article.article_author_id != user.account_id:
+        if user.account_role != AccountRole.ADMIN and domain_article.article_author_id != user.account_id:
             flash(_("You do not have permission to edit this article."), "error")
             return redirect(url_for("article.list_articles"))
 

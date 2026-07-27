@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from src.application.domain.account import AccountRole
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 
@@ -215,7 +216,7 @@ class CommentAdapter:
         if not user:
             flash(_("You must be signed in to delete comments."), "error")
             return redirect(url_for("auth.login"))
-        if user.account_role != "admin":
+        if user.account_role != AccountRole.ADMIN:
             abort(403)
 
         try:
