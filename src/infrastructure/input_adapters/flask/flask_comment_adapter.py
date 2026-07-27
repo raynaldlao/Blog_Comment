@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from flask_setup.auth_helpers import require_auth
 from src.application.domain.account import AccountRole
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
@@ -43,6 +44,7 @@ class CommentAdapter:
             return redirect(url_for("article.read_article", article_id=article_id))
         return None
 
+    @require_auth("You must be signed in to post a comment.")
     def create_comment(self, article_id: int) -> Response:
         """
         Handles the creation of a new top-level comment on an article.
@@ -54,9 +56,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to post a comment."), "error")
-            return redirect(url_for("auth.login"))
 
         honeypot = self._check_honeypot(article_id)
         if honeypot:
@@ -90,6 +89,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to reply.")
     def reply_to_comment(self, article_id: int, parent_comment_id: int) -> Response:
         """
         Handles the creation of a reply to an existing comment.
@@ -102,9 +102,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to reply."), "error")
-            return redirect(url_for("auth.login"))
 
         honeypot = self._check_honeypot(article_id)
         if honeypot:
@@ -138,6 +135,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to delete comments.")
     def delete_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles soft-deletion of a comment. Author or admin only. Single-click, no confirm-dialog.
@@ -150,9 +148,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to delete comments."), "error")
-            return redirect(url_for("auth.login"))
 
         try:
             self.comment_service.delete_comment(
@@ -166,6 +161,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to edit comments.")
     def edit_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles editing a comment's content. Author only (not admin).
@@ -179,9 +175,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to edit comments."), "error")
-            return redirect(url_for("auth.login"))
 
         content = request.form.get("content", "")
         try:
@@ -197,6 +190,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to delete comments.")
     def hard_delete_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles permanent hard-deletion of a comment. Admin only.
@@ -213,9 +207,6 @@ class CommentAdapter:
             403: If the current user is not authenticated as an admin.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to delete comments."), "error")
-            return redirect(url_for("auth.login"))
         if user.account_role != AccountRole.ADMIN:
             abort(403)
 

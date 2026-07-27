@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from flask_setup.auth_helpers import require_auth, require_auth_api
 from src.application.domain.account import AccountRole
 from src.application.domain.comment import CommentNode
 from src.application.input_ports.article_management import ArticleManagementPort
@@ -158,6 +159,7 @@ class ArticleAdapter:
             page_with_comments=True,
         )
 
+    @require_auth("You must be signed in to author an article.")
     def render_create_page(self) -> str | Response:
         """
         Renders the form to author a new article.
@@ -167,10 +169,6 @@ class ArticleAdapter:
             Union[str, Response]: The 'article_create.html' form or a redirect to the login page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to author an article."), "error")
-            return redirect(url_for("auth.login"))
-
         if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
@@ -208,6 +206,7 @@ class ArticleAdapter:
             "article_edited_at": article.article_edited_at,
         })
 
+    @require_auth_api()
     def api_create_article(self) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for creating a new article.
@@ -220,9 +219,7 @@ class ArticleAdapter:
             HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
@@ -254,6 +251,7 @@ class ArticleAdapter:
 
         return jsonify({"id": result.article_id}), 201
 
+    @require_auth_api()
     def api_update_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for updating an existing article.
@@ -269,8 +267,6 @@ class ArticleAdapter:
             HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
         if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
@@ -303,6 +299,7 @@ class ArticleAdapter:
 
         return jsonify({"ok": True})
 
+    @require_auth_api()
     def _api_delete_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for article deletion.
@@ -318,8 +315,6 @@ class ArticleAdapter:
             on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
         if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
@@ -332,6 +327,7 @@ class ArticleAdapter:
 
         return jsonify({"ok": True})
 
+    @require_auth("You must be logged in to delete articles.")
     def delete_article_html(self, article_id: int) -> Response:
         """
         Handles HTML form submission for article deletion.
@@ -344,11 +340,6 @@ class ArticleAdapter:
         Returns:
             Response: A redirect to the login page or article list view.
         """
-        user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be logged in to delete articles."), "error")
-            return redirect(url_for("auth.login"))
-
         result = self._api_delete_article(article_id)
 
         if isinstance(result, tuple):
@@ -358,6 +349,7 @@ class ArticleAdapter:
 
         return redirect(url_for("article.list_articles"))
 
+    @require_auth("You must be signed in to edit an article.")
     def render_edit_page(self, article_id: int) -> str | Response:
         """
         Renders the edit form for an existing article.
@@ -370,10 +362,6 @@ class ArticleAdapter:
             Union[str, Response]: The 'article_edit.html' form or a redirect to the list view.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to edit an article."), "error")
-            return redirect(url_for("auth.login"))
-
         if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
