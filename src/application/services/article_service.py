@@ -132,6 +132,36 @@ class ArticleService(ArticleManagementPort):
 
         return account
 
+    def _get_account_and_article(self, user_id: int, article_id: int) -> tuple[Account, Article]:
+        """
+        Retrieves an account and an article by their IDs.
+        Validates account permissions (author or admin) and article ownership.
+
+        Args:
+            user_id (int): The ID of the user.
+            article_id (int): The ID of the article.
+
+        Returns:
+            tuple[Account, Article]: The Account and Article domain entities.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            InsufficientPermissionsError: If the user is not an author or admin.
+            AccountBannedError: If the account is banned.
+            ArticleNotFoundError: If the article does not exist.
+            OwnershipError: If the user is not the author (and not admin).
+        """
+        account = self._get_account_if_author_or_admin(user_id)
+
+        article = self.article_repository.get_by_id(article_id)
+        if not article:
+            raise ArticleNotFoundError("Article not found.")
+
+        if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
+            raise OwnershipError("Unauthorized: you are not the author of this article.")
+
+        return account, article
+
     def create_article(self, title: str, content: str, author_id: int, author_role: str, description: str = "") -> Article:
         """
         Creates a new article and saves it via the repository if the account exists and the user has
@@ -200,14 +230,7 @@ class ArticleService(ArticleManagementPort):
             ArticleNotFoundError: If the article does not exist.
             OwnershipError: If the user is not the author (and not admin).
         """
-        account = self._get_account_if_author_or_admin(user_id)
-
-        article = self.article_repository.get_by_id(article_id)
-        if not article:
-            raise ArticleNotFoundError("Article not found.")
-
-        if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            raise OwnershipError("Unauthorized: you are not the author of this article.")
+        account, article = self._get_account_and_article(user_id, article_id)
 
         old_content = article.article_content
         article.article_title = title
@@ -243,14 +266,7 @@ class ArticleService(ArticleManagementPort):
             ArticleNotFoundError: If the article does not exist.
             OwnershipError: If the user is not the author (and not admin).
         """
-        account = self._get_account_if_author_or_admin(user_id)
-
-        article = self.article_repository.get_by_id(article_id)
-        if not article:
-            raise ArticleNotFoundError("Article not found.")
-
-        if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            raise OwnershipError("Unauthorized: only authors or administrators can delete articles.")
+        account, article = self._get_account_and_article(user_id, article_id)
 
         if self.file_service:
             for uuid in _extract_image_uuids(article.article_content):

@@ -68,6 +68,28 @@ class CommentService(CommentManagementPort):
             raise AccountBannedError("The account is banned.")
         return account
 
+    def _get_account_and_comment(self, user_id: int, comment_id: int) -> tuple[Account, Comment]:
+        """
+        Retrieves an account and a comment by their IDs.
+
+        Args:
+            user_id (int): The ID of the user.
+            comment_id (int): The ID of the comment.
+
+        Returns:
+            tuple[Account, Comment]: The Account and Comment domain entities.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the comment does not exist.
+        """
+        account = self._get_account_if_exists(user_id)
+        comment = self.comment_repository.get_by_id(comment_id)
+        if not comment:
+            raise CommentNotFoundError("Comment not found.")
+        return account, comment
+
     @staticmethod
     def _sanitize_comment_content(content: str) -> str:
         """
@@ -255,10 +277,7 @@ class CommentService(CommentManagementPort):
             CommentNotFoundError: If the comment does not exist.
             CommentAuthorizationError: If the user is not the author nor admin.
         """
-        account = self._get_account_if_exists(user_id)
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
+        account, comment = self._get_account_and_comment(user_id, comment_id)
 
         is_author = comment.comment_written_account_id == account.account_id
         is_admin = account.account_role == AccountRole.ADMIN
@@ -294,10 +313,7 @@ class CommentService(CommentManagementPort):
             CommentDeletedError: If the comment has been deleted.
             CommentValidationError: If the content is empty or too long.
         """
-        account = self._get_account_if_exists(user_id)
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
+        account, comment = self._get_account_and_comment(user_id, comment_id)
 
         if comment.comment_written_account_id != account.account_id:
             raise CommentAuthorizationError("Unauthorized: you can only edit your own comments.")
@@ -332,15 +348,11 @@ class CommentService(CommentManagementPort):
             CommentAuthorizationError: If the user is not an admin.
             CommentValidationError: If the comment is not soft-deleted first.
         """
-        account = self._get_account_if_exists(user_id)
+        account, comment = self._get_account_and_comment(user_id, comment_id)
         if account.account_role != AccountRole.ADMIN:
             raise CommentAuthorizationError(
                 "Unauthorized: only administrators can permanently delete comments."
             )
-
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
 
         if not comment.is_deleted:
             raise CommentValidationError("Comment is not deleted. Delete it first using standard deletion.")

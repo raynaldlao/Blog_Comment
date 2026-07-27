@@ -295,7 +295,7 @@ class TestDeleteArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_author_other
 
-        with pytest.raises(OwnershipError, match="only authors or administrators"):
+        with pytest.raises(OwnershipError, match="you are not the author of this article"):
             self.service.delete_article(article_id=fake_article.article_id, user_id=fake_author_other.account_id)
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_author_other.account_id)
@@ -449,7 +449,7 @@ class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_other
 
-        with pytest.raises(OwnershipError, match="only authors or administrators"):
+        with pytest.raises(OwnershipError, match="you are not the author of this article"):
             self.service.delete_article(article_id=1, user_id=99)
 
         self.mock_file_service.delete_file.assert_not_called()
