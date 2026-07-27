@@ -88,21 +88,21 @@ class DatabaseError(BlogCommentError):
     pass
 
 
-class PasswordsDoNotMatchError(ValueError):
+class PasswordsDoNotMatchError(BlogCommentError, ValueError):
     """Raised when password and confirmation do not match."""
     pass
 
 
-class WeakPasswordError(ValueError):
+class WeakPasswordError(BlogCommentError, ValueError):
     """Raised when password does not meet strength requirements (length, uppercase, lowercase, special char)."""
     pass
 
 
-class CommentEmptyError(ValueError):
+class CommentEmptyError(BlogCommentError, ValueError):
     """Raised when comment content is empty."""
     pass
 
 
-class CommentTooLongError(ValueError):
+class CommentTooLongError(BlogCommentError, ValueError):
     """Raised when comment content exceeds max length."""
     pass

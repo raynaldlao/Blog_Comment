@@ -4,7 +4,7 @@ from flask import abort, flash, jsonify, redirect, render_template, request, ses
 from flask import g as global_request_context
 from flask_babel import gettext as _
 
-from blog_exceptions import BlogCommentError, WeakPasswordError
+from blog_exceptions import BlogCommentError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
@@ -253,7 +253,7 @@ class AccountSessionAdapter:
 
         Validates authentication, extracts the new password from the form data,
         and delegates the update to the session service. Catches both
-        BlogCommentError and WeakPasswordError for user-friendly flash messages.
+        BlogCommentError for user-friendly flash messages.
         Redirects back to the profile page on success or error.
 
         Returns:
@@ -271,7 +271,7 @@ class AccountSessionAdapter:
 
         try:
             self.session_service.update_password(new_password)
-        except (BlogCommentError, WeakPasswordError) as e:
+        except BlogCommentError as e:
             flash(str(e), "error")
         else:
             flash(_("Password updated."), "success")
