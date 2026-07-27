@@ -29,7 +29,7 @@ class CommentService(CommentManagementPort):
     """
 
     MAX_REPLY_DEPTH = 3
-    COMMENT_INTERVAL = 60
+    COMMENT_INTERVAL = 1
 
     ALLOWED_TAGS = frozenset({
         "b", "i", "u", "s", "strike", "del", "a", "ul", "ol", "li", "br", "p", "em", "strong",

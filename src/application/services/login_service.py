@@ -148,18 +148,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.get_by_id(account_id)
 
-    def update_avatar(self, avatar_file_id: str | None) -> None:
-        """
-        Sets or clears the avatar_file_id for the currently authenticated account.
-
-        Retrieves the current account from the session and delegates
-        the persistence update to the account repository.
-
-        Pass None to remove the avatar reference.
-
-        Args:
-            avatar_file_id: The UUID of the uploaded avatar file, or None to clear.
-        """
+    def _update_avatar(self, avatar_file_id: str | None) -> None:
         account = self.get_current_account()
         if account is None:
             return
@@ -308,7 +297,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
                     old_avatar_id, account.account_id,
                 )
 
-        self.update_avatar(file_record.file_id)
+        self._update_avatar(file_record.file_id)
         return file_record.file_id
 
     def remove_profile_photo(self) -> bool:
@@ -336,7 +325,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         except BlogCommentError:
             return False
 
-        self.update_avatar(None)
+        self._update_avatar(None)
         return True
 
     def delete_account(self, account_id: int) -> None:
