@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.application.domain.comment import Comment, CommentNode
+from src.application.domain.comment import Comment
 
 
 class CommentManagementPort(ABC):
@@ -49,23 +49,6 @@ class CommentManagementPort(ABC):
             CommentNotFoundError: If the parent comment does not exist.
             CommentDeletedError: If the parent comment is deleted.
             CommentValidationError: If the content is empty or max depth exceeded.
-        """
-        pass
-
-    @abstractmethod
-    def get_comments_for_article(self, article_id: int) -> list[CommentNode]:
-        """
-        Retrieves all comments for a specific article and structures them
-        into a nested tree for display, along with associated author names.
-
-        Args:
-            article_id (int): ID of the article.
-
-        Returns:
-            list[CommentNode]: The nested tree root nodes.
-
-        Raises:
-            ArticleNotFoundError: If the article does not exist.
         """
         pass
 

@@ -13,12 +13,11 @@ from blog_exceptions import (
     CommentValidationError,
 )
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment, CommentNode
+from src.application.domain.comment import Comment
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.service_utils import build_comment_nested_tree
 
 
 class CommentService(CommentManagementPort):
@@ -206,30 +205,6 @@ class CommentService(CommentManagementPort):
 
         self.comment_repository.save(new_reply)
         return new_reply
-
-    def get_comments_for_article(self, article_id: int) -> list[CommentNode]:
-        """
-        Retrieves all comments for an article as a nested tree.
-
-        Args:
-            article_id (int): ID of the article.
-
-        Returns:
-            list[CommentNode]: List of root CommentNode objects with nested replies.
-
-        Raises:
-            ArticleNotFoundError: If the article does not exist.
-        """
-        article = self.article_repository.get_by_id(article_id)
-        if not article:
-            raise ArticleNotFoundError("Article introuvable.")
-
-        all_comments = self.comment_repository.get_all_by_article_id(article_id)
-        author_ids = {c.comment_written_account_id for c in all_comments if c.comment_written_account_id is not None}
-        authors = self.account_repository.get_by_ids(list(author_ids))
-        author_map = {acc.account_id: acc.account_username for acc in authors}
-        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
-        return build_comment_nested_tree(all_comments, author_map, avatar_map)
 
     def mask_comments_by_account_id(self, account_id: int) -> None:
         """
