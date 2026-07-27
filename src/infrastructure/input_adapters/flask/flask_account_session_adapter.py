@@ -244,7 +244,7 @@ class AccountSessionAdapter:
         try:
             self.session_service.update_email(new_email)
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
         else:
             flash(_("Email updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -280,7 +280,7 @@ class AccountSessionAdapter:
         try:
             self.session_service.update_password(dto.password)
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
         else:
             flash(_("Password updated."), "success")
         return redirect(url_for("auth.profile"))
@@ -415,7 +415,7 @@ class AccountSessionAdapter:
                 new_role=new_role,
             )
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
         else:
             flash(_("Role updated."), "success")
 
@@ -452,7 +452,7 @@ class AccountSessionAdapter:
                 ban_reason=ban_reason,
             )
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
         else:
             flash(_("Account banned."), "success")
 
@@ -483,7 +483,7 @@ class AccountSessionAdapter:
                 target_account_id=account_id,
             )
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
         else:
             flash(_("Account unbanned."), "success")
 

@@ -81,11 +81,11 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
 
         account = self.account_repository.find_by_username(username)
         if not account:
-            raise AuthenticationError("Nom d'utilisateur ou mot de passe invalide.")
+            raise AuthenticationError("Invalid username or password.")
 
         if self.password_hasher_repository.verify(password, account.account_password):
             if account.is_banned:
-                raise AccountBannedError("Ce compte a été banni.")
+                raise AccountBannedError("This account has been banned.")
 
             if self.password_hasher_repository.check_needs_rehash(account.account_password):
                 new_hash = self.password_hasher_repository.hash(password)
@@ -98,7 +98,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             self.session_repository.save_account(account)
             return account
 
-        raise AuthenticationError("Nom d'utilisateur ou mot de passe invalide.")
+        raise AuthenticationError("Invalid username or password.")
 
     def get_current_account(self) -> Account | None:
         """
@@ -169,14 +169,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         account = self.get_current_account()
         if not account:
-            raise AuthenticationError("Vous devez être connecté pour modifier votre email.")
+            raise AuthenticationError("You must be signed in to update your email.")
 
         if new_email == account.account_email:
             return
 
         existing = self.account_repository.find_by_email(new_email)
         if existing and existing.account_id != account.account_id:
-            raise EmailAlreadyTakenError("Ce nom d'utilisateur ou cet email est déjà pris.")
+            raise EmailAlreadyTakenError("This username or email is already taken.")
 
         self.account_repository.update_email(account.account_id, new_email)
 
@@ -195,7 +195,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         account = self.get_current_account()
         if not account:
-            raise AuthenticationError("Vous devez être connecté pour modifier votre mot de passe.")
+            raise AuthenticationError("You must be signed in to update your password.")
 
         if not new_password:
             return
@@ -333,7 +333,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         existing = self.account_repository.get_by_id(account_id)
         if not existing:
-            raise AccountNotFoundError(f"Compte avec l'identifiant {account_id} introuvable.")
+            raise AccountNotFoundError(f"Account with ID {account_id} not found.")
 
         if existing.avatar_file_id and self.file_service:
             try:
@@ -368,14 +368,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Non autorisé.")
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_id)
         if not target:
-            raise AccountNotFoundError("Compte introuvable.")
+            raise AccountNotFoundError("Account not found.")
 
         if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Impossible de modifier le rôle d'un autre administrateur.")
+            raise AuthorizationError("Cannot change another administrator's role.")
 
         if new_role not in ("user", "author"):
             return
@@ -401,14 +401,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Non autorisé.")
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            raise AccountNotFoundError("Compte introuvable.")
+            raise AccountNotFoundError("Account not found.")
 
         if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Impossible de bannir un autre administrateur.")
+            raise AuthorizationError("Cannot ban another administrator.")
 
         self.account_repository.update_ban_status(target_account_id, True, ban_reason)
         self.account_repository.update_session_token(target_account_id, None)
@@ -427,10 +427,10 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         admin = self.account_repository.get_by_id(admin_id)
         if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Non autorisé.")
+            raise AuthorizationError("Unauthorized.")
 
         target = self.account_repository.get_by_id(target_account_id)
         if not target:
-            raise AccountNotFoundError("Compte introuvable.")
+            raise AccountNotFoundError("Account not found.")
 
         self.account_repository.update_ban_status(target_account_id, False, None)

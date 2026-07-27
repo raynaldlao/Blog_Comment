@@ -43,7 +43,7 @@ class FlaskFileAdapter:
         # Intentionally broad: catches Pydantic ValidationError or unexpected errors
         # from file upload request parsing. Not in blog_exceptions.py. Do not move it there.
         except Exception as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": _(str(e))}), 400
 
         try:
             file_record = self.file_service.upload_file(
@@ -52,7 +52,7 @@ class FlaskFileAdapter:
                 mime_type=upload_request.mime_type,
             )
         except (FileTooLargeError, FileTypeError) as e:
-            return jsonify({"error": str(e)}), 400
+            return jsonify({"error": _(str(e))}), 400
 
         return jsonify({
             "url": f"/uploads/{file_record.file_id}/{file_record.original_filename}",

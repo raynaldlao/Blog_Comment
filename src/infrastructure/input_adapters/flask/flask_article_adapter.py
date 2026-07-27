@@ -243,7 +243,7 @@ class ArticleAdapter:
                 description=req_data.description,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"id": result.article_id}), 201
 
@@ -292,7 +292,7 @@ class ArticleAdapter:
                 description=req_data.description,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"ok": True})
 
@@ -321,7 +321,7 @@ class ArticleAdapter:
                 article_id=article_id, user_id=user.account_id,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"ok": True})
 

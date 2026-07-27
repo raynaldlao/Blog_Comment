@@ -89,7 +89,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "wrong_confirm"
         }, follow_redirects=True)
 
-        assert "Les mots de passe ne correspondent pas" in response.text
+        assert "Passwords do not match" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
@@ -105,7 +105,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert "déjà pris" in response.text
+        assert "already taken" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
@@ -120,7 +120,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert "déjà pris" in response.text
+        assert "already taken" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 

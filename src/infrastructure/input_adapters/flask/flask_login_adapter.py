@@ -60,9 +60,9 @@ class LoginAdapter:
                 password=login_data.password
             )
         except AccountBannedError:
-            flash(_("Ce compte a été banni."), "error")
+            flash(_("This account has been banned."), "error")
         except AuthenticationError:
-            flash(_("Nom d'utilisateur ou mot de passe invalide."), "error")
+            flash(_("Invalid username or password."), "error")
         else:
             return redirect(url_for("article.list_articles"))
 

@@ -49,7 +49,7 @@ class TestRegistrationService:
 
         self.mock_repo.find_by_username.return_value = existing_account
 
-        with pytest.raises(UsernameAlreadyTakenError, match="déjà pris"):
+        with pytest.raises(UsernameAlreadyTakenError, match="already taken"):
             self.service.create_account(
                 username="leia",
                 password="password123",
@@ -70,7 +70,7 @@ class TestRegistrationService:
         self.mock_repo.find_by_username.return_value = None
         self.mock_repo.find_by_email.return_value = existing_account
 
-        with pytest.raises(EmailAlreadyTakenError, match="déjà pris"):
+        with pytest.raises(EmailAlreadyTakenError, match="already taken"):
             self.service.create_account(
                 username="new_user",
                 password="password123",

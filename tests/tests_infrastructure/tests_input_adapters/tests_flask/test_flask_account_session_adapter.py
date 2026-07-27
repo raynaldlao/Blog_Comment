@@ -427,7 +427,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.get_current_account.return_value = fake_user
         from blog_exceptions import EmailAlreadyTakenError
         self.mock_session_service.update_email.side_effect = EmailAlreadyTakenError(
-            "Ce nom d'utilisateur ou cet email est d\u00e9j\u00e0 pris."
+            "This username or email is already taken."
         )
         response = self.client.post(
             "/profile/email",
@@ -435,7 +435,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             follow_redirects=True,
         )
         assert response.status_code == 200
-        assert "déjà pris" in response.text
+        assert "already taken" in response.text
         assert b"alert-error" in response.data
         self.mock_session_service.update_email.assert_called_once_with("taken@test.com")
 

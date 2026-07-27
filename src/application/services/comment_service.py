@@ -63,9 +63,9 @@ class CommentService(CommentManagementPort):
         """
         account = self.account_repository.get_by_id(user_id)
         if not account:
-            raise AccountNotFoundError("Compte introuvable.")
+            raise AccountNotFoundError("Account not found.")
         if account.is_banned:
-            raise AccountBannedError("Le compte est banni.")
+            raise AccountBannedError("The account is banned.")
         return account
 
     @staticmethod
@@ -128,7 +128,7 @@ class CommentService(CommentManagementPort):
 
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            raise ArticleNotFoundError("Article introuvable.")
+            raise ArticleNotFoundError("Article not found.")
 
         sanitized = nh3.clean(
             content,
@@ -137,7 +137,7 @@ class CommentService(CommentManagementPort):
             link_rel="noopener noreferrer",
         )
         if not sanitized.strip():
-            raise CommentValidationError("Le commentaire ne peut pas être vide.")
+            raise CommentValidationError("Comment cannot be empty.")
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
@@ -176,14 +176,14 @@ class CommentService(CommentManagementPort):
 
         parent_comment = self.comment_repository.get_by_id(parent_comment_id)
         if not parent_comment:
-            raise CommentNotFoundError("Commentaire parent introuvable.")
+            raise CommentNotFoundError("Parent comment not found.")
 
         if parent_comment.is_deleted:
-            raise CommentDeletedError("Impossible de répondre à un commentaire supprimé.")
+            raise CommentDeletedError("Cannot reply to a deleted comment.")
 
         parent_depth = self._get_comment_depth(parent_comment.comment_id, self.comment_repository)
         if parent_depth >= self.MAX_REPLY_DEPTH:
-            raise CommentValidationError("Impossible de répondre à un commentaire ayant atteint la profondeur maximale.")
+            raise CommentValidationError("Cannot reply to a comment at maximum depth.")
 
         sanitized = nh3.clean(
             content,
@@ -192,7 +192,7 @@ class CommentService(CommentManagementPort):
             link_rel="noopener noreferrer",
         )
         if not sanitized.strip():
-            raise CommentValidationError("Le commentaire ne peut pas être vide.")
+            raise CommentValidationError("Comment cannot be empty.")
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
@@ -243,12 +243,12 @@ class CommentService(CommentManagementPort):
         account = self._get_account_if_exists(user_id)
         comment = self.comment_repository.get_by_id(comment_id)
         if not comment:
-            raise CommentNotFoundError("Commentaire introuvable.")
+            raise CommentNotFoundError("Comment not found.")
 
         is_author = comment.comment_written_account_id == account.account_id
         is_admin = account.account_role == AccountRole.ADMIN
         if not is_author and not is_admin:
-            raise CommentAuthorizationError("Non autorisé : vous ne pouvez supprimer que vos propres commentaires.")
+            raise CommentAuthorizationError("Unauthorized: you can only delete your own comments.")
 
         if comment.is_deleted:
             return True
@@ -282,13 +282,13 @@ class CommentService(CommentManagementPort):
         account = self._get_account_if_exists(user_id)
         comment = self.comment_repository.get_by_id(comment_id)
         if not comment:
-            raise CommentNotFoundError("Commentaire introuvable.")
+            raise CommentNotFoundError("Comment not found.")
 
         if comment.comment_written_account_id != account.account_id:
-            raise CommentAuthorizationError("Non autorisé : vous ne pouvez modifier que vos propres commentaires.")
+            raise CommentAuthorizationError("Unauthorized: you can only edit your own comments.")
 
         if comment.is_deleted:
-            raise CommentDeletedError("Impossible de modifier un commentaire supprimé.")
+            raise CommentDeletedError("Cannot edit a deleted comment.")
 
         sanitized = nh3.clean(
             content,
@@ -297,7 +297,7 @@ class CommentService(CommentManagementPort):
             link_rel="noopener noreferrer",
         )
         if not sanitized.strip():
-            raise CommentValidationError("Le commentaire ne peut pas être vide.")
+            raise CommentValidationError("Comment cannot be empty.")
 
         comment.comment_content = sanitized
         comment.edited_at = datetime.now(UTC)
@@ -327,15 +327,15 @@ class CommentService(CommentManagementPort):
         account = self._get_account_if_exists(user_id)
         if account.account_role != AccountRole.ADMIN:
             raise CommentAuthorizationError(
-                "Non autorisé : seuls les administrateurs peuvent supprimer définitivement des commentaires."
+                "Unauthorized: only administrators can permanently delete comments."
             )
 
         comment = self.comment_repository.get_by_id(comment_id)
         if not comment:
-            raise CommentNotFoundError("Commentaire introuvable.")
+            raise CommentNotFoundError("Comment not found.")
 
         if not comment.is_deleted:
-            raise CommentValidationError("Le commentaire n'est pas supprimé. Supprimez-le d'abord avec la suppression standard.")
+            raise CommentValidationError("Comment is not deleted. Delete it first using standard deletion.")
 
         self.comment_repository.delete(comment_id)
         return True

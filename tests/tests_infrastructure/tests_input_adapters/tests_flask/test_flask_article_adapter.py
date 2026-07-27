@@ -344,7 +344,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         )
 
         assert response.status_code == 403
-        assert "Non autorisé" in response.get_json()["error"]
+        assert "Unauthorized" in response.get_json()["error"]
         self.mock_article_repo.save.assert_not_called()
 
     def test_read_article_not_found(self):
@@ -352,7 +352,7 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         self._prepare_user_context(author)
         self.mock_article_repo.get_by_id.return_value = None
         response = self.client.get("/articles/999", follow_redirects=True)
-        assert b"Error: Article introuvable." in response.data
+        assert b"Error: Article not found." in response.data
         assert b"alert-error" in response.data
 
     def test_render_edit_page_not_found(self):

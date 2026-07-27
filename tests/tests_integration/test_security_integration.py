@@ -266,7 +266,7 @@ class TestSQLi:
             "username": "' OR '1'='1",
             "password": "Str0ng!Pass"
         }, follow_redirects=True)
-        assert "mot de passe invalide" in response.text
+        assert "Invalid username or password" in response.text
 
 class TestAccessControl:
     """Tests focused on enforcing authorization and permission boundaries."""
@@ -299,7 +299,7 @@ class TestAccessControl:
         client.get("/logout", follow_redirects=True)
 
         response = client.post("/login", data={"username": "target_user", "password": "Str0ng!Pass"}, follow_redirects=True)
-        assert b"Ce compte a \xc3\xa9t\xc3\xa9 banni." in response.data
+        assert b"This account has been banned." in response.data
 
         client.post("/login", data={"username": "admin_ban", "password": "Str0ng!Pass"}, follow_redirects=True)
         client.post(f"/admin/users/{target.account_id}/unban", follow_redirects=True)
@@ -342,7 +342,7 @@ class TestAccessControl:
         Verifies error handling for non-existent IDs.
         """
         response = client.get("/articles/99999", follow_redirects=True)
-        assert b"Article introuvable" in response.data
+        assert b"Article not found" in response.data
 
 
 class TestCSRF:

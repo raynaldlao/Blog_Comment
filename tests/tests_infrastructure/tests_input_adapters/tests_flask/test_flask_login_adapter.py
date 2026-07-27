@@ -79,7 +79,7 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
             "password": "Wr0ng!Pass"
         }, follow_redirects=True)
 
-        assert "mot de passe invalide" in response.text
+        assert "Invalid username or password" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.find_by_username.assert_called_once()
         self.mock_session_repo.save_account.assert_not_called()
@@ -98,7 +98,7 @@ class TestLoginAdapter(FlaskInputAdapterTestBase):
             "password": "password123"
         }, follow_redirects=True)
 
-        assert "Ce compte a été banni" in response.text
+        assert "This account has been banned" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.find_by_username.assert_called_once_with("leia")
         self.mock_session_repo.save_account.assert_not_called()

@@ -122,13 +122,13 @@ class ArticleService(ArticleManagementPort):
         """
         account = self.account_repository.get_by_id(user_id)
         if not account:
-            raise AccountNotFoundError("Compte introuvable.")
+            raise AccountNotFoundError("Account not found.")
 
         if account.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
-            raise InsufficientPermissionsError("Permissions insuffisantes.")
+            raise InsufficientPermissionsError("Insufficient permissions.")
 
         if account.is_banned:
-            raise AccountBannedError("Le compte est banni.")
+            raise AccountBannedError("This account has been banned.")
 
         return account
 
@@ -204,10 +204,10 @@ class ArticleService(ArticleManagementPort):
 
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            raise ArticleNotFoundError("Article introuvable.")
+            raise ArticleNotFoundError("Article not found.")
 
         if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            raise OwnershipError("Non autorisé : vous n'êtes pas l'auteur de cet article.")
+            raise OwnershipError("Unauthorized: you are not the author of this article.")
 
         old_content = article.article_content
         article.article_title = title
@@ -247,10 +247,10 @@ class ArticleService(ArticleManagementPort):
 
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            raise ArticleNotFoundError("Article introuvable.")
+            raise ArticleNotFoundError("Article not found.")
 
         if account.account_role != AccountRole.ADMIN and article.article_author_id != user_id:
-            raise OwnershipError("Non autorisé : seuls les auteurs ou administrateurs peuvent supprimer des articles.")
+            raise OwnershipError("Unauthorized: only authors or administrators can delete articles.")
 
         if self.file_service:
             for uuid in _extract_image_uuids(article.article_content):
@@ -327,7 +327,7 @@ class ArticleService(ArticleManagementPort):
         """
         article = self.article_repository.get_by_id(article_id)
         if not article:
-            raise ArticleNotFoundError("Article introuvable.")
+            raise ArticleNotFoundError("Article not found.")
 
         all_comments = self.comment_repository.get_all_by_article_id(article_id)
         known_ids = {article.article_author_id} if article.article_author_id is not None else set()

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-25 19:11+0200\n"
+"POT-Creation-Date: 2026-07-27 17:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,15 +17,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.10.3\n"
 
-#: blog_comment_application.py:213
+#: blog_comment_application.py:259
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: blog_comment_application.py:214
+#: blog_comment_application.py:260
 msgid "The page you are looking for does not exist."
 msgstr ""
 
-#: blog_comment_application.py:215
+#: blog_comment_application.py:261
 msgid "An unexpected error occurred. Please try again later."
 msgstr ""
 
@@ -607,6 +607,13 @@ msgstr ""
 msgid "New Password"
 msgstr ""
 
+#: frontend/templates/profile.html:110 frontend/templates/registration.html:36
+#: frontend/templates/registration.html:47
+msgid ""
+"Minimum 8 characters: at least one uppercase, one lowercase, and one "
+"special character"
+msgstr ""
+
 #: frontend/templates/profile.html:127
 msgid "Manage Users"
 msgstr ""
@@ -666,13 +673,6 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: frontend/templates/registration.html:36
-#: frontend/templates/registration.html:47
-msgid ""
-"Minimum 8 characters: at least one uppercase, one lowercase, and one "
-"special character"
-msgstr ""
-
 #: frontend/templates/registration.html:46
 msgid "Confirm Password"
 msgstr ""
@@ -723,188 +723,203 @@ msgstr ""
 msgid "Enter page number (1 - %(max)d)"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:56
+#: src/infrastructure/input_adapters/dto/registration_request.py:54
+#: src/infrastructure/input_adapters/dto/update_password_request.py:47
+msgid "Password must contain at least one lowercase letter."
+msgstr ""
+
+#: src/infrastructure/input_adapters/dto/registration_request.py:56
+#: src/infrastructure/input_adapters/dto/update_password_request.py:51
+msgid "Password must contain at least one uppercase letter."
+msgstr ""
+
+#: src/infrastructure/input_adapters/dto/registration_request.py:58
+#: src/infrastructure/input_adapters/dto/update_password_request.py:55
+msgid "Password must contain at least one special character."
+msgstr ""
+
+#: src/infrastructure/input_adapters/dto/registration_request.py:73
+msgid "Passwords do not match."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:61
 msgid ""
 "You have been disconnected because your account was logged in from "
 "another location."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:85
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:97
 msgid "You have been logged out."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:117
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:129
 msgid "Please sign in to view your profile."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:174
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:182
 msgid "Authentication required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:178
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:186
 msgid "No file provided."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:225
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:259
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:289
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:379
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:194
+msgid "Failed to upload profile photo."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:212
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:236
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:265
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:360
 msgid "Please sign in."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:230
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:217
 msgid "No avatar to remove."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:240
-msgid "Failed to remove profile photo."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:243
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:220
 msgid "Profile photo removed."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:264
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:241
 msgid "Email is required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:272
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:249
 msgid "Email updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:294
-msgid "Password is required."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:302
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:285
 msgid "Password updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:393
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:374
 msgid "Account not found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:417
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:420
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:383
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:386
 msgid "Account deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:454
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:420
 msgid "Role updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:491
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:457
 msgid "Account banned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:522
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:488
 msgid "Account unbanned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:116
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:114
 #, python-format
 msgid "Error: %(error)s"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:158
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:154
 msgid "You must be signed in to author an article."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:162
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:373
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:158
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:371
 msgid "Insufficient permissions: Only authors or admins can create articles."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:183
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:179
 msgid "Article not found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:221
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:269
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:317
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:217
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:266
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:315
 msgid "Unauthorized."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:223
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:271
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:319
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:219
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:268
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:317
 msgid "Insufficient permissions."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:227
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:275
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:223
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:272
 msgid "Invalid JSON body."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:240
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:288
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:237
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:286
 msgid "Validation error."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:344
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:342
 msgid "You must be logged in to delete articles."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:350
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:348
 msgid "error"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:352
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:350
 msgid "Article deleted successfully."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:369
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:367
 msgid "You must be signed in to edit an article."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:378
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:376
 msgid "Error: The requested article could not be found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:382
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:380
 msgid "You do not have permission to edit this article."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:65
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:57
 msgid "You must be signed in to post a comment."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:83
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:130
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:76
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:124
 #, python-format
 msgid "You're posting too fast. Please wait %(remaining)ss before posting again."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:95
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:88
 msgid "Comment added."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:112
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:105
 msgid "You must be signed in to reply."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:142
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:136
 msgid "Reply added."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:159
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:219
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:153
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:216
 msgid "You must be signed in to delete comments."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:170
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:164
 msgid "Comment deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:188
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:182
 msgid "You must be signed in to edit comments."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:201
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:195
 msgid "Comment updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:230
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:229
 msgid "Comment permanently deleted."
 msgstr ""
 
@@ -916,25 +931,15 @@ msgstr ""
 msgid "File not found"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:58
-#, python-format
-msgid "Validation Error (%(location)s): %(message)s"
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:67
+#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:63
 msgid "This account has been banned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:69
+#: src/infrastructure/input_adapters/flask/flask_login_adapter.py:65
 msgid "Invalid username or password."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:61
-#, python-format
-msgid "%(location)s: %(message)s"
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:74
+#: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:70
 msgid "Registration successful. Please sign in."
 msgstr ""
 

@@ -64,7 +64,7 @@ class RegistrationAdapter:
                 email=reg_data.email
             )
         except BlogCommentError as e:
-            flash(str(e), "error")
+            flash(_(str(e)), "error")
             return render_template("registration.html", username=reg_data.username, email=reg_data.email)
 
         flash(_("Registration successful. Please sign in."), "success")

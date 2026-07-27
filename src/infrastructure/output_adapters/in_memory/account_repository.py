@@ -230,7 +230,7 @@ class InMemoryAccountRepository(AccountRepository):
         """
         account = self._accounts.get(account_id)
         if account is None:
-            raise AccountNotFoundError(f"Compte avec l'identifiant {account_id} introuvable.")
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
         account.is_banned = is_banned
         account.ban_reason = ban_reason
 
@@ -247,7 +247,7 @@ class InMemoryAccountRepository(AccountRepository):
         """
         account = self._accounts.get(account_id)
         if account is None:
-            raise AccountNotFoundError(f"Compte avec l'identifiant {account_id} introuvable.")
+            raise AccountNotFoundError(f"Account with id {account_id} not found.")
         account.session_token = token
 
     def delete(self, account_id: int) -> None:
