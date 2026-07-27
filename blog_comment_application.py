@@ -1,6 +1,7 @@
 import glob
 import os
 from datetime import timedelta
+from typing import NamedTuple
 
 from flask import Flask, render_template, session
 from flask_babel import Babel
@@ -42,7 +43,42 @@ from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_setup_database imp
 from utils.prosemirror_to_html import prosemirror_to_html
 
 
-def _create_output_adapters(db_session: Session) -> dict:
+class Repositories(NamedTuple):
+    """Typed container for persistence and security output adapters."""
+
+    account_repo: SqlAlchemyAccountAdapter
+    article_repo: SqlAlchemyArticleAdapter
+    comment_repo: SqlAlchemyCommentAdapter
+    file_storage_repo: SqlAlchemyFileStorageAdapter
+    session_repo: FlaskSessionAdapter
+    password_hasher_repository: Argon2PasswordHasherAdapter
+
+
+class Services(NamedTuple):
+    """Typed container for core application services."""
+
+    registration_service: RegistrationService
+    session_repo: FlaskSessionAdapter
+    login_service: LoginService
+    comment_service: CommentService
+    article_service: ArticleService
+    file_service: FileService
+    admin_service: AdminService
+
+
+class WebAdapters(NamedTuple):
+    """Typed container for Flask input adapters."""
+
+    article_adapter: ArticleAdapter
+    comment_adapter: CommentAdapter
+    login_adapter: LoginAdapter
+    registration_adapter: RegistrationAdapter
+    account_session_adapter: AccountSessionAdapter
+    admin_adapter: AdminAdapter
+    file_adapter: FlaskFileAdapter
+
+
+def _create_output_adapters(db_session: Session) -> Repositories:
     """
     Instantiates persistence and security adapters.
 
@@ -53,7 +89,7 @@ def _create_output_adapters(db_session: Session) -> dict:
         db_session: SQLAlchemy session for dependency injection (None for prod).
 
     Returns:
-        dict: Initialized output adapters keyed by role.
+        Repositories: Typed container of initialized output adapters.
     """
     account_repo = SqlAlchemyAccountAdapter(db_session)
     if db_session is not None:
@@ -64,38 +100,38 @@ def _create_output_adapters(db_session: Session) -> dict:
         time_cost = env_config.argon2_time_cost
         memory_cost = env_config.argon2_memory_cost
         parallelism = env_config.argon2_parallelism
-    return {
-        "account_repo": account_repo,
-        "article_repo": SqlAlchemyArticleAdapter(db_session),
-        "comment_repo": SqlAlchemyCommentAdapter(db_session),
-        "file_storage_repo": SqlAlchemyFileStorageAdapter(db_session),
-        "session_repo": FlaskSessionAdapter(account_repo),
-        "password_hasher_repository": Argon2PasswordHasherAdapter(
+    return Repositories(
+        account_repo=account_repo,
+        article_repo=SqlAlchemyArticleAdapter(db_session),
+        comment_repo=SqlAlchemyCommentAdapter(db_session),
+        file_storage_repo=SqlAlchemyFileStorageAdapter(db_session),
+        session_repo=FlaskSessionAdapter(account_repo),
+        password_hasher_repository=Argon2PasswordHasherAdapter(
             time_cost=time_cost,
             memory_cost=memory_cost,
             parallelism=parallelism,
         ),
-    }
+    )
 
 
-def _create_services(repositories: dict) -> dict:
+def _create_services(repositories: Repositories) -> Services:
     """
     Instantiates the core application services.
 
     Args:
-        repositories (dict): A dictionary of initialized repositories.
+        repositories: Container of initialized output adapters.
 
     Returns:
-        dict: A dictionary containing initialized core services.
+        Services: Typed container of initialized core services.
     """
-    password_hasher_repository = repositories["password_hasher_repository"]
-    registration_service = RegistrationService(repositories["account_repo"], password_hasher_repository)
-    session_repo = repositories["session_repo"]
-    account_repo = repositories["account_repo"]
-    article_repo = repositories["article_repo"]
-    comment_repo = repositories["comment_repo"]
+    password_hasher_repository = repositories.password_hasher_repository
+    registration_service = RegistrationService(repositories.account_repo, password_hasher_repository)
+    session_repo = repositories.session_repo
+    account_repo = repositories.account_repo
+    article_repo = repositories.article_repo
+    comment_repo = repositories.comment_repo
 
-    file_service = FileService(repositories["file_storage_repo"])
+    file_service = FileService(repositories.file_storage_repo)
     comment_service = CommentService(comment_repo, article_repo, account_repo)
     login_service = LoginService(
         account_repo, session_repo, password_hasher_repository,
@@ -109,38 +145,38 @@ def _create_services(repositories: dict) -> dict:
         comment_service=comment_service,
     )
 
-    return {
-        "registration_service": registration_service,
-        "session_repo": session_repo,
-        "login_service": login_service,
-        "comment_service": comment_service,
-        "article_service": article_service,
-        "file_service": file_service,
-        "admin_service": admin_service,
-    }
+    return Services(
+        registration_service=registration_service,
+        session_repo=session_repo,
+        login_service=login_service,
+        comment_service=comment_service,
+        article_service=article_service,
+        file_service=file_service,
+        admin_service=admin_service,
+    )
 
 
-def _init_web_adapters(services: dict) -> dict:
+def _init_web_adapters(services: Services) -> WebAdapters:
     """
     Instantiates the input adapters for the Web interface.
 
     Args:
-        services (dict): A dictionary of initialized core services.
+        services: Container of initialized core services.
 
     Returns:
-        dict: A dictionary containing initialized Flask adapters.
+        WebAdapters: Typed container of initialized Flask adapters.
     """
-    return {
-        "article_adapter": ArticleAdapter(services["article_service"]),
-        "comment_adapter": CommentAdapter(services["comment_service"]),
-        "login_adapter": LoginAdapter(services["login_service"]),
-        "registration_adapter": RegistrationAdapter(services["registration_service"]),
-        "account_session_adapter": AccountSessionAdapter(
-            services["login_service"],
+    return WebAdapters(
+        article_adapter=ArticleAdapter(services.article_service),
+        comment_adapter=CommentAdapter(services.comment_service),
+        login_adapter=LoginAdapter(services.login_service),
+        registration_adapter=RegistrationAdapter(services.registration_service),
+        account_session_adapter=AccountSessionAdapter(
+            services.login_service,
         ),
-        "admin_adapter": AdminAdapter(services["admin_service"]),
-        "file_adapter": FlaskFileAdapter(services["file_service"]),
-    }
+        admin_adapter=AdminAdapter(services.admin_service),
+        file_adapter=FlaskFileAdapter(services.file_service),
+    )
 
 
 def _init_web_facade_flask() -> Flask:
@@ -265,7 +301,7 @@ def create_app(db_session=None) -> Flask:
     web_adapters = _init_web_adapters(services)
     register_web_routes(app, web_adapters)
     _init_csrf_exemptions(app)
-    web_adapters["account_session_adapter"].register_before_request_handler(app)
+    web_adapters.account_session_adapter.register_before_request_handler(app)
     app.errorhandler(403)(lambda e: _error_page(403, _("You do not have permission to access this page.")))
     app.errorhandler(404)(lambda e: _error_page(404, _("The page you are looking for does not exist.")))
     app.errorhandler(500)(lambda e: _error_page(500, _("An unexpected error occurred. Please try again later.")))

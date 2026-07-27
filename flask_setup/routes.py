@@ -1,8 +1,8 @@
 from flask import Flask
 
 
-def _register_article_routes(app: Flask, adapters: dict) -> None:
-    art = adapters["article_adapter"]
+def _register_article_routes(app: Flask, adapters) -> None:
+    art = adapters.article_adapter
     app.add_url_rule("/", view_func=art.list_articles, endpoint="article.list_articles")
     app.add_url_rule("/articles/<int:article_id>", view_func=art.read_article, endpoint="article.read_article")
     app.add_url_rule("/articles/new", view_func=art.render_create_page, methods=["GET"], endpoint="article.render_create_page")
@@ -17,8 +17,8 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_article_api_routes(app: Flask, adapters: dict) -> None:
-    art = adapters["article_adapter"]
+def _register_article_api_routes(app: Flask, adapters) -> None:
+    art = adapters.article_adapter
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
@@ -45,8 +45,8 @@ def _register_article_api_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_comment_routes(app: Flask, adapters: dict) -> None:
-    com = adapters["comment_adapter"]
+def _register_comment_routes(app: Flask, adapters) -> None:
+    com = adapters.comment_adapter
     app.add_url_rule(
         "/articles/<int:article_id>/comments", view_func=com.create_comment, methods=["POST"], endpoint="comment.create_comment"
     )
@@ -76,10 +76,10 @@ def _register_comment_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_auth_routes(app: Flask, adapters: dict) -> None:
-    log = adapters["login_adapter"]
-    reg = adapters["registration_adapter"]
-    acc = adapters["account_session_adapter"]
+def _register_auth_routes(app: Flask, adapters) -> None:
+    log = adapters.login_adapter
+    reg = adapters.registration_adapter
+    acc = adapters.account_session_adapter
     app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
@@ -134,8 +134,8 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_file_routes(app: Flask, adapters: dict) -> None:
-    fad = adapters["file_adapter"]
+def _register_file_routes(app: Flask, adapters) -> None:
+    fad = adapters.file_adapter
 
     app.add_url_rule(
         "/api/upload/image",
@@ -152,8 +152,8 @@ def _register_file_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_admin_routes(app: Flask, adapters: dict) -> None:
-    adm = adapters["admin_adapter"]
+def _register_admin_routes(app: Flask, adapters) -> None:
+    adm = adapters.admin_adapter
     app.add_url_rule(
         "/admin/users", view_func=adm.list_all_users, methods=["GET"],
         endpoint="admin.list_all_users",
@@ -176,7 +176,7 @@ def _register_admin_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def register_web_routes(app: Flask, adapters: dict) -> None:
+def register_web_routes(app: Flask, adapters) -> None:
     _register_article_routes(app, adapters)
     _register_article_api_routes(app, adapters)
     _register_comment_routes(app, adapters)
