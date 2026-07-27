@@ -92,6 +92,36 @@ class TestCreateComment(CommentServiceTestBase):
         )
         assert result is saved_comment
 
+    def test_create_comment_empty_content_raises(self):
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        with pytest.raises(CommentValidationError, match="cannot be empty"):
+            self.service.create_comment(
+                article_id=fake_article.article_id,
+                user_id=fake_account.account_id,
+                content="<script>alert('xss')</script>"
+            )
+
+        self.mock_comment_repo.save.assert_not_called()
+
+    def test_create_comment_content_too_long_raises(self):
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        with pytest.raises(CommentValidationError, match="too long"):
+            self.service.create_comment(
+                article_id=fake_article.article_id,
+                user_id=fake_account.account_id,
+                content="x" * 5001
+            )
+
+        self.mock_comment_repo.save.assert_not_called()
+
     def test_create_comment_article_not_found(self):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account

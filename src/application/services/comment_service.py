@@ -69,6 +69,34 @@ class CommentService(CommentManagementPort):
         return account
 
     @staticmethod
+    def _sanitize_comment_content(content: str) -> str:
+        """
+        Sanitizes comment content by removing disallowed HTML tags
+        and validates content is non-empty and within length limits.
+
+        Args:
+            content (str): Raw comment text to sanitize.
+
+        Returns:
+            str: Sanitized comment text.
+
+        Raises:
+            CommentValidationError: If content is empty after sanitization
+                or exceeds 5000 characters.
+        """
+        sanitized = nh3.clean(
+            content,
+            tags=CommentService.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
+        if not sanitized.strip():
+            raise CommentValidationError("Comment cannot be empty.")
+        if len(sanitized) > 5000:
+            raise CommentValidationError("Comment is too long. Maximum 5000 characters.")
+        return sanitized
+
+    @staticmethod
     def _get_comment_depth(comment_id: int, comment_repo: CommentRepository) -> int:
         depth = 0
         current_id = comment_id
@@ -122,7 +150,7 @@ class CommentService(CommentManagementPort):
             AccountNotFoundError: If the account does not exist.
             AccountBannedError: If the account is banned.
             ArticleNotFoundError: If the article does not exist.
-            CommentValidationError: If the content is empty after sanitization.
+            CommentValidationError: If the content is empty or too long.
         """
         account = self._get_account_if_exists(user_id)
 
@@ -130,14 +158,7 @@ class CommentService(CommentManagementPort):
         if not article:
             raise ArticleNotFoundError("Article not found.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
@@ -170,7 +191,8 @@ class CommentService(CommentManagementPort):
             AccountBannedError: If the account is banned.
             CommentNotFoundError: If the parent comment does not exist.
             CommentDeletedError: If the parent comment is deleted.
-            CommentValidationError: If the content is empty or max depth exceeded.
+            CommentValidationError: If the content is empty, too long,
+                or max depth exceeded.
         """
         account = self._get_account_if_exists(user_id)
 
@@ -185,14 +207,7 @@ class CommentService(CommentManagementPort):
         if parent_depth >= self.MAX_REPLY_DEPTH:
             raise CommentValidationError("Cannot reply to a comment at maximum depth.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
@@ -277,7 +292,7 @@ class CommentService(CommentManagementPort):
             CommentNotFoundError: If the comment does not exist.
             CommentAuthorizationError: If the user is not the comment author.
             CommentDeletedError: If the comment has been deleted.
-            CommentValidationError: If the content is empty after sanitization.
+            CommentValidationError: If the content is empty or too long.
         """
         account = self._get_account_if_exists(user_id)
         comment = self.comment_repository.get_by_id(comment_id)
@@ -290,14 +305,7 @@ class CommentService(CommentManagementPort):
         if comment.is_deleted:
             raise CommentDeletedError("Cannot edit a deleted comment.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
 
         comment.comment_content = sanitized
         comment.edited_at = datetime.now(UTC)
