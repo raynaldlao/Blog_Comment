@@ -2,6 +2,7 @@ from io import BytesIO
 
 from flask import jsonify, request, send_file
 from flask_babel import gettext as _
+from pydantic import ValidationError
 
 from blog_exceptions import FileTooLargeError, FileTypeError
 from src.application.input_ports.file_management import FileManagementPort
@@ -12,7 +13,7 @@ class FlaskFileAdapter:
     """Flask input adapter for file upload and retrieval.
 
     Upload endpoint validates input via FileUploadRequest DTO, delegates to
-    FileService, and returns JSON with the serving URL.
+    FileService, and returns JSON with serving URL.
     Serve endpoint streams raw bytes from BYTEA storage with correct MIME type.
     """
 
@@ -40,9 +41,9 @@ class FlaskFileAdapter:
                 data=file_data,
                 mime_type=uploaded_file.content_type or "application/octet-stream",
             )
-        # Intentionally broad: catches Pydantic ValidationError or unexpected errors
-        # from file upload request parsing. Not in blog_exceptions.py. Do not move it there.
-        except Exception as e:
+        # Pydantic library exception — caught at web boundary for 400 response.
+        # Not in blog_exceptions.py. Do not move it there.
+        except ValidationError as e:
             return jsonify({"error": _(str(e))}), 400
 
         try:
