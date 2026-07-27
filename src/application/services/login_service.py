@@ -1,5 +1,4 @@
 import logging
-import re
 import secrets
 
 from blog_exceptions import (
@@ -9,7 +8,6 @@ from blog_exceptions import (
     AuthorizationError,
     BlogCommentError,
     EmailAlreadyTakenError,
-    WeakPasswordError,
 )
 from src.application.domain.account import Account, AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
@@ -186,16 +184,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         Updates the password for the currently logged-in account.
 
-        Validates password strength (lowercase, uppercase, special char),
-        then hashes and persists via the account repository.
+        Hashes the new password and persists it via the account repository.
+        The caller (DTO layer) is responsible for password strength validation.
 
         Args:
             new_password: The new plaintext password to set.
 
         Raises:
             AuthenticationError: If the user is not signed in.
-            WeakPasswordError: If password lacks lowercase, uppercase,
-                or special character.
         """
         account = self.get_current_account()
         if not account:
@@ -203,13 +199,6 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
 
         if not new_password:
             return
-
-        if not re.search(r"[a-z]", new_password):
-            raise WeakPasswordError("Le mot de passe doit contenir au moins une minuscule.")
-        if not re.search(r"[A-Z]", new_password):
-            raise WeakPasswordError("Le mot de passe doit contenir au moins une majuscule.")
-        if not re.search(r"[^a-zA-Z0-9]", new_password):
-            raise WeakPasswordError("Le mot de passe doit contenir au moins un caractère spécial.")
 
         new_hash = self.password_hasher_repository.hash(new_password)
         self.account_repository.update_password(account.account_id, new_hash)

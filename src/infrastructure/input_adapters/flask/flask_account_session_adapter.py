@@ -3,11 +3,13 @@ import math
 from flask import abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask import g as global_request_context
 from flask_babel import gettext as _
+from pydantic import ValidationError
 
 from blog_exceptions import BlogCommentError
 from src.application.domain.account import AccountRole
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.infrastructure.input_adapters.dto.account_response import AccountResponse
+from src.infrastructure.input_adapters.dto.update_password_request import UpdatePasswordRequest
 
 
 class AccountSessionAdapter:
@@ -251,9 +253,8 @@ class AccountSessionAdapter:
         """
         Handles password change form submission.
 
-        Validates authentication, extracts the new password from the form data,
-        and delegates the update to the session service. Catches both
-        BlogCommentError for user-friendly flash messages.
+        Validates the new password via the UpdatePasswordRequest DTO,
+        then hashes and persists via the session service.
         Redirects back to the profile page on success or error.
 
         Returns:
@@ -264,13 +265,20 @@ class AccountSessionAdapter:
             flash(_("Please sign in."), "error")
             return redirect(url_for("auth.login"))
 
-        new_password = request.form.get("new_password", "")
-        if not new_password:
-            flash(_("Password is required."), "error")
+        try:
+            dto = UpdatePasswordRequest(
+                password=request.form.get("new_password", "")
+            )
+        # Pydantic library exception — caught at web boundary for flash + redirect.
+        # Not in blog_exceptions.py. Do not move it there.
+        except ValidationError as e:
+            for error in e.errors():
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(_(msg), "error")
             return redirect(url_for("auth.profile"))
 
         try:
-            self.session_service.update_password(new_password)
+            self.session_service.update_password(dto.password)
         except BlogCommentError as e:
             flash(str(e), "error")
         else:

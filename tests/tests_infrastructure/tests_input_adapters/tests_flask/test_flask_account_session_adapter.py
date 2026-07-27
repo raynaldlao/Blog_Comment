@@ -445,13 +445,13 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         self.mock_session_service.update_password.return_value = None
         response = self.client.post(
             "/profile/password",
-            data={"new_password": "new_secret"},
+            data={"new_password": "New_Secure1!"},
             follow_redirects=True,
         )
         assert response.status_code == 200
         assert b"Password updated." in response.data
         assert b"alert-success" in response.data
-        self.mock_session_service.update_password.assert_called_once_with("new_secret")
+        self.mock_session_service.update_password.assert_called_once_with("New_Secure1!")
 
     def test_update_password_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None
@@ -462,6 +462,20 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         )
         assert response.status_code == 200
         assert b"Please sign in." in response.data
+        self.mock_session_service.update_password.assert_not_called()
+
+    def test_update_password_weak_password(self):
+        fake_user = create_test_account(account_id=1)
+        self.mock_session_service.get_current_account.return_value = fake_user
+
+        response = self.client.post(
+            "/profile/password",
+            data={"new_password": "weak"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"alert-error" in response.data
         self.mock_session_service.update_password.assert_not_called()
 
 
