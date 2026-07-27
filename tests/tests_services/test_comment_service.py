@@ -1,3 +1,4 @@
+import time
 from unittest.mock import MagicMock
 
 import pytest
@@ -504,10 +505,15 @@ class TestHardDeleteComment(CommentServiceTestBase):
 
 class TestCheckRateLimit(CommentServiceTestBase):
     def test_first_comment_allowed(self):
+        self.mock_comment_repo.get_last_comment_timestamp.return_value = None
         result = self.service.check_rate_limit(user_id=1)
         assert result is None
 
     def test_second_comment_within_interval_blocked(self):
+        self.mock_comment_repo.get_last_comment_timestamp.side_effect = [
+            None,
+            time.time(),
+        ]
         self.service.check_rate_limit(user_id=1)
         result = self.service.check_rate_limit(user_id=1)
         assert result is not None
@@ -515,11 +521,12 @@ class TestCheckRateLimit(CommentServiceTestBase):
         assert result > 0
 
     def test_different_users_independent(self):
+        self.mock_comment_repo.get_last_comment_timestamp.side_effect = [
+            None,
+            time.time(),
+            None,
+        ]
+        self.service.check_rate_limit(user_id=1)
         self.service.check_rate_limit(user_id=1)
         result = self.service.check_rate_limit(user_id=2)
         assert result is None
-
-    def test_called_once_increments_timestamp_dict(self):
-        assert len(self.service._user_comment_timestamps) == 0
-        self.service.check_rate_limit(user_id=1)
-        assert len(self.service._user_comment_timestamps) == 1

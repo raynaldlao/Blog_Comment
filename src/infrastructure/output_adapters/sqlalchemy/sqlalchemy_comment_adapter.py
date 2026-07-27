@@ -121,6 +121,24 @@ class SqlAlchemyCommentAdapter(SqlAlchemyBaseAdapter, CommentRepository):
         models = self._db_query_all(CommentModel, comment_written_account_id=account_id)
         return [self._to_domain(model) for model in models]
 
+    def get_last_comment_timestamp(self, user_id: int) -> float | None:
+        """Retrieves the posted_at timestamp of the user's most recent comment.
+
+        Args:
+            user_id: ID of the user to query.
+
+        Returns:
+            Unix timestamp of the latest comment, or None if the user
+            has no comments.
+        """
+        model = self._session.query(CommentModel.comment_posted_at)\
+            .filter_by(comment_written_account_id=user_id)\
+            .order_by(CommentModel.comment_posted_at.desc())\
+            .first()
+        if model is None:
+            return None
+        return model[0].timestamp()
+
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

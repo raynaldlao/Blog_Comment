@@ -59,6 +59,19 @@ class CommentRepository(ABC):
         pass
 
     @abstractmethod
+    def get_last_comment_timestamp(self, user_id: int) -> float | None:
+        """Retrieves the Unix timestamp of the most recent comment by a user.
+
+        Args:
+            user_id: ID of the user to query.
+
+        Returns:
+            Unix timestamp (seconds since epoch) of the latest comment,
+            or None if the user has no comments.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

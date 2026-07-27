@@ -45,8 +45,6 @@ class CommentService(CommentManagementPort):
         self.comment_repository = comment_repository
         self.article_repository = article_repository
         self.account_repository = account_repository
-        self._user_comment_timestamps: dict[int, float] = {}
-
     def _get_account_if_exists(self, user_id: int) -> Account:
         """
         Retrieves an account by user ID.
@@ -132,25 +130,24 @@ class CommentService(CommentManagementPort):
 
 
     def check_rate_limit(self, user_id: int) -> int | None:
-        """
-        Checks if the user is posting comments too fast based on COMMENT_INTERVAL class constant.
+        """Checks if the user is posting comments too fast.
 
-        Maintains an in-memory timestamp dict per user. Returns remaining cooldown
-        seconds if the user has posted within the interval, or None to allow the post.
+        Queries the repository for the user's most recent comment timestamp.
+        If the elapsed time since that comment is less than COMMENT_INTERVAL,
+        returns the remaining cooldown in seconds.
 
         Args:
-            user_id (int): ID of the user to check.
+            user_id: ID of the user to check.
 
         Returns:
-            int | None: Remaining cooldown seconds, or None if the user can post.
+            Remaining cooldown seconds if rate-limited, or None if allowed.
         """
         now = time.time()
-        last = self._user_comment_timestamps.get(user_id)
+        last = self.comment_repository.get_last_comment_timestamp(user_id)
         if last:
             elapsed = now - last
             if elapsed < self.COMMENT_INTERVAL:
                 return max(1, int(self.COMMENT_INTERVAL - elapsed))
-        self._user_comment_timestamps[user_id] = now
         return None
 
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment:

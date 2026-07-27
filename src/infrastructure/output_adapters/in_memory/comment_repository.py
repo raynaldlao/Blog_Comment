@@ -63,9 +63,28 @@ class InMemoryCommentRepository(CommentRepository):
             list[Comment]: A list of Comment domain entities for this author.
         """
         return [
-            c for c in self._comments.values()
-            if c.comment_written_account_id == account_id
+            comment for comment in self._comments.values()
+            if comment.comment_written_account_id == account_id
         ]
+
+    def get_last_comment_timestamp(self, user_id: int) -> float | None:
+        """Retrieves the posted_at timestamp of the user's most recent comment from memory.
+
+        Args:
+            user_id: ID of the user to query.
+
+        Returns:
+            Unix timestamp of the latest comment, or None if the user
+            has no comments.
+        """
+        timestamps = [
+            comment.comment_posted_at
+            for comment in self._comments.values()
+            if comment.comment_written_account_id == user_id
+        ]
+        if not timestamps:
+            return None
+        return max(timestamps).timestamp()
 
     def delete(self, comment_id: int) -> None:
         """
