@@ -371,8 +371,8 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         """
         Deletes an account by its unique identifier.
 
-        The database will apply ON DELETE SET NULL for articles authored
-        by this account and ON DELETE CASCADE for their comments.
+        The database will apply ON DELETE SET NULL for articles and
+        comments authored by this account.
 
         Args:
             account_id (int): The unique identifier of the account to delete.

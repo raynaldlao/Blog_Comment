@@ -15,9 +15,6 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.mock_session_service.count_all_accounts.return_value = 0
-        self.mock_session_service.search_accounts.return_value = []
-        self.mock_session_service.count_search_accounts.return_value = 0
         self.adapter = AccountSessionAdapter(
             session_service=self.mock_session_service,
         )
@@ -87,18 +84,32 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             endpoint="auth.update_password",
         )
 
-        self.app.add_url_rule(
-            "/admin/users",
-            view_func=self.adapter.list_all_users,
-            methods=["GET"],
-            endpoint="auth.list_all_users",
+        self._register_dummy_route(
+            "/admin/users/<int:account_id>/role",
+            "admin.change_role",
+            "admin_change_role",
         )
 
-        self.app.add_url_rule(
-            "/admin/users/<int:account_id>/role",
-            view_func=self.adapter.change_role,
-            methods=["POST"],
-            endpoint="auth.change_role",
+        self._register_dummy_route(
+            "/admin/users/<int:account_id>/ban",
+            "admin.ban_account",
+            "admin_ban",
+        )
+
+        self._register_dummy_route(
+            "/admin/users/<int:account_id>/unban",
+            "admin.unban_account",
+            "admin_unban",
+        )
+
+        self._register_dummy_route(
+            "/admin/users", "admin.list_all_users", "admin_list",
+        )
+
+        self._register_dummy_route(
+            "/admin/users/<int:account_id>/delete",
+            "admin.delete_account",
+            "admin_delete_account",
         )
 
     def test_logout_clears_session(self):
@@ -118,6 +129,23 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
     def test_logout_get_returns_method_not_allowed(self):
         response = self.client.get("/logout")
         assert response.status_code == 405
+
+    def test_self_delete_success(self):
+        fake_user = create_test_account()
+        self.mock_session_service.get_current_account.return_value = fake_user
+        self.mock_session_service.delete_own_account.return_value = None
+        response = self.client.post("/account/delete", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Account deleted" in response.data
+        assert b"alert-info" in response.data
+        self.mock_session_service.delete_own_account.assert_called_once()
+
+    def test_self_delete_unauthenticated(self):
+        self.mock_session_service.get_current_account.return_value = None
+        response = self.client.post("/account/delete", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"sign in" in response.data or b"Sign In" in response.data
+        self.mock_session_service.delete_own_account.assert_not_called()
 
     def test_get_profile_success(self):
         fake_user = create_test_account()
@@ -248,155 +276,6 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"No avatar to remove." in response.data
         assert b"alert-error" in response.data
 
-    def test_list_all_users_as_admin(self):
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-        fake_users = [
-            create_test_account(account_id=i, account_username=f"user{i}")
-            for i in range(1, 26)
-        ]
-        self.mock_session_service.get_all_accounts.return_value = fake_users[:20]
-        self.mock_session_service.count_all_accounts.return_value = 25
-
-        response = self.client.get("/admin/users")
-        assert response.status_code == 200
-        assert b"user1" in response.data
-        assert b"user20" in response.data
-        assert b"page-link-num" in response.data
-        assert b"jump-modal" in response.data
-
-    def test_list_all_users_page_2(self):
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-        fake_users_page2 = [
-            create_test_account(account_id=i, account_username=f"user{i}")
-            for i in range(21, 26)
-        ]
-        self.mock_session_service.get_all_accounts.return_value = fake_users_page2
-        self.mock_session_service.count_all_accounts.return_value = 25
-
-        response = self.client.get("/admin/users?page=2")
-        assert response.status_code == 200
-        assert b"user21" in response.data
-        assert b"user25" in response.data
-        assert b"page-link-num" in response.data
-        assert b"jump-modal" in response.data
-
-    def test_list_all_users_with_search(self):
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-        fake_results = [
-            create_test_account(account_id=i, account_username=f"user{i}")
-            for i in range(1, 26)
-        ]
-        self.mock_session_service.search_accounts.return_value = fake_results[:20]
-        self.mock_session_service.count_search_accounts.return_value = 25
-
-        response = self.client.get("/admin/users?q=user")
-        assert response.status_code == 200
-        assert b"user1" in response.data
-        assert b"user20" in response.data
-        assert b"page-link-num" in response.data
-        assert b"jump-modal" in response.data
-        self.mock_session_service.search_accounts.assert_called_once_with("user", page=1, per_page=20)
-        self.mock_session_service.count_search_accounts.assert_called_once_with("user")
-
-    def test_list_all_users_search_no_results(self):
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-        response = self.client.get("/admin/users?q=zzz")
-        assert response.status_code == 200
-        assert b"Manage Users (0 users)" in response.data
-        self.mock_session_service.search_accounts.assert_called_once_with("zzz", page=1, per_page=20)
-        self.mock_session_service.count_search_accounts.assert_called_once_with("zzz")
-
-    def test_list_all_users_page_invalid(self):
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-        self.mock_session_service.get_all_accounts.return_value = []
-        self.mock_session_service.count_all_accounts.return_value = 25
-
-        response = self.client.get("/admin/users?page=-1")
-        assert response.status_code == 200
-        assert b"page-link-num" in response.data
-
-    def test_list_all_users_shows_total_count(self):
-        """
-        Verifies that the admin user list page displays the total
-        account count in the page title.
-
-        The count_all_accounts mock is set to 47 and the assertion
-        checks that the rendered HTML contains "Manage Users (47 users)".
-        """
-        fake_admin = create_test_account(account_role=AccountRole.ADMIN)
-        self.mock_session_service.get_current_account.return_value = fake_admin
-
-        self.mock_session_service.get_all_accounts.return_value = [
-            create_test_account(account_id=i) for i in range(1, 21)
-        ]
-
-        self.mock_session_service.count_all_accounts.return_value = 47
-        response = self.client.get("/admin/users")
-        assert response.status_code == 200
-        assert b"Manage Users (47 users)" in response.data
-
-    def test_list_all_users_as_non_admin_returns_403(self):
-        fake_user = create_test_account(account_role=AccountRole.USER)
-        self.mock_session_service.get_current_account.return_value = fake_user
-        response = self.client.get("/admin/users")
-        assert response.status_code == 403
-
-    def test_non_admin_post_delete_another_returns_403(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
-        self.set_current_user(user)
-        self.mock_session_service.get_current_account.return_value = user
-        response = self.client.post("/account/delete", data={"account_id": 2})
-        assert response.status_code == 403
-
-    def test_admin_self_delete_returns_403(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.get_account_by_id.return_value = admin
-        response = self.client.post("/account/delete")
-        assert response.status_code == 403
-        self.mock_session_service.delete_account.assert_not_called()
-
-    def test_self_delete_redirects(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
-        self.set_current_user(user)
-        self.mock_session_service.get_current_account.return_value = user
-        self.mock_session_service.get_account_by_id.return_value = user
-        self.mock_session_service.delete_account.return_value = None
-        response = self.client.post("/account/delete", follow_redirects=True)
-        assert response.status_code == 200
-        assert b"articles" in response.data or b"Account deleted" in response.data
-        self.mock_session_service.delete_account.assert_called_once_with(1)
-
-    def test_admin_delete_another_user_redirects(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.get_account_by_id.return_value = target
-        self.mock_session_service.get_all_accounts.return_value = []
-        self.mock_session_service.delete_account.return_value = None
-        response = self.client.post("/account/delete", data={"account_id": 2}, follow_redirects=True)
-        assert response.status_code == 200
-        assert b"Manage Users (0 users)" in response.data or b"Account deleted" in response.data
-        self.mock_session_service.delete_account.assert_called_once_with(2)
-
-    def test_admin_delete_nonexistent_target_redirects_with_flash(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.get_account_by_id.return_value = None
-        self.mock_session_service.get_all_accounts.return_value = []
-        response = self.client.post("/account/delete", data={"account_id": 999}, follow_redirects=True)
-        assert response.status_code == 200
-        assert b"not found" in response.data or b"Account not found" in response.data
-        self.mock_session_service.delete_account.assert_not_called()
-
     def test_update_email_success(self):
         fake_user = create_test_account(account_id=1, account_email="old@test.com")
         self.mock_session_service.get_current_account.return_value = fake_user
@@ -477,149 +356,6 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"alert-error" in response.data
         self.mock_session_service.update_password.assert_not_called()
-
-
-class TestAccountSessionChangeRole(FlaskInputAdapterTestBase):
-    """
-    Tests for the change_role POST endpoint.
-    """
-
-    def setup_method(self):
-        super().setup_method()
-        self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(
-            session_service=self.mock_session_service,
-        )
-        self.app.add_url_rule(
-            "/admin/users/<int:account_id>/role",
-            view_func=self.adapter.change_role,
-            methods=["POST"],
-            endpoint="auth.change_role",
-        )
-        self.app.add_url_rule(
-            "/users/<username>",
-            view_func=lambda username: "profile",
-            endpoint="auth.user_profile",
-        )
-        self.app.add_url_rule(
-            "/admin/users",
-            view_func=lambda: "users",
-            endpoint="auth.list_all_users",
-        )
-
-    def test_admin_change_role_redirects(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_username="targetuser")
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.update_account_role.return_value = None
-        self.mock_session_service.get_account_by_id.return_value = target
-        response = self.client.post(
-            "/admin/users/2/role",
-            data={"role": "author"},
-        )
-        assert response.status_code == 302
-        assert response.location.endswith("/users/targetuser")
-        self.mock_session_service.update_account_role.assert_called_once_with(
-            admin_id=1, target_id=2, new_role="author",
-        )
-
-    def test_admin_change_role_nonexistent_target(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        from blog_exceptions import AccountNotFoundError
-        self.mock_session_service.update_account_role.side_effect = AccountNotFoundError("Account not found.")
-        self.mock_session_service.get_account_by_id.return_value = None
-        response = self.client.post(
-            "/admin/users/999/role",
-            data={"role": "author"},
-        )
-        assert response.status_code == 302
-
-    def test_non_admin_change_role_returns_403(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
-        self.set_current_user(user)
-        self.mock_session_service.get_current_account.return_value = user
-        response = self.client.post(
-            "/admin/users/2/role",
-            data={"role": "author"},
-        )
-        assert response.status_code == 403
-
-
-class TestAccountSessionBan(FlaskInputAdapterTestBase):
-    def setup_method(self):
-        super().setup_method()
-        self.mock_session_service = Mock(spec=AccountSessionManagementPort, autospec=True)
-        self.adapter = AccountSessionAdapter(
-            session_service=self.mock_session_service,
-        )
-        self.app.add_url_rule(
-            "/admin/users/<int:account_id>/ban",
-            view_func=self.adapter.ban_account,
-            methods=["POST"],
-            endpoint="auth.ban_account",
-        )
-        self.app.add_url_rule(
-            "/admin/users/<int:account_id>/unban",
-            view_func=self.adapter.unban_account,
-            methods=["POST"],
-            endpoint="auth.unban_account",
-        )
-        self._register_dummy_route("/admin/users", "auth.list_all_users", "users")
-
-    def test_admin_ban_user_redirects(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.ban_account.return_value = None
-        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"})
-        assert response.status_code == 302
-        self.mock_session_service.ban_account.assert_called_once_with(
-            admin_id=1, target_account_id=2, ban_reason="Spam",
-        )
-
-    def test_admin_unban_user_redirects(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        self.mock_session_service.unban_account.return_value = None
-        response = self.client.post("/admin/users/2/unban")
-        assert response.status_code == 302
-        self.mock_session_service.unban_account.assert_called_once_with(
-            admin_id=1, target_account_id=2,
-        )
-
-    def test_non_admin_ban_returns_403(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
-        self.set_current_user(user)
-        self.mock_session_service.get_current_account.return_value = user
-        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"})
-        assert response.status_code == 403
-        self.mock_session_service.ban_account.assert_not_called()
-
-    def test_admin_ban_another_admin_returns_302_with_flash(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        from blog_exceptions import AuthorizationError
-        self.mock_session_service.ban_account.side_effect = AuthorizationError("Cannot ban another admin.")
-        response = self.client.post("/admin/users/2/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
-        assert response.status_code == 200
-        assert b"Cannot ban another admin" in response.data
-        self.mock_session_service.ban_account.assert_called_once()
-
-    def test_admin_ban_nonexistent_user_redirects_with_flash(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.set_current_user(admin)
-        self.mock_session_service.get_current_account.return_value = admin
-        from blog_exceptions import AccountNotFoundError
-        self.mock_session_service.ban_account.side_effect = AccountNotFoundError("Account not found.")
-        response = self.client.post("/admin/users/999/ban", data={"ban_reason": "Spam"}, follow_redirects=True)
-        assert response.status_code == 200
-        assert b"Account not found" in response.data
-        self.mock_session_service.ban_account.assert_called_once()
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

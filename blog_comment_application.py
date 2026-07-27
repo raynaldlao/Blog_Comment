@@ -19,12 +19,14 @@ from flask_setup.template_helpers import (
     inject_current_year,
     inject_vite_assets,
 )
+from src.application.services.admin_service import AdminService
 from src.application.services.article_service import ArticleService
 from src.application.services.comment_service import CommentService
 from src.application.services.file_service import FileService
 from src.application.services.login_service import LoginService
 from src.application.services.registration_service import RegistrationService
 from src.infrastructure.input_adapters.flask.flask_account_session_adapter import AccountSessionAdapter
+from src.infrastructure.input_adapters.flask.flask_admin_adapter import AdminAdapter
 from src.infrastructure.input_adapters.flask.flask_article_adapter import ArticleAdapter
 from src.infrastructure.input_adapters.flask.flask_comment_adapter import CommentAdapter
 from src.infrastructure.input_adapters.flask.flask_file_adapter import FlaskFileAdapter
@@ -97,9 +99,15 @@ def _create_services(repositories: dict) -> dict:
     comment_service = CommentService(comment_repo, article_repo, account_repo)
     login_service = LoginService(
         account_repo, session_repo, password_hasher_repository,
-        file_service=file_service, comment_service=comment_service,
+        file_service=file_service,
+        comment_service=comment_service,
     )
     article_service = ArticleService(article_repo, account_repo, comment_repo, file_service=file_service)
+    admin_service = AdminService(
+        account_repo,
+        file_service=file_service,
+        comment_service=comment_service,
+    )
 
     return {
         "registration_service": registration_service,
@@ -108,6 +116,7 @@ def _create_services(repositories: dict) -> dict:
         "comment_service": comment_service,
         "article_service": article_service,
         "file_service": file_service,
+        "admin_service": admin_service,
     }
 
 
@@ -129,6 +138,7 @@ def _init_web_adapters(services: dict) -> dict:
         "account_session_adapter": AccountSessionAdapter(
             services["login_service"],
         ),
+        "admin_adapter": AdminAdapter(services["admin_service"]),
         "file_adapter": FlaskFileAdapter(services["file_service"]),
     }
 

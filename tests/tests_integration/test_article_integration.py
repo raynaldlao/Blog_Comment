@@ -181,7 +181,7 @@ class TestPersistence:
         db_session.add(admin)
         db_session.commit()
         client.post("/login", data={"username": "admin_orphan", "password": "Str0ng!Pass"}, follow_redirects=True)
-        resp = client.post("/account/delete", data={"account_id": author.account_id}, follow_redirects=True)
+        resp = client.post(f"/admin/users/{author.account_id}/delete", follow_redirects=True)
         assert resp.status_code == 200
         db_session.expire_all()
         orphan = db_session.get(CommentModel, comment_id)

@@ -513,8 +513,16 @@ class TestSecurityHeaders:
             response = _add_cache_headers(Response())
             assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
-    def test_forbidden_returns_custom_error_page(self, client):
+    def test_forbidden_returns_custom_error_page(self, client, db_session):
         """Verifies 403 errors render the custom error template."""
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
+        user = AccountModel(
+            account_username="pu", account_email="pu@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add(user)
+        db_session.commit()
+        client.post("/login", data={"username": "pu", "password": "Str0ng!Pass"}, follow_redirects=False)
         response = client.get("/admin/users")
         assert response.status_code == 403
         assert b"You do not have permission" in response.data

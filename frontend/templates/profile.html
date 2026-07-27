@@ -33,7 +33,7 @@
         <div class="role-row">
             <span class="role-badge">{{ _(user.account_role) }}</span>
             {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
-            <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
+            <form action="{{ url_for('admin.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <select name="role">
                     <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
@@ -124,7 +124,7 @@
     {% if is_own_profile %}
     <div class="profile-actions">
         {% if current_user.account_role == 'admin' %}
-        <a href="{{ url_for('auth.list_all_users') }}" class="btn">{{ _('Manage Users') }}</a>
+        <a href="{{ url_for('admin.list_all_users') }}" class="btn">{{ _('Manage Users') }}</a>
         {% endif %}
         <button type="button" id="open-password-modal" class="btn btn-secondary">{{ _('Change Password') }}</button>
         <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
@@ -145,7 +145,7 @@
     {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
     <div class="profile-actions">
         {% if user.is_banned %}
-        <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
+        <form action="{{ url_for('admin.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary">{{ _('Unban') }}</button>
         </form>
@@ -154,9 +154,8 @@
             data-user-id="{{ user.account_id }}"
             data-username="{{ user.account_username }}">{{ _('Ban') }}</button>
         {% endif %}
-        <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+        <form id="admin-delete-account-form" action="{{ url_for('admin.delete_account', account_id=user.account_id) }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="account_id" value="{{ user.account_id }}">
             <button type="button" class="btn btn-danger confirm-trigger"
                 data-form-id="admin-delete-account-form"
                 data-confirm-message="{{ _('Delete user \\\"%(username)s\\\" ? This action is irreversible.', username=user.account_username) }}">{{ _('Delete Account') }}</button>

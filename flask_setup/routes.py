@@ -120,10 +120,10 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
 
     app.add_url_rule(
-        "/admin/users",
-        view_func=acc.list_all_users,
-        methods=["GET"],
-        endpoint="auth.list_all_users",
+        "/lang/<locale>",
+        view_func=acc.set_lang,
+        methods=["POST"],
+        endpoint="auth.set_lang",
     )
 
     app.add_url_rule(
@@ -131,34 +131,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         view_func=acc.delete_account,
         methods=["POST"],
         endpoint="auth.delete_account",
-    )
-
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/role",
-        view_func=acc.change_role,
-        methods=["POST"],
-        endpoint="auth.change_role",
-    )
-
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/ban",
-        view_func=acc.ban_account,
-        methods=["POST"],
-        endpoint="auth.ban_account",
-    )
-
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/unban",
-        view_func=acc.unban_account,
-        methods=["POST"],
-        endpoint="auth.unban_account",
-    )
-
-    app.add_url_rule(
-        "/lang/<locale>",
-        view_func=acc.set_lang,
-        methods=["POST"],
-        endpoint="auth.set_lang",
     )
 
 
@@ -180,9 +152,34 @@ def _register_file_routes(app: Flask, adapters: dict) -> None:
     )
 
 
+def _register_admin_routes(app: Flask, adapters: dict) -> None:
+    adm = adapters["admin_adapter"]
+    app.add_url_rule(
+        "/admin/users", view_func=adm.list_all_users, methods=["GET"],
+        endpoint="admin.list_all_users",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/delete", view_func=adm.delete_account, methods=["POST"],
+        endpoint="admin.delete_account",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/role", view_func=adm.change_role,
+        methods=["POST"], endpoint="admin.change_role",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/ban", view_func=adm.ban_account,
+        methods=["POST"], endpoint="admin.ban_account",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/unban", view_func=adm.unban_account,
+        methods=["POST"], endpoint="admin.unban_account",
+    )
+
+
 def register_web_routes(app: Flask, adapters: dict) -> None:
     _register_article_routes(app, adapters)
     _register_article_api_routes(app, adapters)
     _register_comment_routes(app, adapters)
     _register_auth_routes(app, adapters)
+    _register_admin_routes(app, adapters)
     _register_file_routes(app, adapters)

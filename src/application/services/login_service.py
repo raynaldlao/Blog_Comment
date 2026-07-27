@@ -3,13 +3,11 @@ import secrets
 
 from blog_exceptions import (
     AccountBannedError,
-    AccountNotFoundError,
     AuthenticationError,
-    AuthorizationError,
     BlogCommentError,
     EmailAlreadyTakenError,
 )
-from src.application.domain.account import Account, AccountRole
+from src.application.domain.account import Account
 from src.application.input_ports.account_session_management import AccountSessionManagementPort
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.input_ports.file_management import FileManagementPort
@@ -18,14 +16,14 @@ from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
 
+logger = logging.getLogger(__name__)
+
 
 class LoginService(LoginManagementPort, AccountSessionManagementPort):
-    """
-    Service responsible for handling user authentication and session lifecycle.
-    Implements both LoginManagementPort (for authentication) and
-    AccountSessionManagementPort (for session, profile, and account management).
-    Orchestrates cross-cutting operations like account deletion and avatar
-    management that span multiple domains (file, comment, account).
+    """Service for authentication, session lifecycle, and profile management.
+
+    Implements LoginManagementPort (authentication) and
+    AccountSessionManagementPort (session, profile).
     """
 
     def __init__(
@@ -36,20 +34,14 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         file_service: FileManagementPort | None = None,
         comment_service: CommentManagementPort | None = None,
     ):
-        """
-        Initializes the service with account repository, session management,
-        password hashing, and optional cross-domain services.
-
-        file_service and comment_service are optional for backward compatibility
-        (tests that mock LoginService directly). In production they are always
-        provided via blog_comment_application.py.
+        """Initialize with account, session, hasher, and optional file and comment services.
 
         Args:
-            account_repository (AccountRepository): The repository for account data access.
-            session_repository (AccountSessionRepository): The output port for session persistence.
-            password_hasher_repository (PasswordHasherRepository): The port for password verification operations.
-            file_service (FileManagementPort | None): Input port for file operations (avatar upload/delete).
-            comment_service (CommentManagementPort | None): Input port for comment masking on account deletion.
+            account_repository: Repository for account data access.
+            session_repository: Output port for session persistence.
+            password_hasher_repository: Port for password verification.
+            file_service: Optional input port for avatar upload/delete.
+            comment_service: Optional input port for comment masking on account delete.
         """
         self.account_repository = account_repository
         self.session_repository = session_repository
@@ -134,18 +126,6 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         """
         return self.account_repository.find_by_username(username)
 
-    def get_account_by_id(self, account_id: int) -> Account | None:
-        """
-        Retrieves a domain Account by its unique identifier via the repository.
-
-        Args:
-            account_id: The unique identifier of the account.
-
-        Returns:
-            Account | None: The domain Account if found, None otherwise.
-        """
-        return self.account_repository.get_by_id(account_id)
-
     def _update_avatar(self, avatar_file_id: str | None) -> None:
         account = self.get_current_account()
         if account is None:
@@ -203,55 +183,6 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         new_hash = self.password_hasher_repository.hash(new_password)
         self.account_repository.update_password(account.account_id, new_hash)
 
-    def get_all_accounts(self, page: int = 1, per_page: int = 20) -> list[Account]:
-        """
-        Retrieves a paginated list of all registered accounts.
-
-        Args:
-            page: The page number (1-indexed). Defaults to 1.
-            per_page: The number of items per page. Defaults to 20.
-
-        Returns:
-            list[Account]: A list of Account domain entities for the given page.
-        """
-        return self.account_repository.get_all_paginated(page, per_page)
-
-    def count_all_accounts(self) -> int:
-        """
-        Returns the total number of registered accounts.
-
-        Returns:
-            int: The total count of accounts.
-        """
-        return self.account_repository.count_all()
-
-    def search_accounts(self, query: str, page: int = 1, per_page: int = 20) -> list[Account]:
-        """
-        Searches accounts by username or email with pagination.
-
-        Args:
-            query: The search string to match against username or email.
-            page: The page number (1-indexed). Defaults to 1.
-            per_page: The number of items per page. Defaults to 20.
-
-        Returns:
-            list[Account]: A list of matching Account domain entities
-                for the given page.
-        """
-        return self.account_repository.search(query, page, per_page)
-
-    def count_search_accounts(self, query: str) -> int:
-        """
-        Returns the total number of accounts matching the search query.
-
-        Args:
-            query: The search string to match against username or email.
-
-        Returns:
-            int: The total count of matching accounts.
-        """
-        return self.account_repository.count_search(query)
-
     def update_profile_photo(self, file_data: bytes, filename: str, mime_type: str) -> str | None:
         """
         Uploads a new profile photo for the currently authenticated account.
@@ -281,7 +212,7 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
             try:
                 self.file_service.delete_file(old_avatar_id)
             except BlogCommentError:
-                logging.getLogger(__name__).warning(
+                logger.warning(
                     "Failed to delete old avatar %s for account %s",
                     old_avatar_id, account.account_id,
                 )
@@ -317,120 +248,27 @@ class LoginService(LoginManagementPort, AccountSessionManagementPort):
         self._update_avatar(None)
         return True
 
-    def delete_account(self, account_id: int) -> None:
-        """
-        Deletes a user account by its unique identifier.
+    def delete_own_account(self) -> None:
+        """Delete the currently authenticated account.
 
-        Cleans up the associated avatar file and masks the account's
-        comments before deleting the account record. The database handles
-        orphaned articles via ON DELETE SET NULL.
-
-        Args:
-            account_id: The unique identifier of the account to delete.
+        Cleans up avatar file if present, masks the user's comments,
+        then deletes the account record and clears the session.
 
         Raises:
-            AccountNotFoundError: If no account with the given ID exists.
+            AuthenticationError: If the user is not signed in.
         """
-        existing = self.account_repository.get_by_id(account_id)
-        if not existing:
-            raise AccountNotFoundError(f"Account with ID {account_id} not found.")
-
-        if existing.avatar_file_id and self.file_service:
+        account = self.get_current_account()
+        if not account:
+            raise AuthenticationError("You must be signed in.")
+        if self.file_service and account.avatar_file_id:
             try:
-                self.file_service.delete_file(existing.avatar_file_id)
+                self.file_service.delete_file(account.avatar_file_id)
             except BlogCommentError:
-                logging.getLogger(__name__).warning(
+                logger.warning(
                     "Failed to delete avatar %s for account %s",
-                    existing.avatar_file_id, account_id,
+                    account.avatar_file_id, account.account_id,
                 )
-
         if self.comment_service:
-            self.comment_service.mask_comments_by_account_id(account_id)
-
-        self.account_repository.delete(account_id)
-
-    def update_account_role(self, admin_id: int, target_id: int, new_role: str) -> None:
-        """
-        Allows an admin user to update the role of another user account.
-
-        Validates that the requester is an admin, the target exists,
-        the target is not an admin, and the new role is valid.
-
-        Args:
-            admin_id: The unique identifier of the admin performing the action.
-            target_id: The unique identifier of the account whose role is to be updated.
-            new_role: The new role string ("user" or "author").
-
-        Raises:
-            AuthorizationError: If the requester is not an admin.
-            AccountNotFoundError: If the target account is not found.
-            AuthorizationError: If the target is another admin.
-        """
-        admin = self.account_repository.get_by_id(admin_id)
-        if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
-
-        target = self.account_repository.get_by_id(target_id)
-        if not target:
-            raise AccountNotFoundError("Account not found.")
-
-        if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Cannot change another administrator's role.")
-
-        if new_role not in ("user", "author"):
-            return
-
-        self.account_repository.update_role(target_id, new_role)
-
-    def ban_account(self, admin_id: int, target_account_id: int, ban_reason: str | None) -> None:
-        """
-        Bans a user account. Only admins can ban non-admin accounts.
-
-        Clears the session token to force immediate disconnection
-        on the next request from any active session.
-
-        Args:
-            admin_id: The unique identifier of the admin performing the action.
-            target_account_id: The unique identifier of the account to ban.
-            ban_reason: Optional reason for the ban.
-
-        Raises:
-            AuthorizationError: If the requester is not an admin.
-            AccountNotFoundError: If the target account is not found.
-            AuthorizationError: If the target is another admin.
-        """
-        admin = self.account_repository.get_by_id(admin_id)
-        if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
-
-        target = self.account_repository.get_by_id(target_account_id)
-        if not target:
-            raise AccountNotFoundError("Account not found.")
-
-        if target.account_role == AccountRole.ADMIN:
-            raise AuthorizationError("Cannot ban another administrator.")
-
-        self.account_repository.update_ban_status(target_account_id, True, ban_reason)
-        self.account_repository.update_session_token(target_account_id, None)
-
-    def unban_account(self, admin_id: int, target_account_id: int) -> None:
-        """
-        Unbans a user account. Only admins can unban accounts.
-
-        Args:
-            admin_id: The unique identifier of the admin performing the action.
-            target_account_id: The unique identifier of the account to unban.
-
-        Raises:
-            AuthorizationError: If the requester is not an admin.
-            AccountNotFoundError: If the target account is not found.
-        """
-        admin = self.account_repository.get_by_id(admin_id)
-        if not admin or admin.account_role != AccountRole.ADMIN:
-            raise AuthorizationError("Unauthorized.")
-
-        target = self.account_repository.get_by_id(target_account_id)
-        if not target:
-            raise AccountNotFoundError("Account not found.")
-
-        self.account_repository.update_ban_status(target_account_id, False, None)
+            self.comment_service.mask_comments_by_account_id(account.account_id)
+        self.account_repository.delete(account.account_id)
+        self.session_repository.clear()
