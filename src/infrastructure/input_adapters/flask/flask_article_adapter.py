@@ -52,6 +52,31 @@ class ArticleAdapter:
             count += ArticleAdapter._count_comment_nodes(node.replies)
         return count
 
+    @staticmethod
+    def _ensure_blocknote_format(content: str) -> str:
+        """Wrap legacy plain-text content into a BlockNote paragraph JSON array.
+
+        If content is already valid BlockNote JSON, pass through unchanged.
+        Otherwise, wrap in a paragraph block so the React BlockNote viewer
+        can render legacy articles without crashing.
+
+        Args:
+            content (str): Raw article content from the database.
+
+        Returns:
+            str: Valid BlockNote JSON array string.
+        """
+        try:
+            json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in blog_exceptions.py. Do not move it there.
+        except (json.JSONDecodeError, TypeError):
+            content = json.dumps([{
+                "type": "paragraph",
+                "content": [{"type": "text", "text": content}]
+            }])
+        return content
+
     def list_articles(self) -> str:
         """
         Renders the blog homepage with a paginated list of articles.
@@ -119,16 +144,7 @@ class ArticleAdapter:
             author_avatar_file_id=detail.article_with_author.author_avatar_file_id,
         )
 
-        content = article.article_content
-        try:
-            json.loads(content)
-        # Python builtin — safety net for json.loads on non-string input.
-        # Not in blog_exceptions.py. Do not move it there.
-        except (json.JSONDecodeError, TypeError):
-            content = json.dumps([{
-                "type": "paragraph",
-                "content": [{"type": "text", "text": content}]
-            }])
+        content = self._ensure_blocknote_format(article.article_content)
 
         dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
         return render_template(
@@ -163,8 +179,7 @@ class ArticleAdapter:
     def api_get_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for fetching a single article.
-        Wraps legacy plain-text content into a BlockNote paragraph block
-        for compatibility with the React viewer.
+        Legacy plain-text fallback delegated to `_ensure_blocknote_format`.
 
         Args:
             article_id (int): The unique identifier of the article to retrieve.
@@ -178,16 +193,7 @@ class ArticleAdapter:
         if not article:
             return jsonify({"error": _("Article not found.")}), 404
 
-        content = article.article_content
-        try:
-            json.loads(content)
-        # Python builtin — safety net for json.loads on non-string input.
-        # Not in blog_exceptions.py. Do not move it there.
-        except (json.JSONDecodeError, TypeError):
-            content = json.dumps([{
-                "type": "paragraph",
-                "content": [{"type": "text", "text": content}]
-            }])
+        content = self._ensure_blocknote_format(article.article_content)
 
         username = self.article_service.get_author_name(article.article_author_id)
         return jsonify({

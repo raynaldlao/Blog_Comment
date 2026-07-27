@@ -449,6 +449,18 @@ class TestArticleLegacyContent(ArticleAdapterTestBase):
         assert "article_edited_at" in data
         assert data["article_edited_at"] is None
 
+    def test_ensure_blocknote_format_passthrough(self):
+        bn_content = json.dumps([{"type": "heading", "content": [{"type": "text", "text": "Hi"}]}])
+        result = ArticleAdapter._ensure_blocknote_format(bn_content)
+        assert result == bn_content
+
+    def test_ensure_blocknote_format_wraps_plain_text(self):
+        result = ArticleAdapter._ensure_blocknote_format("Hello world")
+        parsed = json.loads(result)
+        assert parsed[0]["type"] == "paragraph"
+        assert parsed[0]["content"][0]["text"] == "Hello world"
+
+
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):
         self.mock_article_repo.count_all.return_value = 11
