@@ -731,11 +731,6 @@ a.comment-author:hover {
     }
 }
 
-.comment-edited {
-    font-size: var(--font-body-xs);
-    color: var(--on-surface-variant);
-    font-style: italic;
-}
 
 .comment-form-actions {
     display: flex;
