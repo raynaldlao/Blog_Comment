@@ -80,6 +80,28 @@ class TestFileUpload(FlaskFileAdapterTest):
         assert b"No file provided" in response.data
         self.mock_file_service.upload_file.assert_not_called()
 
+    def test_upload_image_empty_file(self):
+        data = {"file": (BytesIO(b""), "empty.jpg")}
+        response = self.client.post(
+            "/api/upload/image",
+            data=data,
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        self.mock_file_service.upload_file.assert_not_called()
+
+    def test_upload_image_filename_too_long(self):
+        data = {"file": (BytesIO(b"data"), "a" * 256 + ".jpg")}
+        response = self.client.post(
+            "/api/upload/image",
+            data=data,
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        self.mock_file_service.upload_file.assert_not_called()
+
 
 class TestFileServe(FlaskFileAdapterTest):
     def test_serve_file_success(self):
