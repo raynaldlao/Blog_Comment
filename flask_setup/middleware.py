@@ -62,7 +62,7 @@ class CSPConfig:
         response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
         response.headers["Content-Security-Policy"] = (
             "default-src 'self';"
-            f"script-src 'self' 'unsafe-eval' {self._script_hash};"
+            f"script-src 'self' 'unsafe-eval' 'unsafe-hashes' 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc=' {self._script_hash};"
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
             "font-src 'self' https://fonts.gstatic.com;"
             "img-src 'self' data: https:;"

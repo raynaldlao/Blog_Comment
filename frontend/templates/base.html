@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% if page_with_editor %}
     {% for css_url in vite_css_urls %}
-    <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}" media="print" onload="this.media='all'">
     {% endfor %}
     {% if vite_vendor_js_url %}
     <link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
