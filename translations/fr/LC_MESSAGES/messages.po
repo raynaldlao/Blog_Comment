@@ -959,3 +959,11 @@ msgstr "Nom d'utilisateur ou mot de passe invalide."
 #: src/infrastructure/input_adapters/flask/flask_registration_adapter.py:70
 msgid "Registration successful. Please sign in."
 msgstr "Inscription réussie. Veuillez vous connecter."
+
+#: flask_setup/auth_helpers.py:14
+msgid "You must be signed in."
+msgstr "Vous devez être connecté."
+
+#: frontend/core/components/ArticleForm.jsx:85
+msgid "Upload failed."
+msgstr "Échec de l'upload."

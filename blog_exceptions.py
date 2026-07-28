@@ -98,11 +98,4 @@ class WeakPasswordError(BlogCommentError, ValueError):
     pass
 
 
-class CommentEmptyError(BlogCommentError, ValueError):
-    """Raised when comment content is empty."""
-    pass
 
-
-class CommentTooLongError(BlogCommentError, ValueError):
-    """Raised when comment content exceeds max length."""
-    pass

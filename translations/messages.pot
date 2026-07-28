@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-27 17:44+0200\n"
+"POT-Creation-Date: 2026-07-28 02:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,16 +17,20 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.10.3\n"
 
-#: blog_comment_application.py:259
+#: blog_comment_application.py:305
 msgid "You do not have permission to access this page."
 msgstr ""
 
-#: blog_comment_application.py:260
+#: blog_comment_application.py:306
 msgid "The page you are looking for does not exist."
 msgstr ""
 
-#: blog_comment_application.py:261
+#: blog_comment_application.py:307
 msgid "An unexpected error occurred. Please try again later."
+msgstr ""
+
+#: flask_setup/auth_helpers.py:61
+msgid "Unauthorized."
 msgstr ""
 
 #: frontend/templates/article_create.html:3
@@ -178,7 +182,7 @@ msgstr ""
 #: frontend/templates/article_create.html:54
 #: frontend/templates/article_detail.html:79
 #: frontend/templates/article_edit.html:83 frontend/templates/base.html:116
-#: frontend/templates/user_list.html:95
+#: frontend/templates/user_list.html:94
 msgid "Delete"
 msgstr ""
 
@@ -327,7 +331,7 @@ msgstr ""
 #: frontend/templates/article_detail.html:249
 #: frontend/templates/article_list.html:143 frontend/templates/base.html:115
 #: frontend/templates/base.html:139 frontend/templates/profile.html:95
-#: frontend/templates/profile.html:118 frontend/templates/user_list.html:143
+#: frontend/templates/profile.html:118 frontend/templates/user_list.html:142
 msgid "Cancel"
 msgstr ""
 
@@ -386,13 +390,13 @@ msgstr ""
 
 #: frontend/templates/article_list.html:40
 #: frontend/templates/article_list.html:107
-#: frontend/templates/user_list.html:33 frontend/templates/user_list.html:110
+#: frontend/templates/user_list.html:33 frontend/templates/user_list.html:109
 msgid "Previous"
 msgstr ""
 
 #: frontend/templates/article_list.html:48
 #: frontend/templates/article_list.html:115
-#: frontend/templates/user_list.html:40 frontend/templates/user_list.html:117
+#: frontend/templates/user_list.html:40 frontend/templates/user_list.html:116
 msgid "Next"
 msgstr ""
 
@@ -408,7 +412,7 @@ msgstr ""
 #: frontend/templates/article_list.html:124
 #: frontend/templates/macros/pagination.html:20
 #: frontend/templates/macros/pagination.html:26
-#: frontend/templates/user_list.html:124
+#: frontend/templates/user_list.html:123
 msgid "Jump to page"
 msgstr ""
 
@@ -418,17 +422,17 @@ msgid "Enter page number (1 - %(max)s)"
 msgstr ""
 
 #: frontend/templates/article_list.html:132
-#: frontend/templates/user_list.html:132
+#: frontend/templates/user_list.html:131
 msgid "Increase page"
 msgstr ""
 
 #: frontend/templates/article_list.html:135
-#: frontend/templates/user_list.html:135
+#: frontend/templates/user_list.html:134
 msgid "Decrease page"
 msgstr ""
 
 #: frontend/templates/article_list.html:144
-#: frontend/templates/user_list.html:144
+#: frontend/templates/user_list.html:143
 msgid "Go"
 msgstr ""
 
@@ -497,8 +501,8 @@ msgid "© %(year)s DevJournal. All rights reserved."
 msgstr ""
 
 #: frontend/templates/error.html:11 frontend/templates/login.html:42
-#: frontend/templates/profile.html:169 frontend/templates/registration.html:68
-#: frontend/templates/user_list.html:149
+#: frontend/templates/profile.html:168 frontend/templates/registration.html:68
+#: frontend/templates/user_list.html:148
 msgid "Return to home"
 msgstr ""
 
@@ -632,7 +636,7 @@ msgid ""
 "irreversible."
 msgstr ""
 
-#: frontend/templates/profile.html:139 frontend/templates/profile.html:162
+#: frontend/templates/profile.html:139 frontend/templates/profile.html:161
 msgid "Delete Account"
 msgstr ""
 
@@ -640,7 +644,7 @@ msgstr ""
 msgid "Unban"
 msgstr ""
 
-#: frontend/templates/profile.html:162 frontend/templates/user_list.html:95
+#: frontend/templates/profile.html:161 frontend/templates/user_list.html:94
 #, python-format
 msgid "Delete user \\\"%(username)s\\\" ? This action is irreversible."
 msgstr ""
@@ -718,7 +722,7 @@ msgstr ""
 msgid "—"
 msgstr ""
 
-#: frontend/templates/user_list.html:128
+#: frontend/templates/user_list.html:127
 #, python-format
 msgid "Enter page number (1 - %(max)d)"
 msgstr ""
@@ -742,150 +746,128 @@ msgstr ""
 msgid "Passwords do not match."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:61
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:58
 msgid ""
 "You have been disconnected because your account was logged in from "
 "another location."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:97
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:94
 msgid "You have been logged out."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:129
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:126
 msgid "Please sign in to view your profile."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:182
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:179
 msgid "Authentication required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:186
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:183
 msgid "No file provided."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:194
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:191
 msgid "Failed to upload profile photo."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:212
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:236
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:265
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:360
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:209
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:233
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:262
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:288
 msgid "Please sign in."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:217
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:214
 msgid "No avatar to remove."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:220
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:217
 msgid "Profile photo removed."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:241
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:238
 msgid "Email is required."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:249
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:246
 msgid "Email updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:285
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:282
 msgid "Password updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:374
-msgid "Account not found."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:383
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:386
+#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:291
+#: src/infrastructure/input_adapters/flask/flask_admin_adapter.py:99
 msgid "Account deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:420
+#: src/infrastructure/input_adapters/flask/flask_admin_adapter.py:92
+msgid "Account not found."
+msgstr ""
+
+#: src/infrastructure/input_adapters/flask/flask_admin_adapter.py:128
 msgid "Role updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:457
+#: src/infrastructure/input_adapters/flask/flask_admin_adapter.py:161
 msgid "Account banned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_account_session_adapter.py:488
+#: src/infrastructure/input_adapters/flask/flask_admin_adapter.py:189
 msgid "Account unbanned."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:114
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:141
 #, python-format
 msgid "Error: %(error)s"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:154
-msgid "You must be signed in to author an article."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:158
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:371
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:173
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:366
 msgid "Insufficient permissions: Only authors or admins can create articles."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:179
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:193
 msgid "Article not found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:217
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:266
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:315
-msgid "Unauthorized."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:219
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:268
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:317
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:223
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:271
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:319
 msgid "Insufficient permissions."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:223
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:272
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:227
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:275
 msgid "Invalid JSON body."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:237
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:286
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:241
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:289
 msgid "Validation error."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:342
-msgid "You must be logged in to delete articles."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:348
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:346
 msgid "error"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:350
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:348
 msgid "Article deleted successfully."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:367
-msgid "You must be signed in to edit an article."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:376
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:371
 msgid "Error: The requested article could not be found."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:380
+#: src/infrastructure/input_adapters/flask/flask_article_adapter.py:375
 msgid "You do not have permission to edit this article."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:57
-msgid "You must be signed in to post a comment."
-msgstr ""
-
 #: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:76
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:124
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:122
 #, python-format
 msgid "You're posting too fast. Please wait %(remaining)ss before posting again."
 msgstr ""
@@ -894,40 +876,27 @@ msgstr ""
 msgid "Comment added."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:105
-msgid "You must be signed in to reply."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:136
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:134
 msgid "Reply added."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:153
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:216
-msgid "You must be signed in to delete comments."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:164
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:160
 msgid "Comment deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:182
-msgid "You must be signed in to edit comments."
-msgstr ""
-
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:195
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:189
 msgid "Comment updated."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:229
+#: src/infrastructure/input_adapters/flask/flask_comment_adapter.py:221
 msgid "Comment permanently deleted."
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:33
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:34
 msgid "No file provided"
 msgstr ""
 
-#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:75
+#: src/infrastructure/input_adapters/flask/flask_file_adapter.py:76
 msgid "File not found"
 msgstr ""
 
