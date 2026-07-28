@@ -1,7 +1,7 @@
 import glob
 import os
 from datetime import timedelta
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 from flask import Flask, render_template, session
 from flask_babel import Babel
@@ -78,7 +78,7 @@ class WebAdapters(NamedTuple):
     file_adapter: FlaskFileAdapter
 
 
-def _create_output_adapters(db_session: Session) -> Repositories:
+def _create_output_adapters(db_session: Session | None = None) -> Repositories:
     """
     Instantiates persistence and security adapters.
 
@@ -91,7 +91,8 @@ def _create_output_adapters(db_session: Session) -> Repositories:
     Returns:
         Repositories: Typed container of initialized output adapters.
     """
-    account_repo = SqlAlchemyAccountAdapter(db_session)
+    _session = cast(Session, db_session)
+    account_repo = SqlAlchemyAccountAdapter(_session)
     if db_session is not None:
         time_cost = env_config.test_argon2_time_cost
         memory_cost = env_config.test_argon2_memory_cost
@@ -102,9 +103,9 @@ def _create_output_adapters(db_session: Session) -> Repositories:
         parallelism = env_config.argon2_parallelism
     return Repositories(
         account_repo=account_repo,
-        article_repo=SqlAlchemyArticleAdapter(db_session),
-        comment_repo=SqlAlchemyCommentAdapter(db_session),
-        file_storage_repo=SqlAlchemyFileStorageAdapter(db_session),
+        article_repo=SqlAlchemyArticleAdapter(_session),
+        comment_repo=SqlAlchemyCommentAdapter(_session),
+        file_storage_repo=SqlAlchemyFileStorageAdapter(_session),
         session_repo=FlaskSessionAdapter(account_repo),
         password_hasher_repository=Argon2PasswordHasherAdapter(
             time_cost=time_cost,
@@ -308,7 +309,7 @@ def create_app(db_session=None) -> Flask:
     return app
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     application = create_app()
     application.run(
         debug=env_config.flask_debug,

@@ -298,3 +298,85 @@ class TestProsemirrorToHtml:
             '[{"type":"quote","content":[{"type":"text","text":"BlockNote quote"}]}]'
         )
         assert result == Markup("<blockquote>\nBlockNote quote\n</blockquote>")
+
+    def test_non_list_top_level_returns_empty(self):
+        result = prosemirror_to_html('{"type":"doc","content":[]}')
+        assert result == Markup("")
+
+    def test_check_list_item_checked(self):
+        result = prosemirror_to_html(
+            '[{"type":"checkListItem","attrs":{"checked":true},'
+            '"content":[{"type":"text","text":"done"}]}]'
+        )
+        assert 'class="checked"' in str(result)
+        assert "done" in str(result)
+
+    def test_check_list_item_unchecked(self):
+        result = prosemirror_to_html(
+            '[{"type":"checkListItem","content":[{"type":"text","text":"todo"}]}]'
+        )
+        assert 'class="checked"' not in str(result)
+        assert "todo" in str(result)
+
+    def test_table_with_list_content(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":[{"type":"tableRow","content":[{"type":"tableCell",'
+            '"content":[{"type":"text","text":"cell"}]}]}]}]'
+        )
+        assert "<td>cell</td>" in str(result)
+
+    def test_table_with_non_dict_row(self):
+        result = prosemirror_to_html(
+            '[{"type":"table","content":{"rows":["bad_row"]}}]'
+        )
+        assert "bad_row" in str(result)
+
+    def test_list_item_empty_content(self):
+        result = prosemirror_to_html(
+            '[{"type":"bulletList","content":[{"type":"listItem","content":[]}]}]'
+        )
+        assert "<li>" in str(result)
+
+    def test_list_item_with_text_content(self):
+        result = prosemirror_to_html(
+            '[{"type":"orderedList","content":[{"type":"listItem",'
+            '"content":[{"type":"text","text":"direct text"}]}]}]'
+        )
+        assert "direct text" in str(result)
+
+    def test_inline_skips_non_dict_node(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":["not_a_dict",{"type":"text","text":"valid"}]}]'
+        )
+        assert "valid" in str(result)
+        assert "not_a_dict" not in str(result)
+
+    def test_underline_mark(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"underline"}],'
+            '"text":"underlined"}]}]'
+        )
+        assert result == Markup("<p><u>underlined</u></p>")
+
+    def test_strike_mark(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"strike"}],'
+            '"text":"strikethrough"}]}]'
+        )
+        assert result == Markup("<p><s>strikethrough</s></p>")
+
+    def test_text_color_mark(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"textColor",'
+            '"attrs":{"color":"#ff0000"}}],"text":"red text"}]}]'
+        )
+        assert '<span style="color:#ff0000">' in str(result)
+        assert "red text" in str(result)
+
+    def test_background_color_mark(self):
+        result = prosemirror_to_html(
+            '[{"type":"paragraph","content":[{"type":"text","marks":[{"type":"backgroundColor",'
+            '"attrs":{"backgroundColor":"#ffff00"}}],"text":"highlighted"}]}]'
+        )
+        assert '<span style="background-color:#ffff00">' in str(result)
+        assert "highlighted" in str(result)

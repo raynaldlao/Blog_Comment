@@ -5,6 +5,7 @@ import pytest
 from blog_exceptions import (
     AccountBannedError,
     AuthenticationError,
+    BlogCommentError,
     EmailAlreadyTakenError,
 )
 from src.application.domain.account import Account
@@ -132,6 +133,15 @@ class TestLoginService:
 
         self.mock_repo.update_email.assert_not_called()
 
+    def test_update_email_same_email_returns_none(self):
+        fake_account = create_test_account(account_id=1, account_email="same@test.com")
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        result = self.service.update_email("same@test.com")
+
+        assert result is None
+        self.mock_repo.update_email.assert_not_called()
+
     def test_update_email_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
 
@@ -245,3 +255,82 @@ class TestDeleteOwnAccount:
         self.mock_file_service.delete_file.assert_not_called()
         self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
         self.mock_repo.delete.assert_not_called()
+
+    def test_delete_own_account_avatar_delete_failure_logs_warning(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+
+        self.service.delete_own_account()
+
+        self.mock_file_service.delete_file.assert_called_once_with("av-123")
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_repo.delete.assert_called_once_with(1)
+        self.mock_session_repo.clear.assert_called_once()
+
+
+class TestProfilePhoto:
+    def setup_method(self):
+        self.mock_file_service = MagicMock(spec=FileManagementPort, autospec=True)
+        self.mock_repo, self.mock_session_repo, self.mock_hasher, self.service = _make_login_fixtures(
+            file_service=self.mock_file_service,
+        )
+
+    def test_update_profile_photo_no_file_service(self):
+        _, _, _, service = _make_login_fixtures(file_service=None)
+        result = service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result is None
+
+    def test_update_profile_photo_unauthenticated(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result is None
+
+    def test_update_profile_photo_delete_failure_logs_warning(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="old-av")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.upload_file.return_value = MagicMock(file_id="new-av")
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+        result = self.service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result == "new-av"
+        self.mock_file_service.delete_file.assert_called_once_with("old-av")
+
+    def test_remove_profile_photo_no_file_service(self):
+        _, _, _, service = _make_login_fixtures(file_service=None)
+        result = service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_unauthenticated(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_no_avatar(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id=None)
+        self.mock_session_repo.get_account.return_value = fake_account
+        result = self.service.remove_profile_photo()
+        assert result is False
+        self.mock_file_service.delete_file.assert_not_called()
+
+    def test_remove_profile_photo_delete_failure(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+        result = self.service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_success(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        result = self.service.remove_profile_photo()
+        assert result is True
+        self.mock_file_service.delete_file.assert_called_once_with("av-123")
+        updated = self.mock_repo.update_avatar.call_args
+        assert updated is not None
+        assert updated[0][1] is None
+
+    def test_update_avatar_unauthenticated_returns_none(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service._update_avatar("new-av")
+        assert result is None
+        self.mock_repo.update_avatar.assert_not_called()

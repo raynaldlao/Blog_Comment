@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from blog_exceptions import (
+    AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
     CommentAuthorizationError,
@@ -70,6 +71,21 @@ class TestCreateComment(CommentServiceTestBase):
             )
 
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
+        self.mock_article_repo.get_by_id.assert_not_called()
+        self.mock_comment_repo.save.assert_not_called()
+
+    def test_create_comment_banned_account_raises_error(self):
+        banned = create_test_account(account_role=AccountRole.USER, is_banned=True)
+        self.mock_account_repo.get_by_id.return_value = banned
+
+        with pytest.raises(AccountBannedError, match="banned"):
+            self.service.create_comment(
+                article_id=1,
+                user_id=banned.account_id,
+                content="Banned user comment"
+            )
+
+        self.mock_account_repo.get_by_id.assert_called_once_with(banned.account_id)
         self.mock_article_repo.get_by_id.assert_not_called()
         self.mock_comment_repo.save.assert_not_called()
 

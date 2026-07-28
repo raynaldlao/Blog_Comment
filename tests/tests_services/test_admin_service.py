@@ -167,6 +167,13 @@ class TestAdminService:
         self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
         self.mock_repo.update_session_token.assert_called_once_with(2, None)
 
+    def test_ban_account_admin_not_authorized(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.return_value = user
+
+        with pytest.raises(AuthorizationError, match="Unauthorized"):
+            self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+
     def test_unban_account_success(self):
         admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
         target = create_test_account(account_id=2, account_role=AccountRole.USER)
@@ -176,3 +183,29 @@ class TestAdminService:
 
         assert result is None
         self.mock_repo.update_ban_status.assert_called_once_with(2, False, None)
+
+    def test_unban_account_admin_not_authorized(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_repo.get_by_id.return_value = user
+
+        with pytest.raises(AuthorizationError, match="Unauthorized"):
+            self.service.unban_account(admin_id=1, target_account_id=2)
+
+    def test_unban_account_target_not_found(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
+
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            self.service.unban_account(admin_id=1, target_account_id=999)
+
+    def test_search_accounts_delegates_to_repo(self):
+        self.mock_repo.search.return_value = ["result1", "result2"]
+        results = self.service.search_accounts("test", page=1, per_page=20)
+        assert results == ["result1", "result2"]
+        self.mock_repo.search.assert_called_once_with("test", 1, 20)
+
+    def test_count_search_accounts_delegates_to_repo(self):
+        self.mock_repo.count_search.return_value = 42
+        result = self.service.count_search_accounts("test")
+        assert result == 42
+        self.mock_repo.count_search.assert_called_once_with("test")

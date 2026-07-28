@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from blog_exceptions import (
+    AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
     InsufficientPermissionsError,
@@ -107,6 +108,21 @@ class TestCreateArticle(ArticleServiceTestBase):
             )
 
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
+        self.mock_article_repo.save.assert_not_called()
+
+    def test_create_article_banned_account_raises_error(self):
+        banned = create_test_account(account_role=AccountRole.AUTHOR, is_banned=True)
+        self.mock_account_repo.get_by_id.return_value = banned
+
+        with pytest.raises(AccountBannedError, match="banned"):
+            self.service.create_article(
+                title="Banned Article",
+                content="Should not be created",
+                author_id=banned.account_id,
+                author_role=banned.account_role,
+            )
+
+        self.mock_account_repo.get_by_id.assert_called_once_with(banned.account_id)
         self.mock_article_repo.save.assert_not_called()
 
 
@@ -329,6 +345,11 @@ class TestGetAuthorName(ArticleServiceTestBase):
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
         assert result == "Unknown"
 
+    def test_get_author_name_none_id_returns_anonymous(self):
+        result = self.service.get_author_name(author_id=None)
+        self.mock_account_repo.get_by_id.assert_not_called()
+        assert result == "Anonymous"
+
 
 class TestGetArticleWithComments(ArticleServiceTestBase):
     def test_get_article_with_comments_success(self):
@@ -412,6 +433,14 @@ class TestExtractImageUuids:
         })
         result = _extract_image_uuids(content)
         assert result == {"11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"}
+
+    def test_nested_list_content_walks_all_items(self):
+        content = json.dumps([
+            {"type": "image", "props": {"url": "/uploads/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.png"}},
+            {"type": "image", "props": {"url": "/uploads/ffffffff-ffff-ffff-ffff-ffffffffffff.jpg"}},
+        ])
+        result = _extract_image_uuids(content)
+        assert result == {"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", "ffffffff-ffff-ffff-ffff-ffffffffffff"}
 
 
 class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):

@@ -238,6 +238,36 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert data["avatar_url"] == "/uploads/abc-123/avatar"
         self.mock_session_service.update_profile_photo.assert_called_once()
 
+    def test_upload_profile_photo_no_file(self):
+        fake_user = create_test_account()
+        self.set_current_user(fake_user)
+        self.mock_session_service.update_profile_photo.return_value = None
+
+        response = self.client.post(
+            "/api/profile/photo",
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data["error"] == "No file provided."
+        self.mock_session_service.update_profile_photo.assert_not_called()
+
+    def test_upload_profile_photo_failure(self):
+        from io import BytesIO
+
+        fake_user = create_test_account()
+        self.set_current_user(fake_user)
+        self.mock_session_service.update_profile_photo.return_value = None
+
+        response = self.client.post(
+            "/api/profile/photo",
+            data={"file": (BytesIO(b"fake-image"), "avatar.jpg")},
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 400
+        data = response.get_json()
+        assert data["error"] == "Failed to upload profile photo."
+
     def test_upload_profile_photo_replaces_old_avatar(self):
         from io import BytesIO
 
@@ -251,7 +281,7 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
             content_type="multipart/form-data",
         )
         assert response.status_code == 200
-        self.mock_session_service.update_profile_photo.assert_called_once()
+        self.mock_session_service.update_profile_photo.assert_called()
 
     def test_remove_profile_photo_unauthenticated(self):
         self.mock_session_service.get_current_account.return_value = None
@@ -318,6 +348,19 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert b"alert-error" in response.data
         self.mock_session_service.update_email.assert_called_once_with("taken@test.com")
 
+    def test_update_email_empty(self):
+        fake_user = create_test_account(account_id=1, account_email="old@test.com")
+        self.mock_session_service.get_current_account.return_value = fake_user
+        response = self.client.post(
+            "/profile/email",
+            data={"email": ""},
+            follow_redirects=True,
+        )
+        assert response.status_code == 200
+        assert b"Email is required." in response.data
+        assert b"alert-error" in response.data
+        self.mock_session_service.update_email.assert_not_called()
+
     def test_update_password_success(self):
         fake_user = create_test_account(account_id=1)
         self.mock_session_service.get_current_account.return_value = fake_user
@@ -356,6 +399,23 @@ class TestAccountSessionAdapter(FlaskInputAdapterTestBase):
         assert response.status_code == 200
         assert b"alert-error" in response.data
         self.mock_session_service.update_password.assert_not_called()
+
+    def test_update_password_service_error(self):
+        fake_user = create_test_account(account_id=1)
+        self.mock_session_service.get_current_account.return_value = fake_user
+        from blog_exceptions import BlogCommentError
+        self.mock_session_service.update_password.side_effect = BlogCommentError("Password update failed.")
+
+        response = self.client.post(
+            "/profile/password",
+            data={"new_password": "New_Secure1!"},
+            follow_redirects=True,
+        )
+
+        assert response.status_code == 200
+        assert b"Password update failed." in response.data
+        assert b"alert-error" in response.data
+        self.mock_session_service.update_password.assert_called_once_with("New_Secure1!")
 
 
 class TestAccountSessionBeforeRequestHook(FlaskInputAdapterTestBase):

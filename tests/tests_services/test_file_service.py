@@ -45,6 +45,16 @@ class TestFileService:
             )
         self.mock_storage.save.assert_not_called()
 
+    def test_upload_file_no_extension_raises_error(self):
+        import pytest
+        with pytest.raises(FileTypeError, match="''"):
+            self.service.upload_file(
+                filename="photo",
+                data=b"fake",
+                mime_type="image/jpeg",
+            )
+        self.mock_storage.save.assert_not_called()
+
     def test_upload_file_non_image_mime(self):
         import pytest
         with pytest.raises(FileTypeError, match="application/pdf"):

@@ -77,6 +77,16 @@ class TestRegistrationRequest:
             )
         assert "uppercase" in str(excinfo.value)
 
+    def test_password_no_lowercase(self):
+        with pytest.raises(ValidationError) as excinfo:
+            RegistrationRequest(
+                username="leia",
+                email="leia@rebels.com",
+                password="ABCDEF8!",
+                confirm_password="ABCDEF8!",
+            )
+        assert "lowercase" in str(excinfo.value)
+
     def test_password_no_special(self):
         with pytest.raises(ValidationError) as excinfo:
             RegistrationRequest(

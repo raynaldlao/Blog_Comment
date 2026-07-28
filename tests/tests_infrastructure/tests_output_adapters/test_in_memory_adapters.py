@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -351,6 +351,47 @@ class TestInMemoryAccountRepository:
         repo = InMemoryAccountRepository()
         repo.delete(999)
 
+    def test_update_avatar_sets_file_id(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_avatar(account.account_id, "abc-123")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.avatar_file_id == "abc-123"
+
+    def test_update_avatar_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_avatar(999, "abc-123")
+
+    def test_update_email_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_email(999, "new@test.com")
+
+    def test_update_password_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_password(999, "new_hash")
+
+    def test_update_role_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_role(999, "author")
+
+    def test_update_role_changes_role(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_role(account.account_id, "author")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_role == AccountRole.AUTHOR
+
+    def test_update_ban_status_nonexistent_account_raises(self):
+        from blog_exceptions import AccountNotFoundError
+
+        repo = InMemoryAccountRepository()
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            repo.update_ban_status(999, True, "Spam")
+
     def test_update_ban_status_ban(self):
         repo = InMemoryAccountRepository()
         account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
@@ -474,6 +515,20 @@ class TestInMemoryCommentRepository:
         assert len(other) == 1
         assert other[0].is_deleted is False
         assert other[0].comment_content == "Other"
+
+    def test_get_last_comment_timestamp_no_comments_returns_none(self):
+        repo = InMemoryCommentRepository()
+        result = repo.get_last_comment_timestamp(999)
+        assert result is None
+
+    def test_get_last_comment_timestamp_returns_max_timestamp(self):
+        repo = InMemoryCommentRepository()
+        t1 = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+        t2 = datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC)
+        repo.save(Comment(1, 10, 5, None, "c1", t1))
+        repo.save(Comment(2, 10, 5, None, "c2", t2))
+        result = repo.get_last_comment_timestamp(5)
+        assert result == t2.timestamp()
 
     def test_mask_comments_by_account_id_no_comments_does_not_raise(self):
         repo = InMemoryCommentRepository()

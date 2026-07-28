@@ -54,3 +54,6 @@ class TestSqlAlchemyFileStorageAdapter(SqlAlchemyTestBase):
         assert retrieved is not None
         assert retrieved.data == binary_data
         assert retrieved.size == len(binary_data)
+
+    def test_delete_non_existent_file_does_not_raise(self):
+        self.repository.delete("00000000-0000-0000-0000-000000000000")

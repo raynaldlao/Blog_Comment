@@ -196,6 +196,15 @@ class TestAdminListAllUsers(FlaskInputAdapterTestBase):
         assert b"not found" in response.data or b"Account not found" in response.data
         self.mock_admin_service.delete_account.assert_not_called()
 
+    def test_admin_delete_another_admin_returns_403(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        target = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        self.mock_admin_service.get_account_by_id.return_value = target
+        response = self.client.post("/admin/users/2/delete")
+        assert response.status_code == 403
+        self.mock_admin_service.delete_account.assert_not_called()
+
 
 class TestAdminChangeRole(FlaskInputAdapterTestBase):
     def setup_method(self):
@@ -313,6 +322,16 @@ class TestAdminBan(FlaskInputAdapterTestBase):
         self.mock_admin_service.unban_account.assert_called_once_with(
             admin_id=1, target_account_id=2,
         )
+
+    def test_admin_unban_error_flashes_message(self):
+        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
+        self.set_current_user(admin)
+        from blog_exceptions import AccountNotFoundError
+        self.mock_admin_service.unban_account.side_effect = AccountNotFoundError("Account not found.")
+        response = self.client.post("/admin/users/2/unban", follow_redirects=True)
+        assert response.status_code == 200
+        assert b"Account not found" in response.data
+        self.mock_admin_service.unban_account.assert_called_once()
 
     def test_non_admin_ban_returns_403(self):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)

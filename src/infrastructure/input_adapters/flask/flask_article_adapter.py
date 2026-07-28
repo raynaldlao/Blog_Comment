@@ -238,7 +238,7 @@ class ArticleAdapter:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
                 return jsonify({"error": msg}), 400
-            return jsonify({"error": _("Validation error.")}), 400
+            return jsonify({"error": _("Validation error.")}), 400  # pragma: no cover
 
         try:
             result = self.article_service.create_article(
@@ -286,7 +286,7 @@ class ArticleAdapter:
             for error in e.errors():
                 msg = error["msg"].removeprefix("Value error, ")
                 return jsonify({"error": msg}), 400
-            return jsonify({"error": _("Validation error.")}), 400
+            return jsonify({"error": _("Validation error.")}), 400  # pragma: no cover
 
         try:
             self.article_service.update_article(

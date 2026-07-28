@@ -80,3 +80,16 @@ class TestRegistrationService:
         self.mock_repo.find_by_username.assert_called_once_with("new_user")
         self.mock_repo.find_by_email.assert_called_once_with("leia@galaxy.com")
         self.mock_repo.save.assert_not_called()
+
+    def test_create_account_race_condition_raises_account_already_exists(self):
+        from blog_exceptions import AccountAlreadyExistsError
+        self.mock_repo.find_by_username.return_value = None
+        self.mock_repo.find_by_email.return_value = None
+        self.mock_repo.save.side_effect = AccountAlreadyExistsError("Constraint violation")
+
+        with pytest.raises(AccountAlreadyExistsError, match="already taken"):
+            self.service.create_account(
+                username="racer",
+                password="Password1!",
+                email="racer@test.com"
+            )

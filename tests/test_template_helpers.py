@@ -4,7 +4,7 @@ import pytest
 from flask import render_template_string
 from jinja2.exceptions import TemplateNotFound
 
-from flask_setup.template_helpers import date_iso_filter
+from flask_setup.template_helpers import ViteManifest, date_iso_filter
 
 
 class TestIconMacro:
@@ -104,3 +104,24 @@ class TestFormatDatetimeLocaleFilter:
                 "{{ dt|format_datetime_locale }}", dt=dt
             )
         assert result == "27 janvier 2023 à 13:00"
+
+
+class TestViteManifest:
+    def test_init_with_none_raises_runtime_error(self):
+        with pytest.raises(RuntimeError, match="Flask static_folder is None"):
+            ViteManifest.init(None)
+
+    def test_load_returns_empty_when_no_manifest(self):
+        ViteManifest.init("/tmp")
+        ViteManifest._manifest_path = "/tmp/.vite/manifest.json"
+        result = ViteManifest._load()
+        assert result == {}
+
+    def test_get_vendor_js_returns_none_when_no_vendor(self, app_with_db, tmp_path):
+        manifest_dir = tmp_path / ".vite"
+        manifest_dir.mkdir()
+        manifest = manifest_dir / "manifest.json"
+        manifest.write_text('{"core/entry.jsx":{"file":"assets/index-abc123.js","css":["assets/index-abc123.css"]}}')
+        ViteManifest._manifest_path = str(manifest)
+        result = ViteManifest.get_vendor_js()
+        assert result is None
