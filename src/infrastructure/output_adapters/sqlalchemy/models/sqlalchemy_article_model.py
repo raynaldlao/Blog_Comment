@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, Integer, String, Text, func
+from sqlalchemy import TIMESTAMP, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_registry import SqlAlchemyModel
@@ -17,6 +17,9 @@ class ArticleModel(SqlAlchemyModel):
     """
 
     __tablename__ = "articles"
+    __table_args__ = (
+        Index("idx_articles_published_at", "article_published_at"),
+    )
 
     article_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     article_author_id: Mapped[int | None] = mapped_column(
