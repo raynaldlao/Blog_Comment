@@ -30,6 +30,10 @@ msgstr "La page que vous cherchez n'existe pas."
 msgid "An unexpected error occurred. Please try again later."
 msgstr "Une erreur inattendue s'est produite. Veuillez réessayer plus tard."
 
+#: blog_comment_application.py:319
+msgid "Too many login attempts. Please try again later."
+msgstr "Trop de tentatives de connexion. Veuillez réessayer plus tard."
+
 #: frontend/templates/article_create.html:3
 msgid "Write an Article - DevJournal"
 msgstr "Écrire un article - DevJournal"

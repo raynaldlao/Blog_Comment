@@ -45,6 +45,7 @@ class CommentService(CommentManagementPort):
         self.comment_repository = comment_repository
         self.article_repository = article_repository
         self.account_repository = account_repository
+
     def _get_account_if_exists(self, user_id: int) -> Account:
         """
         Retrieves an account by user ID.

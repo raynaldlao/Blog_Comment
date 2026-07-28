@@ -1,16 +1,16 @@
 import glob
 import os
 from datetime import timedelta
-from typing import NamedTuple, cast
+from typing import NamedTuple
 
-from flask import Flask, render_template, session
+from flask import Flask, flash, redirect, render_template, session, url_for
 from flask_babel import Babel
 from flask_babel import gettext as _
 from flask_compress import Compress
 from sqlalchemy.orm import Session
 
 from config.env_config import env_config
-from flask_setup.middleware import _init_csrf_exemptions, init_web_security
+from flask_setup.middleware import _init_csrf_exemptions, init_rate_limiter, init_web_security
 from flask_setup.routes import register_web_routes
 from flask_setup.template_helpers import (
     ViteManifest,
@@ -78,7 +78,33 @@ class WebAdapters(NamedTuple):
     file_adapter: FlaskFileAdapter
 
 
-def _create_output_adapters(db_session: Session | None = None) -> Repositories:
+def _get_argon2_params(db_session: Session | None = None) -> tuple[int, int, int]:
+    """
+    Selects Argon2 parameters based on environment.
+
+    Uses test (low-security) parameters when a test session is provided,
+    production (high-security) parameters otherwise.
+
+    Args:
+        db_session: SQLAlchemy session. If ``None``, returns production params.
+
+    Returns:
+        tuple[int, int, int]: (time_cost, memory_cost, parallelism).
+    """
+    if db_session is not None:
+        return (
+            env_config.test_argon2_time_cost,
+            env_config.test_argon2_memory_cost,
+            env_config.test_argon2_parallelism,
+        )
+    return (
+        env_config.argon2_time_cost,
+        env_config.argon2_memory_cost,
+        env_config.argon2_parallelism,
+    )
+
+
+def _create_output_adapters(db_session: Session) -> Repositories:
     """
     Instantiates persistence and security adapters.
 
@@ -86,26 +112,18 @@ def _create_output_adapters(db_session: Session | None = None) -> Repositories:
     production argon2 parameters otherwise.
 
     Args:
-        db_session: SQLAlchemy session for dependency injection (None for prod).
+        db_session: SQLAlchemy session for dependency injection.
 
     Returns:
         Repositories: Typed container of initialized output adapters.
     """
-    _session = cast(Session, db_session)
-    account_repo = SqlAlchemyAccountAdapter(_session)
-    if db_session is not None:
-        time_cost = env_config.test_argon2_time_cost
-        memory_cost = env_config.test_argon2_memory_cost
-        parallelism = env_config.test_argon2_parallelism
-    else:
-        time_cost = env_config.argon2_time_cost
-        memory_cost = env_config.argon2_memory_cost
-        parallelism = env_config.argon2_parallelism
+    time_cost, memory_cost, parallelism = _get_argon2_params(db_session)
+    account_repo = SqlAlchemyAccountAdapter(db_session)
     return Repositories(
         account_repo=account_repo,
-        article_repo=SqlAlchemyArticleAdapter(_session),
-        comment_repo=SqlAlchemyCommentAdapter(_session),
-        file_storage_repo=SqlAlchemyFileStorageAdapter(_session),
+        article_repo=SqlAlchemyArticleAdapter(db_session),
+        comment_repo=SqlAlchemyCommentAdapter(db_session),
+        file_storage_repo=SqlAlchemyFileStorageAdapter(db_session),
         session_repo=FlaskSessionAdapter(account_repo),
         password_hasher_repository=Argon2PasswordHasherAdapter(
             time_cost=time_cost,
@@ -230,6 +248,21 @@ def _error_page(code: int, message: str) -> tuple[str, int]:
     return render_template("error.html", code=code, message=message), code
 
 
+def _on_rate_breach(_request_limit: object) -> None:
+    """Flash a warning when IP-based rate limit is exceeded.
+
+    Called by flask-limiter before aborting with 429.
+    The flash appears on the redirected login page.
+
+    Args:
+        _request_limit: The RequestLimit object from flask-limiter (unused).
+    """
+    flash(
+        _("Too many login attempts. Please try again later."),
+        "error",
+    )
+
+
 def _shutdown_db_session(exception: BaseException | None = None) -> None:
     """Remove the scoped DB session at the end of each request.
 
@@ -264,10 +297,10 @@ def _inject_get_locale() -> dict:
     """
     return {"get_locale": lambda: session.get("lang", "fr")}
 
-
-def create_app(db_session=None) -> Flask:
+def create_app(db_session: Session | None = None, testing: bool = False) -> Flask:
     """
     Bootstrap function to initialize the hexagonal application.
+
     Orchestrates the assembly of the Core and the Web Facade.
 
     Creates a scoped SQLAlchemy session (thread-safe, one per thread)
@@ -280,6 +313,9 @@ def create_app(db_session=None) -> Flask:
 
     Args:
         db_session: Optional pre-existing database session.
+        testing: Disables rate limit enforcement when ``True``
+            (used in tests). The wrapper is always present but
+            flask-limiter is inactive, avoiding test interference.
 
     Returns:
         Flask: The configured Flask application (Web Facade).
@@ -303,6 +339,35 @@ def create_app(db_session=None) -> Flask:
     register_web_routes(app, web_adapters)
     _init_csrf_exemptions(app)
     web_adapters.account_session_adapter.register_before_request_handler(app)
+    limiter = init_rate_limiter(app, enabled=not testing)
+    app.extensions.setdefault("limiter", set()).add(limiter)
+
+    original_login = app.view_functions["auth.authenticate"]
+
+    @limiter.limit("5/minute", on_breach=_on_rate_breach)
+    def rate_limited_login(*args: object, **kwargs: object):
+        """Wrap login endpoint with IP-based rate limiting.
+
+        Limits POST /login to 5 requests per minute per IP.
+        On breach, ``_on_rate_breach`` flashes a warning,
+        then flask-limiter aborts with 429 which triggers
+        the login redirect.
+
+        Args:
+            *args: Forwarded to original login view.
+            **kwargs: Forwarded to original login view.
+
+        Returns:
+            Response from the original login view.
+        """
+        return original_login(*args, **kwargs)
+
+    app.view_functions["auth.authenticate"] = rate_limited_login  # type: ignore[assignment]
+
+    app.errorhandler(429)(
+        lambda e: redirect(url_for("auth.login"))
+    )
+
     app.errorhandler(403)(lambda e: _error_page(403, _("You do not have permission to access this page.")))
     app.errorhandler(404)(lambda e: _error_page(404, _("The page you are looking for does not exist.")))
     app.errorhandler(500)(lambda e: _error_page(500, _("An unexpected error occurred. Please try again later.")))

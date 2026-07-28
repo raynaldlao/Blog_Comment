@@ -5,6 +5,8 @@ from pathlib import Path
 from flask import Flask, Response
 from flask import request as flask_request
 from flask.sessions import SecureCookieSessionInterface
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 
 
@@ -236,4 +238,31 @@ def init_web_security(app: Flask) -> None:
     app.add_url_rule(
         "/csp-report", view_func=csp.handle_report,
         methods=["POST"], endpoint="csp.handle_report",
+    )
+
+
+def init_rate_limiter(app: Flask, enabled: bool = True) -> Limiter:
+    """Initializes IP-based rate limiting for the Flask application.
+
+    Creates an in-memory Limiter instance with no default limits.
+    Per-endpoint limits are applied via the returned instance
+    after route registration. The caller must also store the
+    limiter in ``app.extensions["limiter"]`` to keep it alive
+    when ``enabled=False`` (prevents ``weakref.proxy`` crash).
+
+    Args:
+        app: The Flask application instance to secure.
+        enabled: Whether rate limiting is active. Set to ``False``
+            in test environments.
+
+    Returns:
+        Limiter: A configured Limiter instance for applying
+        per-endpoint rate limits.
+    """
+    return Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=[],
+        enabled=enabled,
+        storage_uri="memory://",
     )

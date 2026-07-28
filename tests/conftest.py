@@ -40,7 +40,25 @@ def app_with_db(db_session):
     """
     Creates a Flask app instance injected with the test database session.
     """
-    app = create_app(db_session=db_session)
+    app = create_app(db_session=db_session, testing=True)
+    app.config["TESTING"] = True
+    app.config["WTF_CSRF_ENABLED"] = False
+    app.extensions["babel"].locale_selector = lambda: "en"
+    return app
+
+@pytest.fixture(scope="function")
+def app_with_rate_limit(db_session):
+    """
+    Creates a Flask app instance with IP-based rate limiting enabled.
+
+    Unlike ``app_with_db``, this fixture enables the rate limiter
+    (``testing=False``). The ``TESTING`` config flag remains ``True``
+    so that Flask error handlers are active during tests.
+
+    Used exclusively for rate limiting integration tests where
+    limiter enforcement must be active.
+    """
+    app = create_app(db_session=db_session, testing=False)
     app.config["TESTING"] = True
     app.config["WTF_CSRF_ENABLED"] = False
     app.extensions["babel"].locale_selector = lambda: "en"
@@ -48,5 +66,10 @@ def app_with_db(db_session):
 
 @pytest.fixture(scope="function")
 def client(app_with_db):
-    """A Flask test client."""
+    """A Flask test client bound to the default (rate-limit-disabled) app."""
     return app_with_db.test_client()
+
+@pytest.fixture(scope="function")
+def rate_limited_client(app_with_rate_limit):
+    """A Flask test client bound to the rate-limit-enabled app."""
+    return app_with_rate_limit.test_client()

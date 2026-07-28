@@ -65,6 +65,7 @@ def create_test_comment(
     is_deleted: bool = False,
     deleted_at: datetime | None = None,
     edited_at: datetime | None = None,
+    deleted_by: str | None = None,
 ) -> Comment:
     """Factory to create a test Comment entity with sensible defaults."""
     if comment_posted_at is None:
@@ -80,4 +81,5 @@ def create_test_comment(
         is_deleted=is_deleted,
         deleted_at=deleted_at,
         edited_at=edited_at,
+        deleted_by=deleted_by,
     )

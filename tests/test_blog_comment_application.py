@@ -1,15 +1,20 @@
 from unittest.mock import MagicMock, patch
 
-from blog_comment_application import _create_output_adapters, _shutdown_db_session
+from blog_comment_application import _get_argon2_params, _shutdown_db_session
 
 
-class TestCreateOutputAdapters:
+class TestGetArgon2Params:
     def test_production_argon2_params_when_db_session_none(self):
-        repos = _create_output_adapters(None)  # type: ignore[arg-type]
-        hasher = repos.password_hasher_repository
-        assert hasher._hasher.time_cost == 2
-        assert hasher._hasher.memory_cost == 19456
-        assert hasher._hasher.parallelism == 1
+        time_cost, memory_cost, parallelism = _get_argon2_params(None)
+        assert time_cost == 2
+        assert memory_cost == 19456
+        assert parallelism == 1
+
+    def test_test_argon2_params_when_db_session_provided(self):
+        time_cost, memory_cost, parallelism = _get_argon2_params(MagicMock())
+        assert time_cost == 1
+        assert memory_cost == 1024
+        assert parallelism == 1
 
 
 class TestShutdownDbSession:
@@ -32,5 +37,5 @@ class TestCreateApp:
         mock_db_session.remove.return_value = None
         with patch("blog_comment_application.setup_database", return_value=mock_db_session):
             from blog_comment_application import create_app
-            app = create_app()
+            app = create_app(testing=True)
         assert app.config.get("_DB_SESSION") is mock_db_session
