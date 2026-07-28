@@ -451,6 +451,34 @@ class TestInMemoryCommentRepository:
         repo = InMemoryCommentRepository()
         assert repo.get_by_account_id(999) == []
 
+    def test_mask_comments_by_account_id_updates_all_comments(self):
+        repo = InMemoryCommentRepository()
+        user_id = 1
+        c1 = Comment(1, 10, user_id, None, "Hello", datetime.now())
+        c2 = Comment(2, 10, user_id, None, "World", datetime.now())
+        c3 = Comment(3, 10, 2, None, "Other", datetime.now())
+        repo.save(c1)
+        repo.save(c2)
+        repo.save(c3)
+
+        repo.mask_comments_by_account_id(user_id)
+
+        masked = repo.get_by_account_id(user_id)
+        assert len(masked) == 2
+        for c in masked:
+            assert c.is_deleted is True
+            assert c.deleted_by == "account_deleted"
+            assert c.deleted_at is not None
+            assert "Comment removed" in c.comment_content
+        other = repo.get_by_account_id(2)
+        assert len(other) == 1
+        assert other[0].is_deleted is False
+        assert other[0].comment_content == "Other"
+
+    def test_mask_comments_by_account_id_no_comments_does_not_raise(self):
+        repo = InMemoryCommentRepository()
+        repo.mask_comments_by_account_id(999)
+
 
 class TestInMemoryAccountSessionRepository:
     def test_store_and_retrieve(self):

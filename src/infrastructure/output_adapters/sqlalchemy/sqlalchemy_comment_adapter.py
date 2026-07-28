@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from sqlalchemy.orm import Session
 
 from src.application.domain.comment import Comment
@@ -138,6 +140,28 @@ class SqlAlchemyCommentAdapter(SqlAlchemyBaseAdapter, CommentRepository):
         if model is None:
             return None
         return model[0].timestamp()
+
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """Sets is_deleted=True, masks content, and sets deleted_at/deleted_by
+        for all comments by the given account.
+
+        Performs a single bulk UPDATE instead of N individual saves.
+
+        Args:
+            account_id: ID of the account whose comments should be masked.
+        """
+        now = datetime.now(UTC)
+        self._db_query_raw(
+            lambda: self._session.query(CommentModel)
+                .filter_by(comment_written_account_id=account_id)
+                .update({
+                    CommentModel.comment_content: "<!--cmt-removed--><em>Comment removed</em>",
+                    CommentModel.is_deleted: True,
+                    CommentModel.deleted_at: now,
+                    CommentModel.deleted_by: "account_deleted",
+                })
+        )
+        self._db_commit()
 
     def delete(self, comment_id: int) -> None:
         """

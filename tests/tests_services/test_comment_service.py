@@ -419,26 +419,12 @@ class TestEditComment(CommentServiceTestBase):
 class TestMaskCommentsByAccountId(CommentServiceTestBase):
     def test_mask_comments_success(self):
         target_id = 5
-        c1 = create_test_comment(comment_id=1, comment_written_account_id=target_id, comment_content="Hello")
-        c2 = create_test_comment(comment_id=2, comment_written_account_id=target_id, comment_content="World")
-        self.mock_comment_repo.get_by_account_id.return_value = [c1, c2]
-
         self.service.mask_comments_by_account_id(target_id)
-
-        self.mock_comment_repo.get_by_account_id.assert_called_once_with(target_id)
-        assert self.mock_comment_repo.save.call_count == 2
-        assert c1.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
-        assert c2.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
-        assert c1.is_deleted is True
-        assert c1.deleted_at is not None
-        assert c1.deleted_by == "account_deleted"
-        assert c2.deleted_by == "account_deleted"
+        self.mock_comment_repo.mask_comments_by_account_id.assert_called_once_with(target_id)
 
     def test_mask_comments_no_comments(self):
-        self.mock_comment_repo.get_by_account_id.return_value = []
         self.service.mask_comments_by_account_id(999)
-        self.mock_comment_repo.get_by_account_id.assert_called_once_with(999)
-        self.mock_comment_repo.save.assert_not_called()
+        self.mock_comment_repo.mask_comments_by_account_id.assert_called_once_with(999)
 
 
 class TestHardDeleteComment(CommentServiceTestBase):

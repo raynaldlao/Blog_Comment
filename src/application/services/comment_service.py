@@ -241,21 +241,14 @@ class CommentService(CommentManagementPort):
         return new_reply
 
     def mask_comments_by_account_id(self, account_id: int) -> None:
-        """
-        Masks all comments by a given account (used during account deletion).
+        """Masks all comments by a given account (used during account deletion).
 
-        Sets is_deleted=True, deleted_at=now, and replaces content with a removal notice.
+        Delegates to the repository for a single bulk UPDATE.
 
         Args:
             account_id (int): ID of the account whose comments should be masked.
         """
-        comments = self.comment_repository.get_by_account_id(account_id)
-        for comment in comments:
-            comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
-            comment.is_deleted = True
-            comment.deleted_at = datetime.now(UTC)
-            comment.deleted_by = "account_deleted"
-            self.comment_repository.save(comment)
+        self.comment_repository.mask_comments_by_account_id(account_id)
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool:
         """

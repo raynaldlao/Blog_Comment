@@ -72,6 +72,16 @@ class CommentRepository(ABC):
         pass
 
     @abstractmethod
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """Sets is_deleted=True, masks content, and sets deleted_at/deleted_by
+        for all comments by the given account.
+
+        Args:
+            account_id: ID of the account whose comments should be masked.
+        """
+        pass
+
+    @abstractmethod
     def delete(self, comment_id: int) -> None:
         """
         Deletes a comment by its ID from the repository.

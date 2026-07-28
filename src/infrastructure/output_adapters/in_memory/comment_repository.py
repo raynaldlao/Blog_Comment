@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from src.application.domain.comment import Comment
 from src.application.output_ports.comment_repository import CommentRepository
 
@@ -85,6 +87,21 @@ class InMemoryCommentRepository(CommentRepository):
         if not timestamps:
             return None
         return max(timestamps).timestamp()
+
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """Sets is_deleted=True, masks content, and sets deleted_at/deleted_by
+        for all comments by the given account.
+
+        Args:
+            account_id: ID of the account whose comments should be masked.
+        """
+        now = datetime.now(UTC)
+        for comment in self._comments.values():
+            if comment.comment_written_account_id == account_id:
+                comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
+                comment.is_deleted = True
+                comment.deleted_at = now
+                comment.deleted_by = "account_deleted"
 
     def delete(self, comment_id: int) -> None:
         """

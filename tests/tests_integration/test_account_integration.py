@@ -268,9 +268,14 @@ class TestAccountDelete:
             account_password="Str0ng!Pass", account_role="user",
             avatar_file_id="00000000-0000-0000-0000-000000000001",
         )
-        db_session.add_all([avatar, user])
+        other_user = AccountModel(
+            account_username="other_user", account_email="ou@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add_all([avatar, user, other_user])
         db_session.commit()
         uid = user.account_id
+        oid = other_user.account_id
 
         article = ArticleModel(article_title="My Post", article_content="...", article_author_id=uid)
         db_session.add(article)
@@ -278,9 +283,12 @@ class TestAccountDelete:
         aid = article.article_id
 
         comment = CommentModel(comment_content="Hello", comment_written_account_id=uid, comment_article_id=aid)
-        db_session.add(comment)
+        comment2 = CommentModel(comment_content="Second", comment_written_account_id=uid, comment_article_id=aid)
+        other_comment = CommentModel(comment_content="Other user", comment_written_account_id=oid, comment_article_id=aid)
+        db_session.add_all([comment, comment2, other_comment])
         db_session.commit()
         cid = comment.comment_id
+        cid2 = comment2.comment_id
 
         client.post("/login", data={"username": "self_del_user", "password": "Str0ng!Pass"}, follow_redirects=True)
 
@@ -294,10 +302,18 @@ class TestAccountDelete:
         article_after = db_session.get(ArticleModel, aid)
         assert article_after is not None
         assert article_after.article_author_id is None
-        masked = db_session.get(CommentModel, cid)
-        assert masked is not None
-        assert masked.is_deleted is True
-        assert masked.comment_written_account_id is None
+        for cid_i in [cid, cid2]:
+            masked = db_session.get(CommentModel, cid_i)
+            assert masked is not None
+            assert masked.is_deleted is True
+            assert masked.comment_written_account_id is None
+            assert masked.deleted_by == "account_deleted"
+            assert masked.deleted_at is not None
+            assert "Comment removed" in masked.comment_content
+        other = db_session.get(CommentModel, other_comment.comment_id)
+        assert other is not None
+        assert other.is_deleted is False
+        assert other.comment_content == "Other user"
 
     def test_admin_delete_user_cascade_integ(self, client, db_session):
         avatar = UploadedFileModel(
@@ -313,9 +329,14 @@ class TestAccountDelete:
             account_username="admin_del", account_email="ad@t.com",
             account_password="Str0ng!Pass", account_role="admin",
         )
-        db_session.add_all([avatar, target, admin])
+        other_user = AccountModel(
+            account_username="other_user2", account_email="ou2@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add_all([avatar, target, admin, other_user])
         db_session.commit()
         tid = target.account_id
+        oid = other_user.account_id
 
         article = ArticleModel(article_title="Target Article", article_content="...", article_author_id=tid)
         db_session.add(article)
@@ -323,9 +344,12 @@ class TestAccountDelete:
         aid = article.article_id
 
         comment = CommentModel(comment_content="Bye", comment_written_account_id=tid, comment_article_id=aid)
-        db_session.add(comment)
+        comment2 = CommentModel(comment_content="Another", comment_written_account_id=tid, comment_article_id=aid)
+        other_comment = CommentModel(comment_content="Not deleted", comment_written_account_id=oid, comment_article_id=aid)
+        db_session.add_all([comment, comment2, other_comment])
         db_session.commit()
         cid = comment.comment_id
+        cid2 = comment2.comment_id
 
         client.post("/login", data={"username": "admin_del", "password": "Str0ng!Pass"}, follow_redirects=True)
 
@@ -339,7 +363,15 @@ class TestAccountDelete:
         article_after = db_session.get(ArticleModel, aid)
         assert article_after is not None
         assert article_after.article_author_id is None
-        masked = db_session.get(CommentModel, cid)
-        assert masked is not None
-        assert masked.is_deleted is True
-        assert masked.comment_written_account_id is None
+        for cid_i in [cid, cid2]:
+            masked = db_session.get(CommentModel, cid_i)
+            assert masked is not None
+            assert masked.is_deleted is True
+            assert masked.comment_written_account_id is None
+            assert masked.deleted_by == "account_deleted"
+            assert masked.deleted_at is not None
+            assert "Comment removed" in masked.comment_content
+        other = db_session.get(CommentModel, other_comment.comment_id)
+        assert other is not None
+        assert other.is_deleted is False
+        assert other.comment_content == "Not deleted"
