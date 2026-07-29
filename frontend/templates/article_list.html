@@ -24,7 +24,7 @@
 <form action="{{ url_for('article.list_articles') }}" method="GET" class="search-bar-form">
     <div class="search-wrapper">
         <input type="text" name="q" class="search-input" placeholder="{{ _('Search by title, description or author...') }}"
-               value="{{ query or '' }}" autocomplete="off">
+               value="{{ query or '' }}" autocomplete="off" aria-label="{{ _('Search') }}">
         {% if query %}
         <a href="{{ url_for('article.list_articles') }}" class="search-clear-btn">&times;</a>
         {% endif %}
@@ -33,7 +33,7 @@
 </form>
 
 <!-- Top Pagination Component -->
-<nav class="editorial-pagination top">
+<nav class="editorial-pagination top" aria-label="{{ _('Top pagination') }}">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
@@ -100,7 +100,7 @@
 </section>
 
 <!-- Pagination Component -->
-<nav class="editorial-pagination">
+<nav class="editorial-pagination" aria-label="{{ _('Bottom pagination') }}">
     <div class="pagination-prev">
         <a href="{{ url_for('article.list_articles', page=page-1, q=query if query else None) }}" class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
             {{ icon('arrow_back') }}
@@ -129,10 +129,10 @@
             <div class="stepper-container">
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
-                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}">
+                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}" aria-label="{{ _('Increase page') }}">
                         {{ icon('expand_less') }}
                     </button>
-                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}">
+                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}" aria-label="{{ _('Decrease page') }}">
                         {{ icon('expand_more') }}
                     </button>
                 </div>

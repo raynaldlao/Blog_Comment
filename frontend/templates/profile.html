@@ -10,7 +10,7 @@
 {% block content %}
 <div class="user-card profile-card">
     <div class="profile-header">
-        <div class="avatar-placeholder">
+        <div class="avatar-placeholder"{% if not user.avatar_file_id %} role="img" aria-label="{{ _('Avatar of %(name)s', name=user.account_username) }}"{% endif %}>
             {% if user.avatar_file_id %}
                 <img src="{{ url_for('file.serve_file', file_id=user.avatar_file_id, filename='avatar') }}" alt="{{ user.account_username }}" class="avatar-img">
             {% else %}

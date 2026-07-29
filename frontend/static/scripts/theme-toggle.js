@@ -40,6 +40,7 @@ const THEME_ICONS = {
 
         const updateIcon = (theme) => {
             iconSpan.innerHTML = theme === THEME_LIGHT ? THEME_ICONS.dark_mode : THEME_ICONS.light_mode;
+            toggleBtn.setAttribute('aria-pressed', theme === THEME_DARK ? 'true' : 'false');
         };
 
         updateIcon(document.documentElement.dataset.theme);

@@ -438,6 +438,21 @@ msgstr "Augmenter la page"
 msgid "Decrease page"
 msgstr "Diminuer la page"
 
+#: frontend/templates/article_list.html:36 frontend/templates/article_list.html:103
+#: frontend/templates/user_list.html:28 frontend/templates/user_list.html:104
+msgid "Top pagination"
+msgstr "Pagination haute"
+
+#: frontend/templates/article_list.html:36 frontend/templates/article_list.html:103
+#: frontend/templates/user_list.html:28 frontend/templates/user_list.html:104
+msgid "Bottom pagination"
+msgstr "Pagination basse"
+
+#: frontend/templates/profile.html:13
+#, python-format
+msgid "Avatar of %(name)s"
+msgstr "Avatar de %(name)s"
+
 #: frontend/templates/article_list.html:144
 #: frontend/templates/user_list.html:144
 msgid "Go"
