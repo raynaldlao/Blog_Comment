@@ -62,7 +62,7 @@ function CustomFilePanel({ blockId }) {
   return <FilePanel blockId={blockId} />;
 }
 
-function BlockNoteEditor({ initialContent, onReady }) {
+function BlockNoteEditor({ initialContent, onReady, onEditorChange }) {
   const [theme, setTheme] = useState(() =>
     document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light',
   );
@@ -189,6 +189,15 @@ function BlockNoteEditor({ initialContent, onReady }) {
   useEffect(() => {
     if (editor && onReady) onReady(editor);
   }, [editor, onReady]);
+
+  useEffect(() => {
+    if (!editor || !onEditorChange) return;
+    const el = editor.domElement?.querySelector?.('.ProseMirror');
+    if (!el) return;
+    const observer = new MutationObserver(() => onEditorChange());
+    observer.observe(el, { childList: true, subtree: true, characterData: true });
+    return () => observer.disconnect();
+  }, [editor, onEditorChange]);
 
   useEffect(() => {
     if (!editor) return;
@@ -352,6 +361,11 @@ export default function ArticleForm() {
   const editorRef = useRef(null);
   const lastTapRef = useRef({ time: 0, target: null, count: 0 });
   const IS_CHROME_MOBILE = /Chrome/.test(navigator.userAgent) && /(Mobile|Android)/.test(navigator.userAgent);
+  const [isDirty, setIsDirty] = useState(false);
+  const initTitleRef = useRef(null);
+  const initDescRef = useRef(null);
+  const initContentRef = useRef(null);
+  const confirmLeaveMsg = _('You have unsaved changes. Are you sure you want to leave?');
 
   const handleDoubleTapSelect = useCallback((e) => {
     if (e.detail === 2 || !IS_CHROME_MOBILE) return;
@@ -377,12 +391,60 @@ export default function ArticleForm() {
   }, []);
 
   useEffect(() => {
-    if (loadedTitle) setTitle(loadedTitle);
+    if (loadedTitle) {
+      setTitle(loadedTitle);
+      if (initTitleRef.current === null) initTitleRef.current = loadedTitle;
+    }
   }, [loadedTitle]);
 
   useEffect(() => {
-    if (loadedDescription) setDescription(loadedDescription);
+    if (loadedDescription) {
+      setDescription(loadedDescription);
+      if (initDescRef.current === null) initDescRef.current = loadedDescription;
+    }
   }, [loadedDescription]);
+
+  useEffect(() => {
+    if (contentStr && initContentRef.current === null) {
+      initContentRef.current = contentStr;
+    }
+  }, [contentStr]);
+
+  useEffect(() => {
+    if (page === 'create' && initTitleRef.current === null) {
+      initTitleRef.current = '';
+      initDescRef.current = '';
+      initContentRef.current = null;
+    }
+  }, [page]);
+
+  useEffect(() => {
+    if (initTitleRef.current === null) return;
+    if (title !== initTitleRef.current) setIsDirty(true);
+  }, [title]);
+
+  useEffect(() => {
+    if (initDescRef.current === null) return;
+    if (description !== initDescRef.current) setIsDirty(true);
+  }, [description]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => { e.preventDefault(); };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const handler = (e) => {
+      const link = e.target.closest('a.detail-back-link');
+      if (!link) return;
+      if (!window.confirm(confirmLeaveMsg)) e.preventDefault();
+    };
+    document.addEventListener('click', handler, true);
+    return () => document.removeEventListener('click', handler, true);
+  }, [isDirty, confirmLeaveMsg]);
 
   useCodeBlockGapClick(editorRef);
 
@@ -406,6 +468,7 @@ export default function ArticleForm() {
       });
 
       if (res.ok) {
+        setIsDirty(false);
         const data = await res.json();
         window.location.href = `/articles/${data.id || articleId}`;
       } else if (res.status === 401) {
@@ -466,7 +529,7 @@ export default function ArticleForm() {
         <div className="article-editor-section-header">
           <span className="article-editor-section-title">{_('Content')}</span>
         </div>
-        <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} />
+        <BlockNoteEditor initialContent={initialContent} onReady={(ed) => { editorRef.current = ed; }} onEditorChange={() => !isDirty && setIsDirty(true)} />
       </div>
       <div className="article-editor-actions">
         <button className="btn" onClick={handleSubmit} disabled={saving}>

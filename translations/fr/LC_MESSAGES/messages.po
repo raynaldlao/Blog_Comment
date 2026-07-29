@@ -214,6 +214,11 @@ msgstr "Aucun langage trouvé"
 msgid "Something went wrong. Please reload the page."
 msgstr "Une erreur est survenue. Veuillez recharger la page."
 
+#: frontend/templates/article_create.html:59
+#: frontend/templates/article_edit.html:89
+msgid "You have unsaved changes. Are you sure you want to leave?"
+msgstr "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?"
+
 #: frontend/templates/article_detail.html:55
 #: frontend/templates/article_detail.html:120
 #: frontend/templates/article_list.html:70
