@@ -20,7 +20,7 @@
                    placeholder="{{ _('Filter by username or email...') }}" autocomplete="off"
                    value="{{ query or '' }}" aria-label="{{ _('Search') }}">
             {% if query %}
-            <a href="{{ url_for('admin.list_all_users') }}" class="search-clear-btn">&times;</a>
+            <a href="{{ url_for('admin.list_all_users') }}" class="search-clear-btn" aria-label="{{ _('Clear search') }}">&times;</a>
             {% endif %}
             <button type="submit" class="search-submit-btn" aria-label="{{ _('Search') }}">{% include 'icons/search.svg' %}</button>
         </div>
@@ -118,9 +118,9 @@
             </a>
         </div>
     </nav>
-<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('admin.list_all_users') }}">
+<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('admin.list_all_users') }}" aria-labelledby="jump-modal-title">
     <div class="modal-header">
-        <h2 class="modal-title">{{ _('Jump to page') }}</h2>
+        <h2 class="modal-title" id="jump-modal-title">{{ _('Jump to page') }}</h2>
     </div>
     <div class="modal-body">
         <div class="modal-input-group">

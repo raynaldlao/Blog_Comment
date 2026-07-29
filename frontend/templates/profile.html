@@ -78,9 +78,9 @@
     </div>
 
     {% if is_own_profile %}
-    <dialog id="email-modal" class="dialog dialog-sm">
+    <dialog id="email-modal" class="dialog dialog-sm" aria-labelledby="email-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Update Email') }}</h2>
+            <h2 class="modal-title" id="email-modal-title">{{ _('Update Email') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_email') }}" method="POST">
             <div class="modal-body">
@@ -98,9 +98,9 @@
         </form>
     </dialog>
 
-    <dialog id="password-modal" class="dialog dialog-sm">
+    <dialog id="password-modal" class="dialog dialog-sm" aria-labelledby="password-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Update Password') }}</h2>
+            <h2 class="modal-title" id="password-modal-title">{{ _('Update Password') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_password') }}" method="POST">
             <div class="modal-body">

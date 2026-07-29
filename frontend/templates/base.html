@@ -46,7 +46,7 @@
 
                 <form action="{{ url_for('auth.set_lang', locale='en' if get_locale() == 'fr' else 'fr') }}" method="POST" class="lang-toggle-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ _('Switch language') }}">
+                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ _('Switch language') }}" aria-label="{{ _('Switch language') }}">
                         {{ get_locale() == 'fr' and 'EN' or 'FR' }}
                     </button>
                 </form>
@@ -117,9 +117,9 @@
         </div>
     </dialog>
 
-    <dialog id="ban-modal" class="dialog">
+    <dialog id="ban-modal" class="dialog" aria-labelledby="ban-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Ban') }} <span id="ban-username"></span></h2>
+            <h2 class="modal-title" id="ban-modal-title">{{ _('Ban') }} <span id="ban-username"></span></h2>
         </div>
         <form method="POST" id="ban-form">
             <div class="modal-body">

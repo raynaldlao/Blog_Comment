@@ -26,7 +26,7 @@
         <input type="text" name="q" class="search-input" placeholder="{{ _('Search by title, description or author...') }}"
                value="{{ query or '' }}" autocomplete="off" aria-label="{{ _('Search') }}">
         {% if query %}
-        <a href="{{ url_for('article.list_articles') }}" class="search-clear-btn">&times;</a>
+        <a href="{{ url_for('article.list_articles') }}" class="search-clear-btn" aria-label="{{ _('Clear search') }}">&times;</a>
         {% endif %}
         <button type="submit" class="search-submit-btn" aria-label="{{ _('Search') }}">{% include 'icons/search.svg' %}</button>
     </div>
@@ -119,9 +119,9 @@
 </nav>
 
 <!-- Jump to Page Modal -->
-<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}">
+<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('article.list_articles') }}" aria-labelledby="jump-modal-title">
     <div class="modal-header">
-        <h2 class="modal-title">{{ _('Jump to page') }}</h2>
+        <h2 class="modal-title" id="jump-modal-title">{{ _('Jump to page') }}</h2>
     </div>
     <div class="modal-body">
         <div class="modal-input-group">

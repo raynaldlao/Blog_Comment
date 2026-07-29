@@ -395,6 +395,10 @@ msgstr "Rechercher par titre, description ou auteur..."
 msgid "Search"
 msgstr "Rechercher"
 
+#: frontend/templates/article_list.html:29 frontend/templates/user_list.html:23
+msgid "Clear search"
+msgstr "Effacer la recherche"
+
 #: frontend/templates/article_list.html:40
 #: frontend/templates/article_list.html:107
 #: frontend/templates/user_list.html:33 frontend/templates/user_list.html:110
