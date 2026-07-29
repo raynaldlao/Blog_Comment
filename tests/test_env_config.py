@@ -10,8 +10,8 @@ class TestEnvConfig:
         self.config = EnvConfig()
         yield
 
-    def test_database_url_reads_env(self):
-        url = self.config.database_url
+    def test_database_url_reads_test_database_url(self):
+        url = self.config.test_database_url
         assert url.startswith("postgresql://")
 
     def test_flask_env_defaults_to_development(self):
