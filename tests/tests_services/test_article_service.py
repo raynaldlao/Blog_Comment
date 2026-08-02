@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from blog_exceptions import (
+    AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
     InsufficientPermissionsError,
@@ -109,29 +110,23 @@ class TestCreateArticle(ArticleServiceTestBase):
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
         self.mock_article_repo.save.assert_not_called()
 
+    def test_create_article_banned_account_raises_error(self):
+        banned = create_test_account(account_role=AccountRole.AUTHOR, is_banned=True)
+        self.mock_account_repo.get_by_id.return_value = banned
+
+        with pytest.raises(AccountBannedError, match="banned"):
+            self.service.create_article(
+                title="Banned Article",
+                content="Should not be created",
+                author_id=banned.account_id,
+                author_role=banned.account_role,
+            )
+
+        self.mock_account_repo.get_by_id.assert_called_once_with(banned.account_id)
+        self.mock_article_repo.save.assert_not_called()
+
 
 class TestGetArticles(ArticleServiceTestBase):
-    def test_get_all_ordered_by_date_desc(self):
-        fake_articles = [
-            create_test_article(
-                article_id=2,
-                article_title="Recent Article",
-                article_published_at=datetime(2026, 3, 25),
-            ),
-            create_test_article(
-                article_id=1,
-                article_title="Old Article",
-                article_published_at=datetime(2026, 1, 1),
-            ),
-        ]
-
-        self.mock_article_repo.get_all_ordered_by_date_desc.return_value = fake_articles
-        result = self.service.get_all_ordered_by_date_desc()
-        self.mock_article_repo.get_all_ordered_by_date_desc.assert_called_once()
-        assert len(result) == 2
-        first_article_list = result[0]
-        assert first_article_list.article_title == "Recent Article"
-
     def test_get_paginated_articles(self):
         fake_articles = [
             create_test_article(article_id=1, article_title="First", article_author_id=10),
@@ -316,7 +311,7 @@ class TestDeleteArticle(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_author_other
 
-        with pytest.raises(OwnershipError, match="Only authors or admins"):
+        with pytest.raises(OwnershipError, match="you are not the author of this article"):
             self.service.delete_article(article_id=fake_article.article_id, user_id=fake_author_other.account_id)
 
         self.mock_account_repo.get_by_id.assert_called_once_with(fake_author_other.account_id)
@@ -349,6 +344,11 @@ class TestGetAuthorName(ArticleServiceTestBase):
         result = self.service.get_author_name(author_id=999)
         self.mock_account_repo.get_by_id.assert_called_once_with(999)
         assert result == "Unknown"
+
+    def test_get_author_name_none_id_returns_anonymous(self):
+        result = self.service.get_author_name(author_id=None)
+        self.mock_account_repo.get_by_id.assert_not_called()
+        assert result == "Anonymous"
 
 
 class TestGetArticleWithComments(ArticleServiceTestBase):
@@ -434,6 +434,14 @@ class TestExtractImageUuids:
         result = _extract_image_uuids(content)
         assert result == {"11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"}
 
+    def test_nested_list_content_walks_all_items(self):
+        content = json.dumps([
+            {"type": "image", "props": {"url": "/uploads/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee.png"}},
+            {"type": "image", "props": {"url": "/uploads/ffffffff-ffff-ffff-ffff-ffffffffffff.jpg"}},
+        ])
+        result = _extract_image_uuids(content)
+        assert result == {"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", "ffffffff-ffff-ffff-ffff-ffffffffffff"}
+
 
 class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):
     def test_delete_article_cleans_up_orphan_files(self):
@@ -470,7 +478,7 @@ class TestDeleteArticleOrphanCleanup(ArticleServiceTestBase):
         self.mock_article_repo.get_by_id.return_value = fake_article
         self.mock_account_repo.get_by_id.return_value = fake_other
 
-        with pytest.raises(OwnershipError, match="Only authors or admins"):
+        with pytest.raises(OwnershipError, match="you are not the author of this article"):
             self.service.delete_article(article_id=1, user_id=99)
 
         self.mock_file_service.delete_file.assert_not_called()

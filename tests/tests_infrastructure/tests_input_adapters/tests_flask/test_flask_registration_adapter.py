@@ -89,7 +89,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "wrong_confirm"
         }, follow_redirects=True)
 
-        assert b"Passwords do not match." in response.data
+        assert "Passwords do not match" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
@@ -105,7 +105,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"This email is already taken." in response.data
+        assert "already taken" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
@@ -120,7 +120,7 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"This username is already taken." in response.data
+        assert "already taken" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()
 
@@ -132,6 +132,6 @@ class TestRegistrationAdapter(FlaskInputAdapterTestBase):
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"email: value is not a valid email address" in response.data
+        assert "value is not a valid email address" in response.text
         assert b"alert-error" in response.data
         self.mock_repo.save.assert_not_called()

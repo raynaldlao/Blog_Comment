@@ -1,8 +1,8 @@
 from flask import Flask
 
 
-def _register_article_routes(app: Flask, adapters: dict) -> None:
-    art = adapters["article_adapter"]
+def _register_article_routes(app: Flask, adapters) -> None:
+    art = adapters.article_adapter
     app.add_url_rule("/", view_func=art.list_articles, endpoint="article.list_articles")
     app.add_url_rule("/articles/<int:article_id>", view_func=art.read_article, endpoint="article.read_article")
     app.add_url_rule("/articles/new", view_func=art.render_create_page, methods=["GET"], endpoint="article.render_create_page")
@@ -17,41 +17,36 @@ def _register_article_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_article_api_routes(app: Flask, adapters: dict) -> None:
-    art = adapters["article_adapter"]
-    csrf = app.extensions["csrf"]
+def _register_article_api_routes(app: Flask, adapters) -> None:
+    art = adapters.article_adapter
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_get_article, methods=["GET"],
         endpoint="article.api_get",
     )
-    csrf.exempt(art.api_get_article)
 
     app.add_url_rule(
         "/api/articles",
         view_func=art.api_create_article, methods=["POST"],
         endpoint="article.api_create",
     )
-    csrf.exempt(art.api_create_article)
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art.api_update_article, methods=["PUT"],
         endpoint="article.api_update",
     )
-    csrf.exempt(art.api_update_article)
 
     app.add_url_rule(
         "/api/articles/<int:article_id>",
         view_func=art._api_delete_article, methods=["DELETE"],
         endpoint="article.api_delete",
     )
-    csrf.exempt(art._api_delete_article)
 
 
-def _register_comment_routes(app: Flask, adapters: dict) -> None:
-    com = adapters["comment_adapter"]
+def _register_comment_routes(app: Flask, adapters) -> None:
+    com = adapters.comment_adapter
     app.add_url_rule(
         "/articles/<int:article_id>/comments", view_func=com.create_comment, methods=["POST"], endpoint="comment.create_comment"
     )
@@ -81,11 +76,10 @@ def _register_comment_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def _register_auth_routes(app: Flask, adapters: dict) -> None:
-    log = adapters["login_adapter"]
-    reg = adapters["registration_adapter"]
-    acc = adapters["account_session_adapter"]
-    csrf = app.extensions["csrf"]
+def _register_auth_routes(app: Flask, adapters) -> None:
+    log = adapters.login_adapter
+    reg = adapters.registration_adapter
+    acc = adapters.account_session_adapter
     app.add_url_rule("/login", view_func=log.render_login_page, methods=["GET"], endpoint="auth.login")
     app.add_url_rule("/login", view_func=log.authenticate, methods=["POST"], endpoint="auth.authenticate")
     app.add_url_rule("/register", view_func=reg.render_registration_page, methods=["GET"], endpoint="registration.register")
@@ -103,7 +97,6 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         methods=["POST"],
         endpoint="auth.upload_profile_photo",
     )
-    csrf.exempt(acc.upload_profile_photo)
 
     app.add_url_rule(
         "/profile/photo/delete",
@@ -127,10 +120,10 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
     )
 
     app.add_url_rule(
-        "/admin/users",
-        view_func=acc.list_all_users,
-        methods=["GET"],
-        endpoint="auth.list_all_users",
+        "/lang/<locale>",
+        view_func=acc.set_lang,
+        methods=["POST"],
+        endpoint="auth.set_lang",
     )
 
     app.add_url_rule(
@@ -140,38 +133,9 @@ def _register_auth_routes(app: Flask, adapters: dict) -> None:
         endpoint="auth.delete_account",
     )
 
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/role",
-        view_func=acc.change_role,
-        methods=["POST"],
-        endpoint="auth.change_role",
-    )
 
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/ban",
-        view_func=acc.ban_account,
-        methods=["POST"],
-        endpoint="auth.ban_account",
-    )
-
-    app.add_url_rule(
-        "/admin/users/<int:account_id>/unban",
-        view_func=acc.unban_account,
-        methods=["POST"],
-        endpoint="auth.unban_account",
-    )
-
-    app.add_url_rule(
-        "/lang/<locale>",
-        view_func=acc.set_lang,
-        methods=["POST"],
-        endpoint="auth.set_lang",
-    )
-
-
-def _register_file_routes(app: Flask, adapters: dict) -> None:
-    fad = adapters["file_adapter"]
-    csrf = app.extensions["csrf"]
+def _register_file_routes(app: Flask, adapters) -> None:
+    fad = adapters.file_adapter
 
     app.add_url_rule(
         "/api/upload/image",
@@ -179,7 +143,6 @@ def _register_file_routes(app: Flask, adapters: dict) -> None:
         methods=["POST"],
         endpoint="file.upload_image",
     )
-    csrf.exempt(fad.upload_image)
 
     app.add_url_rule(
         "/uploads/<string:file_id>/<string:filename>",
@@ -189,9 +152,34 @@ def _register_file_routes(app: Flask, adapters: dict) -> None:
     )
 
 
-def register_web_routes(app: Flask, adapters: dict) -> None:
+def _register_admin_routes(app: Flask, adapters) -> None:
+    adm = adapters.admin_adapter
+    app.add_url_rule(
+        "/admin/users", view_func=adm.list_all_users, methods=["GET"],
+        endpoint="admin.list_all_users",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/delete", view_func=adm.delete_account, methods=["POST"],
+        endpoint="admin.delete_account",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/role", view_func=adm.change_role,
+        methods=["POST"], endpoint="admin.change_role",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/ban", view_func=adm.ban_account,
+        methods=["POST"], endpoint="admin.ban_account",
+    )
+    app.add_url_rule(
+        "/admin/users/<int:account_id>/unban", view_func=adm.unban_account,
+        methods=["POST"], endpoint="admin.unban_account",
+    )
+
+
+def register_web_routes(app: Flask, adapters) -> None:
     _register_article_routes(app, adapters)
     _register_article_api_routes(app, adapters)
     _register_comment_routes(app, adapters)
     _register_auth_routes(app, adapters)
+    _register_admin_routes(app, adapters)
     _register_file_routes(app, adapters)

@@ -1,5 +1,43 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+import { applyVideoDictOverrides } from '../components/ArticleForm';
+
+
+function makeMockEditor() {
+  return {
+    dictionary: {
+      slash_menu: {
+        video: {
+          title: 'Video',
+          subtext: 'Resizable video with caption',
+          aliases: ['video', 'videoUpload', 'upload', 'mp4', 'film', 'media', 'url'],
+          group: 'Media',
+        },
+      },
+      file_panel: {
+        embed: {
+          title: 'Embed',
+          url_placeholder: 'Enter URL',
+          embed_button: {
+            image: 'Embed image',
+            video: 'Embed video',
+            audio: 'Embed audio',
+            file: 'Embed file',
+          },
+        },
+      },
+      file_blocks: {
+        add_button_text: {
+          image: 'Add image',
+          video: 'Add video',
+          audio: 'Add audio',
+          file: 'Add file',
+        },
+      },
+    },
+  };
+}
+
 const mockEditor = {
   document: [
     { id: 'p1', type: 'paragraph' },
@@ -82,5 +120,50 @@ describe('ArticleForm mousedown handler', () => {
     document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
     expect(mockEditor.setTextCursorPosition).toHaveBeenCalledOnce();
     expect(mockEditor.setTextCursorPosition).toHaveBeenCalledWith('p1', 'start');
+  });
+});
+
+describe('applyVideoDictOverrides', () => {
+  it('renames slash menu title to YouTube', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.slash_menu.video.title).toBe('YouTube');
+  });
+
+  it('sets slash menu subtext', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.slash_menu.video.subtext).toBe('Paste a YouTube video URL');
+  });
+
+  it('adds youtube and yt aliases', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.slash_menu.video.aliases).toContain('youtube');
+    expect(editor.dictionary.slash_menu.video.aliases).toContain('yt');
+  });
+
+  it('renames file panel embed tab title', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.file_panel.embed.title).toBe('YouTube URL');
+  });
+
+  it('updates embed button text for video', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.file_panel.embed.embed_button.video).toBe('Embed YouTube video');
+  });
+
+  it('updates embed placeholder', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.file_panel.embed.url_placeholder).toBe('Paste YouTube video link');
+  });
+
+  it('updates add button text for video', () => {
+    const editor = makeMockEditor();
+    applyVideoDictOverrides(editor);
+    expect(editor.dictionary.file_blocks.add_button_text.video).toBe('Add YouTube video URL');
   });
 });

@@ -1,3 +1,4 @@
+import time
 from datetime import UTC, datetime
 
 import nh3
@@ -12,14 +13,11 @@ from blog_exceptions import (
     CommentValidationError,
 )
 from src.application.domain.account import Account, AccountRole
-from src.application.domain.comment import Comment, CommentNode
+from src.application.domain.comment import Comment
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.article_repository import ArticleRepository
 from src.application.output_ports.comment_repository import CommentRepository
-from src.application.services.service_utils import build_comment_nested_tree
-
-MAX_REPLY_DEPTH = 3
 
 
 class CommentService(CommentManagementPort):
@@ -29,6 +27,9 @@ class CommentService(CommentManagementPort):
     Depends on CommentRepository, ArticleRepository, and AccountRepository output ports
     for data persistence, injected via the constructor.
     """
+
+    MAX_REPLY_DEPTH = 3
+    COMMENT_INTERVAL = 1
 
     ALLOWED_TAGS = frozenset({
         "b", "i", "u", "s", "strike", "del", "a", "ul", "ol", "li", "br", "p", "em", "strong",
@@ -63,8 +64,58 @@ class CommentService(CommentManagementPort):
         if not account:
             raise AccountNotFoundError("Account not found.")
         if account.is_banned:
-            raise AccountBannedError("Account is banned.")
+            raise AccountBannedError("The account is banned.")
         return account
+
+    def _get_account_and_comment(self, user_id: int, comment_id: int) -> tuple[Account, Comment]:
+        """
+        Retrieves an account and a comment by their IDs.
+
+        Args:
+            user_id (int): The ID of the user.
+            comment_id (int): The ID of the comment.
+
+        Returns:
+            tuple[Account, Comment]: The Account and Comment domain entities.
+
+        Raises:
+            AccountNotFoundError: If the account does not exist.
+            AccountBannedError: If the account is banned.
+            CommentNotFoundError: If the comment does not exist.
+        """
+        account = self._get_account_if_exists(user_id)
+        comment = self.comment_repository.get_by_id(comment_id)
+        if not comment:
+            raise CommentNotFoundError("Comment not found.")
+        return account, comment
+
+    @staticmethod
+    def _sanitize_comment_content(content: str) -> str:
+        """
+        Sanitizes comment content by removing disallowed HTML tags
+        and validates content is non-empty and within length limits.
+
+        Args:
+            content (str): Raw comment text to sanitize.
+
+        Returns:
+            str: Sanitized comment text.
+
+        Raises:
+            CommentValidationError: If content is empty after sanitization
+                or exceeds 5000 characters.
+        """
+        sanitized = nh3.clean(
+            content,
+            tags=CommentService.ALLOWED_TAGS,
+            attributes={"a": {"href", "target"}},
+            link_rel="noopener noreferrer",
+        )
+        if not sanitized.strip():
+            raise CommentValidationError("Comment cannot be empty.")
+        if len(sanitized) > 5000:
+            raise CommentValidationError("Comment is too long. Maximum 5000 characters.")
+        return sanitized
 
     @staticmethod
     def _get_comment_depth(comment_id: int, comment_repo: CommentRepository) -> int:
@@ -78,6 +129,27 @@ class CommentService(CommentManagementPort):
             depth += 1
         return depth
 
+
+    def check_rate_limit(self, user_id: int) -> int | None:
+        """Checks if the user is posting comments too fast.
+
+        Queries the repository for the user's most recent comment timestamp.
+        If the elapsed time since that comment is less than COMMENT_INTERVAL,
+        returns the remaining cooldown in seconds.
+
+        Args:
+            user_id: ID of the user to check.
+
+        Returns:
+            Remaining cooldown seconds if rate-limited, or None if allowed.
+        """
+        now = time.time()
+        last = self.comment_repository.get_last_comment_timestamp(user_id)
+        if last:
+            elapsed = now - last
+            if elapsed < self.COMMENT_INTERVAL:
+                return max(1, int(self.COMMENT_INTERVAL - elapsed))
+        return None
 
     def create_comment(self, article_id: int, user_id: int, content: str) -> Comment:
         """
@@ -98,7 +170,7 @@ class CommentService(CommentManagementPort):
             AccountNotFoundError: If the account does not exist.
             AccountBannedError: If the account is banned.
             ArticleNotFoundError: If the article does not exist.
-            CommentValidationError: If the content is empty after sanitization.
+            CommentValidationError: If the content is empty or too long.
         """
         account = self._get_account_if_exists(user_id)
 
@@ -106,14 +178,7 @@ class CommentService(CommentManagementPort):
         if not article:
             raise ArticleNotFoundError("Article not found.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
         fake_comment_id = 0
         new_comment = Comment(
             comment_id=fake_comment_id,
@@ -146,7 +211,8 @@ class CommentService(CommentManagementPort):
             AccountBannedError: If the account is banned.
             CommentNotFoundError: If the parent comment does not exist.
             CommentDeletedError: If the parent comment is deleted.
-            CommentValidationError: If the content is empty or max depth exceeded.
+            CommentValidationError: If the content is empty, too long,
+                or max depth exceeded.
         """
         account = self._get_account_if_exists(user_id)
 
@@ -158,17 +224,10 @@ class CommentService(CommentManagementPort):
             raise CommentDeletedError("Cannot reply to a deleted comment.")
 
         parent_depth = self._get_comment_depth(parent_comment.comment_id, self.comment_repository)
-        if parent_depth >= MAX_REPLY_DEPTH:
-            raise CommentValidationError("Cannot reply to a comment at maximum nesting depth.")
+        if parent_depth >= self.MAX_REPLY_DEPTH:
+            raise CommentValidationError("Cannot reply to a comment at maximum depth.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
         fake_comment_id = 0
         new_reply = Comment(
             comment_id=fake_comment_id,
@@ -182,46 +241,15 @@ class CommentService(CommentManagementPort):
         self.comment_repository.save(new_reply)
         return new_reply
 
-    def get_comments_for_article(self, article_id: int) -> list[CommentNode]:
-        """
-        Retrieves all comments for an article as a nested tree.
-
-        Args:
-            article_id (int): ID of the article.
-
-        Returns:
-            list[CommentNode]: List of root CommentNode objects with nested replies.
-
-        Raises:
-            ArticleNotFoundError: If the article does not exist.
-        """
-        article = self.article_repository.get_by_id(article_id)
-        if not article:
-            raise ArticleNotFoundError("Article not found.")
-
-        all_comments = self.comment_repository.get_all_by_article_id(article_id)
-        author_ids = {c.comment_written_account_id for c in all_comments if c.comment_written_account_id is not None}
-        authors = self.account_repository.get_by_ids(list(author_ids))
-        author_map = {acc.account_id: acc.account_username for acc in authors}
-        avatar_map = {acc.account_id: acc.avatar_file_id for acc in authors}
-        return build_comment_nested_tree(all_comments, author_map, avatar_map)
-
     def mask_comments_by_account_id(self, account_id: int) -> None:
-        """
-        Masks all comments by a given account (used during account deletion).
+        """Masks all comments by a given account (used during account deletion).
 
-        Sets is_deleted=True, deleted_at=now, and replaces content with a removal notice.
+        Delegates to the repository for a single bulk UPDATE.
 
         Args:
             account_id (int): ID of the account whose comments should be masked.
         """
-        comments = self.comment_repository.get_by_account_id(account_id)
-        for comment in comments:
-            comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
-            comment.is_deleted = True
-            comment.deleted_at = datetime.now(UTC)
-            comment.deleted_by = "account_deleted"
-            self.comment_repository.save(comment)
+        self.comment_repository.mask_comments_by_account_id(account_id)
 
     def delete_comment(self, comment_id: int, user_id: int) -> bool:
         """
@@ -240,15 +268,12 @@ class CommentService(CommentManagementPort):
             CommentNotFoundError: If the comment does not exist.
             CommentAuthorizationError: If the user is not the author nor admin.
         """
-        account = self._get_account_if_exists(user_id)
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
+        account, comment = self._get_account_and_comment(user_id, comment_id)
 
         is_author = comment.comment_written_account_id == account.account_id
         is_admin = account.account_role == AccountRole.ADMIN
         if not is_author and not is_admin:
-            raise CommentAuthorizationError("Unauthorized: You can only delete your own comments.")
+            raise CommentAuthorizationError("Unauthorized: you can only delete your own comments.")
 
         if comment.is_deleted:
             return True
@@ -277,27 +302,17 @@ class CommentService(CommentManagementPort):
             CommentNotFoundError: If the comment does not exist.
             CommentAuthorizationError: If the user is not the comment author.
             CommentDeletedError: If the comment has been deleted.
-            CommentValidationError: If the content is empty after sanitization.
+            CommentValidationError: If the content is empty or too long.
         """
-        account = self._get_account_if_exists(user_id)
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
+        account, comment = self._get_account_and_comment(user_id, comment_id)
 
         if comment.comment_written_account_id != account.account_id:
-            raise CommentAuthorizationError("Unauthorized: You can only edit your own comments.")
+            raise CommentAuthorizationError("Unauthorized: you can only edit your own comments.")
 
         if comment.is_deleted:
             raise CommentDeletedError("Cannot edit a deleted comment.")
 
-        sanitized = nh3.clean(
-            content,
-            tags=self.ALLOWED_TAGS,
-            attributes={"a": {"href", "target"}},
-            link_rel="noopener noreferrer",
-        )
-        if not sanitized.strip():
-            raise CommentValidationError("Comment cannot be empty.")
+        sanitized = self._sanitize_comment_content(content)
 
         comment.comment_content = sanitized
         comment.edited_at = datetime.now(UTC)
@@ -324,16 +339,14 @@ class CommentService(CommentManagementPort):
             CommentAuthorizationError: If the user is not an admin.
             CommentValidationError: If the comment is not soft-deleted first.
         """
-        account = self._get_account_if_exists(user_id)
+        account, comment = self._get_account_and_comment(user_id, comment_id)
         if account.account_role != AccountRole.ADMIN:
-            raise CommentAuthorizationError("Unauthorized: Only admins can permanently delete comments.")
-
-        comment = self.comment_repository.get_by_id(comment_id)
-        if not comment:
-            raise CommentNotFoundError("Comment not found.")
+            raise CommentAuthorizationError(
+                "Unauthorized: only administrators can permanently delete comments."
+            )
 
         if not comment.is_deleted:
-            raise CommentValidationError("Comment is not soft-deleted. Use soft-delete first.")
+            raise CommentValidationError("Comment is not deleted. Delete it first using standard deletion.")
 
         self.comment_repository.delete(comment_id)
         return True

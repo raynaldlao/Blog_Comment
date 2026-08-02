@@ -1,3 +1,5 @@
+from datetime import UTC, datetime
+
 from src.application.domain.comment import Comment
 from src.application.output_ports.comment_repository import CommentRepository
 
@@ -52,18 +54,6 @@ class InMemoryCommentRepository(CommentRepository):
         """
         return [c for c in self._comments.values() if c.comment_article_id == article_id]
 
-    def get_by_reply_to(self, comment_id: int) -> list[Comment]:
-        """
-        Retrieves all direct child comments that reply to a given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment.
-
-        Returns:
-            list[Comment]: A list of direct child Comment domain entities.
-        """
-        return [c for c in self._comments.values() if c.comment_reply_to == comment_id]
-
     def get_by_account_id(self, account_id: int) -> list[Comment]:
         """
         Retrieves all comments authored by a specific account.
@@ -75,9 +65,43 @@ class InMemoryCommentRepository(CommentRepository):
             list[Comment]: A list of Comment domain entities for this author.
         """
         return [
-            c for c in self._comments.values()
-            if c.comment_written_account_id == account_id
+            comment for comment in self._comments.values()
+            if comment.comment_written_account_id == account_id
         ]
+
+    def get_last_comment_timestamp(self, user_id: int) -> float | None:
+        """Retrieves the posted_at timestamp of the user's most recent comment from memory.
+
+        Args:
+            user_id: ID of the user to query.
+
+        Returns:
+            Unix timestamp of the latest comment, or None if the user
+            has no comments.
+        """
+        timestamps = [
+            comment.comment_posted_at
+            for comment in self._comments.values()
+            if comment.comment_written_account_id == user_id
+        ]
+        if not timestamps:
+            return None
+        return max(timestamps).timestamp()
+
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """Sets is_deleted=True, masks content, and sets deleted_at/deleted_by
+        for all comments by the given account.
+
+        Args:
+            account_id: ID of the account whose comments should be masked.
+        """
+        now = datetime.now(UTC)
+        for comment in self._comments.values():
+            if comment.comment_written_account_id == account_id:
+                comment.comment_content = "<!--cmt-removed--><em>Comment removed</em>"
+                comment.is_deleted = True
+                comment.deleted_at = now
+                comment.deleted_by = "account_deleted"
 
     def delete(self, comment_id: int) -> None:
         """

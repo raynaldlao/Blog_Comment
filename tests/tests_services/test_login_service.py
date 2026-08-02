@@ -4,12 +4,13 @@ import pytest
 
 from blog_exceptions import (
     AccountBannedError,
-    AccountNotFoundError,
     AuthenticationError,
-    AuthorizationError,
+    BlogCommentError,
     EmailAlreadyTakenError,
 )
-from src.application.domain.account import Account, AccountRole
+from src.application.domain.account import Account
+from src.application.input_ports.comment_management import CommentManagementPort
+from src.application.input_ports.file_management import FileManagementPort
 from src.application.output_ports.account_repository import AccountRepository
 from src.application.output_ports.account_session_repository import AccountSessionRepository
 from src.application.output_ports.password_hasher_repository import PasswordHasherRepository
@@ -17,19 +18,25 @@ from src.application.services.login_service import LoginService
 from tests.test_domain_factories import create_test_account
 
 
+def _make_login_fixtures(file_service=None, comment_service=None):
+    mock_repo = MagicMock(spec=AccountRepository, autospec=True)
+    mock_session_repo = MagicMock(spec=AccountSessionRepository, autospec=True)
+    mock_hasher = MagicMock(spec=PasswordHasherRepository, autospec=True)
+    mock_hasher.verify.return_value = True
+    mock_hasher.check_needs_rehash.return_value = False
+    service = LoginService(
+        account_repository=mock_repo,
+        session_repository=mock_session_repo,
+        password_hasher_repository=mock_hasher,
+        file_service=file_service,
+        comment_service=comment_service,
+    )
+    return mock_repo, mock_session_repo, mock_hasher, service
+
+
 class TestLoginService:
     def setup_method(self):
-        self.mock_repo = MagicMock(spec=AccountRepository, autospec=True)
-        self.mock_session_repo = MagicMock(spec=AccountSessionRepository, autospec=True)
-        self.mock_hasher = MagicMock(spec=PasswordHasherRepository, autospec=True)
-        self.mock_hasher.verify.return_value = True
-        self.mock_hasher.check_needs_rehash.return_value = False
-
-        self.service = LoginService(
-            account_repository=self.mock_repo,
-            session_repository=self.mock_session_repo,
-            password_hasher_repository=self.mock_hasher
-        )
+        self.mock_repo, self.mock_session_repo, self.mock_hasher, self.service = _make_login_fixtures()
 
     def test_authenticate_user_success(self):
         fake_account = create_test_account()
@@ -126,10 +133,19 @@ class TestLoginService:
 
         self.mock_repo.update_email.assert_not_called()
 
+    def test_update_email_same_email_returns_none(self):
+        fake_account = create_test_account(account_id=1, account_email="same@test.com")
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        result = self.service.update_email("same@test.com")
+
+        assert result is None
+        self.mock_repo.update_email.assert_not_called()
+
     def test_update_email_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
 
-        with pytest.raises(AuthenticationError, match="must be signed in"):
+        with pytest.raises(AuthenticationError, match="signed in"):
             self.service.update_email("new@test.com")
 
         self.mock_repo.update_email.assert_not_called()
@@ -146,7 +162,7 @@ class TestLoginService:
     def test_update_password_unauthenticated_returns_error(self):
         self.mock_session_repo.get_account.return_value = None
 
-        with pytest.raises(AuthenticationError, match="must be signed in"):
+        with pytest.raises(AuthenticationError, match="signed in"):
             self.service.update_password("new_secret")
 
         self.mock_hasher.hash.assert_not_called()
@@ -159,115 +175,6 @@ class TestLoginService:
         assert result is None
         self.mock_hasher.hash.assert_not_called()
         self.mock_repo.update_password.assert_not_called()
-
-    def test_delete_account_success(self):
-        fake_account = create_test_account(account_id=1)
-        self.mock_repo.get_by_id.return_value = fake_account
-        self.service.delete_account(fake_account.account_id)
-        self.mock_repo.delete.assert_called_once_with(fake_account.account_id)
-
-    def test_delete_account_not_found_raises_account_not_found_error(self):
-        self.mock_repo.get_by_id.return_value = None
-        with pytest.raises(AccountNotFoundError, match="not found"):
-            self.service.delete_account(999)
-        self.mock_repo.delete.assert_not_called()
-
-    def test_update_role_success(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
-
-        result = self.service.update_account_role(
-            admin_id=1, target_id=2, new_role="author"
-        )
-
-        assert result is None
-        self.mock_repo.update_role.assert_called_once_with(2, "author")
-
-    def test_update_role_account_not_found(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
-
-        with pytest.raises(AccountNotFoundError, match="not found"):
-            self.service.update_account_role(
-                admin_id=1, target_id=999, new_role="author"
-            )
-
-        self.mock_repo.update_role.assert_not_called()
-
-    def test_update_role_not_admin(self):
-        user = create_test_account(account_id=1, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.return_value = user
-
-        with pytest.raises(AuthorizationError, match="Unauthorized"):
-            self.service.update_account_role(
-                admin_id=1, target_id=2, new_role="author"
-            )
-
-        self.mock_repo.update_role.assert_not_called()
-
-    def test_update_role_target_is_admin(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
-
-        with pytest.raises(AuthorizationError, match="Cannot change role of another admin"):
-            self.service.update_account_role(
-                admin_id=1, target_id=2, new_role="user"
-            )
-
-        self.mock_repo.update_role.assert_not_called()
-
-    def test_update_role_invalid_role(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
-
-        result = self.service.update_account_role(
-            admin_id=1, target_id=2, new_role="superadmin"
-        )
-
-        assert result is None
-        self.mock_repo.update_role.assert_not_called()
-
-    def test_ban_account_success(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
-
-        result = self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
-
-        assert result is None
-        self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
-
-    def test_ban_account_not_found(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin}.get(cid)
-
-        with pytest.raises(AccountNotFoundError, match="not found"):
-            self.service.ban_account(admin_id=1, target_account_id=999, ban_reason="Spam")
-
-        self.mock_repo.update_ban_status.assert_not_called()
-
-    def test_ban_account_target_is_admin(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target_admin = create_test_account(account_id=2, account_role=AccountRole.ADMIN)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target_admin}.get(cid)
-
-        with pytest.raises(AuthorizationError, match="Cannot ban another admin"):
-            self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
-
-        self.mock_repo.update_ban_status.assert_not_called()
-
-    def test_unban_account_success(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
-
-        result = self.service.unban_account(admin_id=1, target_account_id=2)
-
-        assert result is None
-        self.mock_repo.update_ban_status.assert_called_once_with(2, False, None)
 
     def test_authenticate_user_banned(self):
         fake_account = create_test_account(is_banned=True)
@@ -308,12 +215,122 @@ class TestLoginService:
         self.mock_repo.update_session_token.assert_called_once_with(1, None)
         self.mock_session_repo.clear.assert_called_once()
 
-    def test_ban_account_clears_session_token(self):
-        admin = create_test_account(account_id=1, account_role=AccountRole.ADMIN)
-        target = create_test_account(account_id=2, account_role=AccountRole.USER)
-        self.mock_repo.get_by_id.side_effect = lambda cid: {1: admin, 2: target}.get(cid)
 
-        self.service.ban_account(admin_id=1, target_account_id=2, ban_reason="Spam")
+class TestDeleteOwnAccount:
+    def setup_method(self):
+        self.mock_file_service = MagicMock(spec=FileManagementPort, autospec=True)
+        self.mock_comment_service = MagicMock(spec=CommentManagementPort, autospec=True)
+        self.mock_repo, self.mock_session_repo, self.mock_hasher, self.service = _make_login_fixtures(
+            file_service=self.mock_file_service,
+            comment_service=self.mock_comment_service,
+        )
 
-        self.mock_repo.update_ban_status.assert_called_once_with(2, True, "Spam")
-        self.mock_repo.update_session_token.assert_called_once_with(2, None)
+    def test_delete_own_account_cascade(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        self.service.delete_own_account()
+
+        self.mock_file_service.delete_file.assert_called_once_with("av-123")
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_repo.delete.assert_called_once_with(1)
+        self.mock_session_repo.clear.assert_called_once()
+
+    def test_delete_own_account_no_avatar_skips_file_cleanup(self):
+        fake_account = create_test_account(account_id=2, account_avatar_file_id=None)
+        self.mock_session_repo.get_account.return_value = fake_account
+
+        self.service.delete_own_account()
+
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(2)
+        self.mock_repo.delete.assert_called_once_with(2)
+
+    def test_delete_own_account_not_authenticated(self):
+        self.mock_session_repo.get_account.return_value = None
+
+        with pytest.raises(AuthenticationError, match="signed in"):
+            self.service.delete_own_account()
+
+        self.mock_file_service.delete_file.assert_not_called()
+        self.mock_comment_service.mask_comments_by_account_id.assert_not_called()
+        self.mock_repo.delete.assert_not_called()
+
+    def test_delete_own_account_avatar_delete_failure_logs_warning(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+
+        self.service.delete_own_account()
+
+        self.mock_file_service.delete_file.assert_called_once_with("av-123")
+        self.mock_comment_service.mask_comments_by_account_id.assert_called_once_with(1)
+        self.mock_repo.delete.assert_called_once_with(1)
+        self.mock_session_repo.clear.assert_called_once()
+
+
+class TestProfilePhoto:
+    def setup_method(self):
+        self.mock_file_service = MagicMock(spec=FileManagementPort, autospec=True)
+        self.mock_repo, self.mock_session_repo, self.mock_hasher, self.service = _make_login_fixtures(
+            file_service=self.mock_file_service,
+        )
+
+    def test_update_profile_photo_no_file_service(self):
+        _, _, _, service = _make_login_fixtures(file_service=None)
+        result = service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result is None
+
+    def test_update_profile_photo_unauthenticated(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result is None
+
+    def test_update_profile_photo_delete_failure_logs_warning(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="old-av")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.upload_file.return_value = MagicMock(file_id="new-av")
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+        result = self.service.update_profile_photo(b"data", "test.png", "image/png")
+        assert result == "new-av"
+        self.mock_file_service.delete_file.assert_called_once_with("old-av")
+
+    def test_remove_profile_photo_no_file_service(self):
+        _, _, _, service = _make_login_fixtures(file_service=None)
+        result = service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_unauthenticated(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_no_avatar(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id=None)
+        self.mock_session_repo.get_account.return_value = fake_account
+        result = self.service.remove_profile_photo()
+        assert result is False
+        self.mock_file_service.delete_file.assert_not_called()
+
+    def test_remove_profile_photo_delete_failure(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        self.mock_file_service.delete_file.side_effect = BlogCommentError("Storage failed")
+        result = self.service.remove_profile_photo()
+        assert result is False
+
+    def test_remove_profile_photo_success(self):
+        fake_account = create_test_account(account_id=1, account_avatar_file_id="av-123")
+        self.mock_session_repo.get_account.return_value = fake_account
+        result = self.service.remove_profile_photo()
+        assert result is True
+        self.mock_file_service.delete_file.assert_called_once_with("av-123")
+        updated = self.mock_repo.update_avatar.call_args
+        assert updated is not None
+        assert updated[0][1] is None
+
+    def test_update_avatar_unauthenticated_returns_none(self):
+        self.mock_session_repo.get_account.return_value = None
+        result = self.service._update_avatar("new-av")
+        assert result is None
+        self.mock_repo.update_avatar.assert_not_called()

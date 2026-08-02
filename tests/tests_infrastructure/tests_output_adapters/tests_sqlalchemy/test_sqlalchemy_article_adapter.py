@@ -104,29 +104,6 @@ class TestArticlePagination(SqlAlchemyArticleAdapterTestBase):
         assert total == 2
 
 
-class TestArticleGetAllOrderedByDateDesc(SqlAlchemyArticleAdapterTestBase):
-    def test_returns_all_articles_sorted_newest_first(self):
-        from datetime import datetime, timedelta
-
-        account = self.account_builder.create()
-        base_time = datetime.now()
-        self.article_builder.create(author_id=account.account_id, title="Oldest", published_at=base_time - timedelta(hours=2))
-        self.article_builder.create(author_id=account.account_id, title="Middle", published_at=base_time - timedelta(hours=1))
-        self.article_builder.create(author_id=account.account_id, title="Newest", published_at=base_time)
-        results = self.repository.get_all_ordered_by_date_desc()
-        assert len(results) == 3
-        first_article = results[0]
-        second_article = results[1]
-        third_article = results[2]
-        assert first_article.article_title == "Newest"
-        assert second_article.article_title == "Middle"
-        assert third_article.article_title == "Oldest"
-
-    def test_returns_empty_list_when_no_articles(self):
-        results = self.repository.get_all_ordered_by_date_desc()
-        assert results == []
-
-
 class TestArticleSearch(SqlAlchemyArticleAdapterTestBase):
     def test_search_by_author_name(self):
         author = self.account_builder.create(username="john_doe", email="john@test.com")

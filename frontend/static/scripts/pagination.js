@@ -21,6 +21,7 @@
         const openJumpModal = () => {
             jumpModal.showModal();
             jumpInput.value = '';
+            jumpInput.removeAttribute('aria-invalid');
         };
 
         jumpModal.addEventListener('focus', () => jumpInput.focus(), { once: true });
@@ -49,8 +50,10 @@
                 window.location.href = `${baseUrl}?page=${val}`;
             } else {
                 jumpInput.classList.add(INPUT_ERROR_CLASS);
+                jumpInput.setAttribute('aria-invalid', 'true');
                 setTimeout(() => {
                     jumpInput.classList.remove(INPUT_ERROR_CLASS);
+                    jumpInput.removeAttribute('aria-invalid');
                 }, 500);
             }
         };

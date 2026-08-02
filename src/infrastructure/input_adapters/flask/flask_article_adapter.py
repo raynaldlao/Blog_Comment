@@ -8,6 +8,8 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from flask_setup.auth_helpers import require_auth, require_auth_api
+from src.application.domain.account import AccountRole
 from src.application.domain.comment import CommentNode
 from src.application.input_ports.article_management import ArticleManagementPort
 from src.infrastructure.input_adapters.dto.article_request import ArticleRequest
@@ -52,6 +54,31 @@ class ArticleAdapter:
             count += ArticleAdapter._count_comment_nodes(node.replies)
         return count
 
+    @staticmethod
+    def _ensure_blocknote_format(content: str) -> str:
+        """Wrap legacy plain-text content into a BlockNote paragraph JSON array.
+
+        If content is already valid BlockNote JSON, pass through unchanged.
+        Otherwise, wrap in a paragraph block so the React BlockNote viewer
+        can render legacy articles without crashing.
+
+        Args:
+            content (str): Raw article content from the database.
+
+        Returns:
+            str: Valid BlockNote JSON array string.
+        """
+        try:
+            json.loads(content)
+        # Python builtin — safety net for json.loads on non-string input.
+        # Not in blog_exceptions.py. Do not move it there.
+        except (json.JSONDecodeError, TypeError):
+            content = json.dumps([{
+                "type": "paragraph",
+                "content": [{"type": "text", "text": content}]
+            }])
+        return content
+
     def list_articles(self) -> str:
         """
         Renders the blog homepage with a paginated list of articles.
@@ -86,12 +113,10 @@ class ArticleAdapter:
         has_next = (page * 10) < total_count
         has_prev = page > 1
         total_pages = math.ceil(total_count / 10)
-        user = global_request_context.get("current_user")
 
         return render_template(
             "article_list.html",
             articles=articles,
-            current_user=user,
             page=page,
             has_next=has_next,
             has_prev=has_prev,
@@ -121,30 +146,20 @@ class ArticleAdapter:
             author_avatar_file_id=detail.article_with_author.author_avatar_file_id,
         )
 
-        content = article.article_content
-        try:
-            json.loads(content)
-        # Python builtin — safety net for json.loads on non-string input.
-        # Not in blog_exceptions.py. Do not move it there.
-        except (json.JSONDecodeError, TypeError):
-            content = json.dumps([{
-                "type": "paragraph",
-                "content": [{"type": "text", "text": content}]
-            }])
+        content = self._ensure_blocknote_format(article.article_content)
 
         dto_comments = CommentResponse.map_nested_tree(detail.nested_comments)
-        user = global_request_context.get("current_user")
         return render_template(
             "article_detail.html",
             article=article,
             article_content_json=content,
             nested_comments=dto_comments,
             comment_count=self._count_comment_nodes(detail.nested_comments),
-            current_user=user,
             page_with_editor=True,
             page_with_comments=True,
         )
 
+    @require_auth("You must be signed in to author an article.")
     def render_create_page(self) -> str | Response:
         """
         Renders the form to author a new article.
@@ -154,21 +169,16 @@ class ArticleAdapter:
             Union[str, Response]: The 'article_create.html' form or a redirect to the login page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to author an article."), "error")
-            return redirect(url_for("auth.login"))
-
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
-        return render_template("article_create.html", current_user=user, page_with_editor=True)
+        return render_template("article_create.html", page_with_editor=True)
 
     def api_get_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for fetching a single article.
-        Wraps legacy plain-text content into a BlockNote paragraph block
-        for compatibility with the React viewer.
+        Legacy plain-text fallback delegated to `_ensure_blocknote_format`.
 
         Args:
             article_id (int): The unique identifier of the article to retrieve.
@@ -182,16 +192,7 @@ class ArticleAdapter:
         if not article:
             return jsonify({"error": _("Article not found.")}), 404
 
-        content = article.article_content
-        try:
-            json.loads(content)
-        # Python builtin — safety net for json.loads on non-string input.
-        # Not in blog_exceptions.py. Do not move it there.
-        except (json.JSONDecodeError, TypeError):
-            content = json.dumps([{
-                "type": "paragraph",
-                "content": [{"type": "text", "text": content}]
-            }])
+        content = self._ensure_blocknote_format(article.article_content)
 
         username = self.article_service.get_author_name(article.article_author_id)
         return jsonify({
@@ -205,6 +206,7 @@ class ArticleAdapter:
             "article_edited_at": article.article_edited_at,
         })
 
+    @require_auth_api()
     def api_create_article(self) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for creating a new article.
@@ -217,9 +219,7 @@ class ArticleAdapter:
             HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
@@ -236,8 +236,9 @@ class ArticleAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
-            return jsonify({"error": _("Validation error.")}), 400
+                msg = error["msg"].removeprefix("Value error, ")
+                return jsonify({"error": msg}), 400
+            return jsonify({"error": _("Validation error.")}), 400  # pragma: no cover
 
         try:
             result = self.article_service.create_article(
@@ -246,10 +247,11 @@ class ArticleAdapter:
                 description=req_data.description,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"id": result.article_id}), 201
 
+    @require_auth_api()
     def api_update_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for updating an existing article.
@@ -265,9 +267,7 @@ class ArticleAdapter:
             HTTP 400/401/403 on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         data = request.get_json(silent=True)
@@ -284,8 +284,9 @@ class ArticleAdapter:
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                return jsonify({"error": f"({error['loc'][0]}): {error['msg']}"}), 400
-            return jsonify({"error": _("Validation error.")}), 400
+                msg = error["msg"].removeprefix("Value error, ")
+                return jsonify({"error": msg}), 400
+            return jsonify({"error": _("Validation error.")}), 400  # pragma: no cover
 
         try:
             self.article_service.update_article(
@@ -294,10 +295,11 @@ class ArticleAdapter:
                 description=req_data.description,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"ok": True})
 
+    @require_auth_api()
     def _api_delete_article(self, article_id: int) -> Response | tuple[Response, int]:
         """
         Handles JSON API request for article deletion.
@@ -313,9 +315,7 @@ class ArticleAdapter:
             on failure.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            return jsonify({"error": _("Unauthorized.")}), 401
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             return jsonify({"error": _("Insufficient permissions.")}), 403
 
         try:
@@ -323,10 +323,11 @@ class ArticleAdapter:
                 article_id=article_id, user_id=user.account_id,
             )
         except BlogCommentError as e:
-            return jsonify({"error": str(e)}), 403
+            return jsonify({"error": _(str(e))}), 403
 
         return jsonify({"ok": True})
 
+    @require_auth("You must be logged in to delete articles.")
     def delete_article_html(self, article_id: int) -> Response:
         """
         Handles HTML form submission for article deletion.
@@ -339,11 +340,6 @@ class ArticleAdapter:
         Returns:
             Response: A redirect to the login page or article list view.
         """
-        user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be logged in to delete articles."), "error")
-            return redirect(url_for("auth.login"))
-
         result = self._api_delete_article(article_id)
 
         if isinstance(result, tuple):
@@ -353,6 +349,7 @@ class ArticleAdapter:
 
         return redirect(url_for("article.list_articles"))
 
+    @require_auth("You must be signed in to edit an article.")
     def render_edit_page(self, article_id: int) -> str | Response:
         """
         Renders the edit form for an existing article.
@@ -365,11 +362,7 @@ class ArticleAdapter:
             Union[str, Response]: The 'article_edit.html' form or a redirect to the list view.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to edit an article."), "error")
-            return redirect(url_for("auth.login"))
-
-        if user.account_role not in ["admin", "author"]:
+        if user.account_role not in [AccountRole.ADMIN, AccountRole.AUTHOR]:
             flash(_("Insufficient permissions: Only authors or admins can create articles."), "error")
             return redirect(url_for("article.list_articles"))
 
@@ -378,10 +371,10 @@ class ArticleAdapter:
             flash(_("Error: The requested article could not be found."), "error")
             return redirect(url_for("article.list_articles"))
 
-        if user.account_role != "admin" and domain_article.article_author_id != user.account_id:
+        if user.account_role != AccountRole.ADMIN and domain_article.article_author_id != user.account_id:
             flash(_("You do not have permission to edit this article."), "error")
             return redirect(url_for("article.list_articles"))
 
         username = self.article_service.get_author_name(domain_article.article_author_id)
         article = ArticleResponse.from_domain(domain_article, author_username=username)
-        return render_template("article_edit.html", article=article, current_user=user, page_with_editor=True)
+        return render_template("article_edit.html", article=article, page_with_editor=True)

@@ -46,20 +46,6 @@ class CommentRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_reply_to(self, comment_id: int) -> list[Comment]:
-        """
-        Retrieves all direct child comments that reply to a given comment.
-
-        Args:
-            comment_id (int): ID of the parent comment.
-
-        Returns:
-            list[Comment]: A list of direct child Comment domain entities.
-        """
-        pass
-
-    @abstractmethod
-    @abstractmethod
     def get_by_account_id(self, account_id: int) -> list[Comment]:
         """
         Retrieves all comments authored by a specific account.
@@ -69,6 +55,29 @@ class CommentRepository(ABC):
 
         Returns:
             list[Comment]: A list of Comment domain entities for this author.
+        """
+        pass
+
+    @abstractmethod
+    def get_last_comment_timestamp(self, user_id: int) -> float | None:
+        """Retrieves the Unix timestamp of the most recent comment by a user.
+
+        Args:
+            user_id: ID of the user to query.
+
+        Returns:
+            Unix timestamp (seconds since epoch) of the latest comment,
+            or None if the user has no comments.
+        """
+        pass
+
+    @abstractmethod
+    def mask_comments_by_account_id(self, account_id: int) -> None:
+        """Sets is_deleted=True, masks content, and sets deleted_at/deleted_by
+        for all comments by the given account.
+
+        Args:
+            account_id: ID of the account whose comments should be masked.
         """
         pass
 

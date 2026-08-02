@@ -1,6 +1,4 @@
 from flask import flash, redirect, render_template, request, url_for
-from flask import g as global_request_context
-from flask.views import MethodView
 from flask_babel import gettext as _
 from pydantic import ValidationError
 
@@ -9,7 +7,7 @@ from src.application.input_ports.registration_management import RegistrationMana
 from src.infrastructure.input_adapters.dto.registration_request import RegistrationRequest
 
 
-class RegistrationAdapter(MethodView):
+class RegistrationAdapter:
     """
     Flask Input Adapter for Registration operations.
     Translates web requests into domain operations and renders HTML templates.
@@ -31,8 +29,7 @@ class RegistrationAdapter(MethodView):
         Returns:
             str: The rendered HTML for the registration page.
         """
-        user = global_request_context.get("current_user")
-        return render_template("registration.html", current_user=user)
+        return render_template("registration.html")
 
     def register(self):
         """
@@ -42,7 +39,6 @@ class RegistrationAdapter(MethodView):
         Returns:
             Response: Redirects to login on success, or back to registration on failure.
         """
-        user = global_request_context.get("current_user")
         submitted_username = request.form.get("username", "")
         submitted_email = request.form.get("email", "")
 
@@ -57,9 +53,9 @@ class RegistrationAdapter(MethodView):
         # Not in blog_exceptions.py. Do not move it there.
         except ValidationError as e:
             for error in e.errors():
-                location = str(error["loc"][0]) if error["loc"] else "Request"
-                flash(_("%(location)s: %(message)s", location=location, message=error["msg"]), "error")
-            return render_template("registration.html", current_user=user, username=submitted_username, email=submitted_email)
+                msg = error["msg"].removeprefix("Value error, ")
+                flash(_(msg), "error")
+            return render_template("registration.html", username=submitted_username, email=submitted_email)
 
         try:
             self.registration_service.create_account(
@@ -69,7 +65,7 @@ class RegistrationAdapter(MethodView):
             )
         except BlogCommentError as e:
             flash(_(str(e)), "error")
-            return render_template("registration.html", current_user=user, username=reg_data.username, email=reg_data.email)
+            return render_template("registration.html", username=reg_data.username, email=reg_data.email)
 
         flash(_("Registration successful. Please sign in."), "success")
         return redirect(url_for("auth.login"))

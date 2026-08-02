@@ -45,10 +45,10 @@ class RegistrationService(RegistrationManagementPort):
         """
 
         if self.account_repository.find_by_username(username):
-            raise UsernameAlreadyTakenError("This username is already taken.")
+            raise UsernameAlreadyTakenError("This username or email is already taken.")
 
         if self.account_repository.find_by_email(email):
-            raise EmailAlreadyTakenError("This email is already taken.")
+            raise EmailAlreadyTakenError("This username or email is already taken.")
 
         hashed_password = self.password_hasher_repository.hash(password)
 

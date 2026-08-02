@@ -3,9 +3,8 @@ from datetime import UTC, datetime
 import pytest
 from flask import render_template_string
 from jinja2.exceptions import TemplateNotFound
-from markupsafe import Markup
 
-from utils.template_helpers import date_iso_filter, nl2br_filter
+from flask_setup.template_helpers import ViteManifest, date_iso_filter
 
 
 class TestIconMacro:
@@ -39,53 +38,6 @@ class TestIconMacro:
                     '{{ icon("nonexistent") }}'
                 )
 
-
-class TestNl2brFilter:
-    """Unit tests for the nl2br Jinja2 filter."""
-
-    def test_escapes_html_tags(self):
-        result = nl2br_filter("<script>alert('xss')</script>")
-        assert "&lt;script&gt;" in result
-        assert "<script>" not in result
-
-    def test_converts_newlines_to_br(self):
-        result = nl2br_filter("line1\nline2")
-        assert "line1<br>\nline2" in result
-
-    def test_handles_multiple_newlines(self):
-        result = nl2br_filter("a\n\nb")
-        assert str(result).count("<br>") == 2
-
-    def test_returns_empty_for_none(self):
-        assert nl2br_filter(None) == ""
-
-    def test_returns_empty_for_empty_string(self):
-        assert nl2br_filter("") == ""
-
-    def test_returns_markup_instance(self):
-        assert isinstance(nl2br_filter("test"), Markup)
-
-    def test_does_not_escape_generated_br(self):
-        result = nl2br_filter("hello\nworld")
-        assert "<br>" in str(result)
-
-    def test_handles_text_without_newlines(self):
-        assert nl2br_filter("hello world") == "hello world"
-
-    def test_escapes_ampersands(self):
-        result = nl2br_filter("a & b")
-        assert "&amp;" in result
-
-    def test_escapes_quotes(self):
-        result = nl2br_filter('say "hello"')
-        assert "&#34;" in result
-        assert '"' not in str(result)
-
-    def test_mixed_content_with_newlines_and_html(self):
-        result = nl2br_filter("<b>bold</b>\nnext line")
-        assert "&lt;b&gt;bold&lt;/b&gt;" in result
-        assert "<br>" in str(result)
-        assert "<b>" not in str(result)
 
 
 
@@ -152,3 +104,24 @@ class TestFormatDatetimeLocaleFilter:
                 "{{ dt|format_datetime_locale }}", dt=dt
             )
         assert result == "27 janvier 2023 à 13:00"
+
+
+class TestViteManifest:
+    def test_init_with_none_raises_runtime_error(self):
+        with pytest.raises(RuntimeError, match="Flask static_folder is None"):
+            ViteManifest.init(None)
+
+    def test_load_returns_empty_when_no_manifest(self):
+        ViteManifest.init("/tmp")
+        ViteManifest._manifest_path = "/tmp/.vite/manifest.json"
+        result = ViteManifest._load()
+        assert result == {}
+
+    def test_get_vendor_js_returns_none_when_no_vendor(self, app_with_db, tmp_path):
+        manifest_dir = tmp_path / ".vite"
+        manifest_dir.mkdir()
+        manifest = manifest_dir / "manifest.json"
+        manifest.write_text('{"core/entry.jsx":{"file":"assets/index-abc123.js","css":["assets/index-abc123.css"]}}')
+        ViteManifest._manifest_path = str(manifest)
+        result = ViteManifest.get_vendor_js()
+        assert result is None

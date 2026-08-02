@@ -184,7 +184,7 @@ class TestXSS:
         client.post("/login", data={"username": "persist", "password": "Str0ng!Pass"})
         session_cookie = client.get_cookie("session")
         from blog_comment_application import create_app
-        new_app = create_app(db_session)
+        new_app = create_app(db_session, testing=True)
         new_client = new_app.test_client()
         new_client.set_cookie("session", session_cookie.value)
         response = new_client.get("/profile")
@@ -197,7 +197,7 @@ class TestXSS:
         but we check if the config is set.
         """
         from blog_comment_application import create_app
-        prod_app = create_app(db_session)
+        prod_app = create_app(db_session, testing=True)
         prod_app.config["DEBUG"] = False
         prod_app.config["SESSION_COOKIE_SECURE"] = True
         client = prod_app.test_client()
@@ -266,7 +266,7 @@ class TestSQLi:
             "username": "' OR '1'='1",
             "password": "Str0ng!Pass"
         }, follow_redirects=True)
-        assert b"Invalid username or password" in response.data
+        assert "Invalid username or password" in response.text
 
 class TestAccessControl:
     """Tests focused on enforcing authorization and permission boundaries."""
@@ -343,6 +343,26 @@ class TestAccessControl:
         """
         response = client.get("/articles/99999", follow_redirects=True)
         assert b"Article not found" in response.data
+
+    def test_rate_limit_login_exceeded(self, rate_limited_client):
+        """
+        Verifies IP-based rate limiting on POST /login.
+
+        After 5 failed login attempts, the 6th request within the same
+        minute should be blocked. The response redirects to the login
+        page with a flash message indicating the rate limit was exceeded.
+        """
+        for _ in range(5):
+            rate_limited_client.post("/login", data={
+                "username": "attacker", "password": "wrong"
+            })
+
+        response = rate_limited_client.post("/login", data={
+            "username": "attacker", "password": "wrong"
+        }, follow_redirects=True)
+
+        assert response.status_code == 200
+        assert b"Too many login attempts" in response.data
 
 
 class TestCSRF:
@@ -513,8 +533,16 @@ class TestSecurityHeaders:
             response = _add_cache_headers(Response())
             assert response.headers.get("Cache-Control") == "public, max-age=31536000, immutable"
 
-    def test_forbidden_returns_custom_error_page(self, client):
+    def test_forbidden_returns_custom_error_page(self, client, db_session):
         """Verifies 403 errors render the custom error template."""
+        from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
+        user = AccountModel(
+            account_username="pu", account_email="pu@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add(user)
+        db_session.commit()
+        client.post("/login", data={"username": "pu", "password": "Str0ng!Pass"}, follow_redirects=False)
         response = client.get("/admin/users")
         assert response.status_code == 403
         assert b"You do not have permission" in response.data

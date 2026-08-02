@@ -1,7 +1,7 @@
 from io import BytesIO
 from unittest.mock import Mock
 
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.application.input_ports.file_management import FileManagementPort
 from src.infrastructure.input_adapters.flask.flask_file_adapter import FlaskFileAdapter
 from tests.tests_infrastructure.tests_input_adapters.tests_flask.flask_test_utils import (
@@ -32,7 +32,7 @@ class FlaskFileAdapterTest(FlaskInputAdapterTestBase):
 
 class TestFileUpload(FlaskFileAdapterTest):
     def test_upload_image_success(self):
-        record = FileRecord(
+        record = UploadedFile(
             file_id="uuid-123",
             original_filename="photo.jpg",
             mime_type="image/jpeg",
@@ -80,10 +80,32 @@ class TestFileUpload(FlaskFileAdapterTest):
         assert b"No file provided" in response.data
         self.mock_file_service.upload_file.assert_not_called()
 
+    def test_upload_image_empty_file(self):
+        data = {"file": (BytesIO(b""), "empty.jpg")}
+        response = self.client.post(
+            "/api/upload/image",
+            data=data,
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        self.mock_file_service.upload_file.assert_not_called()
+
+    def test_upload_image_filename_too_long(self):
+        data = {"file": (BytesIO(b"data"), "a" * 256 + ".jpg")}
+        response = self.client.post(
+            "/api/upload/image",
+            data=data,
+            content_type="multipart/form-data",
+        )
+
+        assert response.status_code == 400
+        self.mock_file_service.upload_file.assert_not_called()
+
 
 class TestFileServe(FlaskFileAdapterTest):
     def test_serve_file_success(self):
-        record = FileRecord(
+        record = UploadedFile(
             file_id="uuid-456",
             original_filename="photo.jpg",
             mime_type="image/jpeg",

@@ -14,28 +14,28 @@
 {% block content %}
 <div class="user-card profile-card">
     <h1>{{ _('Manage Users (%(count)d users)', count=total_count) }}</h1>
-    <form action="{{ url_for('auth.list_all_users') }}" method="GET" class="search-bar-form">
+    <form action="{{ url_for('admin.list_all_users') }}" method="GET" class="search-bar-form">
         <div class="search-wrapper">
             <input type="text" name="q" class="search-input"
                    placeholder="{{ _('Filter by username or email...') }}" autocomplete="off"
-                   value="{{ query or '' }}">
+                   value="{{ query or '' }}" aria-label="{{ _('Search') }}">
             {% if query %}
-            <a href="{{ url_for('auth.list_all_users') }}" class="search-clear-btn">&times;</a>
+            <a href="{{ url_for('admin.list_all_users') }}" class="search-clear-btn" aria-label="{{ _('Clear search') }}">&times;</a>
             {% endif %}
             <button type="submit" class="search-submit-btn" aria-label="{{ _('Search') }}">{% include 'icons/search.svg' %}</button>
         </div>
     </form>
-    <nav class="editorial-pagination top">
+    <nav class="editorial-pagination top" aria-label="{{ _('Top pagination') }}">
         <div class="pagination-prev">
-            <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
+            <a href="{{ url_for('admin.list_all_users', page=page-1, q=query if query else None) }}"
                class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
                 {{ icon('arrow_back') }}
                 <span>{{ _('Previous') }}</span>
             </a>
         </div>
-        {{ render_pagination_info(page, total_pages, 'auth.list_all_users', query) }}
+        {{ render_pagination_info(page, total_pages, 'admin.list_all_users', query) }}
         <div class="pagination-next">
-            <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
+            <a href="{{ url_for('admin.list_all_users', page=page+1, q=query if query else None) }}"
                class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
                 <span>{{ _('Next') }}</span>
                 {{ icon('arrow_forward') }}
@@ -69,7 +69,7 @@
                         <span class="user-table-na">—</span>
                         {% else %}
                         <div class="user-table-actions">
-                        <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="user-table-form">
+                        <form action="{{ url_for('admin.change_role', account_id=user.account_id) }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <select name="role">
                                 <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
@@ -78,7 +78,7 @@
                             <button type="submit" class="btn btn-sm">{{ _('Update') }}</button>
                         </form>
                         {% if user.is_banned %}
-                        <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="user-table-form">
+                        <form action="{{ url_for('admin.unban_account', account_id=user.account_id) }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-sm btn-secondary">{{ _('Unban') }}</button>
                         </form>
@@ -87,9 +87,8 @@
                             data-user-id="{{ user.account_id }}"
                             data-username="{{ user.account_username }}">{{ _('Ban') }}</button>
                         {% endif %}
-                        <form id="delete-user-{{ user.account_id }}" action="{{ url_for('auth.delete_account') }}" method="POST" class="user-table-form">
+                        <form id="delete-user-{{ user.account_id }}" action="{{ url_for('admin.delete_account', account_id=user.account_id) }}" method="POST" class="user-table-form">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <input type="hidden" name="account_id" value="{{ user.account_id }}">
                             <button type="button" class="btn btn-sm btn-danger confirm-trigger"
                                 data-form-id="delete-user-{{ user.account_id }}"
                                 data-confirm-message="{{ _('Delete user \\\"%(username)s\\\" ? This action is irreversible.', username=user.account_username) }}">{{ _('Delete') }}</button>
@@ -102,26 +101,26 @@
             </tbody>
         </table>
     </div>
-    <nav class="editorial-pagination">
+    <nav class="editorial-pagination" aria-label="{{ _('Bottom pagination') }}">
         <div class="pagination-prev">
-            <a href="{{ url_for('auth.list_all_users', page=page-1, q=query if query else None) }}"
+            <a href="{{ url_for('admin.list_all_users', page=page-1, q=query if query else None) }}"
                class="pagination-link{% if not has_prev %} pagination-link--hidden{% endif %}">
                 {{ icon('arrow_back') }}
                 <span>{{ _('Previous') }}</span>
             </a>
         </div>
-        {{ render_pagination_info(page, total_pages, 'auth.list_all_users', query) }}
+        {{ render_pagination_info(page, total_pages, 'admin.list_all_users', query) }}
         <div class="pagination-next">
-            <a href="{{ url_for('auth.list_all_users', page=page+1, q=query if query else None) }}"
+            <a href="{{ url_for('admin.list_all_users', page=page+1, q=query if query else None) }}"
                class="pagination-link{% if not has_next %} pagination-link--hidden{% endif %}">
                 <span>{{ _('Next') }}</span>
                 {{ icon('arrow_forward') }}
             </a>
         </div>
     </nav>
-<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('auth.list_all_users') }}">
+<dialog id="jump-modal" class="dialog dialog-sm" data-total-pages="{{ total_pages }}" data-url="{{ url_for('admin.list_all_users') }}" aria-labelledby="jump-modal-title">
     <div class="modal-header">
-        <h2 class="modal-title">{{ _('Jump to page') }}</h2>
+        <h2 class="modal-title" id="jump-modal-title">{{ _('Jump to page') }}</h2>
     </div>
     <div class="modal-body">
         <div class="modal-input-group">
@@ -129,10 +128,10 @@
             <div class="stepper-container">
                 <input type="number" id="jump-page-input" min="1" max="{{ total_pages }}" step="1" placeholder="" pattern="[0-9]*" inputmode="numeric">
                 <div class="stepper-controls">
-                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}">
+                    <button class="stepper-btn up" data-step="1" title="{{ _('Increase page') }}" aria-label="{{ _('Increase page') }}">
                         {{ icon('expand_less') }}
                     </button>
-                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}">
+                    <button class="stepper-btn down" data-step="-1" title="{{ _('Decrease page') }}" aria-label="{{ _('Decrease page') }}">
                         {{ icon('expand_more') }}
                     </button>
                 </div>

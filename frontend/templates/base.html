@@ -20,7 +20,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     {% if page_with_editor %}
     {% for css_url in vite_css_urls %}
-    <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename=css_url) }}" media="print" onload="this.media='all'">
     {% endfor %}
     {% if vite_vendor_js_url %}
     <link rel="modulepreload" href="{{ url_for('static', filename=vite_vendor_js_url) }}">
@@ -35,37 +35,37 @@
     <!-- Top Navigation -->
     <nav class="top-nav">
         <div class="nav-container">
-            <a href="{{ url_for('article.list_articles') }}" class="logo">
+            <a href="{{ url_for('article.list_articles') }}" class="logo" aria-label="DevJournal">
                 <span class="logo-desktop">DevJournal</span>
-                <span class="logo-mobile">DJ</span>
+                <span class="logo-mobile" aria-hidden="true">DJ</span>
             </a>
             <div class="nav-actions">
-                <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="{{ _('Toggle Theme') }}">
+                <button id="theme-toggle-btn" class="btn btn-sm btn-secondary" title="{{ _('Toggle Theme') }}" aria-label="{{ _('Toggle Theme') }}">
                     {{ icon('dark_mode', 'nav-item-icon') }}
                 </button>
 
                 <form action="{{ url_for('auth.set_lang', locale='en' if get_locale() == 'fr' else 'fr') }}" method="POST" class="lang-toggle-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ _('Switch language') }}">
+                    <button type="submit" class="btn btn-sm btn-secondary lang-toggle-btn" title="{{ _('Switch language') }}" aria-label="{{ _('Switch language') }}">
                         {{ get_locale() == 'fr' and 'EN' or 'FR' }}
                     </button>
                 </form>
 
                 <div class="nav-links">
-                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="{{ _('Home') }}">
+                    <a href="{{ url_for('article.list_articles') }}" class="btn btn-sm btn-secondary" title="{{ _('Home') }}"{% if request.endpoint == 'article.list_articles' %} aria-current="page"{% endif %}>
                     {{ icon('home', 'nav-item-icon nav-item-home') }}
                     <span>{{ _('Home') }}</span>
                 </a>
                 
                 {% if current_user %}
                     {% if current_user.account_role in ['admin', 'author'] %}
-                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="{{ _('New Article') }}">
+                    <a href="{{ url_for('article.render_create_page') }}" class="btn btn-sm btn-secondary" title="{{ _('New Article') }}"{% if request.endpoint == 'article.render_create_page' %} aria-current="page"{% endif %}>
                         {{ icon('add_box', 'nav-item-icon') }}
                         <span>{{ _('New article') }}</span>
                     </a>
                     {% endif %}
                     
-                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="{{ _('Profile') }}">
+                    <a href="{{ url_for('auth.profile') }}" class="btn btn-sm btn-secondary" title="{{ _('Profile') }}"{% if request.endpoint in ('auth.profile', 'auth.user_profile') %} aria-current="page"{% endif %}>
                         {{ icon('account_circle', 'nav-item-icon') }}
                         <span>{{ _('Profile') }}</span>
                     </a>
@@ -77,11 +77,11 @@
                         </button>
                     </form>
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign In') }}">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign In') }}"{% if request.endpoint == 'auth.login' %} aria-current="page"{% endif %}>
                         {{ icon('person', 'nav-item-icon') }}
                         <span>{{ _('Sign In') }}</span>
                     </a>
-                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign Up') }}">
+                    <a href="{{ url_for('registration.register') }}" class="btn btn-sm btn-secondary" title="{{ _('Sign Up') }}"{% if request.endpoint == 'registration.register' %} aria-current="page"{% endif %}>
                         {{ icon('person_add', 'nav-item-icon') }}
                         <span>{{ _('Sign Up') }}</span>
                     </a>
@@ -97,7 +97,7 @@
             {% if messages %}
                 <div class="flash-messages">
                     {% for category, message in messages %}
-                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -106,7 +106,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <dialog id="confirm-dialog" class="dialog">
+    <dialog id="confirm-dialog" class="dialog" aria-describedby="confirm-message">
         <div class="modal-header">
             <h2 class="modal-title">{{ _('Confirm') }}</h2>
         </div>
@@ -117,9 +117,9 @@
         </div>
     </dialog>
 
-    <dialog id="ban-modal" class="dialog">
+    <dialog id="ban-modal" class="dialog" aria-labelledby="ban-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Ban') }} <span id="ban-username"></span></h2>
+            <h2 class="modal-title" id="ban-modal-title">{{ _('Ban') }} <span id="ban-username"></span></h2>
         </div>
         <form method="POST" id="ban-form">
             <div class="modal-body">
@@ -167,6 +167,7 @@
     <script defer src="{{ url_for('static', filename='scripts/comment-reply.js') }}"></script>
     {% endif %}
     <script defer src="{{ url_for('static', filename='scripts/double-tap-select.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='scripts/form-submit.js') }}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

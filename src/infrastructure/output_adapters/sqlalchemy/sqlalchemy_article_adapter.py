@@ -43,20 +43,6 @@ class SqlAlchemyArticleAdapter(SqlAlchemyBaseAdapter, ArticleRepository):
         record = ArticleRecord.model_validate(model)
         return record.to_domain()
 
-    def get_all_ordered_by_date_desc(self) -> list[Article]:
-        """
-        Retrieves all articles ordered by publication date (descending).
-
-        Returns:
-            list[Article]: A list of all Article domain entities.
-        """
-        models = self._db_query_raw(
-            lambda: self._session.query(ArticleModel)
-            .order_by(desc(ArticleModel.article_published_at))
-            .all()
-        )
-        return [self._to_domain(model) for model in models]
-
     def get_by_id(self, article_id: int) -> Article | None:
         """
         Retrieves a single article by its ID.

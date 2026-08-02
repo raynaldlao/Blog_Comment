@@ -10,7 +10,7 @@
 {% block content %}
 <div class="user-card profile-card">
     <div class="profile-header">
-        <div class="avatar-placeholder">
+        <div class="avatar-placeholder"{% if not user.avatar_file_id %} role="img" aria-label="{{ _('Avatar of %(name)s', name=user.account_username) }}"{% endif %}>
             {% if user.avatar_file_id %}
                 <img src="{{ url_for('file.serve_file', file_id=user.avatar_file_id, filename='avatar') }}" alt="{{ user.account_username }}" class="avatar-img">
             {% else %}
@@ -33,7 +33,7 @@
         <div class="role-row">
             <span class="role-badge">{{ _(user.account_role) }}</span>
             {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
-            <form action="{{ url_for('auth.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
+            <form action="{{ url_for('admin.change_role', account_id=user.account_id) }}" method="POST" class="role-inline-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <select name="role">
                     <option value="user" {% if user.account_role == 'user' %}selected{% endif %}>{{ _('User') }}</option>
@@ -78,9 +78,9 @@
     </div>
 
     {% if is_own_profile %}
-    <dialog id="email-modal" class="dialog dialog-sm">
+    <dialog id="email-modal" class="dialog dialog-sm" aria-labelledby="email-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Update Email') }}</h2>
+            <h2 class="modal-title" id="email-modal-title">{{ _('Update Email') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_email') }}" method="POST">
             <div class="modal-body">
@@ -98,16 +98,16 @@
         </form>
     </dialog>
 
-    <dialog id="password-modal" class="dialog dialog-sm">
+    <dialog id="password-modal" class="dialog dialog-sm" aria-labelledby="password-modal-title">
         <div class="modal-header">
-            <h2 class="modal-title">{{ _('Update Password') }}</h2>
+            <h2 class="modal-title" id="password-modal-title">{{ _('Update Password') }}</h2>
         </div>
         <form action="{{ url_for('auth.update_password') }}" method="POST">
             <div class="modal-body">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-input-group">
                     <label for="new-password-input">{{ _('New Password') }}</label>
-                    <span class="field-hint">Minimum 8 caractères : au moins une majuscule, une minuscule et un caractère spécial</span>
+                    <span class="field-hint">{{ _('Minimum 8 characters: at least one uppercase, one lowercase, and one special character') }}</span>
                     <div class="password-wrapper">
                         <input type="password" id="new-password-input" name="new_password" placeholder="{{ _('e.g., MyP@ssw0rd!') }}" minlength="8" required>
                         <button type="button" class="password-toggle" aria-label="{{ _('Toggle password visibility') }}" aria-pressed="false">{{ icon('visibility') }}</button>
@@ -124,7 +124,7 @@
     {% if is_own_profile %}
     <div class="profile-actions">
         {% if current_user.account_role == 'admin' %}
-        <a href="{{ url_for('auth.list_all_users') }}" class="btn">{{ _('Manage Users') }}</a>
+        <a href="{{ url_for('admin.list_all_users') }}" class="btn">{{ _('Manage Users') }}</a>
         {% endif %}
         <button type="button" id="open-password-modal" class="btn btn-secondary">{{ _('Change Password') }}</button>
         <form action="{{ url_for('auth.logout') }}" method="POST" class="logout-form">
@@ -145,7 +145,7 @@
     {% if current_user and current_user.account_role == 'admin' and not is_own_profile and user.account_role != 'admin' %}
     <div class="profile-actions">
         {% if user.is_banned %}
-        <form action="{{ url_for('auth.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
+        <form action="{{ url_for('admin.unban_account', account_id=user.account_id) }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-secondary">{{ _('Unban') }}</button>
         </form>
@@ -154,9 +154,8 @@
             data-user-id="{{ user.account_id }}"
             data-username="{{ user.account_username }}">{{ _('Ban') }}</button>
         {% endif %}
-        <form id="admin-delete-account-form" action="{{ url_for('auth.delete_account') }}" method="POST" class="logout-form">
+        <form id="admin-delete-account-form" action="{{ url_for('admin.delete_account', account_id=user.account_id) }}" method="POST" class="logout-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <input type="hidden" name="account_id" value="{{ user.account_id }}">
             <button type="button" class="btn btn-danger confirm-trigger"
                 data-form-id="admin-delete-account-form"
                 data-confirm-message="{{ _('Delete user \\\"%(username)s\\\" ? This action is irreversible.', username=user.account_username) }}">{{ _('Delete Account') }}</button>

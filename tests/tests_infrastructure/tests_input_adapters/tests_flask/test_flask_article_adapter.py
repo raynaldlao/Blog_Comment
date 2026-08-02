@@ -364,6 +364,18 @@ class TestArticleAuthorAccess(ArticleAdapterTestBase):
         assert b"Error: The requested article could not be found." in response.data
         assert b"alert-error" in response.data
 
+    def test_render_edit_page_success(self):
+        author = create_test_account(account_id=10, account_username="Author", account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        article = create_test_article(article_id=1, article_author_id=10, article_title="Edit Test")
+        self.mock_article_repo.get_by_id.return_value = article
+        self.mock_account_repo.get_by_id.return_value = author
+        response = self.client.get("/articles/1/edit")
+        assert response.status_code == 200
+        assert b'data-page="edit"' in response.data
+        assert b'data-article-id="1"' in response.data
+        assert b"Edit Article" in response.data
+
 
 class TestArticleAdminAccess(ArticleAdapterTestBase):
     def test_admin_can_delete_any_article(self):
@@ -414,6 +426,55 @@ class TestArticleValidation(ArticleAdapterTestBase):
         assert response.status_code == 403
         assert response.get_json() == {"error": "Delete Error"}
 
+
+class TestArticleApiErrors(ArticleAdapterTestBase):
+    def test_api_get_article_not_found(self):
+        author = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        self.mock_article_repo.get_by_id.return_value = None
+        response = self.client.get("/api/articles/999")
+        assert response.status_code == 404
+        data = response.get_json()
+        assert data["error"] == "Article not found."
+
+    def test_api_create_article_invalid_json(self):
+        author = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        response = self.client.post(
+            "/api/articles",
+            data="not-json",
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert response.get_json()["error"] == "Invalid JSON body."
+
+    def test_api_update_article_invalid_json(self):
+        author = create_test_account(account_id=1, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        response = self.client.put(
+            "/api/articles/1",
+            data="not-json",
+            content_type="application/json",
+        )
+        assert response.status_code == 400
+        assert response.get_json()["error"] == "Invalid JSON body."
+
+    def test_delete_article_html_error(self):
+        author = create_test_account(account_id=10, account_role=AccountRole.AUTHOR)
+        self._prepare_user_context(author)
+        self.app.add_url_rule(
+            "/articles/<int:article_id>/delete",
+            view_func=self.adapter.delete_article_html,
+            methods=["POST"],
+            endpoint="article.delete_article_html",
+        )
+        self.mock_article_repo.get_by_id.return_value = create_test_article(article_id=1, article_author_id=99)
+        response = self.client.post(
+            "/articles/1/delete",
+            follow_redirects=True,
+        )
+        assert b"alert-error" in response.data
+
 class TestArticleLegacyContent(ArticleAdapterTestBase):
     def test_api_get_article_legacy_plain_text(self):
         author = create_test_account(account_id=1, account_username="author")
@@ -448,6 +509,18 @@ class TestArticleLegacyContent(ArticleAdapterTestBase):
         assert data["content"] == bn_content
         assert "article_edited_at" in data
         assert data["article_edited_at"] is None
+
+    def test_ensure_blocknote_format_passthrough(self):
+        bn_content = json.dumps([{"type": "heading", "content": [{"type": "text", "text": "Hi"}]}])
+        result = ArticleAdapter._ensure_blocknote_format(bn_content)
+        assert result == bn_content
+
+    def test_ensure_blocknote_format_wraps_plain_text(self):
+        result = ArticleAdapter._ensure_blocknote_format("Hello world")
+        parsed = json.loads(result)
+        assert parsed[0]["type"] == "paragraph"
+        assert parsed[0]["content"][0]["text"] == "Hello world"
+
 
 class TestArticlePagination(ArticleAdapterTestBase):
     def test_pagination_multiple_pages(self):

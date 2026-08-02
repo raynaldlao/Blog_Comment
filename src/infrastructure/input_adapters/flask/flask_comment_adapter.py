@@ -1,5 +1,3 @@
-import time
-
 from flask import abort, flash, redirect, request, url_for
 from flask import g as global_request_context
 from flask_babel import gettext as _
@@ -7,6 +5,8 @@ from pydantic import ValidationError
 from werkzeug.wrappers.response import Response
 
 from blog_exceptions import BlogCommentError
+from flask_setup.auth_helpers import require_auth
+from src.application.domain.account import AccountRole
 from src.application.input_ports.comment_management import CommentManagementPort
 from src.infrastructure.input_adapters.dto.comment_request import CommentRequest
 
@@ -17,8 +17,6 @@ class CommentAdapter:
     Handles creation, replying, deletion, and listing of comments.
     """
 
-    COMMENT_INTERVAL = 60
-
     def __init__(self, comment_service: CommentManagementPort):
         """
         Initializes the adapter with the core port.
@@ -27,29 +25,26 @@ class CommentAdapter:
             comment_service (CommentManagementPort): The domain service for comments.
         """
         self.comment_service = comment_service
-        self._user_comment_timestamps: dict[int, float] = {}
 
-    def _check_comment_rate_limit(self, user_id: int) -> int | None:
-        """
-        Checks if the user is posting comments too fast.
+    @staticmethod
+    def _check_honeypot(article_id: int) -> Response | None:
+        """Return a redirect response if the hidden honeypot field is filled.
 
-        Returns number of remaining seconds to wait, or None if allowed.
+        Honeypot traps bots that fill invisible form fields. If triggered,
+        silently redirect back to the article page so the bot sees success.
 
         Args:
-            user_id (int): The identifier of the user to check.
+            article_id: Article ID for the redirect URL.
 
         Returns:
-            int | None: Remaining cooldown seconds, or None if the user can post.
+            Response | None: A redirect response if honeypot triggered,
+            otherwise None.
         """
-        now = time.time()
-        last = self._user_comment_timestamps.get(user_id)
-        if last:
-            elapsed = now - last
-            if elapsed < self.COMMENT_INTERVAL:
-                return max(1, int(self.COMMENT_INTERVAL - elapsed))
-        self._user_comment_timestamps[user_id] = now
+        if request.form.get("hp_comment"):
+            return redirect(url_for("article.read_article", article_id=article_id))
         return None
 
+    @require_auth("You must be signed in to post a comment.")
     def create_comment(self, article_id: int) -> Response:
         """
         Handles the creation of a new top-level comment on an article.
@@ -61,12 +56,10 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to post a comment."), "error")
-            return redirect(url_for("auth.login"))
 
-        if request.form.get("hp_comment"):
-            return redirect(url_for("article.read_article", article_id=article_id))
+        honeypot = self._check_honeypot(article_id)
+        if honeypot:
+            return honeypot
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
@@ -78,7 +71,7 @@ class CommentAdapter:
                 flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
+        remaining = self.comment_service.check_rate_limit(user.account_id)
         if remaining is not None:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
@@ -96,6 +89,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to reply.")
     def reply_to_comment(self, article_id: int, parent_comment_id: int) -> Response:
         """
         Handles the creation of a reply to an existing comment.
@@ -108,12 +102,10 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to reply."), "error")
-            return redirect(url_for("auth.login"))
 
-        if request.form.get("hp_comment"):
-            return redirect(url_for("article.read_article", article_id=article_id))
+        honeypot = self._check_honeypot(article_id)
+        if honeypot:
+            return honeypot
 
         try:
             req_data = CommentRequest(content=request.form.get("content", ""))
@@ -125,7 +117,7 @@ class CommentAdapter:
                 flash(_(msg), "error")
             return redirect(url_for("article.read_article", article_id=article_id))
 
-        remaining = self._check_comment_rate_limit(user.account_id)
+        remaining = self.comment_service.check_rate_limit(user.account_id)
         if remaining is not None:
             flash(_("You're posting too fast. Please wait %(remaining)ss before posting again.", remaining=remaining), "warning")
             return redirect(url_for("article.read_article", article_id=article_id))
@@ -143,6 +135,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to delete comments.")
     def delete_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles soft-deletion of a comment. Author or admin only. Single-click, no confirm-dialog.
@@ -155,9 +148,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to delete comments."), "error")
-            return redirect(url_for("auth.login"))
 
         try:
             self.comment_service.delete_comment(
@@ -171,6 +161,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to edit comments.")
     def edit_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles editing a comment's content. Author only (not admin).
@@ -184,9 +175,6 @@ class CommentAdapter:
             Response: A redirect to the article detail page.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to edit comments."), "error")
-            return redirect(url_for("auth.login"))
 
         content = request.form.get("content", "")
         try:
@@ -202,6 +190,7 @@ class CommentAdapter:
 
         return redirect(url_for("article.read_article", article_id=article_id))
 
+    @require_auth("You must be signed in to delete comments.")
     def hard_delete_comment(self, article_id: int, comment_id: int) -> Response:
         """
         Handles permanent hard-deletion of a comment. Admin only.
@@ -218,10 +207,7 @@ class CommentAdapter:
             403: If the current user is not authenticated as an admin.
         """
         user = global_request_context.get("current_user")
-        if not user:
-            flash(_("You must be signed in to delete comments."), "error")
-            return redirect(url_for("auth.login"))
-        if user.account_role != "admin":
+        if user.account_role != AccountRole.ADMIN:
             abort(403)
 
         try:

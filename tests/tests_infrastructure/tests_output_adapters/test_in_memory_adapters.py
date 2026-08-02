@@ -1,14 +1,17 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
 from src.application.domain.account import Account, AccountRole
 from src.application.domain.article import Article
 from src.application.domain.comment import Comment
+from src.application.domain.uploaded_file import UploadedFile
 from src.infrastructure.output_adapters.in_memory.account_repository import InMemoryAccountRepository
 from src.infrastructure.output_adapters.in_memory.account_session_repository import InMemoryAccountSessionRepository
 from src.infrastructure.output_adapters.in_memory.article_repository import InMemoryArticleRepository
 from src.infrastructure.output_adapters.in_memory.comment_repository import InMemoryCommentRepository
+from src.infrastructure.output_adapters.in_memory.file_storage_repository import InMemoryFileStorageRepository
+from src.infrastructure.output_adapters.in_memory.password_hasher_repository import InMemoryPasswordHasherRepository
 
 
 class TestInMemoryArticleRepository:
@@ -112,6 +115,103 @@ class TestInMemoryArticleRepository:
         repo = InMemoryArticleRepository()
         repo.save(Article(1, 1, "Title", "Content", datetime.now()))
         assert repo.search("xyznonexistent", page=1, per_page=10) == []
+
+    def test_search_by_author_username(self):
+        account_repository = InMemoryAccountRepository()
+
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+
+        article_repository.save(Article(
+            2, 2, "JS Guide", "Content", datetime(2023, 1, 1),
+        ))
+
+        search_results = article_repository.search("john", page=1, per_page=10)
+        assert len(search_results) == 1
+        assert search_results[0].article_id == 1
+
+    def test_search_by_author_username_no_match(self):
+        account_repository = InMemoryAccountRepository()
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+
+        search_results = article_repository.search("nonexistent", page=1, per_page=10)
+        assert search_results == []
+
+    def test_search_by_author_username_returns_all_matching_articles(self):
+        account_repository = InMemoryAccountRepository()
+
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 3),
+        ))
+
+        article_repository.save(Article(
+            2, 1, "Rust Guide", "Content", datetime(2023, 1, 2),
+        ))
+
+        article_repository.save(Article(
+            3, 1, "JS Notes", "Content", datetime(2023, 1, 1),
+        ))
+
+        search_results = article_repository.search("john", page=1, per_page=10)
+        assert len(search_results) == 3
+
+    def test_count_search_by_author_username(self):
+        account_repository = InMemoryAccountRepository()
+        author_account = Account(
+            1, "john_doe", "hashed_password", "john@test.com",
+            AccountRole.AUTHOR, datetime(2023, 1, 1),
+        )
+        account_repository.save(author_account)
+
+        article_repository = InMemoryArticleRepository(
+            account_repository=account_repository,
+        )
+        article_repository.save(Article(
+            1, 1, "Python Tips", "Content", datetime(2023, 1, 2),
+        ))
+        article_repository.save(Article(
+            2, 2, "JS Guide", "Content", datetime(2023, 1, 1),
+        ))
+
+        assert article_repository.count_search("john") == 1
+        assert article_repository.count_search("python") == 1
+        assert article_repository.count_search("nonexistent") == 0
 
 
 class TestInMemoryAccountRepository:
@@ -251,6 +351,47 @@ class TestInMemoryAccountRepository:
         repo = InMemoryAccountRepository()
         repo.delete(999)
 
+    def test_update_avatar_sets_file_id(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_avatar(account.account_id, "abc-123")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.avatar_file_id == "abc-123"
+
+    def test_update_avatar_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_avatar(999, "abc-123")
+
+    def test_update_email_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_email(999, "new@test.com")
+
+    def test_update_password_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_password(999, "new_hash")
+
+    def test_update_role_nonexistent_account_silent(self):
+        repo = InMemoryAccountRepository()
+        repo.update_role(999, "author")
+
+    def test_update_role_changes_role(self):
+        repo = InMemoryAccountRepository()
+        account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
+        repo.save(account)
+        repo.update_role(account.account_id, "author")
+        updated = repo.get_by_id(account.account_id)
+        assert updated is not None
+        assert updated.account_role == AccountRole.AUTHOR
+
+    def test_update_ban_status_nonexistent_account_raises(self):
+        from blog_exceptions import AccountNotFoundError
+
+        repo = InMemoryAccountRepository()
+        with pytest.raises(AccountNotFoundError, match="not found"):
+            repo.update_ban_status(999, True, "Spam")
+
     def test_update_ban_status_ban(self):
         repo = InMemoryAccountRepository()
         account = Account(0, "user", "pass", "em", AccountRole.USER, datetime.now())
@@ -351,6 +492,48 @@ class TestInMemoryCommentRepository:
         repo = InMemoryCommentRepository()
         assert repo.get_by_account_id(999) == []
 
+    def test_mask_comments_by_account_id_updates_all_comments(self):
+        repo = InMemoryCommentRepository()
+        user_id = 1
+        c1 = Comment(1, 10, user_id, None, "Hello", datetime.now())
+        c2 = Comment(2, 10, user_id, None, "World", datetime.now())
+        c3 = Comment(3, 10, 2, None, "Other", datetime.now())
+        repo.save(c1)
+        repo.save(c2)
+        repo.save(c3)
+
+        repo.mask_comments_by_account_id(user_id)
+
+        masked = repo.get_by_account_id(user_id)
+        assert len(masked) == 2
+        for c in masked:
+            assert c.is_deleted is True
+            assert c.deleted_by == "account_deleted"
+            assert c.deleted_at is not None
+            assert "Comment removed" in c.comment_content
+        other = repo.get_by_account_id(2)
+        assert len(other) == 1
+        assert other[0].is_deleted is False
+        assert other[0].comment_content == "Other"
+
+    def test_get_last_comment_timestamp_no_comments_returns_none(self):
+        repo = InMemoryCommentRepository()
+        result = repo.get_last_comment_timestamp(999)
+        assert result is None
+
+    def test_get_last_comment_timestamp_returns_max_timestamp(self):
+        repo = InMemoryCommentRepository()
+        t1 = datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC)
+        t2 = datetime(2024, 1, 2, 12, 0, 0, tzinfo=UTC)
+        repo.save(Comment(1, 10, 5, None, "c1", t1))
+        repo.save(Comment(2, 10, 5, None, "c2", t2))
+        result = repo.get_last_comment_timestamp(5)
+        assert result == t2.timestamp()
+
+    def test_mask_comments_by_account_id_no_comments_does_not_raise(self):
+        repo = InMemoryCommentRepository()
+        repo.mask_comments_by_account_id(999)
+
 
 class TestInMemoryAccountSessionRepository:
     def test_store_and_retrieve(self):
@@ -377,3 +560,52 @@ class TestInMemoryAccountSessionRepository:
     def test_get_account_empty_returns_none(self):
         repo = InMemoryAccountSessionRepository()
         assert repo.get_account() is None
+
+
+class TestInMemoryFileStorageRepository:
+    def test_save_and_get(self):
+        repo = InMemoryFileStorageRepository()
+        uploaded_file = UploadedFile(
+            file_id="abc-123", original_filename="test.png",
+            mime_type="image/png", size=1024, data=b"png-data",
+            created_at=datetime(2024, 1, 1, 12, 0, 0),
+        )
+        saved = repo.save(uploaded_file)
+        assert saved == uploaded_file
+        retrieved = repo.get("abc-123")
+        assert retrieved == uploaded_file
+
+    def test_get_nonexistent(self):
+        repo = InMemoryFileStorageRepository()
+        assert repo.get("nonexistent-id") is None
+
+    def test_delete(self):
+        repo = InMemoryFileStorageRepository()
+        uploaded_file = UploadedFile(
+            file_id="to-delete", original_filename="del.png",
+            mime_type="image/png", size=512, data=b"del",
+        )
+        repo.save(uploaded_file)
+        repo.delete("to-delete")
+        assert repo.get("to-delete") is None
+
+    def test_delete_nonexistent_idempotent(self):
+        repo = InMemoryFileStorageRepository()
+        repo.delete("does-not-exist")
+
+
+class TestInMemoryPasswordHasherRepository:
+    def test_hash_and_verify(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("secure_password")
+        assert repo.verify("secure_password", hashed) is True
+
+    def test_verify_wrong_password(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("correct_password")
+        assert repo.verify("wrong_password", hashed) is False
+
+    def test_check_needs_rehash_returns_false(self):
+        repo = InMemoryPasswordHasherRepository()
+        hashed = repo.hash("any_password")
+        assert repo.check_needs_rehash(hashed) is False

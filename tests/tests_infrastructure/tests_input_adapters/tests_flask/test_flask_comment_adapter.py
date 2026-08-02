@@ -13,6 +13,7 @@ class CommentAdapterTestBase(FlaskInputAdapterTestBase):
     def setup_method(self):
         super().setup_method()
         self.mock_comment_service = Mock(spec=CommentManagementPort, autospec=True)
+        self.mock_comment_service.check_rate_limit.return_value = None
         self.adapter = CommentAdapter(comment_service=self.mock_comment_service)
 
         self.app.add_url_rule(
@@ -100,6 +101,7 @@ class TestCommentCreate(CommentAdapterTestBase):
         user = create_test_account(account_id=999)
         self.set_current_user(user)
         self.mock_comment_service.create_comment.return_value = Mock()
+        self.mock_comment_service.check_rate_limit.side_effect = [None, 30]
         self.client.post("/articles/1/comments", data={"content": "First"})
         response = self.client.post("/articles/1/comments", data={"content": "Second"})
         assert response.status_code == 302
@@ -151,6 +153,7 @@ class TestCommentReply(CommentAdapterTestBase):
         user = create_test_account(account_id=888)
         self.set_current_user(user)
         self.mock_comment_service.create_reply.return_value = Mock()
+        self.mock_comment_service.check_rate_limit.side_effect = [None, 30]
         self.client.post("/articles/1/comments/10/reply", data={"content": "First"})
         response = self.client.post("/articles/1/comments/10/reply", data={"content": "Second"})
         assert response.status_code == 302
@@ -224,6 +227,15 @@ class TestCommentEdit(CommentAdapterTestBase):
         assert b"alert-error" in response.data
         self.mock_comment_service.edit_comment.assert_not_called()
 
+    def test_edit_comment_service_error(self):
+        user = create_test_account(account_id=1)
+        self.set_current_user(user)
+        from blog_exceptions import CommentNotFoundError
+        self.mock_comment_service.edit_comment.side_effect = CommentNotFoundError("Comment not found")
+        response = self.client.post("/articles/1/comments/10/edit", data={"content": "Updated"}, follow_redirects=True)
+        assert b"Comment not found" in response.data
+        assert b"alert-error" in response.data
+
 
 class TestCommentHardDelete(CommentAdapterTestBase):
     def test_hard_delete_comment_success(self):
@@ -242,6 +254,13 @@ class TestCommentHardDelete(CommentAdapterTestBase):
         response = self.client.post("/articles/1/comments/99/delete-permanent", follow_redirects=True)
         assert b"You must be signed in to delete comments" in response.data
         assert b"alert-error" in response.data
+        self.mock_comment_service.hard_delete_comment.assert_not_called()
+
+    def test_hard_delete_comment_non_admin_returns_403(self):
+        user = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.set_current_user(user)
+        response = self.client.post("/articles/1/comments/99/delete-permanent")
+        assert response.status_code == 403
         self.mock_comment_service.hard_delete_comment.assert_not_called()
 
     def test_hard_delete_comment_service_error_string(self):

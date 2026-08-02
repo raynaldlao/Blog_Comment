@@ -86,3 +86,20 @@ class TestCommentGetAllByArticleId(SqlAlchemyCommentAdapterTestBase):
         article = self.article_builder.create(author_id=account.account_id)
         results = self.repository.get_all_by_article_id(article.article_id)
         assert results == []
+
+
+class TestCommentGetByAccountId(SqlAlchemyCommentAdapterTestBase):
+    def test_get_by_account_id_returns_comments_for_author(self):
+        account = self.account_builder.create()
+        account2 = self.account_builder.create(username="other", email="other@t.com")
+        article = self.article_builder.create(author_id=account.account_id)
+        self.comment_builder.create(article_id=article.article_id, author_id=account.account_id, content="My comment")
+        self.comment_builder.create(article_id=article.article_id, author_id=account2.account_id, content="Other's comment")
+        results = self.repository.get_by_account_id(account.account_id)
+        assert len(results) == 1
+        assert results[0].comment_content == "My comment"
+
+    def test_get_by_account_id_returns_empty_list_when_no_comments(self):
+        account = self.account_builder.create()
+        results = self.repository.get_by_account_id(account.account_id)
+        assert results == []

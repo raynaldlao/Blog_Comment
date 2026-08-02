@@ -5,29 +5,42 @@ from pathlib import Path
 from flask import Flask, Response
 from flask import request as flask_request
 from flask.sessions import SecureCookieSessionInterface
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_wtf.csrf import CSRFProtect
 
 
 class CSPConfig:
     """Configures Content Security Policy headers and violation reporting.
 
-    Computes the SHA-256 hash of the inline theme script at startup,
-    injects the Content-Security-Policy header into every response,
-    and provides an endpoint for receiving CSP violation reports from
-    the browser.
+    Computes the SHA-256 hash of the inline theme script from base.html
+    in the given template directory at startup, injects the
+    Content-Security-Policy header into every response, and provides
+    an endpoint for receiving CSP violation reports from the browser.
     """
 
-    def __init__(self):
+    def __init__(self, template_dir: str | Path):
+        """
+        Initializes CSP configuration and computes the inline script hash.
+
+        Args:
+            template_dir: Path to the directory containing base.html
+                with the inline theme script. Typically derived from
+                app.root_path.
+        """
+        self._template_dir = Path(template_dir)
         self._script_hash = self._compute_inline_script_hash()
 
-    @staticmethod
-    def _compute_inline_script_hash() -> str:
+    def _compute_inline_script_hash(self) -> str:
         """Reads and hashes the inline theme script from base.html.
+
+        Resolves base.html relative to the template_dir passed at init,
+        avoiding fragile __file__-based paths.
 
         Returns:
             str: The CSP-compatible hash string in ``'sha256-<base64>'`` format.
         """
-        template_path = Path(__file__).parent.parent / "frontend/templates/base.html"
+        template_path = self._template_dir / "base.html"
         content = template_path.read_text()
         start = content.index("<script>") + len("<script>")
         end = content.index("</script>", start)
@@ -51,7 +64,8 @@ class CSPConfig:
         response.headers["Reporting-Endpoints"] = 'csp-endpoint="/csp-report"'
         response.headers["Content-Security-Policy"] = (
             "default-src 'self';"
-            f"script-src 'self' 'unsafe-eval' {self._script_hash};"
+            f"script-src 'self' 'unsafe-eval' 'unsafe-hashes'"
+            f" 'sha256-MhtPZXr7+LpJUY5qtMutB+qWfQtMaPccfe7QXtCcEYc=' {self._script_hash};"
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
             "font-src 'self' https://fonts.gstatic.com;"
             "img-src 'self' data: https:;"
@@ -171,6 +185,37 @@ class NonPersistentSessionInterface(SecureCookieSessionInterface):
         return None
 
 
+def _init_csrf_exemptions(app: Flask) -> None:
+    """Applies CSRF exemptions to API and internal endpoints.
+
+    Must be called AFTER all routes are registered so that
+    ``app.view_functions`` can resolve endpoint names to view
+    functions. Exemptions are defined here (not in routes.py)
+    to keep a single source of truth for endpoints that skip
+    CSRF protection.
+
+    Args:
+        app: The Flask application instance with all routes
+            already registered.
+    """
+    endpoints = [
+        "article.api_get",
+        "article.api_create",
+        "article.api_update",
+        "article.api_delete",
+        "auth.upload_profile_photo",
+        "file.upload_image",
+        "csp.handle_report",
+    ]
+    csrf = app.extensions.get("csrf")
+    if not csrf:
+        return
+    for endpoint in endpoints:
+        view_func = app.view_functions.get(endpoint)
+        if view_func:
+            csrf.exempt(view_func)
+
+
 def init_web_security(app: Flask) -> None:
     """Configures web security middleware for the Flask application.
 
@@ -182,12 +227,42 @@ def init_web_security(app: Flask) -> None:
     """
     app.session_interface = NonPersistentSessionInterface()
     app.config["WTF_CSRF_TIME_LIMIT"] = None
-    csrf_protect = CSRFProtect(app)
-    csp = CSPConfig()
+    CSRFProtect(app)
+    template_dir = Path(app.root_path) / "frontend" / "templates"
+    csp = CSPConfig(template_dir)
     app.after_request(csp.add_headers)
     app.after_request(_add_nosniff)
     app.after_request(_add_x_frame_options)
     app.after_request(_add_referrer_policy)
     app.after_request(_add_cache_headers)
-    csrf_protect.exempt(csp.handle_report)
-    app.add_url_rule("/csp-report", view_func=csp.handle_report, methods=["POST"])
+    app.add_url_rule(
+        "/csp-report", view_func=csp.handle_report,
+        methods=["POST"], endpoint="csp.handle_report",
+    )
+
+
+def init_rate_limiter(app: Flask, enabled: bool = True) -> Limiter:
+    """Initializes IP-based rate limiting for the Flask application.
+
+    Creates an in-memory Limiter instance with no default limits.
+    Per-endpoint limits are applied via the returned instance
+    after route registration. The caller must also store the
+    limiter in ``app.extensions["limiter"]`` to keep it alive
+    when ``enabled=False`` (prevents ``weakref.proxy`` crash).
+
+    Args:
+        app: The Flask application instance to secure.
+        enabled: Whether rate limiting is active. Set to ``False``
+            in test environments.
+
+    Returns:
+        Limiter: A configured Limiter instance for applying
+        per-endpoint rate limits.
+    """
+    return Limiter(
+        app=app,
+        key_func=get_remote_address,
+        default_limits=[],
+        enabled=enabled,
+        storage_uri="memory://",
+    )

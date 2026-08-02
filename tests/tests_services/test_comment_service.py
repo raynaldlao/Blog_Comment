@@ -1,8 +1,10 @@
+import time
 from unittest.mock import MagicMock
 
 import pytest
 
 from blog_exceptions import (
+    AccountBannedError,
     AccountNotFoundError,
     ArticleNotFoundError,
     CommentAuthorizationError,
@@ -72,6 +74,21 @@ class TestCreateComment(CommentServiceTestBase):
         self.mock_article_repo.get_by_id.assert_not_called()
         self.mock_comment_repo.save.assert_not_called()
 
+    def test_create_comment_banned_account_raises_error(self):
+        banned = create_test_account(account_role=AccountRole.USER, is_banned=True)
+        self.mock_account_repo.get_by_id.return_value = banned
+
+        with pytest.raises(AccountBannedError, match="banned"):
+            self.service.create_comment(
+                article_id=1,
+                user_id=banned.account_id,
+                content="Banned user comment"
+            )
+
+        self.mock_account_repo.get_by_id.assert_called_once_with(banned.account_id)
+        self.mock_article_repo.get_by_id.assert_not_called()
+        self.mock_comment_repo.save.assert_not_called()
+
     def test_create_comment_sanitizes_html(self):
         fake_account = create_test_account(account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = fake_account
@@ -91,6 +108,36 @@ class TestCreateComment(CommentServiceTestBase):
             == '<b>bold</b><a href="https://example.com" target="_blank" rel="noopener noreferrer">link</a>'
         )
         assert result is saved_comment
+
+    def test_create_comment_empty_content_raises(self):
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        with pytest.raises(CommentValidationError, match="cannot be empty"):
+            self.service.create_comment(
+                article_id=fake_article.article_id,
+                user_id=fake_account.account_id,
+                content="<script>alert('xss')</script>"
+            )
+
+        self.mock_comment_repo.save.assert_not_called()
+
+    def test_create_comment_content_too_long_raises(self):
+        fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
+        self.mock_account_repo.get_by_id.return_value = fake_account
+        fake_article = create_test_article(article_id=1, article_author_id=2)
+        self.mock_article_repo.get_by_id.return_value = fake_article
+
+        with pytest.raises(CommentValidationError, match="too long"):
+            self.service.create_comment(
+                article_id=fake_article.article_id,
+                user_id=fake_account.account_id,
+                content="x" * 5001
+            )
+
+        self.mock_comment_repo.save.assert_not_called()
 
     def test_create_comment_article_not_found(self):
         fake_account = create_test_account(account_id=1, account_role=AccountRole.USER)
@@ -219,96 +266,10 @@ class TestCreateReply(CommentServiceTestBase):
 
         self.mock_comment_repo.get_by_id.side_effect = mock_get_by_id
 
-        with pytest.raises(CommentValidationError, match="maximum nesting depth"):
+        with pytest.raises(CommentValidationError, match="maximum depth"):
             self.service.create_reply(4, 1, "Too deep reply")
 
         self.mock_comment_repo.save.assert_not_called()
-
-
-class TestGetComments(CommentServiceTestBase):
-    def test_get_comments_for_article_not_found(self):
-        self.mock_article_repo.get_by_id.return_value = None
-
-        with pytest.raises(ArticleNotFoundError, match="not found"):
-            self.service.get_comments_for_article(article_id=999)
-
-        self.mock_article_repo.get_by_id.assert_called_once_with(999)
-        self.mock_comment_repo.get_all_by_article_id.assert_not_called()
-
-    def test_get_comments_for_article_empty(self):
-        fake_article = create_test_article(article_id=1, article_author_id=2)
-        self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_comment_repo.get_all_by_article_id.return_value = []
-        self.mock_account_repo.get_by_ids.return_value = []
-        comments = self.service.get_comments_for_article(article_id=fake_article.article_id)
-        self.mock_article_repo.get_by_id.assert_called_once_with(fake_article.article_id)
-        self.mock_comment_repo.get_all_by_article_id.assert_called_once_with(fake_article.article_id)
-        assert comments == []
-
-    def test_get_comments_for_article_success(self):
-        fake_article = create_test_article(article_id=1, article_author_id=2)
-        self.mock_article_repo.get_by_id.return_value = fake_article
-        root_author_id = 3
-        reply_author_id = 4
-
-        root_comment = create_test_comment(
-            comment_id=10,
-            comment_article_id=fake_article.article_id,
-            comment_written_account_id=root_author_id,
-            comment_reply_to=None,
-            comment_content="First!",
-        )
-
-        reply = create_test_comment(
-            comment_id=15,
-            comment_article_id=fake_article.article_id,
-            comment_written_account_id=reply_author_id,
-            comment_reply_to=root_comment.comment_id,
-            comment_content="Awesome!",
-        )
-
-        self.mock_comment_repo.get_all_by_article_id.return_value = [root_comment, reply]
-
-        self.mock_account_repo.get_by_ids.return_value = [
-            create_test_account(account_id=root_author_id, account_username="Author3"),
-            create_test_account(account_id=reply_author_id, account_username="Author4")
-        ]
-
-        result = self.service.get_comments_for_article(article_id=fake_article.article_id)
-        root_node, = result
-        reply_node, = root_node.replies
-        assert root_node.comment.comment == root_comment
-        assert root_node.comment.author_name == "Author3"
-        assert reply_node.comment.comment == reply
-        assert reply_node.comment.author_name == "Author4"
-
-    def test_get_comments_for_article_ordering(self):
-        from datetime import datetime
-        fake_article = create_test_article(article_id=1, article_author_id=2)
-        self.mock_article_repo.get_by_id.return_value = fake_article
-        self.mock_account_repo.get_by_ids.return_value = []
-        comment_1 = create_test_comment(comment_id=1, comment_posted_at=datetime(2026, 1, 1), comment_reply_to=None)
-        comment_2 = create_test_comment(comment_id=2, comment_posted_at=datetime(2026, 1, 2), comment_reply_to=None)
-        reply_1 = create_test_comment(comment_id=3, comment_posted_at=datetime(2026, 1, 4), comment_reply_to=2)
-        reply_2 = create_test_comment(comment_id=4, comment_posted_at=datetime(2026, 1, 3), comment_reply_to=2)
-        self.mock_comment_repo.get_all_by_article_id.return_value = [comment_1, comment_2, reply_1, reply_2]
-        result = self.service.get_comments_for_article(article_id=1)
-        latest_root, oldest_root = result
-        latest_reply, oldest_reply = result[0].replies
-        assert latest_root.comment.comment.comment_id == comment_2.comment_id
-        assert oldest_root.comment.comment.comment_id == comment_1.comment_id
-        assert latest_reply.comment.comment.comment_id == reply_1.comment_id
-        assert oldest_reply.comment.comment.comment_id == reply_2.comment_id
-
-    def test_get_comments_for_article_unknown_author(self):
-        fake_article = create_test_article(article_id=1, article_author_id=2)
-        self.mock_article_repo.get_by_id.return_value = fake_article
-        comment = create_test_comment(comment_id=1, comment_written_account_id=999, comment_reply_to=None)
-        self.mock_comment_repo.get_all_by_article_id.return_value = [comment]
-        self.mock_account_repo.get_by_ids.return_value = []
-        result = self.service.get_comments_for_article(article_id=1)
-        comment_node, = result
-        assert comment_node.comment.author_name == "Anonymous"
 
 
 class TestDeleteComment(CommentServiceTestBase):
@@ -474,26 +435,12 @@ class TestEditComment(CommentServiceTestBase):
 class TestMaskCommentsByAccountId(CommentServiceTestBase):
     def test_mask_comments_success(self):
         target_id = 5
-        c1 = create_test_comment(comment_id=1, comment_written_account_id=target_id, comment_content="Hello")
-        c2 = create_test_comment(comment_id=2, comment_written_account_id=target_id, comment_content="World")
-        self.mock_comment_repo.get_by_account_id.return_value = [c1, c2]
-
         self.service.mask_comments_by_account_id(target_id)
-
-        self.mock_comment_repo.get_by_account_id.assert_called_once_with(target_id)
-        assert self.mock_comment_repo.save.call_count == 2
-        assert c1.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
-        assert c2.comment_content == "<!--cmt-removed--><em>Comment removed</em>"
-        assert c1.is_deleted is True
-        assert c1.deleted_at is not None
-        assert c1.deleted_by == "account_deleted"
-        assert c2.deleted_by == "account_deleted"
+        self.mock_comment_repo.mask_comments_by_account_id.assert_called_once_with(target_id)
 
     def test_mask_comments_no_comments(self):
-        self.mock_comment_repo.get_by_account_id.return_value = []
         self.service.mask_comments_by_account_id(999)
-        self.mock_comment_repo.get_by_account_id.assert_called_once_with(999)
-        self.mock_comment_repo.save.assert_not_called()
+        self.mock_comment_repo.mask_comments_by_account_id.assert_called_once_with(999)
 
 
 class TestHardDeleteComment(CommentServiceTestBase):
@@ -519,7 +466,7 @@ class TestHardDeleteComment(CommentServiceTestBase):
         user = create_test_account(account_id=1, account_role=AccountRole.USER)
         self.mock_account_repo.get_by_id.return_value = user
 
-        with pytest.raises(CommentAuthorizationError, match="Only admins"):
+        with pytest.raises(CommentAuthorizationError, match="administrators"):
             self.service.hard_delete_comment(comment_id=10, user_id=1)
 
         self.mock_comment_repo.delete.assert_not_called()
@@ -544,7 +491,7 @@ class TestHardDeleteComment(CommentServiceTestBase):
         )
         self.mock_comment_repo.get_by_id.return_value = comment
 
-        with pytest.raises(CommentValidationError, match="not soft-deleted"):
+        with pytest.raises(CommentValidationError, match="not deleted"):
             self.service.hard_delete_comment(comment_id=10, user_id=2)
 
         self.mock_comment_repo.delete.assert_not_called()
@@ -556,3 +503,32 @@ class TestHardDeleteComment(CommentServiceTestBase):
             self.service.hard_delete_comment(comment_id=10, user_id=999)
 
         self.mock_comment_repo.delete.assert_not_called()
+
+
+class TestCheckRateLimit(CommentServiceTestBase):
+    def test_first_comment_allowed(self):
+        self.mock_comment_repo.get_last_comment_timestamp.return_value = None
+        result = self.service.check_rate_limit(user_id=1)
+        assert result is None
+
+    def test_second_comment_within_interval_blocked(self):
+        self.mock_comment_repo.get_last_comment_timestamp.side_effect = [
+            None,
+            time.time(),
+        ]
+        self.service.check_rate_limit(user_id=1)
+        result = self.service.check_rate_limit(user_id=1)
+        assert result is not None
+        assert isinstance(result, int)
+        assert result > 0
+
+    def test_different_users_independent(self):
+        self.mock_comment_repo.get_last_comment_timestamp.side_effect = [
+            None,
+            time.time(),
+            None,
+        ]
+        self.service.check_rate_limit(user_id=1)
+        self.service.check_rate_limit(user_id=1)
+        result = self.service.check_rate_limit(user_id=2)
+        assert result is None

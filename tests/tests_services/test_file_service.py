@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 from blog_exceptions import FileTooLargeError, FileTypeError
-from src.application.domain.file_record import FileRecord
+from src.application.domain.uploaded_file import UploadedFile
 from src.application.output_ports.file_storage_repository import FileStorageRepository
 from src.application.services.file_service import FileService
 
@@ -20,7 +20,7 @@ class TestFileService:
         )
 
         self.mock_storage.save.assert_called_once()
-        assert isinstance(result, FileRecord)
+        assert isinstance(result, UploadedFile)
         assert result.original_filename == "photo.jpg"
         assert result.mime_type == "image/jpeg"
         assert result.size == len(b"fake_image_data")
@@ -42,6 +42,16 @@ class TestFileService:
                 filename="notes.txt",
                 data=b"some content",
                 mime_type="text/plain",
+            )
+        self.mock_storage.save.assert_not_called()
+
+    def test_upload_file_no_extension_raises_error(self):
+        import pytest
+        with pytest.raises(FileTypeError, match="''"):
+            self.service.upload_file(
+                filename="photo",
+                data=b"fake",
+                mime_type="image/jpeg",
             )
         self.mock_storage.save.assert_not_called()
 
@@ -67,7 +77,7 @@ class TestFileService:
         self.mock_storage.save.assert_not_called()
 
     def test_get_file_found(self):
-        expected = FileRecord(
+        expected = UploadedFile(
             file_id="uuid-789",
             original_filename="found.png",
             mime_type="image/png",

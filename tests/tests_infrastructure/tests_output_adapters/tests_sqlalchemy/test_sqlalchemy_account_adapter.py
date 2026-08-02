@@ -1,6 +1,9 @@
-import pytest
+from unittest.mock import patch
 
-from blog_exceptions import AccountAlreadyExistsError
+import pytest
+from sqlalchemy.exc import IntegrityError
+
+from blog_exceptions import AccountAlreadyExistsError, AccountNotFoundError, DatabaseError
 from src.application.domain.account import AccountRole
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.sqlalchemy_account_adapter import SqlAlchemyAccountAdapter
@@ -121,6 +124,58 @@ class TestAccountSave(SqlAlchemyAccountAdapterTestBase):
         assert result is not None
         assert result.account_id > 0
 
+    def test_save_with_existing_id_not_in_db_creates_new_record(self):
+        account = create_test_account(
+            account_id=99999,
+            account_username="existing_id_user",
+            account_password="pass",
+            account_email="existingid@test.com",
+            account_role=AccountRole.USER,
+        )
+        self.repository.save(account)
+        result = self.repository.find_by_username("existing_id_user")
+        assert result is not None
+        assert result.account_id != 99999
+
+    def test_save_duplicate_username_raises_error(self):
+        self.account_builder.create(username="existing_user", email="unique@test.com")
+        dup = create_test_account(
+            account_id=0,
+            account_username="existing_user",
+            account_password="pass",
+            account_email="other@test.com",
+            account_role=AccountRole.USER,
+        )
+        with pytest.raises(AccountAlreadyExistsError, match="This username is already taken."):
+            self.repository.save(dup)
+
+    def test_save_duplicate_email_raises_error(self):
+        self.account_builder.create(username="first_user", email="dupe@test.com")
+        dup = create_test_account(
+            account_id=0,
+            account_username="second_user",
+            account_password="pass",
+            account_email="dupe@test.com",
+            account_role=AccountRole.USER,
+        )
+        with pytest.raises(AccountAlreadyExistsError, match="This email is already taken."):
+            self.repository.save(dup)
+
+    def test_save_unexpected_constraint_raises_catchall_error(self):
+        from unittest.mock import MagicMock
+        account = create_test_account(
+            account_id=0,
+            account_username="new_user",
+            account_password="pass",
+            account_email="new@test.com",
+            account_role=AccountRole.USER,
+        )
+        mock_orig = MagicMock()
+        mock_orig.diag.constraint_name = "unexpected_constraint"
+        with patch.object(self.repository._session, "commit", side_effect=IntegrityError("mock", "mock", mock_orig)):
+            with pytest.raises(AccountAlreadyExistsError, match="Could not create account."):
+                self.repository.save(account)
+
 
 class TestAccountUpdateAvatar(SqlAlchemyAccountAdapterTestBase):
     def test_update_avatar_sets_file_id(self):
@@ -153,8 +208,16 @@ class TestAccountUpdateEmail(SqlAlchemyAccountAdapterTestBase):
     def test_update_email_duplicate_raises_error(self):
         self.account_builder.create(username="first", email="first@test.com")
         second = self.account_builder.create(username="second", email="second@test.com")
-        with pytest.raises(AccountAlreadyExistsError, match="This email is already taken."):
+        with pytest.raises(AccountAlreadyExistsError, match="This username or email is already taken."):
             self.repository.update_email(second.account_id, "first@test.com")
+
+    def test_update_email_unexpected_integrity_error_raises_database_error(self):
+        from unittest.mock import MagicMock
+        mock_orig = MagicMock()
+        mock_orig.diag.constraint_name = "some_other_constraint"
+        with patch.object(self.repository._session, "commit", side_effect=IntegrityError("mock", "mock", mock_orig)):
+            with pytest.raises(DatabaseError, match="Unexpected database constraint violation."):
+                self.repository.update_email(1, "any@test.com")
 
 
 class TestAccountUpdatePassword(SqlAlchemyAccountAdapterTestBase):
@@ -227,6 +290,18 @@ class TestAccountSearch(SqlAlchemyAccountAdapterTestBase):
         assert self.repository.count_search("alice") == 1
         assert self.repository.count_search("@t.com") == 2
         assert self.repository.count_search("zzz") == 0
+
+
+class TestAccountDelete(SqlAlchemyAccountAdapterTestBase):
+    def test_delete_removes_account(self):
+        account = self.account_builder.create(username="delete_me")
+        self.repository.delete(account.account_id)
+        result = self.repository.get_by_id(account.account_id)
+        assert result is None
+
+    def test_delete_nonexistent_raises_not_found(self):
+        with pytest.raises(AccountNotFoundError, match="Account with id 99999 not found."):
+            self.repository.delete(99999)
 
 
 class TestAccountUpdateBanStatus(SqlAlchemyAccountAdapterTestBase):

@@ -4,6 +4,7 @@ from sqlalchemy import (
     TIMESTAMP,
     Boolean,
     ForeignKey,
+    Index,
     Integer,
     String,
     func,
@@ -22,7 +23,12 @@ class CommentModel(SqlAlchemyModel):
     """
 
     __tablename__ = "comments"
-    __table_args__ = {"extend_existing": True}
+    __table_args__ = (
+        Index("idx_comments_article_id", "comment_article_id"),
+        Index("idx_comments_account_id", "comment_written_account_id"),
+        Index("idx_comments_posted_at", "comment_posted_at"),
+        {"extend_existing": True},
+    )
 
     comment_id: Mapped[int] = mapped_column(
         name="comment_id", type_=Integer, primary_key=True, autoincrement=True

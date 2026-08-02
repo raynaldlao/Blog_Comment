@@ -3,6 +3,7 @@ from io import BytesIO
 
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_account_model import AccountModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_article_model import ArticleModel
+from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_comment_model import CommentModel
 from src.infrastructure.output_adapters.sqlalchemy.models.sqlalchemy_uploaded_file_model import UploadedFileModel
 
 
@@ -30,7 +31,7 @@ class TestRegistration:
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"already taken" in response_uname.data.lower()
+        assert "already taken" in response_uname.text
 
         response_email = client.post("/register", data={
             "username": "new_user",
@@ -39,7 +40,7 @@ class TestRegistration:
             "confirm_password": "Str0ng!Pass"
         }, follow_redirects=True)
 
-        assert b"already taken" in response_email.data.lower()
+        assert "already taken" in response_email.text
 
 class TestProfile:
     """Grouped tests for profile management and session persistence."""
@@ -209,7 +210,7 @@ class TestConcurrency:
         assert count == 1
         success_count = 0
         for _, r in enumerate(results):
-            is_success = r.status_code in [200, 302] and b"already taken" not in r.data.lower()
+            is_success = r.status_code in [200, 302] and "already taken" not in r.text
             if is_success:
                 success_count += 1
 
@@ -252,3 +253,125 @@ class TestAdminUserList:
         assert b"user_24" in r2.data
         assert b"user_0" not in r2.data
         assert b"page-link-num" in r2.data
+
+
+class TestAccountDelete:
+    """Tests for account deletion cascade (self and admin)."""
+
+    def test_user_self_delete_cascade_integ(self, client, db_session):
+        avatar = UploadedFileModel(
+            file_id="00000000-0000-0000-0000-000000000001", original_filename="avatar.jpg",
+            mime_type="image/jpeg", file_size=100, file_data=b"img",
+        )
+        user = AccountModel(
+            account_username="self_del_user", account_email="sdu@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+            avatar_file_id="00000000-0000-0000-0000-000000000001",
+        )
+        other_user = AccountModel(
+            account_username="other_user", account_email="ou@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add_all([avatar, user, other_user])
+        db_session.commit()
+        uid = user.account_id
+        oid = other_user.account_id
+
+        article = ArticleModel(article_title="My Post", article_content="...", article_author_id=uid)
+        db_session.add(article)
+        db_session.commit()
+        aid = article.article_id
+
+        comment = CommentModel(comment_content="Hello", comment_written_account_id=uid, comment_article_id=aid)
+        comment2 = CommentModel(comment_content="Second", comment_written_account_id=uid, comment_article_id=aid)
+        other_comment = CommentModel(comment_content="Other user", comment_written_account_id=oid, comment_article_id=aid)
+        db_session.add_all([comment, comment2, other_comment])
+        db_session.commit()
+        cid = comment.comment_id
+        cid2 = comment2.comment_id
+
+        client.post("/login", data={"username": "self_del_user", "password": "Str0ng!Pass"}, follow_redirects=True)
+
+        resp = client.post("/account/delete", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Account deleted" in resp.data
+
+        db_session.expire_all()
+        assert db_session.get(AccountModel, uid) is None
+        assert db_session.get(UploadedFileModel, "00000000-0000-0000-0000-000000000001") is None
+        article_after = db_session.get(ArticleModel, aid)
+        assert article_after is not None
+        assert article_after.article_author_id is None
+        for cid_i in [cid, cid2]:
+            masked = db_session.get(CommentModel, cid_i)
+            assert masked is not None
+            assert masked.is_deleted is True
+            assert masked.comment_written_account_id is None
+            assert masked.deleted_by == "account_deleted"
+            assert masked.deleted_at is not None
+            assert "Comment removed" in masked.comment_content
+        other = db_session.get(CommentModel, other_comment.comment_id)
+        assert other is not None
+        assert other.is_deleted is False
+        assert other.comment_content == "Other user"
+
+    def test_admin_delete_user_cascade_integ(self, client, db_session):
+        avatar = UploadedFileModel(
+            file_id="00000000-0000-0000-0000-000000000002", original_filename="avatar.jpg",
+            mime_type="image/jpeg", file_size=100, file_data=b"img",
+        )
+        target = AccountModel(
+            account_username="target_user", account_email="tu@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+            avatar_file_id="00000000-0000-0000-0000-000000000002",
+        )
+        admin = AccountModel(
+            account_username="admin_del", account_email="ad@t.com",
+            account_password="Str0ng!Pass", account_role="admin",
+        )
+        other_user = AccountModel(
+            account_username="other_user2", account_email="ou2@t.com",
+            account_password="Str0ng!Pass", account_role="user",
+        )
+        db_session.add_all([avatar, target, admin, other_user])
+        db_session.commit()
+        tid = target.account_id
+        oid = other_user.account_id
+
+        article = ArticleModel(article_title="Target Article", article_content="...", article_author_id=tid)
+        db_session.add(article)
+        db_session.commit()
+        aid = article.article_id
+
+        comment = CommentModel(comment_content="Bye", comment_written_account_id=tid, comment_article_id=aid)
+        comment2 = CommentModel(comment_content="Another", comment_written_account_id=tid, comment_article_id=aid)
+        other_comment = CommentModel(comment_content="Not deleted", comment_written_account_id=oid, comment_article_id=aid)
+        db_session.add_all([comment, comment2, other_comment])
+        db_session.commit()
+        cid = comment.comment_id
+        cid2 = comment2.comment_id
+
+        client.post("/login", data={"username": "admin_del", "password": "Str0ng!Pass"}, follow_redirects=True)
+
+        resp = client.post(f"/admin/users/{tid}/delete", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Account deleted" in resp.data
+
+        db_session.expire_all()
+        assert db_session.get(AccountModel, tid) is None
+        assert db_session.get(UploadedFileModel, "00000000-0000-0000-0000-000000000002") is None
+        article_after = db_session.get(ArticleModel, aid)
+        assert article_after is not None
+        assert article_after.article_author_id is None
+        for cid_i in [cid, cid2]:
+            masked = db_session.get(CommentModel, cid_i)
+            assert masked is not None
+            assert masked.is_deleted is True
+            assert masked.comment_written_account_id is None
+            assert masked.deleted_by == "account_deleted"
+            assert masked.deleted_at is not None
+            assert "Comment removed" in masked.comment_content
+        other = db_session.get(CommentModel, other_comment.comment_id)
+        assert other is not None
+        assert other.is_deleted is False
+        assert other.comment_content == "Not deleted"

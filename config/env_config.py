@@ -128,5 +128,25 @@ class EnvConfig:
         """
         return int(self._get_env("TEST_ARGON2_PARALLELISM"))
 
+    @property
+    def flask_env(self) -> str:
+        """
+        Retrieves the Flask environment (production/test/development).
+
+        Returns:
+            str: The Flask environment name. Defaults to "development".
+        """
+        return os.getenv("FLASK_ENV", "development")
+
+    @property
+    def flask_debug(self) -> bool:
+        """
+        Retrieves the Flask debug mode from environment.
+
+        Returns:
+            bool: True if FLASK_DEBUG is "true" (case-insensitive). Defaults to False.
+        """
+        return os.getenv("FLASK_DEBUG", "false").lower() == "true"
+
 
 env_config = EnvConfig()

@@ -1,5 +1,6 @@
 import re
 
+from flask_babel import gettext as _
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from blog_exceptions import PasswordsDoNotMatchError, WeakPasswordError
@@ -50,11 +51,11 @@ class RegistrationRequest(BaseModel):
             WeakPasswordError: If any strength requirement is not met.
         """
         if not re.search(r"[a-z]", v):
-            raise WeakPasswordError("Password must contain at least one lowercase letter.")
+            raise WeakPasswordError(_("Password must contain at least one lowercase letter."))
         if not re.search(r"[A-Z]", v):
-            raise WeakPasswordError("Password must contain at least one uppercase letter.")
+            raise WeakPasswordError(_("Password must contain at least one uppercase letter."))
         if not re.search(r"[^a-zA-Z0-9]", v):
-            raise WeakPasswordError("Password must contain at least one special character.")
+            raise WeakPasswordError(_("Password must contain at least one special character."))
         return v
 
     @model_validator(mode="after")
@@ -69,5 +70,5 @@ class RegistrationRequest(BaseModel):
             PasswordsDoNotMatchError: If 'password' and 'confirm_password' do not match.
         """
         if self.password != self.confirm_password:
-            raise PasswordsDoNotMatchError("Passwords do not match.")
+            raise PasswordsDoNotMatchError(_("Passwords do not match."))
         return self

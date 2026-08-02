@@ -164,25 +164,24 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         """
         Updates the avatar_file_id for the given account directly in the database.
 
-        Performs a targeted column update without loading or saving the full
-        Account entity, keeping the responsibility focused and avoiding
-        accidental overwrites of other fields.
+        Uses a targeted UPDATE query without loading the full Account entity,
+        keeping the responsibility focused and avoiding accidental overwrites
+        of other fields.
 
         Args:
             account_id: The ID of the account to update.
             avatar_file_id: The new avatar file UUID, or None to remove.
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.avatar_file_id = avatar_file_id
+        self._session.query(AccountModel).filter_by(account_id=account_id).update(
+            {"avatar_file_id": avatar_file_id}
+        )
         self._db_commit()
 
     def update_email(self, account_id: int, new_email: str) -> None:
         """
         Updates the email address for the given account directly in the database.
 
-        Performs a targeted column update and commits the transaction.
+        Uses a targeted UPDATE query, then commits the transaction.
         Catches unique constraint violations and re-raises as a domain exception.
 
         Args:
@@ -195,85 +194,82 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
             DatabaseError: If an unexpected constraint violation or DB
                 error occurs.
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.account_email = new_email
         try:
+            self._session.query(AccountModel).filter_by(account_id=account_id).update(
+                {"account_email": new_email}
+            )
             self._db_commit()
         # SQLAlchemy library exception — caught to translate to domain exception.
         # Not in blog_exceptions.py. Do not move it there.
         except IntegrityError as e:
+            self._session.rollback()
             constraint_name = cast(UniqueViolation, e.orig).diag.constraint_name if e.orig else None
             if constraint_name == "accounts_account_email_key":
-                raise AccountAlreadyExistsError("This email is already taken.") from None
+                raise AccountAlreadyExistsError("This username or email is already taken.") from None
             raise DatabaseError("Unexpected database constraint violation.") from e
 
     def update_password(self, account_id: int, new_hashed_password: str) -> None:
         """
         Updates the password hash for the given account directly in the database.
 
-        Performs a targeted column update and commits the transaction.
+        Uses a targeted UPDATE query to set the new Argon2 hash without
+        loading the full Account entity.
 
         Args:
             account_id: The ID of the account to update.
             new_hashed_password: The new Argon2 hash to store.
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.account_password = new_hashed_password
+        self._session.query(AccountModel).filter_by(account_id=account_id).update(
+            {"account_password": new_hashed_password}
+        )
         self._db_commit()
 
     def update_session_token(self, account_id: int, token: str | None) -> None:
         """
         Updates the session token for the given account directly in the database.
 
-        Performs a targeted column update without loading or saving the full
-        Account entity.
+        Uses a targeted UPDATE query without loading the full Account entity.
 
         Args:
             account_id: The ID of the account to update.
             token: The new session token, or None to clear.
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.session_token = token
+        self._session.query(AccountModel).filter_by(account_id=account_id).update(
+            {"session_token": token}
+        )
         self._db_commit()
 
     def update_ban_status(self, account_id: int, is_banned: bool, ban_reason: str | None) -> None:
         """
         Sets or clears the ban status for the given account directly in the database.
 
-        Performs a targeted column update without loading or saving the full
-        Account entity, keeping the responsibility focused and avoiding
-        accidental overwrites of other fields.
+        Uses a targeted UPDATE query without loading the full Account entity,
+        keeping the responsibility focused and avoiding accidental overwrites
+        of other fields.
 
         Args:
             account_id: The ID of the account to update.
             is_banned: True to ban, False to unban.
             ban_reason: Optional reason for the ban, or None to clear.
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.is_banned = is_banned
-        model.ban_reason = ban_reason
+        self._session.query(AccountModel).filter_by(account_id=account_id).update(
+            {"is_banned": is_banned, "ban_reason": ban_reason}
+        )
         self._db_commit()
 
     def update_role(self, account_id: int, new_role: str) -> None:
         """
         Updates the role for the given account directly in the database.
 
+        Uses a targeted UPDATE query without loading the full Account entity.
+
         Args:
             account_id: The ID of the account to update.
             new_role: The new role string ("user" or "author").
         """
-        model = self._db_get(AccountModel, account_id)
-        if model is None:
-            return
-        model.account_role = new_role
+        self._session.query(AccountModel).filter_by(account_id=account_id).update(
+            {"account_role": new_role}
+        )
         self._db_commit()
 
     def get_all(self) -> list[Account]:
@@ -371,8 +367,8 @@ class SqlAlchemyAccountAdapter(SqlAlchemyBaseAdapter, AccountRepository):
         """
         Deletes an account by its unique identifier.
 
-        The database will apply ON DELETE SET NULL for articles authored
-        by this account and ON DELETE CASCADE for their comments.
+        The database will apply ON DELETE SET NULL for articles and
+        comments authored by this account.
 
         Args:
             account_id (int): The unique identifier of the account to delete.
